@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 40/40 fixed-kernel batch64 evaluations with zero training; direction matching stayed 0/20, both predictions passed, and scientific closeout plus verification were committed.

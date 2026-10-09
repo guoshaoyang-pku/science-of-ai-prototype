@@ -1,0 +1,23 @@
+{
+  "direction": "A", "iteration": 1, "domain": "development",
+  "question": "Does the offset-dependent centered-fit improvement require head weight growth?",
+  "datasets": ["mvar_02036a", "mvar_071e42", "mvar_0852dd"],
+  "means": [-3, 0, 3],
+  "interventions": ["frozen_head", "frozen_head_weight"],
+  "optimizers": {"SGD": 0.001, "Adam": 0.00003},
+  "seeds": [0,1,2,3,4,5,6,7,8,9],
+  "recipe": {"input_dim": 8,"width": 192,"depth": 3,"activation": "gelu",
+             "layer_norm": [false,true,false],"residual": false,
+             "weight_decay": 0.0001,"steps": 256,"batch_size": 64},
+  "predictions": [
+    {"id": "head_weight_needed", "prediction": "Freezing head weight attenuates the negative SGD symmetric centered-error chord gap by at least 50 percent relative to the saved fully trainable baseline.",
+     "test": "per-function centered chord gap at offsets -3,0,+3; fails if a function retains more than 50 percent of baseline benefit"},
+    {"id": "hidden_can_fit_constant", "prediction": "With frozen full head, hidden adaptation can still remove most mean error: mean final residual squared below 0.5 for SGD at nonzero offsets.",
+     "test": "per-function/offset mean of squared final mean residual; fails at value >=0.5"}
+  ],
+  "alternatives": ["Hidden feature learning alone is sufficient with the head held fixed",
+                   "Head growth and hidden updates jointly amplify the constant-residual gradient",
+                   "Bias-only fitting removes the initiating residual before useful hidden learning"],
+  "statistics": "Fixed function/split is the unit; seeds measure paired within-condition uncertainty. Retain finite high-loss runs. No new OOD or solver score claim.",
+  "baselines": "Reuse sources/e16 and sources/e17, never rerun their saved successes"
+}

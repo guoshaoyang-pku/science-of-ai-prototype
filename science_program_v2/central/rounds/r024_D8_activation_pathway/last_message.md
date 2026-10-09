@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed and committed 216 near-root activation measurements with zero training; all three predictions passed, the mixed-law error was ≤0.1193%, and prior evidence was preserved.

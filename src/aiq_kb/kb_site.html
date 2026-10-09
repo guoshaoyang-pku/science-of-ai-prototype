@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Science of AI · KB 科学循环</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#111827;--mute:#6b7280;--line:#e5e7eb;--luna:#2563eb;--qwen:#ea580c;--opus:#7c3aed;--green:#059669;--red:#dc2626}
+*{box-sizing:border-box}body{margin:0;font:14px/1.6 -apple-system,"PingFang SC","Noto Sans SC",sans-serif;background:var(--bg);color:var(--ink)}
+.hero{background:linear-gradient(120deg,#0f172a,#1e3a8a 60%,#4c1d95);color:#fff;padding:22px 36px}
+.hero h1{margin:0;font-size:24px}
+nav.top{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:8px 36px;display:flex;gap:18px}
+nav.top a{color:#374151;text-decoration:none;font-weight:600}nav.top a:hover{color:var(--luna)}
+section{max-width:1240px;margin:0 auto;padding:10px 36px}
+h2{font-size:18px;margin:26px 0 8px;display:flex;align-items:center;gap:8px}
+h2 .ico{width:26px;height:26px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.card h3{margin:0 0 4px;font-size:15px}.card .sub{color:var(--mute);font-size:12px;margin-bottom:6px}
+svg text{font-family:inherit}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:#374151;margin-top:4px}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:5px;border-radius:2px}
+table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}th{color:var(--mute);font-weight:600;background:#fafafa}
+.pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;background:#eef2ff;color:#3730a3;margin-right:4px}
+.pos{color:var(--green);font-weight:600}.neg{color:var(--red);font-weight:600}
+.runs{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:14px}
+.run{border-left:5px solid var(--luna)}.run a.btn{display:inline-block;margin-top:8px;background:#111827;color:#fff;text-decoration:none;padding:5px 12px;border-radius:8px;font-size:13px}
+.run .muted{color:var(--mute);font-size:13px}
+#history{scroll-margin-top:48px}#runs{display:block;scroll-margin-top:48px}
+#runarchive{margin-top:16px}#runarchive>summary{cursor:pointer;font-weight:600;padding:8px 0}#archivecards{margin-top:8px}
+#runcards{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:760px){#runcards{grid-template-columns:1fr}.runs,.grid{grid-template-columns:1fr}section{padding:10px 18px}nav.top{padding:8px 18px;gap:14px;flex-wrap:wrap}.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.step{min-width:0;overflow-wrap:anywhere}}
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.step{border-radius:12px;padding:12px;background:#fff;border:1px solid var(--line);position:relative}
+.step .n{width:30px;height:30px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;margin-bottom:6px}
+.note{color:var(--mute);font-size:12px}
+.tip{position:fixed;pointer-events:none;background:#111827;color:#fff;font-size:12px;padding:6px 8px;border-radius:6px;display:none;z-index:9;max-width:320px}
+footer{color:var(--mute);font-size:12px;text-align:center;padding:30px}
+</style>
+</head>
+<body>
+<div class="hero">
+ <h1>Science of AI · KB 科学循环</h1>
+</div>
+<nav class="top"><a href="#flow">流程</a><a href="#history">实验</a><a href="#charts">指标</a><a href="#early-results">早期结果</a><a href="#findings">结论</a></nav>
+
+<section id="flow">
+  <h2><span class="ico" style="background:#0f172a">⟳</span>Luna / Qwen 的早期循环结构</h2>
+ <div class="flow">
+  <div class="step"><div class="n" style="background:#2563eb">1</div><b>解题</b><div class="note">只看题目 + 只读 KB（上一轮快照中可信度前 40 条 + 最新 10 条）。不给工具，effort=low。输出答案和引用的条目。</div></div>
+  <div class="step"><div class="n" style="background:#d97706">2</div><b>发现</b><div class="note">同一会话续写：揭示答案与得分。可查前序轮次的历史、跑 python 沙箱回测。答对 low（可跳过），答错 medium。写评论和假说。</div></div>
+  <div class="step"><div class="n" style="background:#7c3aed">3</div><b>总结</b><div class="note">每轮结束，effort=xhigh。读本轮全部记录，回测后对 KB 做新增 / 合并 / 改写 / 删除，并写科学总结。</div></div>
+  <div class="step"><div class="n" style="background:#059669">4</div><b>KB 快照</b><div class="note">被引用的条目按得分记胜负（胜 += 得分，负 += 1 − 得分），加上总结者的结构操作，形成下一轮的 KB。</div></div>
+ </div>
+</section>
+
+<section id="history">
+ <span id="runs"></span>
+ <h2><span class="ico" style="background:#7c3aed">🗂</span>建议先看这四条</h2>
+ <p class="note">两条 Sol 解题线，加上历史 Luna 主实验与 Qwen3.8-Max 同题对照。下方链接直达代表轮次的 KB 变化；每条实验保留逐题解题、发现和总结记录。</p>
+ <p class="note">新研究线：<a href="v2/index.html">science_program_v2 · 公式与受控测量报告</a>。</p>
+ <div class="runs" id="runcards"></div>
+ <details id="runarchive"><summary>其余实验与诊断</summary><div class="runs" id="archivecards"></div></details>
+</section>
+
+<section id="charts">
+ <h2><span class="ico" style="background:#2563eb">📈</span>各模型在 KB 下的指标</h2>
+ <div class="grid">
+  <div class="card"><h3>同一 40 题评测集：各 KB 版本得分</h3><div id="c_abs"></div><div class="legend" id="l_abs"></div></div>
+  <div class="card"><h3>相对不带 KB 的提升（逐题配对，百分点）</h3><div id="c_delta"></div><div class="legend" id="l_delta"></div></div>
+  <div class="card"><h3>gpt-6-luna 主实验：分题源得分</h3><div id="c_src"></div><div class="legend" id="l_src"></div></div>
+  <div class="card"><h3>训练流：每轮 15 道新题的均分</h3><div id="c_train"></div><div class="legend" id="l_train"></div></div>
+  <div class="card"><h3>gpt-6-luna 主实验：KB 规模与总结者操作</h3><div id="c_ops"></div><div class="legend" id="l_ops"></div></div>
+  <div class="card"><h3>各模型评测汇总</h3><div id="t_sum"></div></div>
+ </div>
+</section>
+
+<section id="early-results">
+ <h2><span class="ico" style="background:#ea580c">⏱</span>早期结果</h2>
+ <div class="grid">
+  <div class="card"><h3>早期循环：Qwen3.8-Max + 规则式更新</h3><div id="c_early"></div></div>
+  <div class="card"><h3>KB 渲染方式消融</h3><div id="c_abl"></div></div>
+ </div>
+</section>
+
+<section id="findings">
+ <h2><span class="ico" style="background:#059669">✓</span>10月3日阶段结论</h2>
+ <div class="card">
+  <ul>
+   <li><b>闭环已跑通：</b>解题 → 发现 → 总结 → commit 全自动；gpt-6-luna 主实验 12 轮共 180 条解题与发现轨迹、69 条假说、244 条 commit、12 份科学总结。</li>
+   <li><b>有提升但不稳：</b>gpt-6-luna 第 8 轮 KB 比不带 KB 高约 7.5 个百分点（±4.4），之后回落到接近种子 KB。单次评测噪声约 ±5 个百分点，必须重复采样。</li>
+   <li><b>提升主要来自筛选，不是新科学：</b>第 8 轮解题者看到的 50 条里有 26 条是新进入视野的种子条目，新增条目只占 3 条；评测中 361 次引用只有 8 次指向新增条目。最可靠的条目（胜负证据 ≥4 且可信度 ≥0.6 的 14 条）全部来自种子 KB。</li>
+   <li><b>总结者擅长证伪，不擅长深化：</b>它删掉了说得过宽的条目（如“平滑激活在回归上更快”，最终 0.75 胜 5.9 负），并把绝对说法改成带条件的；但新增条目多为窄范围经验，没有提出新机制。</li>
+   <li><b>下一步：</b>在发现阶段允许 CPU 上的小规模 torch 实验，要求每条机制性规律附可复现的最小实验；门控版（快照择优 + 回滚 + 独立测试集）已实现，待有预算后运行。</li>
+  </ul>
+ </div>
+</section>
+<footer id="foot"></footer>
+<div class="tip" id="tip"></div>
+<script>
+const D = /*__DATA__*/null;
+const $ = id => document.getElementById(id);
+const COLORS = {"gpt-6-luna": "#2563eb", "qwen3.8-max-0902": "#ea580c", "claude-opus-5-5": "#7c3aed"};
+const SRC_C = {arch170: "#0d9488", ranking_v2: "#2563eb", ranking_v3: "#7c3aed", dataflip500: "#ea580c"};
+const SRC_N = {arch170: "仅架构题", ranking_v2: "排序 v2", ranking_v3: "排序 v3", dataflip500: "dataflip"};
+const OP_C = {add: "#059669", merge: "#2563eb", revise: "#d97706", delete: "#dc2626", adjust: "#6b7280", rollback: "#111827"};
+const OP_N = {add: "新增", merge: "合并", revise: "改写", delete: "删除", adjust: "调整计数", rollback: "回滚"};
+const runBy = Object.fromEntries(D.runs.map(r => [r.name, r]));
+const tip = $("tip");
+function showTip(e, t) { tip.style.display = "block"; tip.innerHTML = t; tip.style.left = (e.clientX + 12) + "px"; tip.style.top = (e.clientY + 12) + "px"; }
+function hideTip() { tip.style.display = "none"; }
+
+/* generic chart: series [{name,color,dash,pts:[{x,y,lo,hi,tip}]}] */
+function chart(el, series, o = {}) {
+  const W = o.w || 560, H = o.h || 260, m = {l: 46, r: o.right ? 46 : 14, t: 12, b: 34};
+  const all = series.flatMap(s => s.pts || []).concat(series.filter(s => s.hline != null).map(s => ({y: s.hline})));
+  const xs = o.xs || [...new Set(all.filter(p => p.x != null).map(p => p.x))].sort((a, b) => a - b);
+  let ymin = o.ymin ?? (all.length ? Math.min(...all.map(p => p.lo ?? p.y)) : 0), ymax = o.ymax ?? (all.length ? Math.max(...all.map(p => p.hi ?? p.y)) : 1);
+  if (o.zero) { ymin = Math.min(ymin, 0); ymax = Math.max(ymax, 0); }
+  const pad = (ymax - ymin) * 0.08 || 0.05; ymin -= o.ymin != null ? 0 : pad; ymax += o.ymax != null ? 0 : pad;
+  const inset = o.bars ? (W - m.l - m.r) / xs.length / 2 : 8;
+  const X = x => m.l + inset + (xs.length > 1 ? (xs.indexOf(x) / (xs.length - 1)) : 0.5) * (W - m.l - m.r - 2 * inset);
+  const Y = y => H - m.b - (y - ymin) / (ymax - ymin) * (H - m.t - m.b);
+  let g = "";
+  const ticks = 5;
+  for (let i = 0; i <= ticks; i++) {
+    const v = ymin + (ymax - ymin) * i / ticks;
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="#eef0f3"/><text x="${m.l - 6}" y="${Y(v) + 4}" font-size="11" text-anchor="end" fill="#6b7280">${o.fmt ? o.fmt(v) : v.toFixed(2)}</text>`;
+  }
+  if (o.zero) g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(0)}" y2="${Y(0)}" stroke="#9ca3af" stroke-width="1.2"/>`;
+  xs.forEach(x => g += `<text x="${X(x)}" y="${H - m.b + 16}" font-size="11" text-anchor="middle" fill="#6b7280">${o.xl ? o.xl(x) : x}</text>`);
+  if (o.xTitle) g += `<text x="${(W + m.l - m.r) / 2}" y="${H - 4}" font-size="11" text-anchor="middle" fill="#9ca3af">${o.xTitle}</text>`;
+  if (o.bars) {
+    const bw = (W - m.l - m.r) / Math.max(1, xs.length) * 0.55;
+    o.bars.forEach(b => { let acc = 0; b.stack.forEach(s => { const y0 = Y(acc), y1 = Y(acc + s.v); g += `<rect x="${X(b.x) - bw / 2}" y="${y1}" width="${bw}" height="${Math.max(0, y0 - y1)}" fill="${s.c}" opacity=".85" onmousemove="showTip(event,'${s.t}')" onmouseleave="hideTip()"/>`; acc += s.v; }); });
+  }
+  if (o.right) {
+    const R = o.right, rmin = R.min, rmax = R.max, RY = y => H - m.b - (y - rmin) / (rmax - rmin) * (H - m.t - m.b);
+    for (let i = 0; i <= ticks; i++) { const v = rmin + (rmax - rmin) * i / ticks; g += `<text x="${W - m.r + 6}" y="${RY(v) + 4}" font-size="11" fill="#6b7280">${v.toFixed(0)}</text>`; }
+    const pts = R.pts.map(p => `${X(p.x)},${RY(p.y)}`).join(" ");
+    g += `<polyline points="${pts}" fill="none" stroke="${R.color}" stroke-width="2.2"/>` + R.pts.map(p => `<circle cx="${X(p.x)}" cy="${RY(p.y)}" r="3.5" fill="${R.color}" onmousemove="showTip(event,'第 ${p.x} 轮：KB ${p.y} 条')" onmouseleave="hideTip()"/>`).join("");
+  }
+  series.forEach(s => {
+    if (s.hline == null && !s.pts) return;
+    const pts = (s.pts || []).slice().sort((a, b) => xs.indexOf(a.x) - xs.indexOf(b.x));
+    if (s.hline != null) { g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(s.hline)}" y2="${Y(s.hline)}" stroke="${s.color}" stroke-dasharray="6 4" stroke-width="1.6" opacity=".8" onmousemove="showTip(event,'${s.tip}')" onmouseleave="hideTip()"/>`; return; }
+    pts.forEach(p => { if (p.lo != null) g += `<line x1="${X(p.x)}" x2="${X(p.x)}" y1="${Y(p.lo)}" y2="${Y(p.hi)}" stroke="${s.color}" stroke-width="1.2" opacity=".5"/>`; });
+    if (pts.length > 1) g += `<polyline points="${pts.map(p => `${X(p.x)},${Y(p.y)}`).join(" ")}" fill="none" stroke="${s.color}" stroke-width="2.4" ${s.dash ? 'stroke-dasharray="5 4"' : ""}/>`;
+    pts.forEach(p => g += `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="4.2" fill="#fff" stroke="${s.color}" stroke-width="2.2" onmousemove="showTip(event,'${(p.tip || "").replace(/'/g, "")}')" onmouseleave="hideTip()"/>`);
+  });
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg>`;
+}
+const legend = (el, items) => el.innerHTML = items.map(([n, c, d]) => `<span><i style="background:${d ? `repeating-linear-gradient(90deg,${c} 0 5px,transparent 5px 9px)` : c}"></i>${n}</span>`).join("");
+const pct = v => (v * 100).toFixed(1);
+
+/* ---- abs + delta charts (same val set) ---- */
+(() => {
+  const runs = D.runs.filter(r => r.same_val && r.epochs.length >= 2 && r.evals.some(e => e.epoch > 0 && e.n_q >= 30));
+  const sA = [], sD = [], lA = [], lD = [];
+  runs.forEach((r, i) => {
+    const c = r.name === "luna_main" ? COLORS[r.model] : r.name.startsWith("qwen") ? COLORS[r.model] : "#94a3b8";
+    const kb = r.evals.filter(e => e.epoch >= 0), nk = r.evals.find(e => e.label === "nokb");
+    sA.push({color: c, pts: kb.map(e => ({x: e.epoch, y: e.mean, lo: e.mean - e.se, hi: e.mean + e.se, tip: `${r.title}<br>${e.label}：${e.mean.toFixed(3)} ± ${e.se.toFixed(3)}<br>${e.n_q} 题 · ${e.samples} 次采样`}))});
+    if (nk) sA.push({color: c, hline: nk.mean, tip: `${r.title} 不带 KB：${nk.mean.toFixed(3)}（${nk.samples} 次采样）`});
+    lA.push([r.title, c], [r.title + " 不带 KB", c, true]);
+    sD.push({color: c, pts: kb.filter(e => e.delta != null).map(e => ({x: e.epoch, y: e.delta * 100, lo: (e.delta - e.delta_se) * 100, hi: (e.delta + e.delta_se) * 100, tip: `${r.title}<br>${e.label}：${e.delta >= 0 ? "+" : ""}${pct(e.delta)} ± ${pct(e.delta_se)} pt`}))});
+    lD.push([r.title, c]);
+  });
+  const xs = [...new Set(runs.flatMap(r => r.evals.filter(e => e.epoch >= 0).map(e => e.epoch)))].sort((a, b) => a - b);
+  chart($("c_abs"), sA, {xs, ymin: 0.25, ymax: 0.55, xTitle: "KB 快照（第几轮之后）", xl: x => x === 0 ? "种子" : x});
+  legend($("l_abs"), lA);
+  chart($("c_delta"), sD, {xs, zero: true, ymin: -16, ymax: 16, fmt: v => v.toFixed(0), xTitle: "KB 快照（第几轮之后）", xl: x => x === 0 ? "种子" : x});
+  legend($("l_delta"), lD);
+})();
+
+/* ---- per source ---- */
+(() => {
+  const r = runBy.luna_main; if (!r) return;
+  const ev = r.evals.slice().sort((a, b) => a.epoch - b.epoch).filter(e => e.samples >= 80 || e.label === "nokb");
+  const srcs = Object.keys(ev[0].by_source);
+  chart($("c_src"), srcs.map(s => ({color: SRC_C[s], pts: ev.map(e => ({x: e.epoch, y: e.by_source[s], tip: `${SRC_N[s]} · ${e.label === "nokb" ? "不带 KB" : e.label}：${e.by_source[s].toFixed(3)}`}))})),
+    {xs: ev.map(e => e.epoch), xl: x => x < 0 ? "无 KB" : x === 0 ? "种子" : x, xTitle: "KB 快照", ymin: 0, ymax: 1});
+  legend($("l_src"), srcs.map(s => [SRC_N[s], SRC_C[s]]));
+})();
+
+/* ---- train stream ---- */
+(() => {
+  const runs = D.runs.filter(r => r.epochs.filter(e => e.mean != null).length >= 2);
+  chart($("c_train"), runs.map(r => ({color: COLORS[r.model] || "#94a3b8", dash: r.name !== "luna_main" && !r.name.startsWith("qwen_6"), pts: r.epochs.filter(e => e.mean != null).map(e => ({x: e.epoch, y: e.mean, tip: `${r.title}<br>第 ${e.epoch} 轮：${e.mean.toFixed(3)}（${e.n} 题，${e.hyp} 条假说）`}))})),
+    {xTitle: "轮次", ymin: 0, ymax: 0.8});
+  legend($("l_train"), runs.map(r => [r.title, COLORS[r.model] || "#94a3b8", r.name !== "luna_main" && !r.name.startsWith("qwen_6")]));
+})();
+
+/* ---- ops ---- */
+(() => {
+  const r = runBy.luna_main; if (!r) return;
+  const ops = ["add", "merge", "revise", "delete", "adjust", "rollback"];
+  const bars = r.epochs.map(e => ({x: e.epoch, stack: ops.filter(o => e.ops[o]).map(o => ({v: e.ops[o], c: OP_C[o], t: `第 ${e.epoch} 轮 ${OP_N[o]} ${e.ops[o]}`}))}));
+  const mx = Math.max(...bars.map(b => b.stack.reduce((a, s) => a + s.v, 0)), 1);
+  const ks = r.epochs.map(e => e.kb_size);
+  chart($("c_ops"), [], {xs: r.epochs.map(e => e.epoch), bars, ymin: 0, ymax: mx * 1.1, fmt: v => v.toFixed(0), xTitle: "轮次",
+    right: {color: "#059669", min: Math.min(...ks) - 10, max: Math.max(...ks, 294) + 6, pts: r.epochs.map(e => ({x: e.epoch, y: e.kb_size}))}});
+  legend($("l_ops"), ops.filter(o => r.epochs.some(e => e.ops[o])).map(o => [OP_N[o], OP_C[o]]).concat([["KB 条目数", "#059669"]]));
+})();
+
+/* ---- summary table ---- */
+(() => {
+  let h = `<table><tr><th>实验</th><th>KB 版本</th><th>题数</th><th>采样</th><th>均分</th><th>相对不带 KB</th></tr>`;
+  D.runs.forEach(r => r.evals.slice().sort((a, b) => a.epoch - b.epoch).forEach((e, i) => {
+    const d = e.delta == null ? "" : `<span class="${e.delta >= 0 ? "pos" : "neg"}">${e.delta >= 0 ? "+" : ""}${pct(e.delta)} ± ${pct(e.delta_se)}</span>`;
+    h += `<tr><td>${i === 0 ? `<b>${r.title}</b>` : ""}</td><td>${e.label === "nokb" ? "不带 KB" : e.label === "kb_0000" ? "种子 KB" : e.label}</td><td>${e.n_q ?? r.eval_n}</td><td>${e.samples ?? "—"}${e.errors ? ` <span class="neg">(失败 ${e.errors})</span>` : ""}</td><td>${e.mean != null ? e.mean.toFixed(3) : "—"}</td><td>${d}</td></tr>`;
+  }));
+  $("t_sum").innerHTML = h + "</table>";
+})();
+
+/* ---- run cards ---- */
+const recommended = ["soa_async_v1", "soa_v3", "luna_main", "qwen_6ep_40eval"];
+const reading = {
+  soa_async_v1: "先看第 5 轮：把使用同一批测量的重复 claim 合并，避免当作独立证据；再看第 15 轮的整理。研究报告保留跨轮更新。",
+  soa_v3: "先看第 9 轮 K1007 + K1015 → K1056：比较原文、合并理由与新规则；再追踪 K1011 的宽度条件如何修正 GRU 优势。",
+  luna_main: "先看第 1 轮的 6 次合并与 11 次删除，再看第 8–12 轮的得分回落与 KB 变化。",
+  qwen_6ep_40eval: "先看第 1 轮的 11 次合并；连续合并保留中间条目，可与 Luna 的第 1 轮比较。"
+};
+function runCard(r, featured = false) {
+  const best = r.evals.filter(e => e.delta != null).sort((a, b) => b.delta - a.delta)[0];
+  const selected = (D.curated || []).find(c => c.name === r.name);
+  const target = r.page + (featured && selected ? `#epoch=${selected.epoch}&view=diff` : "");
+  const complete = r.epochs.filter(e => e.complete).length;
+  const rounds = r.epochs.some(e => e.complete != null) ? `完成 ${complete} 轮${complete < r.epochs.length ? ` · 另有 ${r.epochs.length-complete} 轮未完成记录` : ""}` : `保存 ${r.epochs.length} 轮`;
+  return `<div class="card run" data-run="${r.name}" style="border-left-color:${COLORS[r.model] || "#94a3b8"}"><h3>${r.title}</h3>
+   ${featured ? `<p>${reading[r.name]}</p>` : ""}
+   <div class="note">每轮 ${r.batch} 题 · 评测 ${r.eval_n} 题 · ${rounds}</div>
+   ${r.note ? `<p class="note">${r.note}</p>` : ""}
+   ${best && !featured ? `<div class="note">历史最大提升：${best.label}，${best.delta >= 0 ? "+" : ""}${pct(best.delta)} ± ${pct(best.delta_se)} 个百分点（1 SE）</div>` : ""}
+   ${r.page ? `<a class="btn" href="${target}">查看 KB 变化与解题记录 →</a>` : `<span class="note">无循环数据，不生成详情页</span>`}</div>`;
+}
+const featured = recommended.map(name => runBy[name]).filter(Boolean);
+const archived = D.runs.filter(r => !recommended.includes(r.name));
+$("runcards").innerHTML = featured.map(r => runCard(r, true)).join("");
+$("archivecards").innerHTML = archived.map(r => runCard(r)).join("");
+$("runarchive").hidden = !archived.length;
+if (archived.length) $("runarchive").querySelector("summary").textContent = `其余 ${archived.length} 次实验与诊断`;
+
+/* ---- history ---- */
+(() => {
+  const W = 560, H = 200; let g = "";
+  D.early.forEach(([n, a, b], i) => {
+    const y = 30 + i * 80, X = v => 150 + v * 380;
+    g += `<text x="0" y="${y + 14}" font-size="12" fill="#374151">${n}</text>
+     <rect x="150" y="${y}" width="${a * 380}" height="18" fill="#cbd5e1" rx="3"/><text x="${X(a) + 6}" y="${y + 13}" font-size="11" fill="#6b7280">不带 KB ${a.toFixed(3)}</text>
+     <rect x="150" y="${y + 24}" width="${b * 380}" height="18" fill="#ea580c" rx="3"/><text x="${X(b) + 6}" y="${y + 37}" font-size="11" fill="#9a3412">带 KB ${b.toFixed(3)}（+${((b - a) * 100).toFixed(1)} pt）</text>`;
+  });
+  $("c_early").innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg>`;
+  g = ""; const mx = 17;
+  D.render_abl.forEach(([n, v], i) => {
+    const y = 20 + i * 52, z = 300, X = d => z + d / mx * 170;
+    g += `<text x="0" y="${y + 18}" font-size="12" fill="#374151">${n}</text><rect x="${Math.min(z, X(v))}" y="${y + 4}" width="${Math.abs(X(v) - z)}" height="22" fill="${v >= 0 ? "#059669" : "#dc2626"}" rx="3"/><text x="${v >= 0 ? X(v) + 6 : X(v) - 6}" y="${y + 20}" font-size="12" text-anchor="${v >= 0 ? "start" : "end"}" fill="#111827">${v > 0 ? "+" : ""}${v} pt</text>`;
+  });
+  g += `<line x1="300" x2="300" y1="10" y2="${20 + D.render_abl.length * 52}" stroke="#9ca3af"/>`;
+  $("c_abl").innerHTML = `<svg viewBox="0 0 560 190" width="100%">${g}</svg>`;
+})();
+$("foot").textContent = "生成时间 " + D.built + " · 数据目录由 AIQ_KB_DATA_ROOT 指定 · 重新生成：aiq-kb-site";
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "direction": "A", "iteration": 2, "domain": "preregistered OOD",
+  "source_version": "A02_synthetic_v1",
+  "question": "Do head-independent offset gains and optimizer reversals transfer to new target structures, distributions and architecture?",
+  "functions": ["trigonometric8", "quadratic8", "interaction12", "radial12"],
+  "input_distribution": {"trigonometric8": "uniform[-1,1]^8", "quadratic8": "uniform[-1,1]^8", "interaction12": "Gaussian12", "radial12": "Gaussian12"},
+  "data_seed": 48291, "train_n": 256, "test_n": 256,
+  "normalization": "train target centered and standardized once; same transform applied to test",
+  "recipes": {
+    "LN010_w192": {"width": 192,"depth": 3,"activation": "gelu","layer_norm": [false,true,false],"residual": false,"weight_decay": 0.0001,"steps": 256,"batch_size": 64},
+    "noLN_w64": {"width": 64,"depth": 3,"activation": "gelu","layer_norm": [false,false,false],"residual": false,"weight_decay": 0.0001,"steps": 256,"batch_size": 64}
+  },
+  "means": [-3,0,3], "seeds": [100,101,102,103,104],
+  "interventions": ["baseline","frozen_head","frozen_hidden","matched_bias"],
+  "optimizers": {"SGD": 0.001,"Adam": 0.00003},
+  "predictions": [
+    {"id": "fixed_head_benefit_transfer", "scope": "LN010_w192 all four new functions", "prediction": "SGD centered chord remains negative with frozen_head", "success": "4/4 function means <0; paired seed intervals reported separately"},
+    {"id": "winner_transfer", "scope": "LN010_w192 baseline", "prediction": "Adam wins mean0; SGD wins both nonzero means", "success": "all12 function/offset mean contrasts have predicted sign"},
+    {"id": "translation_transfer", "scope": "all functions and both recipes", "prediction": "matched_bias has endpoint MSE differences <=0.001 versus mean0 within each optimizer/seed", "success": "all functions/recipes satisfy max difference bound"},
+    {"id": "fixed_features_transfer", "scope": "all functions and both recipes under frozen_hidden SGD", "prediction": "endpoint predictions affine in offset to tolerance1e-4, total and centered chord >=-1e-5", "success": "all functions/recipes satisfy tolerance; not claimed for Adam"},
+    {"id": "LN_boundary", "scope": "frozen_head SGD", "prediction": "noLN_w64 offset-centered benefit is less than50% of LN010_w192 magnitude", "success": "all4 functions pass relative magnitude, signed failures retained"}
+  ],
+  "statistics": "4 target structures times2 recipes are8 correlated condition units; five paired seeds only assess within-condition variability. Do not count seeds as new functions.",
+  "solver_evidence": "None. No model calls or new solver evaluation.",
+  "disclosure": "Earlier inherited functions and results are development. Generators and recipes were sealed before any A02 training result. Failure revises scope; subsequent tuning makes this domain development."
+}

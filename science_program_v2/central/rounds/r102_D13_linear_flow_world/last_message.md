@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 1/1 cell; seed22 reference tau_A changed 4.329964%, supporting the preregistered 5% criterion; verification, reports, handoff, and closeout commits are complete.

@@ -1,0 +1,63 @@
+{
+  "study": "r087_epsilon05",
+  "round": 87,
+  "direction": "D11_width_scaling",
+  "domain": "development",
+  "question": "复用r073 trace=1保存loss，将评价阈值epsilon从.02/.01改为未测.05，检验T/(d h_d)对log(20)/2与log(20)的误差边界。",
+  "threshold": 0.05,
+  "dimensions": [
+    8,
+    16,
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024,
+    2048,
+    4096,
+    8192
+  ],
+  "coordinate_seeds": [
+    0,
+    1,
+    2
+  ],
+  "targets": [
+    "middle",
+    "endpoints"
+  ],
+  "optimizer": {
+    "eta": 0.5,
+    "momentum": 0.0,
+    "weight_decay": 0.0,
+    "initial_loss": 0.5
+  },
+  "source_study": "directions/D11_width_scaling/studies/r073_trace_one",
+  "source_summary_sha256": "7c7788991ce587dc936851a75fafbf57f96c5159af7f98ca1591dd877753fa0a4",
+  "source_manifest_sha256": "8217a2a968372e594c075a4399a4e7c2b045ac09b9d02b8c58be14fea52210a4",
+  "input_manifest_sha256": "8217a2a968372e594c075a4399a4e7c2b045ac09b9d02b8c58be14fea52210a4",
+  "pinned_sources": {
+    "executed/run.py": "86a17ad54c5e6c666d6dba9fd39316e86a05f39e65d9f1656fd9d548a5756476",
+    "analysis.py": "6988f941e2fee163f85ba9a70a2195c1266d54639f83848a01f09b879e48c623",
+    "executed/input_manifest.json": "8217a2a968372e594c075a4399a4e7c2b045ac09b9d02b8c58be14fea52210a4"
+  },
+  "criteria": {
+    "middle": 0.03,
+    "endpoints": 0.05,
+    "d_ge_128": 0.003
+  },
+  "predictions": {
+    "P1": "66/66保存loss读取成功；epsilon=.05首次步数由保存loss数组复算，无缺失；0新训练。",
+    "P2": "全网格middle的max |T/(d h_d)/(log(20)/2)-1| <= 0.03，endpoints <= 0.05；d>=128两目标均 <= 0.003。"
+  },
+  "known_before_registration": {
+    "coefficients": {
+      "middle": "log(20)/2=1.4978661367769954",
+      "endpoints": "log(20)=2.995732273553991"
+    },
+    "provenance": "仅注册前的解析系数与输入哈希；评价结果尚未读取。"
+  },
+  "boundaries": "仅固定特征、n=8192、非零样本d、lambda_i=i^-1/h_d、旧目标/坐标seed、float64全批量SGD eta=.5/mom0/nodecay的development只读评价；不连续外推epsilon，不推独立样本、learned width、lazy/rich、OOD；不重跑覆盖r073/r075，不运行r043失效草稿。",
+  "input_manifest": "directions/D11_width_scaling/studies/r087_epsilon05/executed/input_manifest.json"
+}

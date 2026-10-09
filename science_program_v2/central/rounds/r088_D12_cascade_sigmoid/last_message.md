@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | All three saved alpha .25 curves supported both predictions but exceeded .05 maximum error; zero training or fitting, with committed evidence verified.

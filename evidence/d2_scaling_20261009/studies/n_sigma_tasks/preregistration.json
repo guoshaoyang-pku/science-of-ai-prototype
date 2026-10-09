@@ -1,0 +1,135 @@
+{
+  "study": "n_sigma_tasks",
+  "date": "2026-10-09",
+  "domain": "development",
+  "question": "Across regression tasks, does U_rise = c_task n / sigma^2 predict unseen n and noise grid points, and what do train/validation and signal/noise curves do around the minimum?",
+  "data_root_default": "AIQ_KB_DATA",
+  "run_name": "d2_scaling_20261009",
+  "legacy_readonly": "science_program_v2/directions/D2_overfitting_u_curve",
+  "n": [
+    16,
+    24,
+    32,
+    48,
+    64,
+    96,
+    128,
+    256,
+    512,
+    1024
+  ],
+  "sigma2": [
+    0.03125,
+    0.0625,
+    0.125,
+    0.25,
+    0.5,
+    1,
+    2,
+    4,
+    8
+  ],
+  "seeds": [
+    6101,
+    6102,
+    6103
+  ],
+  "validation_rows": 2048,
+  "width": 128,
+  "eta": 0.3,
+  "max_steps": 262144,
+  "time_grid": "All integer steps 0..256 plus 4096 logarithmic points to max_steps; refine each interior minimum between neighboring points and save the exact integer step in the curve.",
+  "optimizer": "Full-batch gradient descent of per-output MSE, factor 2, zero linear head, fixed ReLU features, no momentum or decay. U=eta*t.",
+  "protocols": {
+    "d4_homogeneous": {
+      "input_dim": 4,
+      "hidden_bias": false,
+      "tasks": [
+        "linear",
+        "additive",
+        "interaction",
+        "product",
+        "sine",
+        "vector"
+      ]
+    },
+    "d1_homogeneous": {
+      "input_dim": 1,
+      "hidden_bias": false,
+      "tasks": [
+        "linear",
+        "quadratic"
+      ]
+    },
+    "d1_biased": {
+      "input_dim": 1,
+      "hidden_bias": true,
+      "tasks": [
+        "linear",
+        "quadratic",
+        "sine"
+      ]
+    },
+    "d4_biased": {
+      "input_dim": 4,
+      "hidden_bias": true,
+      "tasks": [
+        "interaction"
+      ]
+    }
+  },
+  "targets": {
+    "linear": "x0, population mean 0 and RMS 1",
+    "quadratic": "(x0 + 0.5*(x0^2-1))/sqrt(1.5)",
+    "additive": "(x0 + 0.5*(x1^2-1))/sqrt(1.5)",
+    "interaction": "(x0 + 0.5*x0*x1)/sqrt(1.25), original D2 target with population normalization",
+    "product": "x0*x1",
+    "sine": "d1: sin(2*x0)/sqrt((1-exp(-8))/2); d4: (sin(x0)+0.5*sin(2*x1))/sqrt((1-exp(-2))/2+0.25*(1-exp(-8))/2)",
+    "vector": "two independent-noise output channels: x0 and (x0+0.5*x0*x1)/sqrt(1.25); loss averaged over channels"
+  },
+  "controls": "Within protocol and seed use nested antithetic train prefixes, independent fixed validation inputs, identical weights across n, and identical features and noise vectors across scalar tasks. Scale hidden features from train statistics, add a constant head column. Population-normalized targets avoid target sample RMS confounding. Bias is a separate protocol.",
+  "counting": {
+    "task_recipes": 12,
+    "n_noise_conditions_per_task": 90,
+    "seed_repeats": 3,
+    "planned_curve_evaluations": 3240,
+    "independent_data_feature_draws": 120,
+    "measurement_kind": "Exact spectral evaluation of new finite-sample GD trajectories; no solver/API calls, no GPU, no iterative model training in the scan. Seeds are robustness repeats, not independent task recipes."
+  },
+  "calibration": {
+    "n": [
+      32,
+      64,
+      128
+    ],
+    "sigma2": [
+      0.25,
+      0.5,
+      1,
+      2,
+      4
+    ],
+    "rule": "Fit each task on ALL three seed repeats at these 15 conditions. Expanded held-out grid has all other n or sigma2 points. No tuning on expanded grid."
+  },
+  "models": [
+    "fixed exponent 1: U=c_task*n/sigma2",
+    "free exponent: U=c_task*(n/sigma2)^b_task",
+    "two-parameter logarithmic background: U=a_task*log(1+b_task*n/sigma2)",
+    "single coefficient shared across tasks, exponent 1"
+  ],
+  "registered_predictions": {
+    "P1_task_linear_law": "For each task with >=80% interior calibration minima, fixed-exponent-1 model predicts >=80% of expanded cells within factor 2. Boundary minima count as failures, never omitted from the denominator.",
+    "P2_noise_accumulates_before_rise": "For >=90% of all interior minima, sigma2*N at half the rise time is >=25% of its value at rise.",
+    "P3_train_near_zero_is_necessary": "For >=90% of all interior minima, expected noisy train loss at rise is <=10% of its initial value. This is a falsifiable version of the proposed very-low-train mechanism.",
+    "P4_minimum_is_not_curvature_inflection": "For >=90% of all interior minima, second derivative at the minimum is positive; record rather than assume the next positive-to-negative curvature zero."
+  },
+  "risk_definitions": {
+    "R": "Expected clean-validation MSE conditional on finite inputs/features, averaging independent Gaussian training-label noise: B+sigma2*N. Validation inputs remain independent and fixed, not population integration.",
+    "noisy_validation": "Expected MSE against independent same-variance validation labels: R+sigma2. Also save one paired realized noisy train/clean-val/noisy-val trajectory.",
+    "rise": "First global minimum on integer training steps 0..max_steps. Step 0 or max_steps is a boundary, not an interior rise.",
+    "inflection": "Curvature sign change on LINEAR U, using the analytic continuous interpolation of the discrete stable GD factors. A minimum where first derivative crosses zero is distinct.",
+    "train_near_zero": "Registered definition: expected noisy train loss divided by its initial value <=0.1."
+  },
+  "verification": "Before continuing past first data-feature draw, independently compare raw GD updates at selected steps with spectral predictions, verify expected noise Frobenius response and multichannel averaging. Save hashes, versions, source git commit, first start time, raw draw contracts and successful write-once outputs. Never overwrite saved successful curves.",
+  "limits": "CPU only, computation target <=20 minutes, stored data budget 1.5GB. No learned features, classification, CE, minibatches or optimizer claims. This new expanded grid is validation for the frozen models, then becomes development after inspection. Legacy measurements and central budgets remain untouched."
+}

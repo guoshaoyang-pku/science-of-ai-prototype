@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "study": "r008_bias_inflection",
+  "round": 8,
+  "direction_round": 1,
+  "domain": "development",
+  "question": "固定加性bias下，SiLU偶/奇能量比的小scale指数是否在二阶导数为零处从2变为6？",
+  "reference": "science_program_v1/studies/C01_activation_scale/executed/run_study.py（只读审查；复用数据生成与固定特征recipe，不依赖v1执行）",
+  "architecture": {
+    "input_dim": 4,
+    "width": 64,
+    "hidden": "frozen",
+    "activation": "SiLU",
+    "bias": "所有hidden单元使用同一固定加性b；phi(b+a*xW)，b不随a缩放",
+    "head_initialization": "zero",
+    "feature_centering": "每列训练均值",
+    "normalization": "统一训练feature RMS，再除sqrt(width)"
+  },
+  "data": {
+    "distribution": "gaussian_antithetic",
+    "train_rows": 128,
+    "test_rows": 1024,
+    "dataset_seed": 31001,
+    "targets": [
+      "linear_x0",
+      "quadratic_x0_squared"
+    ],
+    "target_center_scale": "训练均值与RMS；test沿用训练统计",
+    "noise_sd": 0,
+    "test": "新生成的合成development样本；不读benchmark test"
+  },
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106
+  ],
+  "bias_labels": [
+    "zero",
+    "one",
+    "inflection"
+  ],
+  "bias_values": {
+    "zero": 0,
+    "one": 1,
+    "inflection": "b*tanh(b/2)=2唯一正根；用brentq求根，无标签/测量选择"
+  },
+  "bias_root_bracket": [
+    2,
+    3
+  ],
+  "scales": [
+    0.025,
+    0.05,
+    0.1,
+    0.2
+  ],
+  "primary_scales": [
+    0.025,
+    0.05
+  ],
+  "optimizer": {
+    "type": "full_batch_GD",
+    "loss": "MSE，无1/2",
+    "lr": 0.8,
+    "momentum": 0,
+    "decay": 0,
+    "steps": 1024
+  },
+  "checkpoints": [
+    0,
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024
+  ],
+  "planned_cells": 72,
+  "counting": "3 bias recipes×4 scales×6 seeds=72保存cell；每cell两独立线性head目标并行训练，共144轨迹；24个bias×scale×target条件，seed仅为条件内重复",
+  "definitions": {
+    "u": "xW；反射输入x->-x时保持bias固定，不能把phi(b+au)反射为phi(-b-au)",
+    "odd": "[phi(b+au)-phi(b-au)]/2",
+    "even": "[phi(b+au)+phi(b-au)]/2 - train_mean(phi(b+au))",
+    "R": "mean(even^2)/mean(odd^2)；公共RMS归一化不改变R",
+    "leading_ordinary": "O1=phi_prime(b)*a*u；E2=phi_second(b)*a^2*(u^2-mean_train(u^2))/2",
+    "leading_inflection": "O1同上；E4=phi_fourth(b)*a^4*(u^4-mean_train(u^4))/24",
+    "derivatives": "sig=sigmoid(b), q=sig*(1-sig), h=1-2sig；phi1=sig+bq；phi2=q(2+bh)；phi4=q[4(h^2-2q)+b(h^3-8qh)]",
+    "kernel": "K=Phi Phi^T/n；A_y=y^T K y/(y^T y)；实际GD与r[t+1]=(I-2etaK)r[t]核验"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "claim": "b=0和1均保留R正比a^2；a=.025到.05预测R增长4倍",
+      "criterion": "两bias所有6同seed配对增长均在[3.6,4.4]"
+    },
+    {
+      "id": "P2",
+      "claim": "二阶导数零点的R正比a^6；a=.025到.05预测R增长64倍",
+      "criterion": "零点bias所有6同seed配对增长均在[48,80]"
+    },
+    {
+      "id": "P3",
+      "claim": "以各cell保存u的矩和事前导数公式给出的leading系数可预测最小尺度R",
+      "criterion": "三bias全部18个a=.025 cell的abs(R/R_leading-1)<=.10"
+    }
+  ],
+  "criteria": {
+    "ordinary_growth": [
+      3.6,
+      4.4
+    ],
+    "inflection_growth": [
+      48,
+      80
+    ],
+    "leading_relative_error": 0.1,
+    "spectral_tolerance": 1e-08
+  },
+  "secondary": "保存线性/二次目标初始核能量、首步进度、1024步train/test MSE；报告同seed bias/scale配对，不为拟合终点事后设判据；近根bias容差未扫描，不能外推根附近区间",
+  "analysis": "先逐cell核验source/data/NPZ/contract hash与预注册commit，再从NPZ复算R、leading预测、指数、目标能量、真实MSE及独立核递推；报告六seed配对range和95% t区间，固定data seed的条件内不确定性而非跨数据总体区间",
+  "execution": {
+    "python": "python3",
+    "device": "cpu",
+    "threads": 1,
+    "dtype": "float64",
+    "maximum_training_seconds": 1200,
+    "first_cell_audit": "先--limit 1，分析hash和递推，再恢复；成功cell不覆盖，恢复核对JSON合同与NPZ hash、mtime",
+    "commit_gate": "executed/run.py运行在生成数据/训练前要求HEAD里preregistration.json及pinned源码字节匹配"
+  },
+  "source_sha256": {
+    "executed/run.py": "1efb2dddb3b9f95cc9784ac9a94675973559a54a9070a9af9be37e5ac6ae137e",
+    "analysis.py": "05286de571e7634968eaf907a2bacaf69ae3e7201c979837ca33c5c8b588bafc"
+  },
+  "boundary": "仅对称Gaussian、d4/n128、width64、同单元固定加性bias、冻结单层SiLU、MSE、full-batch GD eta=.8/mom0/nodecay。全为development；不测随机bias、非对称输入、多层、learned hidden、CE、小批量、干预收益或solver。Taylor为已知解析机制，只有受控测量才能成为本轮科学claim。",
+  "status": "preregistered_plan_not_yet_committed_or_run"
+}

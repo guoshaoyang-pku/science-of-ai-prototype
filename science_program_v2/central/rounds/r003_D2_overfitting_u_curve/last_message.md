@@ -1,0 +1,1 @@
+ROUND_RESULT: failed | Read-only .git blocked both commits; no training ran, and the preregistration, scripts, failure evidence, and D2 handoff files are saved.

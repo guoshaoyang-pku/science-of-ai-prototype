@@ -1,0 +1,89 @@
+{
+  "study": "same-function target-mean intervention",
+  "origin_epoch": 16,
+  "created_at": 1791211537.1234891,
+  "datasets": [
+    "multivariate_regression/mvar_02036a",
+    "multivariate_regression/mvar_071e42",
+    "multivariate_regression/mvar_0852dd"
+  ],
+  "selection": "first three lexicographic allowlisted 8D datasets, frozen by prior read-only audit, no loss filter",
+  "conditions": [
+    {
+      "center": false,
+      "offset": 0.0
+    },
+    {
+      "center": true,
+      "offset": -3.0
+    },
+    {
+      "center": true,
+      "offset": 0.0
+    },
+    {
+      "center": true,
+      "offset": 3.0
+    }
+  ],
+  "prediction": "For each fixed function, centering to 0 should favor Adam; centering to either -3 or +3 should favor SGD. This is an extrapolation of the absolute-mean stump, nine fresh intervention signs; original means are reference checks, not new predictions.",
+  "competitors": [
+    "Mean-mediated offset fitting: changing only label offset changes paired optimizer gap; centering reduces SGD relative benefit.",
+    "Shape-specific mechanism: centered functions retain distinct winner directions despite identical train mean.",
+    "Initial residual mismatch: optimizer effects depend on target mean relative to initial output and sign, rather than absolute target mean alone."
+  ],
+  "unit": "function x transformation, ten paired training seeds 0-9; seeds do not count as ten independent target predictions",
+  "recipe": {
+    "model": {
+      "type": "mlp",
+      "input_dim": 8,
+      "output_dim": 1,
+      "depth": 3,
+      "width": 192,
+      "activation": "gelu",
+      "layer_norm": [
+        false,
+        true,
+        false
+      ],
+      "residual": false
+    },
+    "optimizers": [
+      {
+        "type": "SGD",
+        "lr": 0.001,
+        "momentum": 0.0,
+        "weight_decay": 0.0001
+      },
+      {
+        "type": "Adam",
+        "lr": 3e-05,
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "weight_decay": 0.0001
+      }
+    ],
+    "loss": {
+      "loss_id": "mse"
+    },
+    "budget": {
+      "training_steps": 256,
+      "batch_size": 64
+    }
+  },
+  "process": {
+    "steps": [
+      1,
+      8,
+      32,
+      128,
+      256
+    ],
+    "max_eval_samples": 256
+  },
+  "diagnostic_fail_threshold": 1000000000000.0,
+  "threshold_note": "research keeps all finite endpoints; 1e12 finite process-only guard, not benchmark performance scoring. Report benchmark MSE cutoff exceedances separately.",
+  "holdout_policy": "training lab datasets only; dataset test.pt is within-instance held-out measurement, not final KB benchmark test; no final test question reading or solve rerun."
+}

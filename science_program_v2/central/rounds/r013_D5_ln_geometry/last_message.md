@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 120/120 cells; condition-number prediction passed 12/12 units, chord-correlation prediction failed (r=0.420774<0.5); reports and KB saved, final commit b4eaaab.

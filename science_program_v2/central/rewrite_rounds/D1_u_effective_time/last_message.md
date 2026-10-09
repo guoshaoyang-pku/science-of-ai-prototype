@@ -1,0 +1,1 @@
+REWRITE_RESULT: ok | Rewrote the D1 report with six optimizer formulas, explicit validation limits, and an audit; preserved all existing numbers and conclusions without new experiments or commits.

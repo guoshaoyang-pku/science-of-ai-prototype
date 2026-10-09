@@ -1,0 +1,21 @@
+{
+  "study": "r089_ln_affine_kernel",
+  "round": 89,
+  "direction": "D5_ln_geometry",
+  "direction_round": 6,
+  "domain": "development",
+  "question": "在r077共享Linear初始化核中加入原训练可更新的LN affine初始化Jacobian核项后，256步固定核预测是否能恢复真实train offset chord的LN-noLN方向？",
+  "estimand": {
+    "linear_kernel": "K_linear=J_linear J_linear^T/n；复用r077 float64核，含input与三个hidden Linear的weight/bias，排除head和LN affine。",
+    "affine_kernel": "K_aff=J_aff J_aff^T/n；J_aff为LN010模型输出对net.3.norm.weight/bias的逐样本Jacobian，共128参数。",
+    "total_kernel": "K_total=K_linear+K_aff；两个不相交参数子集的Gram核相加，不含交叉项。J由float32模型/autograd生成后转float64；核和传播用float64。",
+    "propagation": "v0=1，v(t+1)=v(t)-2 eta K_total v(t)，eta=.001，t=1..256；C_t=9 mean[(v_t-mean(v_t))^2]。noLN基线复用r077传播。",
+    "real_train": "复用r077保存的train_y与train_predictions_256，算E_m=mean[(r_m-mean(r_m))^2]，C_real=(E_-3+E_+3)/2-E_0；Delta_real=C_LN-C_noLN。",
+    "comparison": "Delta_total=C_256,LN,total-C_256,noLN,linear；abs(value)<=1e-12视为零，零算不匹配。"
+  },
+  "conditions": {"functions": ["trigonometric8", "quadratic8", "interaction12", "radial12"], "seeds": [100, 101, 102, 103, 104], "recipes": ["LN010_w64", "noLN_w64"], "n_train": 256, "width": 64, "depth": 3, "activation": "GELU", "offsets": [-3, 0, 3], "eta": 0.001, "offset_amplitude": 3, "propagation_steps": 256, "new_training_cells": 0, "new_jacobian_cells": 20},
+  "predictions_and_criteria": {"P1": {"prediction": "加入LN affine核项后，20个同函数同seed配对中，256步固定核Delta_total与真实train Delta_real至少16/20同号；r077仅Linear核为0/20。", "support": "match_count >= 16/20", "refute": "match_count < 16/20"}},
+  "inputs": {"snapshot_commit": "59eaa54e38819e173f41cd5cf48f7dc678a2e8b8", "manifest": "executed/input_manifest.json", "manifest_sha256": "9eff6ca2add95a841c0568fec7222c35ce02485c8feda8161aa81eb0fb57fddf", "source_sha256": {"executed/run.py": "1b6c2e73c3262793ffad8406d2ccf653a98bdb353c570318a7210bc4b3b9d973", "analysis.py": "3b25f67621bdc7fc4a67b1522096c79a8dbb858127594974448921b68d13413d", "executed/verify.py": "fdcad7ae3fb83792d2451b64614e21674ff539083de4334eac65d9cbac1ba972", "executed/input_manifest.json": "9eff6ca2add95a841c0568fec7222c35ce02485c8feda8161aa81eb0fb57fddf"}, "reuse": "Pin all 80 r077 result JSON/NPZ files, summary, analysis, preregistration, manifest, receipt, saved-evidence verification and final-commit verification by SHA256/mtime before measurement. Never rewrite a prior artifact."},
+  "boundaries": ["This contrasts omission versus inclusion of LN affine parameters in the fixed initialization kernel only. It does not identify kernel drift, mini-batch noise, or weight decay.", "This is fixed-J, full-batch, no-decay train linearization, not real training or test dynamics.", "Four development functions and five initialization seeds do not establish generalization to new functions, widths, optimizers, or sealed OOD.", "No prior successful cell is rerun or overwritten."],
+  "execution": {"python": "python3", "device": "cpu", "threads": 1, "max_seconds": 1200, "no_network": true, "no_training": true}
+}

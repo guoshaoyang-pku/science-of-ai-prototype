@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 33/33 cells; same-Rayleigh budgets remained 1.823860–1.857143× apart, both predictions passed, and evidence, reports, handoff, and verified closeout were committed.

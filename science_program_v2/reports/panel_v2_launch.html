@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>science_program_v2 — 中心化自动研究控制台</title>
+<style>
+  :root { --ink:#1a1d21; --mut:#5c6470; --line:#dfe3e8; --bg:#fafbfc; --card:#ffffff;
+          --ok:#1a7f37; --run:#0969da; --warn:#9a6700; --stop:#cf222e; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:14px/1.6 -apple-system,"PingFang SC","Helvetica Neue",sans-serif; }
+  .wrap { max-width:1080px; margin:0 auto; padding:28px 20px 60px; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  h2 { font-size:15px; margin:34px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  .sub { color:var(--mut); font-size:13px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:14px 0; }
+  .chip { background:var(--card); border:1px solid var(--line); border-radius:999px;
+          padding:3px 12px; font-size:12.5px; white-space:nowrap; }
+  .chip b { font-weight:600; }
+  .statusline { display:flex; align-items:center; gap:10px; background:var(--card);
+                border:1px solid var(--line); border-radius:10px; padding:12px 16px; margin:10px 0; }
+  .dot { width:10px; height:10px; border-radius:50%; background:var(--run);
+         animation:pulse 1.6s infinite; flex:none; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+  table { width:100%; border-collapse:collapse; background:var(--card);
+          border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  th,td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--line);
+          font-size:13px; vertical-align:top; }
+  th { background:#f2f4f7; font-weight:600; font-size:12.5px; }
+  tr:last-child td { border-bottom:none; }
+  .tag { display:inline-block; border-radius:4px; padding:1px 7px; font-size:11.5px; font-weight:600; }
+  .tag.run { background:#ddf4ff; color:var(--run); }
+  .tag.wait { background:#f2f4f7; color:var(--mut); }
+  .tag.user { background:#fff8c5; color:var(--warn); }
+  .flow { background:var(--card); border:1px solid var(--line); border-radius:10px;
+          padding:16px; font-size:13px; }
+  .flow .row { display:flex; align-items:center; gap:10px; margin:8px 0; flex-wrap:wrap; }
+  .node { border:1.5px solid var(--line); border-radius:8px; padding:7px 12px; background:#fff; }
+  .node.hub { border-color:var(--run); }
+  .arrow { color:var(--mut); font-size:16px; }
+  .nlabel { color:var(--mut); font-size:11.5px; }
+  pre { background:#0d1117; color:#d7dde4; border-radius:8px; padding:12px 14px;
+        overflow-x:auto; font-size:12.5px; line-height:1.55; }
+  code { font-family:"SF Mono",Menlo,monospace; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:760px){ .grid2{grid-template-columns:1fr;} }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+  .card h3 { margin:0 0 8px; font-size:13.5px; }
+  .warnbox { border-left:3px solid var(--warn); background:#fff8c5; padding:10px 14px;
+             border-radius:0 8px 8px 0; font-size:13px; margin:12px 0; }
+  .mut { color:var(--mut); }
+  .filelink { font-family:Menlo,monospace; font-size:12px; }
+  ul { margin:6px 0; padding-left:20px; }
+  li { margin:3px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>science_program_v2 — 中心化自动研究控制台</h1>
+<div class="sub">启动报告快照 · 2026-10-06 17:05（北京时间）· 数据内联，实时状态看 <span class="filelink">reports/PROGRESS.md</span> 与 <span class="filelink">central/log.jsonl</span></div>
+
+<div class="statusline">
+  <div class="dot"></div>
+  <div><b>运行中</b> — supervisor PID 58101 · 第 1 轮（方向 D1）16:58:09 开始 · 基线 commit <code>e9b7a24</code></div>
+</div>
+
+<div class="chips">
+  <span class="chip">🤖 <b>gpt-6.1-sol</b>（Sol 6.1 Ultra）</span>
+  <span class="chip">🧠 effort <b>ultra</b></span>
+  <span class="chip">🔁 relay 3107 · cctq → phybench</span>
+  <span class="chip">⏱️ 轮超时 <b>7200 s</b></span>
+  <span class="chip">📊 预算 <b>3 轮 × 8 方向 = 24 轮</b></span>
+  <span class="chip">🖥️ 本机 CPU · 每轮实验 ≤20 min</span>
+  <span class="chip">🔒 沙箱 workspace-write · 无网络</span>
+  <span class="chip">📁 aiq_rl/experiments/science_program_v2</span>
+</div>
+
+<h2>系统结构</h2>
+<div class="flow">
+  <div class="row">
+    <div class="node hub"><b>supervisor 进程</b><br><span class="nlabel">central/supervisor.py · 唯一常驻 · 串行调度</span></div>
+    <span class="arrow">→</span>
+    <div class="node"><b>codex exec 会话（每轮一个，用完即退）</b><br><span class="nlabel">gpt-6.1-sol + ultra · 沙箱内跑实验</span></div>
+  </div>
+  <div class="row">
+    <span class="nlabel">会话每轮：</span>
+    <div class="node">① 读中心文件</div><span class="arrow">→</span>
+    <div class="node">② 预注册 + git commit</div><span class="arrow">→</span>
+    <div class="node">③ 跑小实验</div><span class="arrow">→</span>
+    <div class="node">④ 写发现 + 更新 KB/进度</div><span class="arrow">→</span>
+    <div class="node">⑤ 收尾 commit</div>
+  </div>
+  <div class="row"><span class="nlabel">中心化 = 单进程 · 单状态（state.json）· 单 KB（kb.json）· 单 git 历史 · 记忆在文件不在会话</span></div>
+</div>
+
+<h2>八个方向</h2>
+<table>
+  <tr><th style="width:52px">ID</th><th>问题（平实语言）</th><th style="width:110px">来源</th><th style="width:96px">轮数</th><th style="width:90px">状态</th></tr>
+  <tr><td><b>D1</b></td><td>等效训练时间 U 什么时候可信；重点查"动量为 0 时 U 异常变小"（主线记录差 10 倍）</td><td><span class="tag user">用户点名</span></td><td>0 / 3</td><td><span class="tag run">第 1 轮进行中</span></td></tr>
+  <tr><td><b>D4</b></td><td>训练曲线能否用 sigmoid 描述；sigmoid 参数（起点/终点/中点/斜率）有没有公式</td><td><span class="tag user">用户点名</span></td><td>0 / 3</td><td><span class="tag wait">排队</span></td></tr>
+  <tr><td><b>D2</b></td><td>过拟合 U 型曲线：最低点由什么决定；能否不用测试标签早停</td><td><span class="tag user">用户点名</span></td><td>0 / 3</td><td><span class="tag wait">排队</span></td></tr>
+  <tr><td><b>D3</b></td><td>模型容量与分辨率的可测描述参量</td><td><span class="tag user">用户点名</span></td><td>0 / 3</td><td><span class="tag wait">排队</span></td></tr>
+  <tr><td><b>D5</b></td><td>LN 同宽度收益的机制（v1 测到效应，未证明中介）</td><td>v1 A 未决</td><td>0 / 3</td><td><span class="tag wait">排队</span></td></tr>
+  <tr><td><b>D6</b></td><td>核漂移：能否用早期测量预测晚期拟合</td><td>v1 B 未决</td><td>0 / 3</td><td><span class="tag wait">排队</span></td></tr>
+  <tr><td><b>D7</b></td><td>什么时候"训练更好、测试更差"（v1：8/8 训练受益、6/8 测试变差）</td><td>v1 B02 未决</td><td>0 / 3</td><td><span class="tag wait">排队</span></td></tr>
+  <tr><td><b>D8</b></td><td>激活通路结论在 bias/非对称/多层/分类损失下还剩多少</td><td>v1 C 未决</td><td>0 / 3</td><td><span class="tag wait">排队</span></td></tr>
+</table>
+<div class="sub" style="margin-top:6px">调度顺序：轮转制，轮数少的优先；D1→D4→D2→D3 在前（用户点名方向）。每方向 3 轮用完转 parked，等人工验收再追加。</div>
+
+<h2>操作速查</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>看进度（随时，安全）</h3>
+<pre><code>cd aiq_rl/experiments/science_program_v2
+cat reports/PROGRESS.md
+tail -5 central/log.jsonl
+git log --oneline | head</code></pre>
+  </div>
+  <div class="card">
+    <h3>停车</h3>
+<pre><code># 温和（跑完当前轮）
+touch central/STOP
+# 立即（会留半轮产物）
+kill $(cat central/supervisor.lock)</code></pre>
+    <div class="sub">恢复：删 STOP 后重启 supervisor（命令见 OPERATIONS.md §5）</div>
+  </div>
+  <div class="card">
+    <h3>给下一轮下指令</h3>
+<pre><code>echo "先做 XXX" >> \
+  directions/D1_u_effective_time/inbox.md</code></pre>
+    <div class="sub">会话开头必读 inbox.md，处理后打时间戳标记</div>
+  </div>
+  <div class="card">
+    <h3>改预算 / 模型 / 顺序</h3>
+<pre><code># 编辑 central/config.json
+# 每轮开始重读, 改完即生效, 无需重启</code></pre>
+    <div class="sub">rounds_per_direction · max_total_rounds · round_timeout_sec · direction_order</div>
+  </div>
+</div>
+
+<div class="warnbox"><b>WARNING</b> — 立即 kill 会留下半轮产物。优先温和停车。半轮产物可用 <code>git checkout -- .</code> 丢弃后重启。</div>
+
+<h2>安全边界（系统层保证）</h2>
+<ul>
+  <li>沙箱只允许写程序目录与 /tmp；会话无网络。</li>
+  <li>v1 repo、主线 soa_async_v1、网页 publisher：全部只读。</li>
+  <li>不 push、不动 benchmark test、不做解题评测、0 solver 调用。</li>
+  <li>预注册 commit 必须早于实验（修复 v1 时序见证缺口）。</li>
+  <li>supervisor 不自我重启；停车后等人。</li>
+</ul>
+
+<h2>关键文件</h2>
+<table>
+  <tr><th style="width:320px">路径</th><th>内容</th></tr>
+  <tr><td class="filelink">GOAL.md</td><td>你的目标原话要点、8 方向、硬边界</td></tr>
+  <tr><td class="filelink">AGENTS.md</td><td>每轮会话的工作规则与科学纪律</td></tr>
+  <tr><td class="filelink">OPERATIONS.md</td><td>完整操作手册（启动/停车/转向/验收/限制）</td></tr>
+  <tr><td class="filelink">reports/LAUNCH_REPORT_2026-10-06.md</td><td>本报告的文档版（含结构图与来源说明）</td></tr>
+  <tr><td class="filelink">central/state.json · central/kb.json</td><td>中心状态与中心 KB</td></tr>
+  <tr><td class="filelink">central/rounds/rNNN_Dx/output.log</td><td>每轮完整会话输出</td></tr>
+  <tr><td class="filelink">sources/manifest.json</td><td>冻结的 v1 KB（7 条）与主线 KB（143 条）快照 + SHA256</td></tr>
+</table>
+
+<div class="sub" style="margin-top:26px">快照生成于 2026-10-06 17:05。此页面是静态快照；实时进度以 PROGRESS.md 与 log.jsonl 为准。</div>
+</div>
+</body>
+</html>

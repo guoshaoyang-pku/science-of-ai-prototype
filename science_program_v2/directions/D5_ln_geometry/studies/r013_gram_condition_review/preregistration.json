@@ -1,0 +1,167 @@
+{
+  "study": "r013_gram_condition_review",
+  "round": 13,
+  "direction_round": 2,
+  "direction": "D5_ln_geometry",
+  "domain": "development",
+  "question": "固定head的同宽度LN/noLN配对中，LN是否降低终点hidden Gram条件数，且降低幅度是否与offset-centered chord收益同向关联？",
+  "functions": [
+    "trigonometric8",
+    "quadratic8",
+    "interaction12",
+    "radial12"
+  ],
+  "input_distribution": {
+    "trigonometric8": "uniform[-1,1]^8",
+    "quadratic8": "uniform[-1,1]^8",
+    "interaction12": "Gaussian12",
+    "radial12": "Gaussian12"
+  },
+  "data_seed": 48291,
+  "train_n": 256,
+  "test_n": 256,
+  "normalization": "train target centered and standardized once; same transform applied to test",
+  "recipes": {
+    "LN010_w64": {
+      "width": 64,
+      "depth": 3,
+      "activation": "gelu",
+      "layer_norm": [
+        false,
+        true,
+        false
+      ],
+      "weight_decay": 0.0001,
+      "steps": 256,
+      "batch_size": 64,
+      "optimizer": "SGD",
+      "lr": 0.001,
+      "momentum": 0.0
+    },
+    "noLN_w64": {
+      "width": 64,
+      "depth": 3,
+      "activation": "gelu",
+      "layer_norm": [
+        false,
+        false,
+        false
+      ],
+      "weight_decay": 0.0001,
+      "steps": 256,
+      "batch_size": 64,
+      "optimizer": "SGD",
+      "lr": 0.001,
+      "momentum": 0.0
+    }
+  },
+  "means": [
+    -3,
+    0,
+    3
+  ],
+  "seeds": [
+    100,
+    101,
+    102,
+    103,
+    104
+  ],
+  "checkpoints": [
+    0,
+    1,
+    8,
+    32,
+    128,
+    256
+  ],
+  "primary_measure": "test centered residual variance chord = [E(-3)+E(+3)]/2-E(0), where E is residual variance after subtracting its sample mean",
+  "mediator": {
+    "representation": "最后hidden激活，train输入；模型float32，中心化和Gram计算float64",
+    "gram": "G=(H-mean(H)).T@(H-mean(H))/n",
+    "eigenvalue_floor": 1e-12,
+    "condition_number": "lambda_max/max(lambda_min,1e-12)，特征值按降序，lambda_max也取同floor防零",
+    "change": "同时保存checkpoint log10κ；主检验为step256 LN−noLN差值",
+    "correlation_offset": "只用offset0的step256 Δlog10κ，与三offset定义的Δchord配对；不在观测后选offset",
+    "saved_evidence": "每checkpoint完整Gram矩阵和预测值；step0/256另存hidden矩阵；存输入、shifted标签、head初末、batch_indices"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "prediction": "至少8/12函数×offset单元中，step256的LN−noLN log10κ在至少3/5配对seed为负",
+      "success": "passing_units>=8，严格<0，不另设幅度阈值"
+    },
+    {
+      "id": "P2",
+      "prediction": "20函数×seed重复中，step256 offset0的LN−noLN log10κ与LN−noLN chord的Pearson r>=.5",
+      "success": "r>=.5；若任一变量无方差记refuted",
+      "rationale": "条件数降低更大和chord更负都对应更负的LN−noLN值，故期望正相关；20重复不是20种函数，统计不独立，不报告iid p值"
+    }
+  ],
+  "pairing": "Same function, offset, seed and width; seeds assess paired variability, not new functions",
+  "planned_cells": 120,
+  "boundaries": [
+    "development：4旧函数，d8 uniform/d12 Gaussian，ntrain=ntest=256，data seed48291，width64、GELU输入层加3 block、LN010/noLN、head weight/bias固定，SGD lr=.001/mom0/weight_decay1e-4、batch64、T256；LN affine及hidden可训练。",
+    "只测最后hidden表示Gram，不是参数Jacobian NTK；没有目标投影、梯度对齐、曲率测量或人工谱干预。",
+    "条件数用固定1e-12 floor；模型float32，Gram float64；floor命中或极小谱尾限制解释。",
+    "相关为观察关联，不证明因果中介；20函数seed重复只含4函数，含函数间混杂；r无iid显著性声明。",
+    "本轮无sealed OOD；checkpoint曲线不构成预注册时间先行结论。",
+    "r005原草稿0cell失败记录不覆盖，旧P2符号和P3分母问题只作设计审查，不登记refuted测量。"
+  ],
+  "execution": {
+    "device": "cpu",
+    "threads": 1,
+    "python": "python3",
+    "network": false,
+    "max_seconds": 1200,
+    "success_cells_are_immutable": true
+  },
+  "created_at": "2026-10-06T19:57:33.224964+08:00",
+  "intervention": "frozen_head_weight_and_bias",
+  "evaluation_contract": {
+    "complete_grid": "完整120cell且逐cell合同/source/NPZ与可重算Gram、chord核验后评估P1/P2；不完整则not_evaluated",
+    "pairing": "相同函数/offset/seed/width；保存所有Linear初值pins与minibatch流hash并核验LN/noLN、offset间一致；LN affine初始化无随机数但允许训练",
+    "intervals": "每函数5seed Δchord与offset0 Δlogκ均值、min/max、配对seed双侧t95区间；CI只覆盖seed，不外推函数总体；12 offset单元报告逐seed差和同种子t95",
+    "descriptive": "报告各checkpoint Δchord/Δlogκ、每函数r和扣除函数均值后的 pooled r；无预注册时序成功阈值，不称时间先行或因果中介",
+    "floor": "逐checkpoint记录lambda_min/max、floor-hit数量；不随结果换floor或删cell",
+    "retention": "有限高loss照存；数值非有限则停止，不换seed、不补新recipe"
+  },
+  "counts": {
+    "function_units": 4,
+    "recipes_per_function": 2,
+    "offsets": 3,
+    "condition_units": 24,
+    "seed_repeats": 5,
+    "planned_cells": 120,
+    "paired_LN_offset_repeats": 60,
+    "chord_pairs": 20
+  },
+  "resume_protocol": "先校验本合同、run.py、analysis.py与传入commit逐字节一致和pinned SHA；commit须为HEAD祖先。保存receipt后--max-new-cells 1，分析核验首cell，再同commit补余119cell。续跑先核验全部已有cell合同、NPZ和输入pins；成功cell不覆盖，孤立NPZ或hash错误即停。累计cell wall time最多1200秒。",
+  "pre_execution_review": {
+    "original_study": "directions/D5_ln_geometry/studies/r005_gram_condition",
+    "original_preregistration_sha256": "218c71e93c71633046ee719d9ed7f6dfc4e34eef826694aa3d1d379550b7f148",
+    "original_saved_cells": 0,
+    "original_files_preserved": true,
+    "changes": [
+      "原8 pairs改为20函数×seed重复；原8函数实为4函数",
+      "原P2负相关阈值与两项同为LN−noLN的改善符号矛盾，改正相关>=.5；原未执行预测保留但不评估",
+      "原P3的6/8函数无法按实际4函数评估，本轮只做P1/P2，时间轨迹仅描述",
+      "旧run.py未freeze head；按v1 A03主结论freeze head weight和bias",
+      "float32 eig改为对float32 hidden用float64中心化和Gram；保留floor=1e-12",
+      "补pinned源码/commit门禁、首cell限制、保存复算矩阵、完整预测评估和累计预算"
+    ],
+    "numerical_training_started": false,
+    "interpretation": "这是训练前修订合同，不把旧未执行草稿误记为测量预测失败。数据、w64、模型架构、SGD与cell数量沿用原设计。"
+  },
+  "source_audit": {
+    "studies/A03_ln_width/run.py": "9662ccf89518308bd0c512d1d7bda3796d295d44f2e5d1fda37ee12876d670a6",
+    "studies/A03_ln_width/executed/host/experiment.py": "6f15697ac5b085554b390815dee47a7ddfc75c5fa130a07bf79c11605abc5d17",
+    "studies/A03_ln_width/executed/SGD/train.py": "e8504bb654e6dfcc23b9e1e3d634bce33f21eb0ab5bded4104b120132395185f",
+    "studies/A03_ln_width/executed/SGD/loss.py": "97fb3ef5f54da795ae088d739c2ecefaf8b2c60c24a377a6615ae60522eed86d",
+    "studies/A02_ood_residual/run.py": "0099fe6a00b91adeb78f10d75a0a60466ea9e7db5ec54311c1d7109a06a739e8"
+  },
+  "source_sha256": {
+    "executed/run.py": "786db4490138fabbba82ebe19bb7d35c9a38b53a149eac0edb321236f75dc0d2",
+    "analysis.py": "74d8f2ff36cf87ac80f7d221149519c949ba7819ba6c68bd4ae233ba3b00fc89"
+  }
+}

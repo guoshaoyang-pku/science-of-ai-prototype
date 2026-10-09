@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "study": "C05_risk_ood",
+  "phase": "OOD_conditions_and_curves_sealed_before_training",
+  "development_report_sha256": "3cab0764c087509a40d8b989d27a447817d96d3c92315d12cfc84bf57c78a08d",
+  "question": "Can measured initial features predict a new recipe full risk curve and U-turn without training outcomes?",
+  "ood_axes": [
+    "dimension4_to6",
+    "Gaussian_to_uniform",
+    "width128_to96",
+    "trainrows32or128_to64",
+    "new_target_sin_plus_interaction_plus_quadratic",
+    "scale0.015_and0.15",
+    "noisesd0.7_and1.4"
+  ],
+  "architecture": {
+    "input_dim": 6,
+    "width": 96,
+    "hidden": "frozen",
+    "hidden_bias": false,
+    "head_initialization": "zero",
+    "feature_centering": "training_mean",
+    "normalization": "total_training_RMS",
+    "head_bias": true
+  },
+  "data": {
+    "distribution": "uniform_antithetic",
+    "train_rows": 64,
+    "test_rows": 2048,
+    "target": "sin(x0)+0.7*x0*x1+0.2*x2square",
+    "target_normalization": "train_clean_mean_and_rms",
+    "noise_sd": [
+      0.7,
+      1.4
+    ],
+    "noise_repeats": 16,
+    "source": "closed-form_generator; no empirical prior OOD losses",
+    "noise_seed_rule": "42000+feature_seed+noise_index; shared paired recipes"
+  },
+  "seeds": [
+    511,
+    512,
+    513
+  ],
+  "scales": [
+    0.015,
+    0.15
+  ],
+  "activations": [
+    "relu",
+    "silu"
+  ],
+  "optimizer": {
+    "type": "full_batch_GD",
+    "lr": 0.25,
+    "steps": 8192,
+    "momentum": 0,
+    "decay": 0
+  },
+  "checkpoints": [
+    0,
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024,
+    2048,
+    4096,
+    8192
+  ],
+  "forecast_protocol": "stage forecast generates initial features/data and analytic spectral train signal/noise-variance/expected-risk curves; saves allvalues/hash, then separate train validates pin before SGD; no observed training loss used in forecast",
+  "predictions": [
+    {
+      "id": "R1",
+      "claim": "Actual clean-signal head train/test curves match their pre-training spectral forecasts.",
+      "criterion": "absolute train/test MSE maxerror<1e-8 all24recipes"
+    },
+    {
+      "id": "R2",
+      "claim": "MonteCarlo mean clean-test risk agrees with preregistered conditional expected risk within noise uncertainty.",
+      "criterion": "at final and predicted beststep, mean-minus-forecast <=3*MonteCarloSE+1e-8 for>=90percent of48checks; alloutliers retained"
+    },
+    {
+      "id": "R3",
+      "claim": "Noise-fitting component increases while noisy train loss decreases; predicted risk-minimum interval predicts actual MonteCarlo risk minimum approximately.",
+      "criterion": "alltrain curves monotone tolerance1e-10; median absolute log2step error between MC meanmin and forecastmin <=2, with step0 excluded but reported"
+    },
+    {
+      "id": "R4",
+      "claim": "Higher noise moves optimum earlier for a fixed kernel, and small SiLU delays weak mode noise variance at equal budget.",
+      "criterion": "forecast beststep noise1.4 <=noise0.7 allrecipes; scale0.015 SiLU final expectednoisevariance<ReLU in3/3seeds"
+    }
+  ],
+  "all_results_retained": true,
+  "statistical_unit": "one new target/distribution with three within-recipe feature/data repeats and16 noise draws each",
+  "solver_evaluation": "not_run",
+  "status": "sealed_before_measurement",
+  "sealed_at": 1791224696.4945438
+}

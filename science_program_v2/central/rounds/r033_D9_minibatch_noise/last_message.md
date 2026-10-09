@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Both M64 ratios entered [0.5,2] at 1.163265 and 0.767974; bootstrap widths shrank to 11.20% and 27.80% of M8, old failures were retained, and all evidence and handoff updates were committed.

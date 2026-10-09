@@ -1,0 +1,32 @@
+{
+  "study": "r005_gram_condition",
+  "round": 5,
+  "direction_round": 1,
+  "direction": "D5_ln_geometry",
+  "domain": "development",
+  "question": "在A03同宽度LN/noLN配对中，hidden表示Gram谱条件数变化是否与offset-centered chord收益同向并解释其大小？",
+  "functions": ["trigonometric8", "quadratic8", "interaction12", "radial12"],
+  "input_distribution": {"trigonometric8": "uniform[-1,1]^8", "quadratic8": "uniform[-1,1]^8", "interaction12": "Gaussian12", "radial12": "Gaussian12"},
+  "data_seed": 48291,
+  "train_n": 256,
+  "test_n": 256,
+  "normalization": "train target centered and standardized once; same transform applied to test",
+  "recipes": {
+    "LN010_w64": {"width": 64, "depth": 3, "activation": "gelu", "layer_norm": [false, true, false], "weight_decay": 0.0001, "steps": 256, "batch_size": 64, "optimizer": "SGD", "lr": 0.001, "momentum": 0.0},
+    "noLN_w64": {"width": 64, "depth": 3, "activation": "gelu", "layer_norm": [false, false, false], "weight_decay": 0.0001, "steps": 256, "batch_size": 64, "optimizer": "SGD", "lr": 0.001, "momentum": 0.0}
+  },
+  "means": [-3, 0, 3],
+  "seeds": [100, 101, 102, 103, 104],
+  "checkpoints": [0, 1, 8, 32, 128, 256],
+  "primary_measure": "test centered residual variance chord = [E(-3)+E(+3)]/2-E(0), where E is residual variance after subtracting its sample mean",
+  "mediator": {"representation": "last hidden activation before scalar head on train set", "gram": "G=H^T H/n after centering columns", "condition_number": "lambda_max/max(lambda_min,1e-12)", "change": "log10(kappa_checkpoint/kappa_initial)"},
+  "predictions": [
+    {"id": "spectrum_direction", "prediction": "For each function and mean, LN final log10 condition number is lower than noLN in at least 3/5 paired seeds", "success": "at least 8/12 function-by-mean contrasts pass"},
+    {"id": "chord_mediation", "prediction": "Across 8 function-by-seed pairs, LN-minus-noLN chord is negatively correlated with LN-minus-noLN final log10 condition number (Pearson r <= -0.5)", "success": "r <= -0.5"},
+    {"id": "temporal_alignment", "prediction": "A decrease in log10 condition number from step 0 to 256 accompanies a negative chord contribution in at least 6/8 functions", "success": "6/8 functions"}
+  ],
+  "pairing": "Same function, offset, seed and width; seeds assess paired variability, not new functions",
+  "planned_cells": 120,
+  "boundaries": ["development only; no sealed OOD claim", "condition number uses fixed 1e-12 eigenvalue floor", "correlation is associational and does not prove mediation", "no gradient alignment or curvature intervention"],
+  "execution": {"device": "cpu", "threads": 1, "python": "python3", "network": false, "max_seconds": 1200, "success_cells_are_immutable": true}
+}

@@ -1,0 +1,175 @@
+{
+  "round": 98,
+  "direction_round": 7,
+  "direction": "D10_depth_propagation",
+  "domain": "development",
+  "question": "固定width32、输入/标签、全部初始参数与规则、depth1/2/4/6、T4096及full-batch SGD，仅将eta从.02升至.04；全核12/12两倍内是否继续保留？",
+  "created_at": "2026-10-07T20:20:00+08:00",
+  "recipe": {
+    "n": 32,
+    "input_dim": 3,
+    "width": 32,
+    "hidden_depths": [
+      1,
+      2,
+      4,
+      6
+    ],
+    "init_seeds": [
+      1103,
+      1129,
+      1151
+    ],
+    "data_seed": 260071,
+    "input": "NumPy default_rng(data_seed).normal((32,3)), float64",
+    "target": "raw=x0+0.5*x0*x1; y=(raw-mean)/RMS",
+    "architecture": "depth hidden Linear+SiLU then scalar Linear head; all Linear no bias, no LN, no residual",
+    "initialization": "hidden l seed=init_seed+10000*l, normal*sqrt(2/fan_in); head seed=init_seed+900000, normal/sqrt(width); same width32 weights and prefixes as r042",
+    "optimizer": "full-batch SGD, momentum=0, weight_decay=0",
+    "loss": "mean((f-y)^2)/2; update uses eta",
+    "eta": 0.04,
+    "steps": 4096,
+    "checkpoints": [
+      0,
+      1,
+      8,
+      32,
+      128,
+      512,
+      2048,
+      4096
+    ],
+    "dtype": "torch/numpy float64, CPU, one thread"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "text": "eta=.04、width32下最慢参数组12/12为有限候选且候选/实际T50>2。",
+      "criterion": "12/12 complete finite cells and ratio>2; unstable/unreachable/diverged/censored do not support P1.",
+      "numeric_forecast": "最慢冻结候选由已保存r042谱计算范围，实际T50预期仍在1–8步。"
+    },
+    {
+      "id": "P2",
+      "text": "eta从.02升至.04后，全核保留12/12在两倍内：四个深度各3/3满足.5<=t_sum/t_actual<=2。",
+      "criterion": "12/12 finite sum candidates and actual times, all ratios in [.5,2].",
+      "numeric_forecast": "全核冻结候选由已保存r042谱计算为1–8步，实际T50预期1–8步。"
+    }
+  ],
+  "decision_rules": {
+    "units": "4 depth recipes x 3 init seeds = 12 cells; seeds are repeats",
+    "scope": "development only; only eta .02 -> .04 changes; no depth monotonicity, width mechanism, causality or OOD",
+    "eta_branch": "prior maximum eta=.02 lambda_max 0.7713375275328761; doubled eta forecast 1.5426750550657522<2; arithmetic known before registration",
+    "failure": "unstable/diverged/unresolved candidates do not support P1; preserve logs and old results"
+  },
+  "saved_evidence": [
+    "normalized input/target",
+    "initial/final parameters",
+    "loss every integer step",
+    "checkpoint predictions/residuals/J/K/eigenspectra/residual energies/hidden RMS",
+    "source and contract hashes"
+  ],
+  "execution": {
+    "python": "python3",
+    "source_pinning": "manifest pins run.py, analysis.py, verify.py; all match one ancestor commit before training",
+    "resume": "existing JSON and NPZ contract/hash must match; orphan NPZ is error",
+    "budget": "CPU small tensors, under 20 minutes"
+  },
+  "baseline": {
+    "study": "r042_width32_eta02",
+    "summary_sha256": "fd505519cb85cc54ea7d694bf836a3d4257f81cc8428e0fd3256c854c3796e9d",
+    "results_sha256": {
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth1_seed1103.json": "5bc7682865894655dc65eb8d19a8257ec7e514244050bce8f4e9207a3a4193ba",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth1_seed1103.npz": "36d05bc6eea8564517e13abd185be9dfac902552a20049cbae7fe6c658074d9c",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth1_seed1129.json": "3e6cf6dcc6bf97bf9e06710df6d1d8de8ab886c139c663eb248ed5be72e40272",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth1_seed1129.npz": "8d29f3b982d0b4f8ae84a07f4376525e4465cb604da4b20cfaa02f3a917a518a",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth1_seed1151.json": "d868c550cde108cbe88357b621537d9afce6d8b44da6c1abdf362b1f6ebd3269",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth1_seed1151.npz": "f5200578379bbbd35422a4cb4e9c5c010f90245e9d453dc7025d83e8d473ffcb",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth2_seed1103.json": "611a3ccbed18745e6f09ba862283133823ec7b76861d91781cc603ed12e6c8ac",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth2_seed1103.npz": "647787fefe4fab4492241aee42eb6e9b54b8fe14e8242733c6d919836613098f",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth2_seed1129.json": "d6e7b676ac29257a5146a1a176e8d53b7e01005920b9b255b5aa3f6c076e5da5",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth2_seed1129.npz": "8cc63cc50b1a939af86e50d4877d78402ed9d6421667d8254931bab78b9eb569",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth2_seed1151.json": "4f71a1a5b46949496bc8a90535021d5535b3253d62664c862d236366ba080369",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth2_seed1151.npz": "8244de16649c7270b36e29126bd895baf39fa81b8d1cc1027d44fcc7ce461b47",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth4_seed1103.json": "045277a897af641eaf1d997f644c5693112a2d989b60adf363d787d9455cd0aa",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth4_seed1103.npz": "ee5146462d5fab874b4abfda0f0d14b859a260f4fa4f93808e2e4ef29ba7faf0",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth4_seed1129.json": "205f85fa18ce28049c8891759d1bba99e37b73b90e207ae5374ceedd81da8991",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth4_seed1129.npz": "14bb38e877c62ea17139e337995b4cbde8f070c48dbf2df4d1d09bbac22185d3",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth4_seed1151.json": "56497925cebe5139aee51350302606c1ff68a16e6609c2f1971532f977b0cf76",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth4_seed1151.npz": "42638911d8ff8975d89cf4970df320f968799088364b7e1dd5a95fdcb7b2835d",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth6_seed1103.json": "81f658a42dd1a1d413af473478509eea853810e49a97137f38392c30e4c4d5dc",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth6_seed1103.npz": "28c18910ab74390b6c865f868a762d17e0178a15009aa89a8a6c5599460c1ce6",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth6_seed1129.json": "c8297fc8ed95aa67ada2d98f1b9a2ec6982cafb361f286d6eded84905ea8c1e3",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth6_seed1129.npz": "399c2a67a64bd547eea79cae5e22c24bf2e8d4dc7cb2c49ed45de439c6391a8f",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth6_seed1151.json": "0da2f8b1210014a0fd1e5b7b3b74754a27f4e00b458dfa3ee612857ffc9b2f5f",
+      "directions/D10_depth_propagation/studies/r042_width32_eta02/results/depth6_seed1151.npz": "ebf6e32daba6b590191b52f0125302220497c09049578e10b82fac99db42c7fb"
+    },
+    "old_evidence_snapshot_sha256": "c0c96396fc9af8d226df91b24e4798066bae2f2249c6d932f940777b510d6c4d",
+    "comparison": "same x/y, parameters, initial functions and checkpoint0 arrays bitwise; r026/r030/r034/r042 success cells never overwritten"
+  },
+  "prediction_basis": {
+    "observed_prior": "r042 eta=.02 all 12 sum ratios .75–1 and slowest ratios 16.6–73",
+    "candidate_forecasts_from_saved_r042": [
+      {
+        "id": "depth1_seed1103",
+        "slowest_t50": 55,
+        "sum_t50": 2
+      },
+      {
+        "id": "depth1_seed1129",
+        "slowest_t50": 35,
+        "sum_t50": 2
+      },
+      {
+        "id": "depth1_seed1151",
+        "slowest_t50": 42,
+        "sum_t50": 2
+      },
+      {
+        "id": "depth2_seed1103",
+        "slowest_t50": 48,
+        "sum_t50": 2
+      },
+      {
+        "id": "depth2_seed1129",
+        "slowest_t50": 43,
+        "sum_t50": 2
+      },
+      {
+        "id": "depth2_seed1151",
+        "slowest_t50": 96,
+        "sum_t50": 2
+      },
+      {
+        "id": "depth4_seed1103",
+        "slowest_t50": 157,
+        "sum_t50": 3
+      },
+      {
+        "id": "depth4_seed1129",
+        "slowest_t50": 196,
+        "sum_t50": 7
+      },
+      {
+        "id": "depth4_seed1151",
+        "slowest_t50": 109,
+        "sum_t50": 3
+      },
+      {
+        "id": "depth6_seed1103",
+        "slowest_t50": 121,
+        "sum_t50": 2
+      },
+      {
+        "id": "depth6_seed1129",
+        "slowest_t50": 306,
+        "sum_t50": 8
+      },
+      {
+        "id": "depth6_seed1151",
+        "slowest_t50": 37,
+        "sum_t50": 1
+      }
+    ],
+    "max_initial_eta_lambda_forecast": 1.5426750550657522
+  }
+}

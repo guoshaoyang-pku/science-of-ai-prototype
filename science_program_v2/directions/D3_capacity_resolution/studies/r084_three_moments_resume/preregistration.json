@@ -1,0 +1,208 @@
+{
+  "study": "r084_three_moments_resume",
+  "round": 84,
+  "direction_round": 6,
+  "direction": "D3_capacity_resolution",
+  "domain": "development",
+  "created_at": "2026-10-07T04:27:41.590688+00:00",
+  "question": "固定n=d=9、p=2谱、L0和SGD recipe，匹配m1、m2、m3及插值参数范数平方后，1%阈值预算是否仍分离？",
+  "original_study": "r052_matched_three_moments_norm",
+  "original_scientific_commit": "476dbf683f317a8b8500f7d27a8683cc7fbc0f44",
+  "original_pins": {
+    "preregistration_commit": "476dbf683f317a8b8500f7d27a8683cc7fbc0f44",
+    "sha256": {
+      "preregistration.json": "efc2e7f893faa786f3a2c20759a5648c3fdd7daf160d8e29c7ffe76ed84be28c",
+      "executed/run.py": "9adde6a2d2f492446632c7b4ae8e2b377a3c7aca740b1143e8c4ac122039c22c",
+      "executed/feasibility.py": "247f85328baadd89754f8a1e135b3b05d306c8d2ae206af7ed8911d780051639",
+      "analysis.py": "6c6ca8258671f6c65b3bd6610c77e1fe531a2c22d29f8dc419acd6eb0eddbdcb",
+      "executed/verify_saved.py": "f6bdf023c6d0a6ca39a186235b5859773b6abaad35e9fef88a24b86160d66789",
+      "executed/feasibility.json": "59ac65833279d39c3034981bb26fc54c941842e50e588738207bf2194bde22ea",
+      "executed/previous_evidence_audit.json": "2fc33ab4463c2212b8a27bcf868d30568eed8d8ec4f8375da381f34f172915ef"
+    }
+  },
+  "original_scientific_contract_unchanged": {
+    "data_contract": {
+      "sample_count": 9,
+      "dimension": 9,
+      "dtype": "float64",
+      "eigenvalues": "lambda_i=i^-2, i=1..9",
+      "rotation": "default_rng(seed).normal(9,9)的QR正交R；同seed固定R，仅参数坐标旋转",
+      "features": "X_ij=sqrt(n*lambda_i)*R_ji；K=XX.T/n=diag(lambda)",
+      "target": "y_i=sqrt(n*w_i)，非负；可用模态支持集并集1/2/3/4/5/9，slow使用2/4/9、fast使用1/3/5，其他为0",
+      "initial_parameter": "theta0=0",
+      "loss": "L=||Xtheta-y||²/(2n)，L0=.5",
+      "pairing": "同seed完全相同X/谱/参数数/trace/有效秩/eta/mom/decay；匹配L0=.5、m1=2173/32653、m2=3607/620407、m3=487/620407、m_minus1=theta_star范数平方=11832487/620407、g0范数平方=m1、首步下降=161541/4963256；只改变目标权重。m4及更高矩和慢模态能量仍共同改变，不独立归因。",
+      "common_moments_note": "新共同矩值与r020/r040不同；范数通式2L0*m_minus1，仅L0=.5时数值等于m_minus1。跨study预算比变化不能因果归于新增m3控制。"
+    },
+    "optimizer": {
+      "name": "full_batch_SGD",
+      "eta": 0.5,
+      "momentum": 0,
+      "weight_decay": 0,
+      "steps": 1000,
+      "update": "theta-=eta*X.T@(Xtheta-y)/n"
+    },
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "targets": {
+      "slow_pair": [
+        "0",
+        "245760/6824477",
+        "0",
+        "7340032/8065291",
+        "0",
+        "0",
+        "0",
+        "0",
+        "4782969/88718201"
+      ],
+      "fast_pair": [
+        "147/620407",
+        "0",
+        "229635/620407",
+        "0",
+        "390625/620407",
+        "0",
+        "0",
+        "0",
+        "0"
+      ]
+    },
+    "threshold": 0.01,
+    "minimum_step_ratio": 1.3,
+    "tolerances": {
+      "matching_absolute": 1e-12,
+      "execution_absolute": 1e-10
+    },
+    "analytic_reference": {
+      "weights_selection": "v_j=lambda_j/prod_{k!=j}(lambda_j-lambda_k), positive/negative parts normalized",
+      "available_modes": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "feasibility_proof": "For <=5 distinct positive nodes, multiply each column of [1/lambda,1,lambda,lambda^2,lambda^3] by lambda. The resulting powers0..4 have full column rank by the Vandermonde determinant. Thus no nonzero weight difference exists on <=5 nodes; six is the minimum support union, not the support size of each target.",
+      "moments_exact": {
+        "slow_pair": {
+          "-1": "11832487/620407",
+          "0": "1",
+          "1": "2173/32653",
+          "2": "3607/620407",
+          "3": "487/620407",
+          "4": "863/5583663"
+        },
+        "fast_pair": {
+          "-1": "11832487/620407",
+          "0": "1",
+          "1": "2173/32653",
+          "2": "3607/620407",
+          "3": "487/620407",
+          "4": "183/620407"
+        }
+      },
+      "normalized_loss": "sum_i w_i*(1-eta*lambda_i)^(2t)",
+      "loss_drop1": "L0*(2*eta*m1-eta²*m2)",
+      "gradient0_norm_squared": "2*L0*m1",
+      "theta_star_norm_squared": "2*L0*sum_i(w_i/lambda_i)",
+      "predicted_fast_step": 103,
+      "predicted_slow_step": 138,
+      "exact_adjacent_checks": {
+        "slow_pair": {
+          "step": 138,
+          "exact_adjacent_check": {
+            "137": {
+              "normalized_loss": 0.010034100700178015,
+              "exact_threshold_comparison": false
+            },
+            "138": {
+              "normalized_loss": 0.009903137445996404,
+              "exact_threshold_comparison": true
+            }
+          }
+        },
+        "fast_pair": {
+          "step": 103,
+          "exact_adjacent_check": {
+            "102": {
+              "normalized_loss": 0.010217357172821961,
+              "exact_threshold_comparison": false
+            },
+            "103": {
+              "normalized_loss": 0.009812531272563626,
+              "exact_threshold_comparison": true
+            }
+          }
+        }
+      },
+      "predicted_step_ratio": 1.3398058252427185,
+      "prediction_provenance": "注册前仅对用户固定六模态解析计算精确Fraction可行性和已知标量谱递推端点；无新训练、无候选扫描、非盲发现，全部development。"
+    },
+    "predictions": {
+      "P1": "6cell保存X/y/theta/loss从eigh与注册谱复算曲线/更新误差<=1e-10、阈值一致；3配对X逐字节同且所有注册匹配量差<=1e-12，含m3和范数；无删失。",
+      "P2": "3同seed配对slow/fast的1%整数预算比均>=1.3；任一删失或不达比值则refuted。",
+      "P3": "各seed的fast=103步、slow=138步；任一端点不同或删失则refuted。"
+    },
+    "evaluation_contract": {
+      "primary_endpoint": "首次保存整数步loss/L0<=.01，含0..1000，不插值、不改变阈值",
+      "censoring": "未达到记null/censored，不扩预算、不用1000代替真实步数，P1/P2/P3失败",
+      "paired_reporting": "逐seed差、比、匹配误差和min/max，不只均值，无CI",
+      "validity": "若P1匹配或执行核验失败，不声称匹配后的反例；保留全部失败记录",
+      "new_claim_rule": "只有保存结果；P1不是新发现，P2/P3失败也如实登记且不重复同一claim"
+    },
+    "boundaries": [
+      "仅development固定满秩n=d9谱i^-2、float64零初始化、全批量SGD eta.5/mom0/nodecay、L0.5/epsilon.01/T1000和注册六模态权重；3seed只是坐标旋转，不是独立数据，不给CI。",
+      "m1/m2/m3/插值参数范数匹配仍可能预算分离；m4及更高矩、慢模态能量共同改变，不能独立归因。",
+      "共同矩值不同于r020/r040，不能把跨study预算比变化因果归于新增匹配控制。",
+      "完整谱递推及支持集并集最小六模态是解析结论，不登记为新测量；注册前端点来自解析，非盲发现。",
+      "两目标均最终可插值，预算不是永久表示容量；不外推learned features/架构轴/泛化/空间频率分辨率/sealed OOD。",
+      "旧r004/r01218、r0206、r0406成功cell只读，不重跑覆盖；旧matmul根因未定、原梯度范数与>=10草稿措辞纠正保留。"
+    ]
+  },
+  "counts": {
+    "previously_saved_cells": 1,
+    "planned_new_training_cells": 5,
+    "total_planned_cells": 6,
+    "coordinate_seeds": 3,
+    "same_seed_pairs": 3,
+    "target_conditions": 2,
+    "paired_designs": 1
+  },
+  "prediction_provenance": "第52轮已注册六模态精确权重和103/138端点，476dbf6早于已有seed0_slow训练；本轮读过该成功138端点后仅恢复原冻结设计，不是新的盲预测，不扫描候选、不改变权重或判据。",
+  "resume_protocol": "先提交本恢复合同与pinned源码；同时核验本提交与唯一原scientific commit476dbf6。全部原cell保持476dbf6 pin。原run全局检查receipt/metadata/NPZ/request/目录后只补五缺失cell；不重跑成功cell。原receipt仅追加，允许hash变化；原成功metadata/NPZ hashmtime固定。",
+  "analysis": "本轮analysis.py读取原r052结果，从eigh和保存theta独立复算矩、norm、曲线、更新、整数阈值；summary登记1旧+5新cell与逐seed范围；verify_saved.py标量复算。",
+  "predictions": {
+    "P1": "6cell保存X/y/theta/loss从eigh与注册谱复算曲线/更新误差<=1e-10、阈值一致；3配对X逐字节同且所有注册匹配量差<=1e-12，含m3和范数；无删失。",
+    "P2": "3同seed配对slow/fast的1%整数预算比均>=1.3；任一删失或不达比值则refuted。",
+    "P3": "各seed的fast=103步、slow=138步；任一端点不同或删失则refuted。"
+  },
+  "prediction_validity": "原预测103/138和比>=1.3保持不改。P1失败则不登记受控匹配反例。未完成时not_evaluated；删失或完整测量不达判据时refuted。",
+  "compute_budget": {
+    "maximum_new_seconds": 1200,
+    "device": "CPU",
+    "threads": 1,
+    "python": "python3",
+    "network": false
+  },
+  "source_sha256": {
+    "executed/run.py": "c16e048f2687fca98f10ac3813ea8d0039531cbb95611e6d6867028999076445",
+    "analysis.py": "87c0b1e08e158d1bbfba13c2c302b0afa91a3400bcbc26f23249be7156e87004",
+    "executed/verify_saved.py": "2f41bdb44a683c5a45a0933a7c5b635ce2018ee49c0575ffbcf694b5fa9561b7"
+  },
+  "audit_sha256": {
+    "executed/pre_execution_audit.json": "0257de08d3ad4cf7c4dc0b20db8d821cf2ac8549e17b20949c0824067aca81b8",
+    "executed/feasibility_review.json": "52209b58ead319981a14979ff02c70116f91a6836bb6b928532e61a56c82efd5"
+  },
+  "pretraining_status": {
+    "new_training_cells": 0,
+    "previously_saved_cells": 1,
+    "original_saved_cell_verified": true,
+    "r040_final_commit_verified": true,
+    "old115_hash_mtime_unchanged": true
+  }
+}

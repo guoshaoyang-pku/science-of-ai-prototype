@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 12/12 cells; data_seed260608 refuted joint failure recurrence (T MAE=0.586472067, improvement=-0.152998507); evidence, reports, handoff, and verified closeout commits are saved.

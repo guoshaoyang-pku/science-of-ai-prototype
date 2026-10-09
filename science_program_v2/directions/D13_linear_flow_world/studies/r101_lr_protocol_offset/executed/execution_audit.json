@@ -1,0 +1,38 @@
+{
+  "study_id": "r101_lr_protocol_offset",
+  "independent_review": "只读设计/源码/结果解释复核，无文件写入、无训练/拟合；发现并保留J=4*MSE口径、原tc下界合同偏差、reference B粗网格限制、单起点local拟合与seed稳健性未过。",
+  "freeze_commit": "657a4d491ce6e6d71642dc691a7fe45dc63c76c7",
+  "training_new_cells": 6,
+  "training_new_cells_on_recovery": 0,
+  "fits_new_on_recovery": 0,
+  "tool_orchestration_notes": [
+    "两次functions exec JavaScript字符串转义错误使工具调用在执行shell前失败；未生成实验结果。",
+    "源码草稿R2表达式与newline转义先静态修正；之后预注册源码hash冻结且从未修改。"
+  ],
+  "warning_record": {
+    "source": "首次run_experiment.py调用的stderr",
+    "messages": [
+      "RuntimeWarning: divide by zero encountered in matmul",
+      "RuntimeWarning: overflow encountered in matmul",
+      "RuntimeWarning: invalid value encountered in matmul"
+    ],
+    "locations": [
+      "run_experiment.py:39 acts.append(acts[-1] @ weight)",
+      "run_experiment.py:45 grads[j] = acts[j].T @ g",
+      "run_experiment.py:46 g = g @ layers[j].T"
+    ],
+    "raw_capture_note": "首次工具输出保留于supervisor会话日志；此处为事件摘录，不是重新生成的stderr日志。",
+    "resolution": "finite检查与独立einsum验证通过；根因未定，没有重训或覆盖成功结果。"
+  },
+  "scope": "所有研究产物在本方向study/findings；central state只更新D13 last_round/next_question；按用户要求git add -A同时保留提交已有supervisor与D4异步产物。",
+  "style_checklist": {
+    "fixed_skeleton": true,
+    "core_question_answer_first": true,
+    "numeric_old_report_preserved": true,
+    "no_links_outside_evidence": true,
+    "refuted_predictions_preserved": true,
+    "measured_vs_analytic_distinguished": true,
+    "sections_at_most_30_lines": true,
+    "no_new_dependency": true
+  }
+}

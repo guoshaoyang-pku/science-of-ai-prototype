@@ -1,0 +1,102 @@
+{
+  "study": "r097_batch2_exact",
+  "round": 97,
+  "direction_round": 7,
+  "direction": "D9_minibatch_noise",
+  "date": "2026-10-07",
+  "domain": "development",
+  "question": "仅B4改为B2，其余原条件不变，精确条件batch期望首最低点是否分别落入53..75与325..400步？",
+  "eta": 0.1,
+  "batch": 2,
+  "variance": 1.0,
+  "steps": 2304,
+  "compute_budget_seconds": 1200,
+  "cells": [
+    {
+      "seed": 411,
+      "data": "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/executed/data_n64_seed411.npz",
+      "full": "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/results/n64_seed411_eta0.1_B64_var1.npz",
+      "baseline": "directions/D9_minibatch_noise/studies/r085_batch4_exact/results/n64_seed411_eta0.1_B4_var1_exact.npz",
+      "known_full_t_star": 49,
+      "predicted_integer_t_star_range": [
+        53,
+        75
+      ],
+      "known_B4_t_star": 52
+    },
+    {
+      "seed": 412,
+      "data": "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/executed/data_n64_seed412.npz",
+      "full": "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/results/n64_seed412_eta0.1_B64_var1.npz",
+      "baseline": "directions/D9_minibatch_noise/studies/r085_batch4_exact/results/n64_seed412_eta0.1_B4_var1_exact.npz",
+      "known_full_t_star": 306,
+      "predicted_integer_t_star_range": [
+        325,
+        400
+      ],
+      "known_B4_t_star": 324
+    }
+  ],
+  "data_contract": {
+    "n": 64,
+    "d": 4,
+    "width": 128,
+    "head_parameters": 129,
+    "audit_rows": 2048,
+    "dtype": "float64",
+    "features": "原D2冻结ReLU+常数/零head；读取B4保存basis(rank36)/full；basis、投影q和qa统一float64 C连续。原数据与epsilon不变。",
+    "labels": "原train_y+epsilon、sigma²1、audit_y clean；不重抽epsilon、不积分epsilon。",
+    "optimizer": "SGD无动量/无衰减；每步独立均匀无放回B2；实际梯度系数2eta。",
+    "window": "整数0..2304，首argmin；不改window/eta/epsilon/full分母49/306。",
+    "counting": "1新batch recipe、2配对data seed、2新精确矩cell、0训练/新MC/bootstrap、2读取B4对照与2读取full。独立raw二阶矩核验仅计算新B2。"
+  },
+  "analytic_recurrence": {
+    "basis": "V为训练row span正交基；q_i=V^T phi_i，u=V^T w，q_a=Phi_a V。",
+    "mean": "a=2eta,H=q^Tq/n,b=q^Tz/n,A=I-aH；m_next=A m+a b。",
+    "covariance": "gamma=(n-B)/(B(n-1)); C_next=A C A^T+a² gamma{q^T diag(diag(q C q^T)+(q m-z)^2)q/n-H C H-(H m-b)(H m-b)^T}。",
+    "risk": "R_exact=mean((q_a m-y_a)^2)+tr((q_a^Tq_a/Na)C)。",
+    "status": "独立batch条件线性更新已知矩闭合；递推本身不登记新发现。精确指有限步概率矩无Monte Carlo误差，实际计算有float64误差。"
+  },
+  "predictions": {
+    "P1": "seed411首argmin位于闭整数范围53..75且seed412位于325..400；联合预测要求2/2，否则refuted。失败不改范围/窗/数据/源码。与full两倍内仅描述。"
+  },
+  "prediction_provenance": "来自已见development B4最低点52/324、B8 50/315、full49/306。B2/B4 gamma比31/15；若以B4相对full位移3/18做粗略比例外推，约55/343步，但协方差反馈使此比例不构成argmin定理。故注册53..75/325..400检验继续小幅延后的有限范围假设。注册前未计算B2矩/风险/端点，只读旧结果与hash；非盲、非sealed OOD。",
+  "validation": {
+    "independent": "新B2独立64维样本坐标raw二阶矩、单/双inclusion概率，曲线maxabs<=2e-8、最终均值head maxabs<=1e-9、首argmin一致；不调用主矩递推或basis。",
+    "inherited_controls": "新B2对保存B4均值坐标maxabs<=1e-10、mean_risk<=1e-12，rtol=0，事前注册；basis/full数组逐位继承，full对保存r029 maxabs<=2e-8。旧B4严格逐位失败保持false/partial；不追溯改其容差。旧B=n和枚举只读继承核验证据。",
+    "integrity": "所有数组finite、argmin在(0,2304)、协方差最低特征值>=-1e-10；332个旧study文件sha256/mtime不变；全局results扫描拒绝孤立/额外/缺失/混合pin。恢复核验跳过成功cell，不覆盖已有结果/summary。",
+    "unique_freeze": "git log对新preregistration仅允许1个提交；所有source/input及成功cell必须绑定该唯一commit，不以当前HEAD另建pin。",
+    "mean_coordinates_atol": 1e-10,
+    "mean_risk_atol": 1e-12,
+    "relative_tolerance": 0,
+    "layout": "新B2 basis、q、qa必须float64 C连续；原B4保存basis为C连续；计算H/A等用冻结einsum(optimize=False)。不重算旧B4/B8/full，也不做旧布局干预。"
+  },
+  "descriptive_analysis": "逐seed保存B2相对B4/full最低点、最低风险差、协方差风险及最近邻余量；精确期望无MC区间，不拼旧轨迹/广网格，不作跨data概率或显著性声明。",
+  "boundaries": "仅原D2固定n64/d4/冻结ReLU width128+常数/零head/float64 MSE/无动量无衰减SGD eta.1、B2及配对B4、sigma²1、seed411/412原data/epsilon、整数0..2304、同标签full49/306。development非盲依据，已知矩递推不登记新发现。旧B4逐位核验失败/partial、旧M8失败、期望分母混杂、旧核验训练后改pin与matmul根因未定保留；不推连续B/eta/其他n/优化器/learned features/无限训练/train-only早停/sealed OOD。",
+  "source_sha256": {
+    "executed/run.py": "d0feaafefe5167c5cb7ddbf1cfcd46a65df9dd2567177817e293d87b52ee946f",
+    "analysis.py": "324bdb2fed446b4db0fbaf2d19cd4030fead2725df00dccdb8de3b8d5947e069",
+    "executed/verify.py": "03ffa607a1e3095a9694c3bec5d9fc62f6efa4d85c8226a436310559d8304110",
+    "executed/input_audit.json": "a209ce2ac1b2084cd635c526f46dcadea93f45533f8bdd9dddf3aeff2ca673e8"
+  },
+  "input_sha256": {
+    "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/executed/data_n64_seed411.npz": "fb8397ea38970429c4c81a7eb7aae6e92da3952b817283fcafb848bbacb97992",
+    "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/results/n64_seed411_eta0.1_B64_var1.npz": "c5f31f62773e4e68443029e7028d01d954d4429333a17de1fba25dd116df1df1",
+    "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/results/n64_seed411_eta0.1_B64_var1.json": "72a29ae0ba16a4a7106cd27987e9d069beef419037aeb7c35d8bf1079b38d206",
+    "directions/D9_minibatch_noise/studies/r085_batch4_exact/results/n64_seed411_eta0.1_B4_var1_exact.npz": "fd3f8b5cd20d8ac1c69cb7e60d81182768b6ebc5fd618ef79ecd38e2fdbbd422",
+    "directions/D9_minibatch_noise/studies/r085_batch4_exact/results/n64_seed411_eta0.1_B4_var1_exact.json": "e063afa667c7cc2177fb61b0684b9f1d5667affcda39948bbd4adaa9d574ee9e",
+    "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/executed/data_n64_seed412.npz": "9be7a247f0532d43d22ab807d67da344c839cc644ba2c44043b1f79bcfbc1ddf",
+    "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/results/n64_seed412_eta0.1_B64_var1.npz": "2a7fefefd07c3e07c71015e7119fd0be83238c87ff939defd795999e1c17932c",
+    "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/results/n64_seed412_eta0.1_B64_var1.json": "88b2659ae649f44723e00ea82fe58a552f62c506d387e9e28a041440f4bd5dfb",
+    "directions/D9_minibatch_noise/studies/r085_batch4_exact/results/n64_seed412_eta0.1_B4_var1_exact.npz": "d2bf59f7b514b62e49d890d962b2f3fb8cac20cb0f8c0da704ca926e82160330",
+    "directions/D9_minibatch_noise/studies/r085_batch4_exact/results/n64_seed412_eta0.1_B4_var1_exact.json": "f16e1e6d20d5f4f8d1dbf77df1e85d1845f9c1893cc3cfb214e20fd0c08116d4",
+    "directions/D9_minibatch_noise/studies/r085_batch4_exact/preregistration.json": "2c7084d9bc3b08dd7405cd20122540884c43456e97bade501c09113cf2d3adb7",
+    "directions/D9_minibatch_noise/studies/r085_batch4_exact/results/receipt.json": "87b3844f7d0a9c1a2430e0127ba294971efcb56bc3c4d463e94cfa2f044b52a3",
+    "directions/D9_minibatch_noise/studies/r085_batch4_exact/summary.json": "b5064339e257c87d4781c162dce8da867a4edb73ca606b87107f9839ea98279a",
+    "directions/D9_minibatch_noise/studies/r085_batch4_exact/executed/verification.json": "229048614e2c92c548491a462c76d7eb07321ef0d8cc384daabb3ffe4ceda363",
+    "directions/D9_minibatch_noise/studies/r085_batch4_exact/executed/source_manifest.json": "b0304291df8ba6aa7c5d2bc4ebd74f6dd0d85f2230bcfb3e65e597cddc7c3912",
+    "directions/D9_minibatch_noise/studies/r085_batch4_exact/executed/closeout_audit.json": "d6a1b1c8d900e4df2e478095d33084e250ee22d4f94386f76fea9d959f13d3a8",
+    "directions/D9_minibatch_noise/studies/r085_batch4_exact/executed/final_commit_verification.json": "c347a1aad25f746e6af461cfbbab9565b481adcfdb0daee0e2ffbeb072eaaf46",
+    "directions/D9_minibatch_noise/studies/r085_batch4_exact/executed/analysis.log": "57fdf85a1e40d83978c82d60ca7f59224ccd68162de3b1c08ca9ea802186989a"
+  }
+}

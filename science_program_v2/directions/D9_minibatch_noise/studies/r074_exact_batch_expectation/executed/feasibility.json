@@ -1,0 +1,43 @@
+{
+  "scope": "只审查训练span尺寸、投影残差、解析矩闭合；尚未递推均值/协方差，未计算新风险或argmin。",
+  "cells": [
+    {
+      "seed": 411,
+      "train_shape": [
+        64,
+        129
+      ],
+      "audit_shape": [
+        2048,
+        129
+      ],
+      "rank": 36,
+      "svd_tolerance": 2.291500322826323e-13,
+      "largest_singular": 8.0,
+      "smallest_retained_singular": 0.020925215198266008,
+      "span_reconstruction_maxabs": 8.465450562766819e-16,
+      "basis_orthogonality_maxabs": 2.6645352591003757e-15
+    },
+    {
+      "seed": 412,
+      "train_shape": [
+        64,
+        129
+      ],
+      "audit_shape": [
+        2048,
+        129
+      ],
+      "rank": 36,
+      "svd_tolerance": 2.2915003228263226e-13,
+      "largest_singular": 7.999999999999998,
+      "smallest_retained_singular": 0.03471679925382623,
+      "span_reconstruction_maxabs": 1.5543122344752192e-15,
+      "basis_orthogonality_maxabs": 2.4424906541753444e-15
+    }
+  ],
+  "derivation": "独立batch与当前head独立；条件batch样本均值协方差=(n-B)/(B(n-1))乘以总体1/n协方差。线性更新的二阶矩闭合。均值与full一致，covariance为ACA^T加条件梯度协方差期望。B=n系数归零。",
+  "max_matrix_dimension": 64,
+  "complexity": "每步O(n r²+r³)，r<=64，2304步，两cell；CPU单线程。",
+  "new_training": 0
+}

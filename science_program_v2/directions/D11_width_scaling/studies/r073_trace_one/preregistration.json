@@ -1,0 +1,208 @@
+{
+  "dimensions": [
+    8,
+    16,
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024,
+    2048,
+    4096,
+    8192
+  ],
+  "coordinate_seeds": [
+    0,
+    1,
+    2
+  ],
+  "targets": [
+    "middle",
+    "endpoints"
+  ],
+  "data_contract": {
+    "sample_count": 8192,
+    "active_sample_count": "d",
+    "parameter_count": "d",
+    "dtype": "float64",
+    "eigenvalues": "lambda_i=(1/i)/h_d,i=1..d,h_d=sum(1/i),trace=1",
+    "features": "前d样本X[i,perm[i]]=sqrt(n lambda_i)*sign[i]，其余输入/目标为零；不分配d²矩阵。",
+    "weights": "沿用r031保存modal_weights字节，中间w_(d/2)=1；首尾w1=1/(d-1),wd=(d-2)/(d-1)。",
+    "target": "前d目标y_i=sqrt(n w_i)，其余0；同d/seed保持原target/weights/permutation/signs与L0=.5。",
+    "loss": "||Xtheta-y||²/(2n),theta0=0",
+    "changed_factor": "仅谱整体除以h_d，feature amplitude相应除以sqrt(h_d)；theta_star/初始梯度改变为谱缩放的必然结果，不独立控制。"
+  },
+  "threshold": 0.01,
+  "counts": {
+    "conditions": 22,
+    "coordinate_seeds": 3,
+    "planned_cells": 66,
+    "planned_target_pairs": 33,
+    "planned_baseline_pairs": 66
+  },
+  "compute_budget_seconds": 1200,
+  "device": "CPU",
+  "network": false,
+  "study": "r073_trace_one",
+  "round": 73,
+  "direction_round": 4,
+  "direction": "D11_width_scaling",
+  "domain": "development",
+  "status": "preregistered",
+  "execution_allowed": true,
+  "created_at": "2026-10-07T08:57:17.225818+08:00",
+  "question": "只将固定n8192旧谱lambda_i=i^-1整体除以h_d，使trace=1后，T_1%/(d h_d)是否在注册误差内保持两个渐近系数？",
+  "sample_count": 8192,
+  "baseline_study": "directions/D11_width_scaling/studies/r031_fixed_n8192",
+  "optimizer": {
+    "name": "full_batch_half_MSE_SGD",
+    "eta": 0.5,
+    "momentum": 0,
+    "weight_decay": 0,
+    "max_steps_factor": 5,
+    "max_steps": "ceil(5 d h_d)",
+    "stop": "首次L/L0<=.01后再执行一步；删失不扩预算"
+  },
+  "cell_timeout_seconds": 120,
+  "criteria": {
+    "middle": 0.03,
+    "endpoints": 0.05,
+    "d_ge_128": 0.003
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "known_theory_execution_audit",
+      "register_as_new_discovery": false,
+      "prediction": "66/66实际曲线与完整谱递推maxabs<=1e-10；T与全谱整数参考一致；输入合同/保存SGD更新误差<=1e-10，闭式theta误差<=1e-7；无删失。"
+    },
+    {
+      "id": "P2",
+      "kind": "trace_normalization_scaling",
+      "prediction": "所有坐标seed全网格的T/(d h_d)相对log100/2（middle）和log100（endpoints）误差分别<=3%、<=5%；d>=128两目标各<=.3%。"
+    }
+  ],
+  "known_before_registration": {
+    "source": "r043失效草稿中保存的注册前已知谱递推算术，及本轮用户交接的相同整数表；不是盲预测，不是实测；本轮预注册前没有新训练/拟合/端点计算。",
+    "not_blind": true,
+    "not_measured": true,
+    "integer_reference_table": [
+      {
+        "dimension": 8,
+        "middle": 49,
+        "endpoints": 96
+      },
+      {
+        "dimension": 16,
+        "middle": 124,
+        "endpoints": 245
+      },
+      {
+        "dimension": 32,
+        "middle": 298,
+        "endpoints": 593
+      },
+      {
+        "dimension": 64,
+        "middle": 698,
+        "endpoints": 1393
+      },
+      {
+        "dimension": 128,
+        "middle": 1601,
+        "endpoints": 3196
+      },
+      {
+        "dimension": 256,
+        "middle": 3609,
+        "endpoints": 7213
+      },
+      {
+        "dimension": 512,
+        "middle": 8036,
+        "endpoints": 16065
+      },
+      {
+        "dimension": 1024,
+        "middle": 17705,
+        "endpoints": 35403
+      },
+      {
+        "dimension": 2048,
+        "middle": 38678,
+        "endpoints": 77348
+      },
+      {
+        "dimension": 4096,
+        "middle": 83893,
+        "endpoints": 167777
+      },
+      {
+        "dimension": 8192,
+        "middle": 180859,
+        "endpoints": 361710
+      }
+    ],
+    "analytic_review_reported_by_agent": {
+      "max_relative_coefficient_errors": [
+        0.02126802,
+        0.04124214
+      ],
+      "d_ge_128_relative_errors_at_most": [
+        0.0003,
+        0.0021
+      ],
+      "d_only_power_fits": [
+        {
+          "target": "middle",
+          "coefficient": 4.8880438213,
+          "exponent": 1.1779499414,
+          "max_relative_error": 0.15540384
+        },
+        {
+          "target": "endpoints",
+          "coefficient": 9.6168297437,
+          "exponent": 1.1802009277,
+          "max_relative_error": 0.16570413
+        }
+      ],
+      "frozen_old_d_power_law_underestimate_ranges_percent": {
+        "middle": [
+          63.0274,
+          89.5155
+        ],
+        "endpoints": [
+          62.6198,
+          89.4758
+        ]
+      },
+      "evidence_status": "agent报告的注册前算术；本轮无独立新实验，不作有效science claim。"
+    }
+  },
+  "frozen_old_d_fits": {
+    "middle": {
+      "coefficient": 2.2497349868166925,
+      "exponent": 1.0031605608119964
+    },
+    "endpoints": {
+      "coefficient": 4.438350206272056,
+      "exponent": 1.0050945148827997
+    }
+  },
+  "descriptive_comparator": "保持旧拟合冻结系数，不重新校准，报告与r031旧d幂律配对误差；另对新T等权log-log拟合d并与旧beta[.98,1.04]与maxerror6%比较，不新增实验问题。",
+  "boundaries": [
+    "全部development，结构化固定特征，n=8192但非零样本仍d；不推断独立样本增加的效果。",
+    "d不是learned width；不测随机特征集中、lazy-rich、核漂移、泛化或sealed OOD。",
+    "seed只改signed permutation坐标，不是独立数据、不计算seed CI。",
+    "原Rayleigh/幂律反例不改；theta范数与高阶矩未匹配，不独立归因一个中介。",
+    "r043因目录违规失效且永久锁定，本轮新建有效合同；保留全部失效记录，不运行旧草稿。"
+  ],
+  "baseline_manifest_sha256": "22488523f57542150ed636331ab1e998cb520331c0ba14ce14fa065cac5eba52",
+  "source_sha256": {
+    "executed/run.py": "456eae09c6dbbe2715ff8e4fb1ee684ec973ac4fe955757ff8f9241e705a7a5b",
+    "analysis.py": "9b516f08303cb6ed0c3908fe80575972c91cab042b0d07dc49f00b55647ca073",
+    "executed/verify.py": "8b41eeccca96e72bce7f387ca974f8a9aac405463ef49c309d594f9e5f1e69f9"
+  },
+  "resume_protocol": "同提交字节匹配且旧302文件hash/mtime匹配后才训练；检查成功cell源码/pins/request/metadata/NPZ hash，部分结果/未知结果拒绝，不覆盖成功cell。"
+}

@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 3/3 fits with zero new training; alpha=.5 min maxabs=.08268412550>.05 supported both predictions; evidence, reports, state, and closeout receipt committed and verified.

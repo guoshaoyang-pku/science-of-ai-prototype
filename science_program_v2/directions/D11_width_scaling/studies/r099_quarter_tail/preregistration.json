@@ -1,0 +1,104 @@
+{
+  "study": "r099_quarter_tail",
+  "round": 99,
+  "direction_round": 7,
+  "direction": "D11_width_scaling",
+  "domain": "development",
+  "status": "preregistered",
+  "execution_allowed": true,
+  "created_at": "2026-10-07T21:05:05.459124+08:00",
+  "question": "保持trace=1谱与目标Rayleigh，仅把目标改为d/4和d两个随d缩放的模态、固定1/3和2/3能量后，1%预算仍比旧middle慢至少75%吗？",
+  "dimensions": [
+    8,
+    16,
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024,
+    2048,
+    4096,
+    8192
+  ],
+  "coordinate_seeds": [
+    0,
+    1,
+    2
+  ],
+  "targets": [
+    "quarter_tail"
+  ],
+  "sample_count": 8192,
+  "baseline_study": "directions/D11_width_scaling/studies/r073_trace_one",
+  "threshold": 0.01,
+  "data_contract": {
+    "sample_count": 8192,
+    "active_sample_count": "d",
+    "dtype": "float64",
+    "eigenvalues": "从r073同d/seed/middle保存lambda字节直接读取；lambda_i=1/(i h_d), h_d=sum_i 1/i, trace=1",
+    "features": "前d行X[i,permutation[i]]=sqrt(n lambda_i)*signs[i]，后n-d行零；不用d²矩阵；permutation/signs直接读取旧NPZ。",
+    "weights": "w_(d/4)=1/3,w_d=2/3，其余0；索引从1开始",
+    "target": "y_i=sqrt(n w_i)，后n-d行为0；与旧middle目标权重规则不同",
+    "loss": "||Xtheta-y||²/(2n),theta0=0,L0=.5",
+    "paired_controls": "同d/seed的旧middle保存结果只读；谱、坐标、n、d、m1=2/(d h_d)、L0、初始梯度范数平方m1、优化器/epsilon一致。",
+    "changed_factor": "仅目标规则；m2与theta_star范数共同改变，不独立归因慢模态质量。"
+  },
+  "optimizer": {
+    "name": "full_batch_half_MSE_SGD",
+    "eta": 0.5,
+    "momentum": 0,
+    "weight_decay": 0,
+    "max_steps_factor": 5,
+    "max_steps": "ceil(5 d h_d)",
+    "stop": "首次L/L0<=.01后多执行1步；删失不延长"
+  },
+  "counts": {
+    "new_conditions": 11,
+    "coordinate_seeds": 3,
+    "planned_new_training_cells": 33,
+    "read_only_middle_pairs": 33
+  },
+  "compute_budget_seconds": 1200,
+  "cell_timeout_seconds": 120,
+  "device": "CPU",
+  "network": false,
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "known_theory_execution_audit",
+      "register_as_new_discovery": false,
+      "prediction": "33/33实际curve与已知完整谱递推maxabs<=1e-10且整数T一致；闭式theta检查点<=1e-7；保存loss/相邻SGD更新误差<=1e-10，所有输入合同/数据有限，全部无删失。"
+    },
+    {
+      "id": "P2",
+      "kind": "controlled_same_rayleigh_counterexample",
+      "prediction": "33/33同坐标quarter_tail/middle整数预算比在[1.75,1.90]，单Rayleigh整数预测对新目标低估>=40%；m1和L0配对差各<=1e-14。",
+      "ratio_interval": [
+        1.75,
+        1.9
+      ],
+      "minimum_rayleigh_underestimate": 0.4,
+      "pair_maxabs": 1e-14
+    }
+  ],
+  "known_before_registration": {
+    "new_training_or_new_endpoint_computation": false,
+    "source": "旧middle与endpoints预算区间已见；新目标的m1匹配和缩放模态来自已知谱代数。数值区间为旧约2倍反例稍减小的development粗略预测，非sealed OOD；未在注册前计算新整数预算或新极限根。",
+    "algebra": "lambda_(d/4)=4/(d h_d),lambda_d=1/(d h_d); m1=2/(d h_d);m2=6/(d²h_d²);theta_star范数平方=3d h_d/4，而middle=d h_d/2。"
+  },
+  "descriptive_only": "注册后复算已知连续极限系数C（1/3 exp(-4C)+2/3 exp(-C)=.01）及T/(d h_d)误差；不作为新理论或新注册判据，不拟合新的幂律。",
+  "boundaries": [
+    "development；结构化固定特征；d不是learned width，n8192是零填充记账且非零行仍d，不外推独立数据、真实网络、随机特征、lazy-rich、泛化或sealed OOD。",
+    "三个seed只改变坐标置换/符号，不是数据重复，不做CI；11条件/33cell/33旧保存配对。",
+    "目标改变同时改变m2及theta_star范数；只区分同谱同m1不足以决定预算，不证明哪个高阶量或慢能量是独立中介。",
+    "不把epsilon.01/.02/.05当连续外推；不重跑任何成功cell，不运行r043失效草稿。"
+  ],
+  "baseline_manifest_sha256": "e4e3bbf7ddf00a04a24400ce56c73d0e3f84b0a000946c008911ed949dac0052",
+  "source_sha256": {
+    "executed/run.py": "8e5c74cf8f8844e110a530ee743b4bc1f517f3fbb954f8232193d8475a78b125",
+    "analysis.py": "408ba744b850f097687e7771a6e6d9d1d5bce9d98a321486c5e143c46e0b83b5",
+    "executed/verify.py": "d92f8c61f43f3316bba52222a2811ebdfc8d57d9718538e8ab3ff97619df9fbf"
+  },
+  "resume_protocol": "唯一冻结commit与源码/预注册/manifest逐字匹配；全部旧文件SHA256+mtime匹配；全局检查全部新成功metadata/NPZ/receipt/request；孤立、未知、部分文件直接拒绝，成功cell不覆盖。"
+}

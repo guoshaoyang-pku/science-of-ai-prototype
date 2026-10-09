@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "study": "C03_hidden_boundary",
+  "phase": "development_boundary_after_C02",
+  "question": "Can trained hidden features escape the small-SiLU even-channel bottleneck?",
+  "architecture": {"input_dim": 4, "width": 64, "hidden_bias": false, "head_initialization": "zero", "head_bias": "trainable_zero", "parameterization": "z=scale*x*W/sqrt(dim), W initialized N(0,1); scale stays fixed", "normalization": "subtract initial train feature mean and divide fixed initial total RMS, then sqrt(width)"},
+  "data": {"distributions": ["symmetric_gaussian", "shifted_gaussian"], "shift": 0.7, "train_rows": 128, "test_rows": 1024, "dataset_seeds": {"symmetric_gaussian": 33011, "shifted_gaussian": 33017}, "targets": ["linear", "interaction"], "target_center_scale": "train mean/rms", "noise_sd": 0},
+  "seeds": [311, 312, 313, 314],
+  "scales": [0.03, 0.3],
+  "activations": ["relu", "silu"],
+  "hidden_modes": ["frozen", "learned"],
+  "optimizer": {"type": "full_batch_SGD", "lr": 0.3, "steps": 1024, "momentum": 0, "decay": 0},
+  "checkpoints": [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024],
+  "predictions": [
+    {"id": "H1", "claim": "On symmetric data at0.03 SiLU has weaker interaction progress than ReLU, while its linear progress is not weaker, in both frozen/learned modes at step1.", "criterion": "interaction initial progress ratio<0.1; linear ratio>0.5; allseeds", "scope": "head initialized zero, hidden initial gradient exactly zero"},
+    {"id": "H2", "claim": "At0.03 on symmetric data, learned hidden improves SiLU interaction train MSE by step1024 versus frozen in at least3/4seeds, but does not universally remove slowdown versus ReLU.", "criterion": "learned wins>=3; atstep128 median SiLU train MSE exceeds ReLU", "scope": "fixed scale parameterization, SGD.3"},
+    {"id": "H3", "claim": "The initial frozen-spectrum train curve ceases to predict full-hidden training, whereas it predicts frozen mode.", "criterion": "frozen max_error<1e-8; learned any-cell max_error>1e-3", "scope": "negative test of fixed-feature theory outside assumptions"},
+    {"id": "H4", "claim": "Learned-hidden escape from the interaction bottleneck is accompanied by growth of centered even feature energy or changed target-aligned kernel energy.", "criterion": "SiLU learned interaction: at leastone of final/initial even energy or kernel energy exceeds1.2 in>=3/4seeds", "scope": "symmetric0.03; correlation diagnostic, not mediation proof"}
+  ],
+  "all_results_retained": true,
+  "statistical_unit": "two target/distribution recipes, four within-condition seeds",
+  "solver_evaluation": "not_run",
+  "status": "sealed_before_measurement"
+}

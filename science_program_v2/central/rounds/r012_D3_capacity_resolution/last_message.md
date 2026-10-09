@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 18/18 cells after preregistration commit 7fefbda; step ratios were 2.923 and 8.878, P1–P3 passed, two KB claims and handoff saved, final commit 03525ec.

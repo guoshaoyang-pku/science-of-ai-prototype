@@ -1,0 +1,109 @@
+{
+  "study": "r028_gap_cascade",
+  "round": 28,
+  "direction_round": 1,
+  "direction": "D12_cascade_sigmoid",
+  "created_date": "2026-10-07",
+  "domain": "development",
+  "question": "D4等初始损失双模态系统在谱比12/15/20/25上，原网格中单logistic的误差判定何处改变，等权双logistic是否通过相同阈值？",
+  "data_contract": {
+    "sample_count": 2,
+    "dimension": 2,
+    "dtype": "float64",
+    "loss": "L=||Xθ−y||²/(2n)",
+    "features": "X=diag(sqrt(n*lambda)) R.T；R由default_rng(seed)正态2x2矩阵QR取得",
+    "target": "θ*=R@[sqrt(1/lambda_slow),sqrt(1/lambda_fast)]；y=Xθ*",
+    "initial_parameter": "θ0=0；两模态各有初始损失0.5，总损失1",
+    "execution_coordinate": "δ=θ−θ*；梯度X.T@(Xδ)/n；在实际二维旋转坐标执行更新，保存θ*、X、y、R和初始δ",
+    "optimizer": "全批量SGD，eta=.1，momentum=0，无weight decay，δ(t+1)=δ(t)−eta*X.T@(Xδ(t))/n",
+    "pairing": "每个seed固定R、λslow、初始loss权重、eta和步数；只改变λfast。θ*随λ调整以保持loss权重，参数范数及初始梯度并非固定。"
+  },
+  "learning_rate": 0.1,
+  "slow_eigenvalue": 0.01,
+  "fast_to_slow_eigenvalue_ratios": [
+    12,
+    15,
+    20,
+    25
+  ],
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "steps": 10000,
+  "cell_count": 12,
+  "counting": "4个recipe条件、各3个旋转坐标seed；seed仅数值稳健性，不视为独立数据重复。",
+  "analytic_reference": {
+    "normalized_loss": "f(t)=.5*(1−eta*lambda_slow)^(2t)+.5*(1−eta*lambda_fast)^(2t)",
+    "decay_rate": "a_i=−2*log(1−eta*lambda_i)，tau_i=1/a_i；稳定且0<eta*lambda_i<1",
+    "scale_ratio": "tau_slow/tau_fast=a_fast/a_slow，不将λ比误称为精确时间尺度比",
+    "half_time": "t50为连续延拓f(t50)=.5的唯一正根",
+    "local_logistic_slope": "beta_local=−4*t50*f′(t50)=2*t50*[a_slow*exp(−a_slow*t50)+a_fast*exp(−a_fast*t50)]",
+    "known_theory_only": "正权双指数在原始时间轴严格凸；谱递推、凸性、半高斜率匹配均为已知解析工具，不作为新发现。"
+  },
+  "evaluation_contract": {
+    "grid": "完全复用D4 r002原网格：参考lambda_fast=1固定（不使用本轮最大ratio替换），tau_fast_ref=1/[-2log(1-.1*1)]，tau_slow=1/[-2log(1-.1*.01)]。在[max(1,tau_fast_ref/100),10*tau_slow]取201点geomspace，rint去重加0，共150点、终点4997。",
+    "weighting": "去重网格各点等权，t=0也进入误差；拟合log-time logistic时t=0残差固定0。",
+    "primary_candidate": "H(t)=1/[1+(t/t50_fit)^beta_fit]，t>0；H(0)=1。平台固定1和0，仅拟合t50_fit>0、beta_fit>0。这里logistic自变量为log(t)，并非声称原始时间轴有S形。",
+    "fit": "SciPy least_squares，变量log(t50_fit)、log(beta_fit)，bounds=[log(.01),log(.1)]至[log(100000),log(10)]；6个起点为t50_exact乘[.5,1,2]与beta=[1,2]，ftol/xtol/gtol=1e−12，max_nfev=2000；取平方残差和最小的成功解。全部失败则该cell拟合不可评估，保留失败，不增加起点。",
+    "formula_comparison": "本轮只比较单/双候选，精确双指数仅为训练审计；不新增段参数公式预测，不重复单局部公式评估。",
+    "normalization": "RMSE和maxabs均除以真实初始动态范围L(0)−L∞=1，禁止用逐点相对误差或拟合出的幅度作分母。",
+    "adequacy": "拟合RMSE<=.03且最大绝对误差<=.05同时成立，才称该已注册窗口中单logistic足够。",
+    "pairing_summary": "按ratio报告两候选误差3seed min/max与同seed双-单差；不为坐标seed计算置信区间。",
+    "unavailable_fit": "候选全部起点失败则该cell候选不可评估；任何有效反例优先refuted，否则存在不可评估为not_evaluable。",
+    "double_candidate": "C(t)=.5 H(t;h1,b1)+.5 H(t;h2,b2)，H(t;h,b)=1/[1+(t/h)^b]，H(0)=1；各幅度.5固定，无自由平台。",
+    "double_fit": "SciPy least_squares，log(h1),log(b1),log(h2),log(b2)，每组bounds与单候选相同；36起点=(hfast_exact*ffast,bfast,hslow_exact*fslow,bslow)，两个factor各[.5,1,2]、两个beta各[1,2]。h_i_exact=log(2)/a_i仅作起点，不作参数预测。ftol/xtol/gtol=1e-12、max_nfev=2000，取成功解最小SSE；显示按h升序重排。"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "known_theory_execution_audit",
+      "prediction": "12/12cell完整0..10000步曲线与精确双指数maxabs<=1e-10，初始loss误差<=1e-12。",
+      "register_as_new_discovery": false
+    },
+    {
+      "id": "P2",
+      "kind": "controlled_prediction",
+      "prediction": "谱比12/15所有旋转seed的最佳单logistic均同时RMSE<=.03和maxabs<=.05。",
+      "criterion": "任一有效cell不满足则refuted，不补起点。"
+    },
+    {
+      "id": "P3",
+      "kind": "controlled_prediction",
+      "prediction": "谱比20/25所有旋转seed的最佳单logistic均至少一个指标超过RMSE .03或maxabs .05。",
+      "criterion": "任一有效cell同时通过则refuted，保留反例。"
+    },
+    {
+      "id": "P4",
+      "kind": "controlled_prediction",
+      "prediction": "谱比12/15/20/25所有旋转seed的最佳等权双logistic均同时RMSE<=.03和maxabs<=.05。",
+      "criterion": "任一有效cell不通过则refuted；该预测仅为描述能力，不证明机制或参数可辨认。"
+    }
+  ],
+  "analysis": "只从保存NPZ/metadata复算。逐cell保存fits.json，包含全部起点、状态与参数。成功拟合文件恢复先核hash不覆盖；summary由保存fits复算，不再拟合。报告同seed双-单误差差值。只报告离散通过/失败格点；若单调且存在相邻通过和失败点给出网格括号，不宣称唯一连续临界或机制merging。段参数可描述但不做半衰期公式预测。",
+  "resume_protocol": "预注册commit成功后先运行--max-new-cells 1，再续跑；每个成功cell对prereg/source/request/arrays SHA256及receipt中的metadata SHA256核对；成功cell不得覆盖，缺失或hash不符即停。执行器必须核实本preregistration与源码已在本repo当前HEAD按相同内容commit。 receipt在每次调用结束保存；异常中断若成功cell未获receipt metadata pin，恢复停止，禁止覆盖或自动接纳。",
+  "boundaries": [
+    "仅development，n=d=2、float64、固定特征half-MSE、L0=1、两模态各.5初始loss、lambda_slow=.01、lambda比12/15/20/25、全批量SGD eta=.1/mom0/nodecay、T10000。",
+    "平台固定1/0，双logistic两幅度各.5固定，只拟合四个时间/陡度参数；增加参数的样本内拟合改善不等于机制或前瞻预测。",
+    "沿用D4原150点整数log网格和等权，0到4997；已知单模态近似误差/窗口影响保留，不把单logistic失败完全归因于阶段分离。",
+    "谱比不是精确时间尺度比；theta_star、范数及初始梯度随lambda_fast变化，固定的是模态初始loss。",
+    "多起点局部最小二乘无全局最优保证；离散通过/失败不能给出连续临界，也不能把两个拟合段当两个可辨认物理阶段。",
+    "正权双指数在原时间轴严格凸为已知解析性质；双logistic仅log时间描述，不证实grokking/真实延迟泛化或原时间轴S形。",
+    "无自由平台、幅度自由拟合、三模态、动量、小批量、learned features、test或sealed OOD。"
+  ],
+  "compute_budget": {
+    "maximum_seconds": 1200,
+    "planned_cells": 12,
+    "threads": 1,
+    "device": "CPU",
+    "network": false,
+    "accounting": "累计run receipts与本次分析执行时间；每cell计算前检查，预计训练<5秒、拟合<120秒。"
+  },
+  "execution_source_sha256": "8b593b33445a4abb27e406d7e9f4b314312921fb6b5faf07383001c93017f045",
+  "analysis_source_sha256": "fe5a2f16869d6ceafbafd8d138ab469a3855983942deaf60dd63c89dd2049a3b",
+  "source_reuse": {
+    "run": "完全复制D4 r002 executed/run.py，仅由新合同供给谱比。训练和恢复协议不改。",
+    "original_execution_sha256": "8b593b33445a4abb27e406d7e9f4b314312921fb6b5faf07383001c93017f045"
+  }
+}

@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | All 6 saved r30/r100 curve evaluations passed the unchanged formula thresholds with no training or fitting; reports, KB, handoff, and verified closeout committed.

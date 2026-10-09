@@ -1,0 +1,117 @@
+{
+  "study": "r077_fixed_kernel_train_chord",
+  "round": 77,
+  "direction_round": 5,
+  "direction": "D5_ln_geometry",
+  "domain": "development",
+  "question": "相同初始化共享Linear核固定传播256步的train offset chord，是否比一步传播更能复现保存真实train chord的LN−noLN方向？",
+  "functions": [
+    "trigonometric8",
+    "quadratic8",
+    "interaction12",
+    "radial12"
+  ],
+  "recipes": {
+    "LN010_w64": {
+      "width": 64,
+      "depth": 3,
+      "activation": "gelu",
+      "layer_norm": [
+        false,
+        true,
+        false
+      ],
+      "weight_decay": 0.0001,
+      "steps": 256,
+      "batch_size": 64,
+      "optimizer": "SGD",
+      "lr": 0.001,
+      "momentum": 0.0
+    },
+    "noLN_w64": {
+      "width": 64,
+      "depth": 3,
+      "activation": "gelu",
+      "layer_norm": [
+        false,
+        false,
+        false
+      ],
+      "weight_decay": 0.0001,
+      "steps": 256,
+      "batch_size": 64,
+      "optimizer": "SGD",
+      "lr": 0.001,
+      "momentum": 0.0
+    }
+  },
+  "offsets": [
+    -3,
+    0,
+    3
+  ],
+  "seeds": [
+    100,
+    101,
+    102,
+    103,
+    104
+  ],
+  "data_seed": 48291,
+  "train_n": 256,
+  "test_n": 256,
+  "normalization": "train target centered and standardized once; same transform applied to test",
+  "data_contract": "只读复用r013120训练、r02140Rayleigh和r04540耦合cell；全部历史文件SHA/mtime及train_x/train_y/train_predictions_0/256数组pins在manifest冻结。无新训练。",
+  "operator": {
+    "parameters": "input及三个hidden Linear的weight/bias，排除head/LN affine，d8/d12参数数13056/13312；原训练LN affine可更新。",
+    "kernel": "按保存seed/Linear初值/train预测hash重建初始化，float32逐样本autograd求J，转float64后K=JJ^T/256；不将J居中，不用Gram H^T H替代K。",
+    "propagation": "n=256,a=3,eta=.001,A=I−.002K；float64从v0=1递推vt=vt−.002Kvt，固定保存t=0/1/256，Ct=9*mean[(vt−mean(vt))²]；K收缩与传播用einsum optimize=False。",
+    "scale": "J单位归一化标签/参数坐标；K单位标签²/参数坐标²；eta单位参数坐标²/标签²，A无量纲，a标签，Ct标签²；参数化固定。",
+    "one_step": "本轮同新K计算C1基线，C1=4eta²a²ell；旧float32 Jg耦合只做容差交叉核验，不以两精度差异冒充多步效应。",
+    "outcome": "Etrain_m=mean[(train_predictions_256_m−train_y_m的居中残差)²]，Creal=(E_-3+E_3)/2−E_0；Delta Creal=Creal_LN−Creal_noLN；Delta Ct=Ct_LN−Ct_noLN。sign tolerance=1e-12，abs<=tol归0且算方向不匹配。",
+    "analytic_boundary": "Ct解析式只属fixed-J/full-batch/no-decay/MSE mean squared的精确加性offset train线性化；实际小批量、decay、非线性及可更新affine有差异，标签float32平移也有量化；不能当test解释或因果识别。"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "prediction": "t256的Delta Ct与真实train Delta Creal符号匹配至少16/20配对（>=80%）。",
+      "success": "全部40cell及核验完整后，达到16/20为supported，否则refuted；零方向算不匹配。",
+      "rationale": "旧test收益20/20、一步ell LN更高20/20已知，但真实train chord/完整K/t256未先计算；多步谱传播候选预计修正局部方向。仅development。"
+    },
+    {
+      "id": "P2",
+      "prediction": "t256符号匹配数减t1匹配数至少10/20（>=50个百分点）。",
+      "success": "差值>=10为supported，否则refuted；不换参数子集/传播步数/eta/offset/符号。"
+    }
+  ],
+  "analysis_contract": {
+    "counts": "8函数×recipe初始化条件，每条件5seed，共40新K测量cell，20同seed LN/noLN对仅含四函数。0新训练。",
+    "intervals": "每函数5seed的真实Delta C与t1/t256 Delta C均值、min/max和配对seed t95，仅描述初始化稳健性；不报iid p值。",
+    "descriptive": "幅度范围、真实train及fixed Delta C方向数、Pearson相关仅描述，不作为判据、不替换test终点。",
+    "independent": "每cell核对旧pins，旧K1 maxabs<3e-6/PK1 L2rel<1e-4/ell rel<2e-4；两随机VJP→forward JVP的Kprobe rel<2e-5；独立eigh传播向量maxabs<1e-10/chord rel<1e-6；原始旧train残差标量平方和复算Delta C误差<1e-12。首cell通过再补39cell。K min eigen>=−1e-10且eta lambda_max<1，否则停止保留not_evaluated，不调尺度。"
+  },
+  "execution": {
+    "python": "python3",
+    "device": "cpu",
+    "threads": 1,
+    "max_seconds": 1200,
+    "network": false,
+    "new_training_cells": 0,
+    "planned_measurement_cells": 40,
+    "immutable_success_cells": true
+  },
+  "resume_protocol": "匹配祖先预注册commit和源码SHA、历史hash/mtime后才测量；先1cell核验后补39；成功cell恢复只校验合同/hash，不覆盖。",
+  "boundaries": [
+    "仅四旧development函数、n256,width64,GELU,固定head,同seed/输入，共享Linear核；真实保存训练SGD eta.001/mom0/decay1e-4/batch64/T256；无新训练、sealed OOD或因果干预。",
+    "核排除可训练LN affine且固定初始化；固定核full-batch无decay传播与实际训练不同；失败只反驳该近似的指定方向判据，不排除所有Jacobian机制。",
+    "train chord与旧test chord单独记录，不能相互替代或利用已知test收益调参；旧Gram/Rayleigh/一步coupling失败及未定matmul警告保留。",
+    "主问题只检验方向吻合改善，幅度与相关不是预注册成功要求；已知旧一步20/20LN耦合更大，不是独立盲预测。"
+  ],
+  "created_at": "2026-10-07T10:06:48.011916+08:00",
+  "source_sha256": {
+    "executed/run.py": "efe4002b7da22133bb18e1871f764b41ce1dda2dc896a0041a7e9b8dd1d9045b",
+    "analysis.py": "a9f747b9fb63a9ec901c93cd0afea9b03471bc13ef9dc761ae131478269e74fa",
+    "executed/verify.py": "59fd09bafaa7e5e6fb6df727a1b5a55142ecab49d075f51400dd22b1c209e555",
+    "executed/input_manifest.json": "3d87f54732bcf9b9517c9bfc8e5d9d74e231e7aaf9edc84b3e659f84e9cedc37"
+  }
+}

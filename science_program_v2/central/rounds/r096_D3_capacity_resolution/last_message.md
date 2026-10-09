@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 6/6 saved-curve evaluations with zero training; epsilon=.001 gave 160/322 steps (ratio 2.0125), all predictions passed, and closeout was committed and verified.

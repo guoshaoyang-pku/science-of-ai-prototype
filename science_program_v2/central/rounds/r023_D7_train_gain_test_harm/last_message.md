@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 12 new noisy cells with 12 saved clean controls; P1 passed 4/4 units, three initialization intervals crossed zero, and reports, KB, handoff, and verified closeout were committed.

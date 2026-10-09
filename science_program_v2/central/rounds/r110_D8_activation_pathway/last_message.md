@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 12/12 a=.075 cells with zero training; both original 2% criteria failed in all cells, both predictions passed, and closeout was committed and verified.

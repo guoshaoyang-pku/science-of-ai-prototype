@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 1/1 saved-curve evaluation with zero training; seed413 rebound 0.014188114 refuted P1, retained an interior minimum, and verified closeout was committed.

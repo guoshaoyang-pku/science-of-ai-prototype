@@ -1,0 +1,1 @@
+ROUND_RESULT: failed | Read-only .git blocked both commits; no training ran (0/24 cells), and the B02 audit, preregistration, scripts, reports, and handoff updates are saved.

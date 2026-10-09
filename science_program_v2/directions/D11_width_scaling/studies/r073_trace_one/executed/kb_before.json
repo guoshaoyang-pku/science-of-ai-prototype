@@ -1,0 +1,984 @@
+{
+  "claims": [
+    {
+      "id": "D1-001",
+      "direction": "D1",
+      "round": 9,
+      "text": "n=d=8固定特征单模态二次型、全批量SGD η=.1、mom0/.9、g0=.003/.01时，q=.9且h=ηλ=.0001/.001的4个配对条件，恒梯度启动换算均准确预测动量62/12步（两个端点、3个坐标seed同值）；对应稳态预测53/6步。",
+      "evidence": [
+        "directions/D1_u_effective_time/studies/r001_momentum_startup/summary.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n=d=8固定特征单模态二次型、float64、全批量SGD、η=.1、mom0/.9、固定谱[.001,.01,.05,.1,.2,.3,.4,.5]、g0=.003/.01、3个坐标seed、T=40000；不适用Adam、mini-batch、混合模态、非线性网络或历史bigram因果分摊。换算输入为实测无动量阈值步数；不证明从零预测或晚期有效。"
+    },
+    {
+      "id": "D1-002",
+      "direction": "D1",
+      "round": 9,
+      "text": "n=d=8固定特征单模态二次型、全批量SGD η=.1、mom0/.9、g0=.003/.01，q=.01持续至40000步时，启动换算“不比稳态差”的预测在6/10配对条件被推翻；h=.0001/.001/.005的绝对误差分别为启动22/23/18步、稳态13/14/9步，3个坐标seed均复现。",
+      "evidence": [
+        "directions/D1_u_effective_time/studies/r001_momentum_startup/summary.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅development：n=d=8固定特征单模态二次型、float64、全批量SGD、η=.1、mom0/.9、固定谱[.001,.01,.05,.1,.2,.3,.4,.5]、g0=.003/.01、3个坐标seed、T=40000；不适用Adam、mini-batch、混合模态、非线性网络或历史bigram因果分摊。持续只保证到T=40000；6个条件是3模态×2幅度，18个seed配对不算18种科学条件。"
+    },
+    {
+      "id": "D1-003",
+      "direction": "D1",
+      "round": 9,
+      "text": "n=d=8固定特征单模态二次型、全批量SGD η=.1、mom0/.9、5目标模态及3坐标seed下，仅将初始梯度L2范数从.01改为.003，归一化loss轨迹最大差3.22e-15，q=.9/.1/.01的全部首次与持续阈值步数相同，固定初始梯度进度代理则为0.3倍。",
+      "evidence": [
+        "directions/D1_u_effective_time/studies/r001_momentum_startup/summary.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n=d=8固定特征单模态二次型、float64、全批量SGD、η=.1、mom0/.9、固定谱[.001,.01,.05,.1,.2,.3,.4,.5]、g0=.003/.01、3个坐标seed、T=40000；不适用Adam、mini-batch、混合模态、非线性网络或历史bigram因果分摊。两档幅度初始绝对loss不同；不比较绝对误差，g0统计口径不保证等于主线经验|g|。"
+    },
+    {
+      "id": "D4-001",
+      "direction": "D4",
+      "round": 10,
+      "text": "n=d=2等loss双模态固定特征平方损失、全批量SGD η=.1/mom0、λslow=.01，固定平台log-time logistic在原150点网格下，谱比1/3/10的3坐标seed全部同时满足RMSE≤.03、maxabs≤.05；各条件误差四舍五入分别为.026792/.047170、.019879/.034032、.021089/.040145。",
+      "evidence": [
+        "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/summary.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n=d=2、float64、固定特征平方损失、全批量SGD η=.1/mom0/nodecay、λslow=.01、两模态初始loss各.5、10000步、平台固定1/0、150点等权整数化log网格0..4997、原六起点最小二乘、3坐标seed。目标参数范数与初始梯度不固定；不外推learned features、动量、mini-batch、自由平台、其他网格、固定目标范数、早期外推或封存OOD。 谱比10是预注册描述条件，没有事后方向预测；seed只检查坐标稳健性。"
+    },
+    {
+      "id": "D4-002",
+      "direction": "D4",
+      "round": 10,
+      "text": "n=d=2等loss双模态固定特征平方损失、全批量SGD η=.1/mom0、λslow=.01，谱比30/100的固定平台log-time logistic在原150点网格下，全部3坐标seed同时超过RMSE=.03与maxabs=.05；RMSE分别.040288/.060285、maxabs分别.061662/.085569，原P3 supported。",
+      "evidence": [
+        "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/summary.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n=d=2、float64、固定特征平方损失、全批量SGD η=.1/mom0/nodecay、λslow=.01、两模态初始loss各.5、10000步、平台固定1/0、150点等权整数化log网格0..4997、原六起点最小二乘、3坐标seed。目标参数范数与初始梯度不固定；不外推learned features、动量、mini-batch、自由平台、其他网格、固定目标范数、早期外推或封存OOD。 未扫描10与30之间条件，不能给出连续临界谱比；多起点局部最小二乘不保证全局最优。"
+    },
+    {
+      "id": "D4-003",
+      "direction": "D4",
+      "round": 10,
+      "text": "n=d=2等loss双模态固定特征平方损失、全批量SGD η=.1/mom0、谱比1、λslow=.01，在原150点网格下，真实半衰期与半高局部斜率生成的固定平台logistic误差为RMSE=.033350、maxabs=.066366，全部3坐标seed未达.03/.05阈值；同cell全曲线拟合则通过。",
+      "evidence": [
+        "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/summary.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n=d=2、float64、固定特征平方损失、全批量SGD η=.1/mom0/nodecay、λslow=.01、两模态初始loss各.5、10000步、平台固定1/0、150点等权整数化log网格0..4997、原六起点最小二乘、3坐标seed。目标参数范数与初始梯度不固定；不外推learned features、动量、mini-batch、自由平台、其他网格、固定目标范数、早期外推或封存OOD。 局部参数公式属已知解析工具；登记的是同cell受控区分。此比较是预注册描述性分析，不将它冒充失败数值预测。"
+    },
+    {
+      "id": "D2-001",
+      "direction": "D2",
+      "round": 11,
+      "text": "d4 Gaussian混合目标、冻结ReLU width128、零head、全批量GD η=.3/mom0，n32/64/128×σ².25/.5/1/2/4、4 seed下，相同n/σ²的跨n最低点步数“全部相差不超过两倍”被推翻：40/44配对通过，4个反例比值为2.8125、2.75、.410256、2.35（11个recipe配对组×4重复）。",
+      "evidence": [
+        "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/summary.json",
+        "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅development：d4对称Gaussian、目标x₀+0.5x₀x₁、冻结ReLU width128/scale .03、训练特征居中及总RMS归一化、clean标签train mean/RMS归一化、含bias零初始化head、float64、全批量GD η=.3/mom0/nodecay、n32/64/128×σ².25/.5/1/2/4、seeds411–414、整数步0..16384。跨n重新抽输入并重算标签RMS，非纯样本量因果对照；最低点需要clean train/audit标签。不外推learned hidden、Adam、mini-batch、CE、无限训练、train-only早停或封存OOD。"
+    },
+    {
+      "id": "D2-002",
+      "direction": "D2",
+      "round": 11,
+      "text": "d4 Gaussian混合目标、冻结ReLU width128、零head、全批量GD η=.3/mom0，n32/64/128×σ².25/.5/1/2/4、4 seed下，用另两个n的40 cell拟合log(t*)=a+b log(n/σ²)，留出n的最低点预测57/60在两倍内（各n19/20），达到原48/60判据；15 recipe、seed只作重复。",
+      "evidence": [
+        "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/summary.json",
+        "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：d4对称Gaussian、目标x₀+0.5x₀x₁、冻结ReLU width128/scale .03、训练特征居中及总RMS归一化、clean标签train mean/RMS归一化、含bias零初始化head、float64、全批量GD η=.3/mom0/nodecay、n32/64/128×σ².25/.5/1/2/4、seeds411–414、整数步0..16384。跨n重新抽输入并重算标签RMS，非纯样本量因果对照；最低点需要clean train/audit标签。不外推learned hidden、Adam、mini-batch、CE、无限训练、train-only早停或封存OOD。 训练折叠关系使用其他development条件的oracle；通过允许3个失败预测，不保证逐seed精度或普适幂律。"
+    },
+    {
+      "id": "D3-001",
+      "direction": "D3",
+      "round": 12,
+      "text": "n=d=9固定特征λ_i=i^(-1)、全批量SGD η=.5/mom0、零初始化时，同谱第三模态与首尾混合目标匹配参数数、trace、有效秩、Rayleigh=1/3与L0=.5，1%损失阈值仍为13/38步；3坐标seed配对均差25步、比2.923077，达到注册≥2.5判据。",
+      "evidence": [
+        "directions/D3_capacity_resolution/studies/r012_matched_rayleigh_resume/summary.json",
+        "directions/D3_capacity_resolution/studies/r012_matched_rayleigh_resume/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "谱限定λ_i=i^(-1), i=1..9；目标权重第三模态=1或首尾=.25/.75。仅development：n=d=9固定满秩线性特征、float64、零初始化、全批量SGD η=.5/mom0/nodecay、整数步0..1000、L0=.5、ε=.01。3seed仅参数坐标旋转，不是独立数据重复；无置信区间。只在同p内固定X配对；目标参数范数和实际第一步loss下降未匹配；初始参数梯度范数由相同L0与Rayleigh自动匹配，原合同未固定的措辞已在报告纠正。不外推learned features、width/depth/激活/LN、泛化、空间分辨率、其他优化器或封存OOD；两目标均可最终插值，不是永久表示容量差。"
+    },
+    {
+      "id": "D3-002",
+      "direction": "D3",
+      "round": 12,
+      "text": "n=d=9固定特征λ_i=i^(-2)、全批量SGD η=.5/mom0、零初始化时，同谱第三模态与首尾混合目标匹配参数数、trace、有效秩、Rayleigh=1/9与L0=.5，1%损失阈值仍为41/364步；3坐标seed配对均差323步、比8.878049，达到修订后注册≥8判据。",
+      "evidence": [
+        "directions/D3_capacity_resolution/studies/r012_matched_rayleigh_resume/summary.json",
+        "directions/D3_capacity_resolution/studies/r012_matched_rayleigh_resume/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "谱限定λ_i=i^(-2), i=1..9；目标权重第三模态=1或首尾=.1/.9。原≥10是零训练时修订的草稿，未作为实验预测评估。仅development：n=d=9固定满秩线性特征、float64、零初始化、全批量SGD η=.5/mom0/nodecay、整数步0..1000、L0=.5、ε=.01。3seed仅参数坐标旋转，不是独立数据重复；无置信区间。只在同p内固定X配对；目标参数范数和实际第一步loss下降未匹配；初始参数梯度范数由相同L0与Rayleigh自动匹配，原合同未固定的措辞已在报告纠正。不外推learned features、width/depth/激活/LN、泛化、空间分辨率、其他优化器或封存OOD；两目标均可最终插值，不是永久表示容量差。"
+    },
+    {
+      "id": "D5-001",
+      "direction": "D5",
+      "round": 13,
+      "text": "四旧函数d8/d12、width64 GELU、固定head、SGD lr=.001/mom0/decay1e-4、T256的LN010/noLN配对中，终点hidden Gram log10条件数下降达到12/12函数×offset单元各≥3/5 seed（总54/60），通过注册≥8/12。",
+      "evidence": [
+        "directions/D5_ln_geometry/studies/r013_gram_condition_review/summary.json",
+        "directions/D5_ln_geometry/studies/r013_gram_condition_review/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：四旧函数trigonometric8/quadratic8(d8 uniform)、interaction12/radial12(d12 Gaussian)，train/test各256、data seed48291、width64 GELU输入层加3block、LN010/noLN、head weight/bias固定、hidden/LN affine可训练，SGD lr=.001/mom0/weight_decay1e-4、batch64、T256、offset−3/0/+3、seeds100–104；模型float32、居中hidden Gram float64、floor1e-12。seed只作重复，不外推其他函数/width/优化器或sealed OOD；hidden Gram不是参数Jacobian NTK，无因果中介干预。 LN初始化已有60/60配对条件数更低；仅7/60 LN cell训练后比初始化更低，不能解释为训练改善谱。 720 checkpoint均未命中固定floor1e-12。"
+    },
+    {
+      "id": "D5-002",
+      "direction": "D5",
+      "round": 13,
+      "text": "四旧函数d8/d12、width64 GELU、固定head、SGD lr=.001/mom0/decay1e-4、T256中，offset0终点LN−noLN log10κ与三offset LN−noLN chord的20函数×seed配对Pearson r=.420774，未达注册≥.5（P2 refuted）。",
+      "evidence": [
+        "directions/D5_ln_geometry/studies/r013_gram_condition_review/summary.json",
+        "directions/D5_ln_geometry/studies/r013_gram_condition_review/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅development：四旧函数trigonometric8/quadratic8(d8 uniform)、interaction12/radial12(d12 Gaussian)，train/test各256、data seed48291、width64 GELU输入层加3block、LN010/noLN、head weight/bias固定、hidden/LN affine可训练，SGD lr=.001/mom0/weight_decay1e-4、batch64、T256、offset−3/0/+3、seeds100–104；模型float32、居中hidden Gram float64、floor1e-12。seed只作重复，不外推其他函数/width/优化器或sealed OOD；hidden Gram不是参数Jacobian NTK，无因果中介干预。 20重复只含4函数；不报告iid显著性，r=.420774不等于无任何关联，阈值失败不排除其他目标相关几何。"
+    },
+    {
+      "id": "D6-001",
+      "direction": "D6",
+      "round": 14,
+      "text": "d=3/n=32 Gaussian、product/mixed_sine、width8/32、SiLU两hidden layer、full-batch SGD η=.05/mom0/nodecay、固定r0且trace匹配的4个development recipe单元中，step32到step256核漂移方向持续判据通过3/4单元；product×8、product×32、mixed_sine×32各2/3 seed同向，mixed_sine×8为0/3。",
+      "evidence": [
+        "directions/D6_kernel_drift/studies/r006_early_direction/summary.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅适用于本轮d3/n32 Gaussian、两个函数、width8/32、SiLU两hidden layer、full-batch SGD η=.05/mom0/nodecay、256步、固定r0/trace匹配和seeds611/629/647；不外推新函数、数据seed、优化器、LN、深度、泛化或sealed OOD。mixed_sine×width8为反例；固定r0方向不等价于移动晚期残差拟合速度。"
+    },
+    {
+      "id": "D7-001",
+      "direction": "D7",
+      "round": 15,
+      "text": "d5 Gaussian train32/test256、两层hidden SiLU、full-batch SGD eta=.05/mom0/nodecay、512步、data7331/noise733107的sigma0/1配对中，噪声扩大真实网络相对初始切线的终点干净test半MSE差距：4/4函数×width8/32单元mean(D)>=.02且12/12初始化D>0；mixed_sine两宽度mean(D)=.557508/.800986，radial=.301773/.287093，原P1通过。",
+      "evidence": [
+        "directions/D7_train_gain_test_harm/studies/r015_noise_interaction_resume/summary.json",
+        "directions/D7_train_gain_test_harm/studies/r015_noise_interaction_resume/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：d5 Gaussian train32/test256、mixed_sine/radial、含bias两层hidden SiLU、width8/32、PyTorch默认float32初始化再double、init11/29/47、data7331/noise733107、clean目标按train均值/标准差归一化后加sigma0/1、float64、full-batch SGD eta=.05/mom0/nodecay、512步。4个函数×宽度单元，seed只测初始化稳健性；一个data/noise draw，两个width8单元D的95% seed区间跨零。不外推新数据/噪声、optimizer、LN、深度或sealed OOD；不区分核方向与隐式偏置，不量化机制占比。"
+    },
+    {
+      "id": "D7-002",
+      "direction": "D7",
+      "round": 15,
+      "text": "d5 Gaussian train32/test256、两层hidden SiLU、full-batch SGD eta=.05/mom0/nodecay、data7331/noise733107条件中，终点真实减切线test半MSE为正仍可伴随真实模型step128到512 test下降：mixed_sine width32 init11 sigma0为H=.020497、变化=-.001370；radial width32 init29 sigma1为H=.012378、变化=-.029205。",
+      "evidence": [
+        "directions/D7_train_gain_test_harm/studies/r015_noise_interaction_resume/summary.json",
+        "directions/D7_train_gain_test_harm/studies/r015_noise_interaction_resume/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：d5 Gaussian train32/test256、mixed_sine/radial、含bias两层hidden SiLU、width8/32、PyTorch默认float32初始化再double、init11/29/47、data7331/noise733107、clean目标按train均值/标准差归一化后加sigma0/1、float64、full-batch SGD eta=.05/mom0/nodecay、512步。4个函数×宽度单元，seed只测初始化稳健性；一个data/noise draw，两个width8单元D的95% seed区间跨零。不外推新数据/噪声、optimizer、LN、深度或sealed OOD；不区分核方向与隐式偏置，不量化机制占比。 预注册描述诊断，无额外预测成功判据；只是保存结果中的两个分歧样本，不是train-only早停信号。"
+    },
+    {
+      "id": "D8-001",
+      "direction": "D8",
+      "round": 16,
+      "text": "对称Gaussian d4/n128、width64冻结单层SiLU、固定同单元bias、MSE与全批量GD eta=.8/mom0/nodecay/1024步下，bias=0和1的偶/奇能量比R在scale=.025到.05的六seed配对增长分别为3.984159–3.991788与4.002060–4.003272，均保持a²领先（指数均值1.995464与2.000962）。",
+      "evidence": [
+        "directions/D8_activation_pathway/studies/r008_bias_inflection/summary.json",
+        "directions/D8_activation_pathway/findings/r016_bias_inflection_resume.md"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅适用本轮对称Gaussian d4/n128、width64冻结单层SiLU、固定bias、特征居中/RMS、MSE、全批量GD；不外推近根bias、非对称输入、多层、learned hidden、CE、小批量或干预收益。R是偶/奇能量比，不等于目标相关核能量或拟合速度。"
+    },
+    {
+      "id": "D8-002",
+      "direction": "D8",
+      "round": 16,
+      "text": "同一对称Gaussian d4/n128、width64冻结单层SiLU、固定bias、MSE与全批量GD条件下，SiLU二阶导数零点b*=2.3993572805154675的R在scale=.025到.05的六seed配对增长为63.953437–63.985564，均值63.970738，指数均值5.999340，符合a⁶区间判据[48,80]。",
+      "evidence": [
+        "directions/D8_activation_pathway/studies/r008_bias_inflection/summary.json",
+        "directions/D8_activation_pathway/findings/r016_bias_inflection_resume.md"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "只测二阶导数零点的一个精确bias值与四个scale；不提供近根容差区间，不外推随机bias、非对称输入、多层、learned hidden、CE、小批量、干预收益或最终拟合排序。a⁶为本合同有限尺度测量，解析Taylor阶数本身不单独构成新claim。"
+    },
+    {
+      "id": "D1-004",
+      "direction": "D1",
+      "round": 17,
+      "text": "n=d=2固定特征谱[.001,.5]、全批量SGD eta=.1/mom0与.9、L0=1、T40000、q=.01持续端点下，慢模态初始loss占比alpha=.001/.005/.009的3个配对条件，稳态U换算相对绝对误差为86.9565%–88.6364%，启动为73.9130%–76.2712%，两者均>=50%，P1通过；3坐标seed同值。",
+      "evidence": [
+        "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/summary.json",
+        "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n=d=2固定满秩特征、谱[.001,.5]、float64、全批量SGD eta=.1/mom0或.9、L0=1、零参数/速度初始化、T40000、q=.01持续至T；3seed只旋转参数坐标，不是数据重复，无置信区间。换算输入为实测mom0持续步数，不是从零预测。不同alpha未匹配初始梯度范数、Rayleigh商、参数范数与第一步下降，不能区分其独立作用；不外推其他谱/eta/q/optimizer/learned features/mini-batch或sealed OOD，不作历史bigram因果分摊；启动不保证优于稳态，原r009 P4的6/10失败保留。"
+    },
+    {
+      "id": "D1-005",
+      "direction": "D1",
+      "round": 17,
+      "text": "n=d=2固定特征谱[.001,.5]、全批量SGD eta=.1/mom0与.9、L0=1、T40000、q=.01持续端点下，慢模态初始loss占比alpha=.02/.1/.5的3个配对条件，稳态U换算相对绝对误差为.1739%–1.6997%，启动为.8499%–.9565%，两者均<=5%，P2通过；3坐标seed同值。",
+      "evidence": [
+        "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/summary.json",
+        "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n=d=2固定满秩特征、谱[.001,.5]、float64、全批量SGD eta=.1/mom0或.9、L0=1、零参数/速度初始化、T40000、q=.01持续至T；3seed只旋转参数坐标，不是数据重复，无置信区间。换算输入为实测mom0持续步数，不是从零预测。不同alpha未匹配初始梯度范数、Rayleigh商、参数范数与第一步下降，不能区分其独立作用；不外推其他谱/eta/q/optimizer/learned features/mini-batch或sealed OOD，不作历史bigram因果分摊；启动不保证优于稳态，原r009 P4的6/10失败保留。 alpha=.01/.011仅描述，不给出临界占比或把alpha>q视为充分条件。"
+    },
+    {
+      "id": "D4-004",
+      "direction": "D4",
+      "round": 18,
+      "text": "n=d=2、固定谱[.01,1]、全批量SGD eta=.1/mom0/nodecay、L0=1、原150点等权log网格与固定平台下，慢能量占比alpha=.01的3坐标seed最小二乘单logistic选解RMSE=.01022359488但maxabs=.06476095049–.06476095218>.05；原P2关于.01/.99均通过的预测被此条件推翻。",
+      "evidence": [
+        "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/summary.json",
+        "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/executed/independent_analysis_verification.json",
+        "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅development：n=d=2固定特征半MSE、float64、全批量SGD eta=.1/mom0/nodecay、谱[.01,1]、L0=1、零参数初始化、T10000；alpha只改慢初始loss占比，目标参数/梯度范数/Rayleigh商/第一步下降未匹配。原150点整数log网格（0至4997）、各点等权、平台1/0、6起点最小二乘取成功SSE最小解；seed0/1/2只旋转参数坐标，不作数据重复/置信区间。拟合不足仅指该选解，不证明所有logistic参数均不可能通过或已获全局最优；不推断连续临界alpha或谱比10到30临界点，不把拟合中点当真实半衰期，不外推自由平台、learned features、其他谱/optimizer/网格、前段预测或sealed OOD。"
+    },
+    {
+      "id": "D4-005",
+      "direction": "D4",
+      "round": 18,
+      "text": "n=d=2、固定谱[.01,1]、全批量SGD eta=.1/mom0/nodecay、L0=1、原150点等权log网格与固定平台下，慢能量占比alpha=.99的3坐标seed最小二乘单logistic选解RMSE=.02914082893、maxabs=.04937290549–.04937290590，同时通过.03/.05两阈值。",
+      "evidence": [
+        "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/summary.json",
+        "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/executed/independent_analysis_verification.json",
+        "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n=d=2固定特征半MSE、float64、全批量SGD eta=.1/mom0/nodecay、谱[.01,1]、L0=1、零参数初始化、T10000；alpha只改慢初始loss占比，目标参数/梯度范数/Rayleigh商/第一步下降未匹配。原150点整数log网格（0至4997）、各点等权、平台1/0、6起点最小二乘取成功SSE最小解；seed0/1/2只旋转参数坐标，不作数据重复/置信区间。拟合不足仅指该选解，不证明所有logistic参数均不可能通过或已获全局最优；不推断连续临界alpha或谱比10到30临界点，不把拟合中点当真实半衰期，不外推自由平台、learned features、其他谱/optimizer/网格、前段预测或sealed OOD。"
+    },
+    {
+      "id": "D4-006",
+      "direction": "D4",
+      "round": 18,
+      "text": "n=d=2、固定谱[.01,1]、全批量SGD eta=.1/mom0/nodecay、L0=1、原150点等权log网格与固定平台下，alpha=.25/.5/.75三个慢能量占比条件的单logistic最小二乘选解均不足，3坐标seed各同判定；RMSE=.04090645242–.06974371360、maxabs=.08556858257–.17433680642，P3通过3/3条件。",
+      "evidence": [
+        "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/summary.json",
+        "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/executed/independent_analysis_verification.json",
+        "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n=d=2固定特征半MSE、float64、全批量SGD eta=.1/mom0/nodecay、谱[.01,1]、L0=1、零参数初始化、T10000；alpha只改慢初始loss占比，目标参数/梯度范数/Rayleigh商/第一步下降未匹配。原150点整数log网格（0至4997）、各点等权、平台1/0、6起点最小二乘取成功SSE最小解；seed0/1/2只旋转参数坐标，不作数据重复/置信区间。拟合不足仅指该选解，不证明所有logistic参数均不可能通过或已获全局最优；不推断连续临界alpha或谱比10到30临界点，不把拟合中点当真实半衰期，不外推自由平台、learned features、其他谱/optimizer/网格、前段预测或sealed OOD。"
+    },
+    {
+      "id": "D2-003",
+      "direction": "D2",
+      "round": 19,
+      "text": "d4 Gaussian混合目标、冻结ReLU width128、含bias零head、全批量GD eta=.3/mom0，n32/σ²=.25与n64/σ²=.5四seed411–414仅将clean标签train mean/RMS改为population 0/√1.25后，seed414最低点由64/180变为62/201步，配对比值从2.8125变为3.241935，反例保留且通过预注册(2,4]；全部四seed新比值范围1.005435–3.241935。",
+      "evidence": [
+        "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/summary.json",
+        "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：d4 antithetic Gaussian目标x0+.5x0x1、frozen ReLU width128/scale.03、原train feature mean/RMS、含bias零head、float64、full-batch GD eta.3/mom0/nodecay、整数0..16384、audit2048、n32/64与σ².25/.5、四seed411–414。两recipe为一组配对，seed只测重复；x/W/features/epsilon固定在各n/seed内，跨n原始输入不同。mean/RMS联合干预、噪声固定归一化单位，不识别两者独立作用或谱/输入机制；oracle需要clean标签，不外推train-only早停、learned hidden、Adam、mini-batch、CE、其他recipe、无限训练或sealed OOD。"
+    },
+    {
+      "id": "D3-003",
+      "direction": "D3",
+      "round": 20,
+      "text": "n=d=9固定特征λ_i=i^-2、零初始化、全批量SGD η=.5/mom0/nodecay，目标A(w1=1/55,w3=54/55)与B(w2=2048/4235,w9=2187/4235)匹配L0=.5、m1=7/55、m2=1/33、初始梯度范数平方与实际第一步loss下降=.05984848485，1%阈值仍为41/319步；三个同坐标seed均差278步、比7.780488，达到注册≥7判据。",
+      "evidence": [
+        "directions/D3_capacity_resolution/studies/r020_matched_two_moments/summary.json",
+        "directions/D3_capacity_resolution/studies/r020_matched_two_moments/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅n=d=9满秩固定线性特征、float64、λ_i=i^-2(i1..9)、共同m1=7/55/m2=1/33、注册四模态权重、零初始化、SGD eta.5/mom0/nodecay、L0.5、整数0..1000、epsilon.01；两目标条件/一个配对设计，seed0/1/2只参数坐标旋转，不是独立数据重复，无CI。匹配量最大配对差3.053113e-16，实际第一步下降差≤5.551115e-17；目标参数范数平方A=487/55、B=2407/55和高阶矩未匹配，不能独立归因慢模态质量或参数范数。两目标均可最终插值，不是永久表示容量差；不外推learned features、架构轴、泛化、空间分辨率、其他优化器/阈值或sealed OOD，也不证明所有标量均不充分。"
+    },
+    {
+      "id": "D5-003",
+      "direction": "D5",
+      "round": 21,
+      "text": "四旧函数、width64固定head、SGD eta.001/mom0/decay1e-4/batch64/T256的20同seed配对中，初始化共享hidden Linear Jacobian居中目标Rayleigh比值的log10与LN chord收益相关r=.394664832，跨offset平均终点Gram条件数改善r=.282604295，优势.112060538；未达注册r>=.5且优势>=.15，P1 refuted。",
+      "evidence": [
+        "directions/D5_ln_geometry/studies/r021_target_rayleigh/summary.json",
+        "directions/D5_ln_geometry/studies/r021_target_rayleigh/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅development四旧函数(d8 uniform/d12 Gaussian)、train/test各256、data48291、width64/GELU/LN010-noLN、固定head、SGD eta.001/mom0/decay1e-4/batch64/T256、seeds100–104保存轨迹；40初始化Linear weight/bias Jacobian测量排除head/LN affine，原训练affine可更新；float32 autograd/float64汇总。20配对只有四函数，不作iid p值、函数外推、独立前瞻效能或因果中介。终点Gram基线为跨offset平均，非旧offset0；目标商不是训练残差下降率，不排除其他Jacobian/offset耦合机制，无新训练/OOD。"
+    },
+    {
+      "id": "D5-004",
+      "direction": "D5",
+      "round": 21,
+      "text": "四旧函数、width64固定head、SGD eta.001/mom0/decay1e-4/batch64/T256的20同seed配对分别扣除函数均值后，初始化共享hidden Linear Jacobian目标Rayleigh比值与LN chord收益r=-.076836549，跨offset Gram改善r=-.295981431；优势.219144881但未达注册Rayleigh r>=.3，P2 refuted。",
+      "evidence": [
+        "directions/D5_ln_geometry/studies/r021_target_rayleigh/summary.json",
+        "directions/D5_ln_geometry/studies/r021_target_rayleigh/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅development四旧函数(d8 uniform/d12 Gaussian)、train/test各256、data48291、width64/GELU/LN010-noLN、固定head、SGD eta.001/mom0/decay1e-4/batch64/T256、seeds100–104保存轨迹；40初始化Linear weight/bias Jacobian测量排除head/LN affine，原训练affine可更新；float32 autograd/float64汇总。20配对只有四函数，不作iid p值、函数外推、独立前瞻效能或因果中介。终点Gram基线为跨offset平均，非旧offset0；目标商不是训练残差下降率，不排除其他Jacobian/offset耦合机制，无新训练/OOD。"
+    },
+    {
+      "id": "D6-002",
+      "direction": "D6",
+      "round": 22,
+      "text": "d3/n32 Gaussian、product/mixed_sine×width8/32、两hidden SiLU、SGD eta.05/mom0/nodecay/T256中，旧12cell冻结step32 E=log(rho32)、Q=log(y核trace匹配比)的T公式1.982239+3.109145E−3.152502Q，在新3seed/4recipe的12cell达到MAE=.441188817，较E基线.550345073改善.109156256，通过预注册≤.70/≥.08；仅7/12seed误差更小，最大误差1.229845961。",
+      "evidence": [
+        "directions/D6_kernel_drift/studies/r022_early_amplitude/summary.json",
+        "directions/D6_kernel_drift/studies/r022_early_amplitude/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：d3/n32 Gaussian/data260606、product/mixed_sine、width8/32、bias/两hidden SiLU、float32默认Linear初始化后float64、full-batch halfMSE SGD eta.05/mom0/nodecay/T256；旧seed611/629/647校准后冻结，新seed701/719/737。4recipe非12独立条件；4recipe配对改善95%seed t区间均跨零。无新函数/data draw/OOD/因果干预，不预测rt拟合/test/LN/其他depth或优化器。"
+    },
+    {
+      "id": "D6-003",
+      "direction": "D6",
+      "round": 22,
+      "text": "d3/n32 Gaussian、product/mixed_sine×width8/32、两hidden SiLU、SGD eta.05/mom0/nodecay/T256中，旧12cell冻结width模型.986409+2.032985E+.587644 I(width8)，新3seed/4recipe的12cell MAE=.498007947，相对E基线改善.052337126<.08，支持预注册“width未达到.08改善幅度”；不证明width无信息。",
+      "evidence": [
+        "directions/D6_kernel_drift/studies/r022_early_amplitude/summary.json",
+        "directions/D6_kernel_drift/studies/r022_early_amplitude/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：d3/n32 Gaussian/data260606、product/mixed_sine、width8/32、bias/两hidden SiLU、float32默认Linear初始化后float64、full-batch halfMSE SGD eta.05/mom0/nodecay/T256；旧seed611/629/647校准后冻结，新seed701/719/737。4recipe非12独立条件；4recipe配对改善95%seed t区间均跨零。无新函数/data draw/OOD/因果干预，不预测rt拟合/test/LN/其他depth或优化器。"
+    },
+    {
+      "id": "D7-003",
+      "direction": "D7",
+      "round": 23,
+      "text": "d5 Gaussian train32/test256、mixed_sine/radial×SiLU width8/32、init11/29/47、data7331、full-batch SGD eta=.05/mom0/nodecay/512步，只把noise733107换为733123后，终点差距放大量D=H1-H0的4单元均值依次.432276/.466452/.263984/.127211，各3/3 init D>0，P1≥.02且≥2/3的判据通过4/4；三个95%初始化区间跨零。",
+      "evidence": [
+        "directions/D7_train_gain_test_harm/studies/r023_noise_draw_replication/summary.json",
+        "directions/D7_train_gain_test_harm/studies/r023_noise_draw_replication/executed/independent_primary_verification.json",
+        "directions/D7_train_gain_test_harm/studies/r023_noise_draw_replication/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：d5 Gaussian train32/test256、mixed_sine/radial、含bias两hidden SiLU、width8/32、默认float32初始化再double、init11/29/47、data7331、clean按train均值/标准差归一化后加独立未中心/缩放sigma0/1噪声、test始终clean、float64 full-batch halfMSE SGD eta=.05/mom0/nodecay/512步。4个函数×宽度recipe、seed仅初始化稳健性；固定一data与两个noise draw，不作跨噪声概率、机制占比、train-only早停、其他data/noise/强度/optimizer/LN/depth或sealed OOD外推。旧12clean cell复用、新12noisy cell预注册提交06da355先于训练；新draw比旧draw四均值都低，但非每seed都下降。"
+    },
+    {
+      "id": "D7-004",
+      "direction": "D7",
+      "round": 23,
+      "text": "d5 Gaussian train32/test256、radial×SiLU width32、init11/29/47、data7331/noise733123、full-batch SGD eta=.05/mom0/nodecay/512步下，三个init噪声放大量D均正(.075103–.185840)，noisy终点真实减切线test halfMSE H1却均负(−.151615至−.047987)，真实step128→512 test变化也均负；D>0不能代替H1>0或继续训练受损。",
+      "evidence": [
+        "directions/D7_train_gain_test_harm/studies/r023_noise_draw_replication/summary.json",
+        "directions/D7_train_gain_test_harm/studies/r023_noise_draw_replication/executed/independent_primary_verification.json",
+        "directions/D7_train_gain_test_harm/studies/r023_noise_draw_replication/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：d5 Gaussian train32/test256、mixed_sine/radial、含bias两hidden SiLU、width8/32、默认float32初始化再double、init11/29/47、data7331、clean按train均值/标准差归一化后加独立未中心/缩放sigma0/1噪声、test始终clean、float64 full-batch halfMSE SGD eta=.05/mom0/nodecay/512步。4个函数×宽度recipe、seed仅初始化稳健性；固定一data与两个noise draw，不作跨噪声概率、机制占比、train-only早停、其他data/noise/强度/optimizer/LN/depth或sealed OOD外推。H为相对切线终点差，C为同模型晚期差；这是预注册描述诊断，没有额外预测成功判据。"
+    },
+    {
+      "id": "D8-003",
+      "direction": "D8",
+      "round": 24,
+      "text": "固定data31001的对称Gaussian d4/n128、width64冻结单层SiLU、train列居中、seed101–106、b=b*+δ（δ=0/±1e−5/±1e−4/±1e−3/±1e−2）下，无训练测得a=.025/.05共108cell的R由保留二/四次交叉项的Taylor混合式预测，最大相对误差.001192850<.02，P1 supported；去交叉项主尺度最大误差.861299387仅作描述对照。",
+      "evidence": [
+        "directions/D8_activation_pathway/studies/r024_near_root_crossover/summary.json",
+        "directions/D8_activation_pathway/studies/r024_near_root_crossover/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development单一对称Gaussian data31001、d4/n128、width64冻结单层SiLU、共用固定加性bias、train列居中、seed101–106、固定9偏移/4尺度网格。0新训练，不评估MSE、优化器或test；旧MSE/full-batch GD仅作为既有证据。有限bias/scale网格不能给连续容差阈值，a_equal是分项能量相等而非性能或增长临界点；不外推随机bias、非对称输入、learned hidden、多层、CE、小批量、目标相关核、拟合收益、其他数据/seed或sealed OOD。Taylor公式本身不登记为新发现。 六seed区间仅固定data下初始化稳健性，不能按216个cell算独立样本；预注册与pinned源码执行提交22ebe0c早于全部新测量。"
+    },
+    {
+      "id": "D8-004",
+      "direction": "D8",
+      "round": 24,
+      "text": "同固定Gaussian d4/n128/width64冻结SiLU、data31001/seed101–106、train列居中、0新训练的离散bias扫描，a=.025→.05时δ=0/±1e−5全部18配对增长62.813129–65.187934满足[60,68]，−.01为5.476460–6.992584、+.01为1.959788–2.770145，P2 supported；±1e−4全越出近64窗口，未测中间连续阈值。",
+      "evidence": [
+        "directions/D8_activation_pathway/studies/r024_near_root_crossover/summary.json",
+        "directions/D8_activation_pathway/studies/r024_near_root_crossover/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development单一对称Gaussian data31001、d4/n128、width64冻结单层SiLU、共用固定加性bias、train列居中、seed101–106、固定9偏移/4尺度网格。0新训练，不评估MSE、优化器或test；旧MSE/full-batch GD仅作为既有证据。有限bias/scale网格不能给连续容差阈值，a_equal是分项能量相等而非性能或增长临界点；不外推随机bias、非对称输入、learned hidden、多层、CE、小批量、目标相关核、拟合收益、其他数据/seed或sealed OOD。Taylor公式本身不登记为新发现。 六seed区间仅固定data下初始化稳健性，不能按216个cell算独立样本；预注册与pinned源码执行提交22ebe0c早于全部新测量。"
+    },
+    {
+      "id": "D8-005",
+      "direction": "D8",
+      "round": 24,
+      "text": "同固定Gaussian d4/n128/width64冻结SiLU、data31001/seed101–106、train列居中、0新训练下，a=.025→.05的R增长在δ=+.001为48.047861–155.318944、−.001为19.911618–31.026926，同seed正负差28.136243–125.024683且正侧5/6>100，P3 supported；seed104仅48.047861，交叉项抵消使有限尺度指数可超6。",
+      "evidence": [
+        "directions/D8_activation_pathway/studies/r024_near_root_crossover/summary.json",
+        "directions/D8_activation_pathway/studies/r024_near_root_crossover/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development单一对称Gaussian data31001、d4/n128、width64冻结单层SiLU、共用固定加性bias、train列居中、seed101–106、固定9偏移/4尺度网格。0新训练，不评估MSE、优化器或test；旧MSE/full-batch GD仅作为既有证据。有限bias/scale网格不能给连续容差阈值，a_equal是分项能量相等而非性能或增长临界点；不外推随机bias、非对称输入、learned hidden、多层、CE、小批量、目标相关核、拟合收益、其他数据/seed或sealed OOD。Taylor公式本身不登记为新发现。 六seed区间仅固定data下初始化稳健性，不能按216个cell算独立样本；预注册与pinned源码执行提交22ebe0c早于全部新测量。"
+    },
+    {
+      "id": "D9-001",
+      "direction": "D9",
+      "round": 25,
+      "text": "D2固定ReLU width128、n=64、eta=.3、MSE、B=32与标签噪声方差.25/.5/1时，四seed配对t*/t*_full范围0.206–3.010；各方差落入[.8,1.2]的seed数为3/4、1/4、2/4。",
+      "evidence": [
+        "directions/D9_minibatch_noise/studies/r025_batch_risk_shift_corrected/summary.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅固定输入/标签、float64、无动量SGD；不外推其他eta、n、优化器或learned hidden。 r029审查确认此历史比值分子固定epsilon、分母对标签噪声积分；不能全部归因batch，原数值和失败判据保留。"
+    },
+    {
+      "id": "D9-002",
+      "direction": "D9",
+      "round": 25,
+      "text": "D2固定ReLU width128、n=64、eta=.3、MSE、B=8与标签噪声方差.25/.5/1时，四seed配对t*/t*_full范围0.705–3.637；比全批量提前至少10%的seed数为0/4、1/4、2/4。",
+      "evidence": [
+        "directions/D9_minibatch_noise/studies/r025_batch_risk_shift_corrected/summary.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅固定输入/标签、float64、无动量SGD；不外推其他eta、n、优化器或learned hidden。 r029审查确认此历史比值分子固定epsilon、分母对标签噪声积分；不能全部归因batch，原数值和失败判据保留。"
+    },
+    {
+      "id": "D10-001",
+      "direction": "D10",
+      "round": 26,
+      "text": "d3输入、width16、无bias/LN/residual的SiLU网络，full-batch half-MSE SGD eta=.02/mom0/nodecay下，depth1/2/4/6各3个初始化中，初始化单参数组冻结切线半衰时间最大值与实际T50比值为4.727273–2053.176796，12/12超过两倍判据。",
+      "evidence": [
+        "directions/D10_depth_propagation/studies/r026_layer_clock/summary.json",
+        "directions/D10_depth_propagation/studies/r026_layer_clock/executed/verification.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅n32、d3、width16、depth1/2/4/6、SiLU无bias/LN/residual、固定目标x0+0.5x0x1、float64、全批量SGD eta=.02/mom0/nodecay与3个固定初始化；候选包含head，是冻结切线时间最大值，不是前向延迟；不外推其他eta、激活、宽度、深度、mini-batch、LN、测试性能或OOD。"
+    },
+    {
+      "id": "D10-002",
+      "direction": "D10",
+      "round": 26,
+      "text": "d3/width16/SiLU无bias/LN/residual、full-batch half-MSE SGD eta=.02/mom0/nodecay，depth1/2/4/6各3初始化中，初始全参数核的冻结谱半衰时间与实际T50比值.333333–3.320442，10/12在两倍内；depth1/2各3/3、depth4/6各2/3达到每深度至少2/3判据。",
+      "evidence": [
+        "directions/D10_depth_propagation/studies/r026_layer_clock/summary.json",
+        "directions/D10_depth_propagation/studies/r026_layer_clock/executed/verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅上述固定输入、初始化、n32/d3/width16、SiLU无bias/LN/residual、depth1/2/4/6、全批量half-MSE SGD eta=.02/mom0/nodecay、T4096；depth4_seed1129的18/54=.333333与depth6_seed1129的601/181=3.320442为反例；核求和是已知恒等式，不单独归因层间耦合或核漂移，不外推其他深度/优化器/mini-batch/测试/OOD。"
+    },
+    {
+      "id": "D11-001",
+      "direction": "D11",
+      "round": 27,
+      "text": "结构化固定特征、λ_i=i^-1、n=d=8–8192、零初始化full-batch half-MSE SGD eta=.5/mom0/nodecay下，中间模态目标1%预算拟合为2.249735 d^1.003161，11点最大相对误差.868262%；3坐标seed一致。",
+      "evidence": [
+        "directions/D11_width_scaling/studies/r027_dimension_rayleigh/summary.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅n=d=8–8192二倍网格、λ_i=i^-1、结构化固定满秩特征、float64、零初始化、full-batch half-MSE SGD eta=.5/mom0/nodecay、epsilon=.01；seed是坐标置换，不是数据重复；不外推固定n、随机特征、learned hidden width、lazy-rich、泛化或OOD。 固定目标w_(d/2)=1，跨d目标规则变化；误差是网格内描述，不是预测CI。"
+    },
+    {
+      "id": "D11-002",
+      "direction": "D11",
+      "round": 27,
+      "text": "结构化固定特征、λ_i=i^-1、n=d=8–8192、零初始化full-batch half-MSE SGD eta=.5/mom0/nodecay下，首尾目标w1=1/(d-1)、wd=(d-2)/(d-1)的1%预算拟合为4.438350 d^1.005095，11点最大相对误差2.528432%；3坐标seed一致。",
+      "evidence": [
+        "directions/D11_width_scaling/studies/r027_dimension_rayleigh/summary.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅n=d=8–8192二倍网格、λ_i=i^-1、结构化固定满秩特征、float64、零初始化、full-batch half-MSE SGD eta=.5/mom0/nodecay、epsilon=.01；seed是坐标置换，不是数据重复；不外推固定n、随机特征、learned hidden width、lazy-rich、泛化或OOD。 跨d谱尾与目标权重共同变化；相邻d8→16指数1.040642，未测网格外前瞻。"
+    },
+    {
+      "id": "D11-003",
+      "direction": "D11",
+      "round": 27,
+      "text": "λ_i=i^-1固定特征、n=d=8–8192、L0=.5、full-batch half-MSE SGD eta=.5/mom0/nodecay的同Rayleigh m1=2/d两目标，33同坐标配对的首尾/中间1%预算比1.944444–2.000000；Rayleigh单指数预算对首尾低估48.571429%–50%，对中间全部准确。",
+      "evidence": [
+        "directions/D11_width_scaling/studies/r027_dimension_rayleigh/summary.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅n=d=8–8192二倍网格、λ_i=i^-1、结构化固定满秩特征、float64、零初始化、full-batch half-MSE SGD eta=.5/mom0/nodecay、epsilon=.01；seed是坐标置换，不是数据重复；不外推固定n、随机特征、learned hidden width、lazy-rich、泛化或OOD。 d>=256的18配对比1.998302–2；目标参数范数/m2未匹配，不能独立归因慢能量。预注册预测反例保持成立，没有失败预测需refuted登记。"
+    },
+    {
+      "id": "D12-001",
+      "direction": "D12",
+      "round": 28,
+      "text": "n=d=2等loss双模态固定特征、全批量half-MSE SGD eta=.1/mom0/nodecay、lambda_slow=.01下，原150点log网格的固定平台单logistic在谱比12/15通过RMSE .03/maxabs .05，20/25失败（RMSE .032734–.036884、maxabs .052902–.057677）；各3坐标seed一致。",
+      "evidence": [
+        "directions/D12_cascade_sigmoid/studies/r028_gap_cascade/summary.json",
+        "directions/D12_cascade_sigmoid/studies/r028_gap_cascade/executed/independent_analysis_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development、n=d=2、float64、固定特征half-MSE、lambda_slow=.01、两模态初始loss各.5/L0=1、全批量SGD eta=.1/mom0/nodecay、T10000、原150点整数log网格0–4997各点等权、固定平台1/0；3seed为坐标旋转不是数据重复；最小二乘多起点无全局保证，不外推自由平台、动量、小批量、learned features、test、grokking或OOD。仅15与20两个已测格点间判定变化，未测连续临界或物理阶段合并；谱比不等于精确时间尺度比。"
+    },
+    {
+      "id": "D12-002",
+      "direction": "D12",
+      "round": 28,
+      "text": "n=d=2等loss双模态固定特征、全批量half-MSE SGD eta=.1/mom0/nodecay、lambda_slow=.01和谱比12/15/20/25下，原150点log网格的固定平台等权双logistic均通过RMSE .03/maxabs .05，实测RMSE .013446–.015873、maxabs .021608–.031214（12/12cell、4recipe）。",
+      "evidence": [
+        "directions/D12_cascade_sigmoid/studies/r028_gap_cascade/summary.json",
+        "directions/D12_cascade_sigmoid/studies/r028_gap_cascade/executed/independent_analysis_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development、n=d=2、float64、固定特征half-MSE、lambda_slow=.01、两模态初始loss各.5/L0=1、全批量SGD eta=.1/mom0/nodecay、T10000、原150点整数log网格0–4997各点等权、固定平台1/0；3seed为坐标旋转不是数据重复；最小二乘多起点无全局保证，不外推自由平台、动量、小批量、learned features、test、grokking或OOD。双候选四自由参数、单候选两自由参数，仅样本内描述能力；段谱参数公式与可辨认性未验证，不把两个拟合段当物理阶段。"
+    },
+    {
+      "id": "D9-003",
+      "direction": "D9",
+      "round": 29,
+      "text": "D2固定ReLU width128、n=64、MSE、无动量SGD，在eta=.1、B=8/32、σ²=.25/.5/1与四seed下，同一次固定标签噪声的全批量分母比较中，t*/t*_full有22/24落入[.5,2]；B=32为12/12，B=8为10/12，整体范围.624183–2.784314。",
+      "evidence": [
+        "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/summary.json",
+        "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "mixed",
+      "boundary": "仅固定D2 n=64数据/epsilon、eta=.1、B=8/32、四seed与2304步；两个B=8、σ²=1反例为seed411=2.142857与seed412=2.784314；不外推其他eta、n、优化器、标签抽样或精确batch期望。"
+    },
+    {
+      "id": "D9-004",
+      "direction": "D9",
+      "round": 29,
+      "text": "在固定D2 ReLU width128、n=64、float64 MSE、零初始化head、无动量/无衰减SGD与同一次epsilon合同下，将eta从.3降到.1并保持etaT=230.4后，B=8/32的24个配对cell中18个|t*/t*_full−1|点估计减小，B=32为9/12、B=8为9/12；但全部配对bootstrap描述区间跨零。",
+      "evidence": [
+        "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/summary.json",
+        "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "mixed",
+      "boundary": "仅固定D2 n=64数据/特征、ReLU width128、float64、MSE、零初始化head、无动量/无衰减SGD、四seed、σ²=.25/.5/1、B=8/32与固定epsilon；不能表述为所有seed单调改善、总体置信结论或离散稳定性因果。"
+    },
+    {
+      "id": "D9-005",
+      "direction": "D9",
+      "round": 29,
+      "text": "D2固定ReLU width128、n64、零head、float64 MSE、无动量SGD eta=.1、B8/32、σ².25/.5/1与四seed，旧期望风险分母下“24/24 t*/t*_full进入[.5,2]”被推翻：20/24通过，B32范围.272277–2.525483，B8范围.519802–4.759777。",
+      "evidence": [
+        "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/summary.json",
+        "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅n64、固定D2数据/特征/epsilon、B8/32、两档eta及窗口etaT=230.4；mini均值8条batch轨迹。P1风险口径不同，P2两个反例bootstrap区间都跨2，不能证明精确batch期望失败、连续临界、机制归因、learned features或其他优化器。"
+    },
+    {
+      "id": "D9-006",
+      "direction": "D9",
+      "round": 29,
+      "text": "D2固定ReLU width128、n64、零head、float64 MSE、无动量SGD eta=.1、B8/32、σ².25/.5/1与四seed，同固定标签全批量分母下“24/24比值进入[.5,2]”被推翻：22/24通过，B8×σ²1的seed411/412分别105/49=2.142857、852/306=2.784314。",
+      "evidence": [
+        "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/summary.json",
+        "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅n64、固定D2数据/特征/epsilon、B8/32、两档eta及窗口etaT=230.4；mini均值8条batch轨迹。P1风险口径不同，P2两个反例bootstrap区间都跨2，不能证明精确batch期望失败、连续临界、机制归因、learned features或其他优化器。"
+    },
+    {
+      "id": "D10-003",
+      "direction": "D10",
+      "round": 30,
+      "text": "d3/width16/SiLU无bias/LN/residual、full-batch half-MSE SGD eta=.005/mom0/nodecay、depth1/2/4/6各3初始化中，最慢参数组冻结半衰时间与实际T50比值为5.097561–2067.454798，12/12超过两倍。",
+      "evidence": [
+        "directions/D10_depth_propagation/studies/r030_eta005/summary.json",
+        "directions/D10_depth_propagation/studies/r030_eta005/executed/verification.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅n32、data_seed260071、d3、width16、四个已测深度、三固定初始化、SiLU无bias/LN/residual、float64全批量SGD eta=.005/mom0/nodecay；不外推其他eta、宽度、深度、优化器、mini-batch、测试或OOD。"
+    },
+    {
+      "id": "D10-004",
+      "direction": "D10",
+      "round": 30,
+      "text": "同一d3/width16/SiLU无bias/LN/residual合同下，full-batch SGD eta=.005的初始全参数核冻结T50与实际T50比值为.328638–3.339360，12个cell中10个在[.5,2]内，depth1/2各3/3、depth4/6各2/3通过。",
+      "evidence": [
+        "directions/D10_depth_propagation/studies/r030_eta005/summary.json",
+        "directions/D10_depth_propagation/studies/r030_eta005/executed/verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅上述固定输入、初始化、n32/d3/width16、SiLU无bias/LN/residual、depth1/2/4/6、eta=.005/mom0/nodecay/T4096；depth4_seed1129的70/213=.328638与depth6_seed1129的2401/719=3.339360为反例；不外推其他eta、深度、优化器、mini-batch、测试或OOD。"
+    },
+    {
+      "id": "D11-004",
+      "direction": "D11",
+      "round": 31,
+      "text": "固定特征λᵢ=i⁻¹、d=8–8192二倍网格、中间/首尾目标、float64全批量SGD η=.5/mom0/nodecay、L0=.5与ε=.01下，将n=d改为n=8192并按√n缩放前d非零输入/目标、其余样本零填充，66个坐标seed配对的首次预算差均为0步，归一化loss曲线最大差4.440892e−16。",
+      "evidence": [
+        "directions/D11_width_scaling/studies/r031_fixed_n8192/summary.json",
+        "directions/D11_width_scaling/studies/r031_fixed_n8192/executed/resume_audit.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "n=8192只改样本记账且归一化参数Hessian/Xᵀy相同；非零样本数仍d，不是独立新数据。d是构造固定特征参数数，跨d谱尾/目标规则仍变；3seed只改signed permutation坐标，不做CI。不适用于随机特征、learned hidden width、lazy↔rich边界、泛化或封存OOD。"
+    },
+    {
+      "id": "D12-003",
+      "direction": "D12",
+      "round": 32,
+      "text": "n=d=2等初始loss双模态固定特征half-MSE、float64、全批量SGD η=.1/mom0/nodecay、λs=.01、r20/25下，各模态h=log2/[-2log(1−ηλ)]、b=2log2的无拟合等权双logistic在原150点等权网格同时通过RMSE≤.03/maxabs≤.05；两条件分别为.027321401/.049278117与.027379024/.049361523，各3/3坐标seed通过。",
+      "evidence": [
+        "directions/D12_cascade_sigmoid/studies/r032_modal_formula/summary.json",
+        "directions/D12_cascade_sigmoid/studies/r032_modal_formula/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅保存r20/25曲线，n=d=2固定特征、float64、half-MSE、全批量SGD η=.1/mom0/nodecay、λs=.01、L0=1、模态初始loss各.5、平台1/0、幅度.5/.5、原150点等权整数log网格0..4997。0新训练/0新拟合，2个recipe×3个坐标seed，seed仅数值稳健性；maxabs最小余量.000638477。局部参数公式属已知解析工具，登记的是受控全窗口验证；不证明自由拟合参数等于真实半衰期、参数可辨认、物理阶段merging、grokking或其他谱比/网格/MLP/test/OOD。"
+    },
+    {
+      "id": "D9-007",
+      "direction": "D9",
+      "round": 33,
+      "text": "固定D2 n64/d4、ReLU width128、零head、float64 MSE、无动量/无衰减SGD eta=.1、B8、σ²1及seed411/412的原数据/epsilon/2304步，将每cell轨迹由8补到64且保留旧前缀后，同标签t*/t*_full从105/49=2.142857、852/306=2.784314变为57/49=1.163265、235/306=.767974；两点进入[.5,2]。",
+      "evidence": [
+        "directions/D9_minibatch_noise/studies/r033_batch_mc_extension/summary.json",
+        "directions/D9_minibatch_noise/studies/r033_batch_mc_extension/executed/verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅固定D2 n64/d4数据与epsilon、冻结ReLU width128+常数、零head、float64 MSE、无动量/无衰减SGD eta=.1、B8、σ²1、seed411/412、窗口2304；1 recipe、2数据seed。只补这两个已选反例，不能合并成统一24/24或撤销旧M8失败；不推精确batch期望、连续eta、其他n/optimizer/learned feature或新标签实现。"
+    },
+    {
+      "id": "D9-008",
+      "direction": "D9",
+      "round": 33,
+      "text": "固定D2 n64/d4、冻结ReLU width128、零head、float64 MSE、无动量/无衰减SGD eta=.1、B8、σ²1、seed411/412及原epsilon/2304步，M64同标签比值的2000次条件bootstrap 95%描述区间为[.938776,1.489796]、[.660131,1.415033]，宽度分别为M8旧区间的.112033/.277978，均不跨2。",
+      "evidence": [
+        "directions/D9_minibatch_noise/studies/r033_batch_mc_extension/summary.json",
+        "directions/D9_minibatch_noise/studies/r033_batch_mc_extension/executed/verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅固定D2 n64/d4数据与epsilon、冻结ReLU width128+常数、零head、float64 MSE、无动量/无衰减SGD eta=.1、B8、σ²1、seed411/412、窗口2304；1 recipe、2数据seed。只补这两个已选反例，不能合并成统一24/24或撤销旧M8失败；不推精确batch期望、连续eta、其他n/optimizer/learned feature或新标签实现。 区间只重抽batch轨迹，M8嵌套于M64；区间上界<2不证明精确期望上界。"
+    },
+    {
+      "id": "D10-005",
+      "direction": "D10",
+      "round": 34,
+      "text": "n32/d3/width32/SiLU无bias/LN/residual、全批量half-MSE SGD eta=.005/mom0/nodecay，depth1/2/4/6各3固定初始化的最慢参数组冻结T50与实际T50比值18.333333–60.562500，12/12高估超过两倍。",
+      "evidence": [
+        "directions/D10_depth_propagation/studies/r034_width32/summary.json",
+        "directions/D10_depth_propagation/studies/r034_width32/executed/verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅n32、data_seed260071、d3、width32、SiLU无bias/LN/residual、depth1/2/4/6、初始化1103/1129/1151、float64全批量half-MSE SGD eta=.005/mom0/nodecay/T4096；候选包含head。宽度配对同时改变参数形状、参数量和初始函数，不独立归因宽度机制；不外推其他宽度/eta/深度/优化器/mini-batch/测试/OOD。本轮预测高估成立；旧最慢组两倍内预测失败不撤销。"
+    },
+    {
+      "id": "D10-006",
+      "direction": "D10",
+      "round": 34,
+      "text": "n32/d3/width32/SiLU无bias/LN/residual、全批量half-MSE SGD eta=.005/mom0/nodecay，depth1/2/4/6各3固定初始化的相加全核冻结T50与实际T50比值.666667–1.052632，12/12在[.5,2]内、各深度3/3通过。",
+      "evidence": [
+        "directions/D10_depth_propagation/studies/r034_width32/summary.json",
+        "directions/D10_depth_propagation/studies/r034_width32/executed/verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅n32、data_seed260071、d3、width32、SiLU无bias/LN/residual、depth1/2/4/6、初始化1103/1129/1151、float64全批量half-MSE SGD eta=.005/mom0/nodecay/T4096；候选包含head。宽度配对同时改变参数形状、参数量和初始函数，不独立归因宽度机制；不外推其他宽度/eta/深度/优化器/mini-batch/测试/OOD。"
+    },
+    {
+      "id": "D12-004",
+      "direction": "D12",
+      "round": 36,
+      "text": "n=d=2等初始loss双模态固定特征half-MSE、float64、全批量SGD η=.1/mom0/nodecay、λs=.01、r30/100下，h_i=log2/[-2log(1−ηλ_i)]、b=2log2的无拟合等权双logistic在原150点等权网格均通过RMSE≤.03/maxabs≤.05；两条件分别为.027332780/.048985027与.023997468/.041835390，各3/3坐标seed通过。",
+      "evidence": [
+        "directions/D12_cascade_sigmoid/studies/r036_large_ratio_formula/summary.json",
+        "directions/D12_cascade_sigmoid/studies/r036_large_ratio_formula/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅读D4已保存r30/100成功曲线；n=d=2固定特征、float64、half-MSE、全批量SGD η=.1/mom0/nodecay、λs=.01、L0=1、模态初始loss各.5、平台1/0、幅度.5/.5、原150点等权整数log网格0..4997。0新训练/0新拟合，2recipe×3坐标seed，seed仅数值稳健性。原单段拟合对照同时改变段数与参数取得方式，不独立机制归因；不证明连续临界、参数可辨认、物理merging、grokking或其他网格/谱比/优化器/MLP/test/OOD。"
+    },
+    {
+      "id": "D1-006",
+      "direction": "D1",
+      "round": 37,
+      "text": "n=d=2固定特征谱[.001,.05]、全批量SGD eta=.1/mom0与.9、L0=1、T40000、q=.01持续端点下，慢模态初始loss占比alpha=.001/.005/.009的稳态U换算误差为23.6842%–47.6190%，启动误差为47.3684%–69.0476%；稳态三条件均<50%，启动仅alpha=.005/.009>=50%。",
+      "evidence": [
+        "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/summary.json",
+        "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "mixed",
+      "boundary": "仅本轮谱[.001,.05]、n=d=2、float64、全批量SGD eta=.1、mom0/.9、L0=1、q=.01、T40000、6个alpha和3坐标seed；不外推其他谱/eta/q/optimizer。预注册数值来自已知标量递推，不能视为盲预测；未独立归因Rayleigh商或梯度尺度。"
+    },
+    {
+      "id": "D4-007",
+      "direction": "D4",
+      "round": 38,
+      "text": "n=d=2固定特征平方损失、谱[.01,1]、全批量SGD eta=.1/mom0/nodecay、L0=1、alpha=0/.01保存曲线，在固定平台1/0及原150点log网格下仅改为最大误差选解，全部3坐标seed均由原最小二乘不足转为通过RMSE≤.03/maxabs≤.05；新误差分别.01437779613/.03702806721与.01227958828/.03337965078。",
+      "evidence": [
+        "directions/D4_sigmoid_training_curve/studies/r038_maxabs_objective/summary.json",
+        "directions/D4_sigmoid_training_curve/studies/r038_maxabs_objective/executed/independent_saved_review.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n=d=2固定特征平方损失、float64、全批量SGD eta=.1/mom0/nodecay、谱[.01,1]、L0=1、alpha=0/.01保存T10000曲线、seed0/1/2仅坐标旋转；平台1/0、原150点整数log网格0..4997、参数t50[.01,100000]/beta[.1,10]、真实动态范围1归一化；仅改最小二乘为最大误差选解。有限网格浮点可行性界不是连续时间全局结论，不报告连续临界alpha/谱比，不把拟合中点当真实半衰期，不外推自由平台、learned features、其他谱/优化器、前段预测或sealed OOD。原r018 P2失败/P3支持保留。"
+    },
+    {
+      "id": "D4-008",
+      "direction": "D4",
+      "round": 38,
+      "text": "n=d=2固定特征平方损失、谱[.01,1]、全批量SGD eta=.1/mom0/nodecay、L0=1、alpha=0/.01保存曲线，固定平台1/0与原150点log网格中最大误差选解相对最小二乘的RMSE仅增加.00249738653/.00205599340，全部3坐标seed均<预注册.003；P2关于RMSE增幅至少.003的预测被2/2条件推翻。",
+      "evidence": [
+        "directions/D4_sigmoid_training_curve/studies/r038_maxabs_objective/summary.json",
+        "directions/D4_sigmoid_training_curve/studies/r038_maxabs_objective/executed/independent_saved_review.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅development：n=d=2固定特征平方损失、float64、全批量SGD eta=.1/mom0/nodecay、谱[.01,1]、L0=1、alpha=0/.01保存T10000曲线、seed0/1/2仅坐标旋转；平台1/0、原150点整数log网格0..4997、参数t50[.01,100000]/beta[.1,10]、真实动态范围1归一化；仅改最小二乘为最大误差选解。有限网格浮点可行性界不是连续时间全局结论，不报告连续临界alpha/谱比，不把拟合中点当真实半衰期，不外推自由平台、learned features、其他谱/优化器、前段预测或sealed OOD。原r018 P2失败/P3支持保留。"
+    },
+    {
+      "id": "D3-004",
+      "direction": "D3",
+      "round": 40,
+      "text": "n=d=9、满秩固定线性特征lambda_i=i^-2、零初始化float64、全批量SGD eta=.5/mom0/nodecay、L0=.5、epsilon=.01、T1000时，模态1/3/9目标A与2/4目标B共同m1=109/964、m2=19/964、插值参数范数平方=3076/241和首步下降417/7712，1%预算仍为135/68步（比1.985294、差67）；3坐标seed一致，配对量最大差2.131628e-14。",
+      "evidence": [
+        "directions/D3_capacity_resolution/studies/r040_matched_norm/summary.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅上述固定五可用模态并集、两目标分别3/2非零支持；seed只旋转参数坐标，不是独立数据重复。A权重1001/123392,57915/61696,6561/123392；B65/241,176/241。高阶矩与慢模态能量未匹配，不能独立归因；共同矩值与旧配对不同，不作范数控制跨研究因果比较。解析预测来自训练前已知递推，非盲发现；两目标均可最终插值，不是永久容量，不外推learned features、架构轴、泛化、空间分辨率或sealed OOD。"
+    },
+    {
+      "id": "D9-009",
+      "direction": "D9",
+      "round": 41,
+      "text": "固定D2 n64/d4、冻结ReLU width128、零head、float64 MSE、无动量/无衰减SGD eta=.1、B8、sigma²1和seed411/412原data/epsilon/2304步，独立r64..127的64条流块同标签t*/t*_full为56/49=1.142857、393/306=1.284314，均在[.5,2]；旧独立r0..63为57/49=1.163265、235/306=.767974。",
+      "status": "measured",
+      "evidence": [
+        "directions/D9_minibatch_noise/studies/r041_independent_batch_block/summary.json",
+        "directions/D9_minibatch_noise/studies/r041_independent_batch_block/executed/verification.json"
+      ],
+      "domain": "development",
+      "boundary": "仅固定D2 n64/d4数据与epsilon、冻结ReLU width128+常数、零head、float64 MSE、无动量/无衰减SGD eta=.1、B8、sigma²1、seed411/412、窗口2304；1 recipe、2数据seed，新r64..127与旧r0..63分别求均值，不合并；不撤销旧M8失败或组成24/24保证，不推精确batch期望、连续eta、其他n/优化器/learned feature或新标签实现。"
+    },
+    {
+      "id": "D9-010",
+      "direction": "D9",
+      "round": 41,
+      "text": "固定D2 n64/d4、冻结ReLU width128、零head、float64 MSE、无动量/无衰减SGD eta=.1、B8、sigma²1及seed411/412原epsilon/2304步，独立r64..127 M64的2000次条件bootstrap95%比值区间为[.836735,1.836735]/[.765278,1.866013]、两上界<2；新旧块独立重抽差区间[-.408163,.755102]/[-.395507,1.140523]均跨零。",
+      "status": "measured",
+      "evidence": [
+        "directions/D9_minibatch_noise/studies/r041_independent_batch_block/summary.json",
+        "directions/D9_minibatch_noise/studies/r041_independent_batch_block/executed/verification.json"
+      ],
+      "domain": "development",
+      "boundary": "仅固定D2 n64/d4数据与epsilon、冻结ReLU width128+常数、零head、float64 MSE、无动量/无衰减SGD eta=.1、B8、sigma²1、seed411/412、窗口2304；1 recipe、2数据seed，新r64..127与旧r0..63分别求均值，不合并；不撤销旧M8失败或组成24/24保证，不推精确batch期望、连续eta、其他n/优化器/learned feature或新标签实现。 区间仅含固定data/epsilon下batch Monte Carlo；同data seed描述、两块独立重抽，不作同流配对、p值或精确期望上界。"
+    },
+    {
+      "id": "D10-007",
+      "direction": "D10",
+      "round": 42,
+      "text": "n32/d3、width32无bias/LN/residual SiLU、depth1/2/4/6与三个固定初始化、full-batch SGD mom0/nodecay下，仅将eta=.005升至.02且初始函数/核逐位相同，全核冻结半损失时间仍12/12在实际时间两倍内，新比值.75–1（旧.666667–1.052632），严格12/12预测支持。",
+      "evidence": [
+        "directions/D10_depth_propagation/studies/r042_width32_eta02/summary.json",
+        "directions/D10_depth_propagation/studies/r042_width32_eta02/executed/verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n32/d3、data_seed260071的固定输入和训练归一化目标x0+.5x0x1、width32/SiLU/no bias/no LN/no residual、depth1/2/4/6、init_seed1103/1129/1151、float64、CPU full-batch half-MSE SGD mom0/nodecay/T4096；eta配对保留全部初始参数/函数/J/K逐位一致。只测早期半损失，不适用任意eta、测试误差、其他优化器或OOD；不独立归因核漂移/层间耦合/宽度/深度机制。"
+    },
+    {
+      "id": "D10-008",
+      "direction": "D10",
+      "round": 42,
+      "text": "n32/d3、width32无bias/LN/residual SiLU、depth1/2/4/6与三个固定初始化、full-batch SGD eta=.02/mom0/nodecay下，最慢参数组（含head）冻结半损失时间12/12高估实际16.6–73倍；相同初始化的eta=.005配对为18.333333–60.5625倍，有限高估>2预测支持。",
+      "evidence": [
+        "directions/D10_depth_propagation/studies/r042_width32_eta02/summary.json",
+        "directions/D10_depth_propagation/studies/r042_width32_eta02/executed/verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n32/d3、data_seed260071的固定输入和训练归一化目标x0+.5x0x1、width32/SiLU/no bias/no LN/no residual、depth1/2/4/6、init_seed1103/1129/1151、float64、CPU full-batch half-MSE SGD mom0/nodecay/T4096；eta配对保留全部初始参数/函数/J/K逐位一致。只测早期半损失，不适用任意eta、测试误差、其他优化器或OOD；不独立归因核漂移/层间耦合/宽度/深度机制。 最慢组是单参数组冻结时间最大值，不是传播等待时间；两倍内候选的旧失败仍保留。"
+    },
+    {
+      "id": "D12-005",
+      "direction": "D12",
+      "round": 44,
+      "text": "n=d=2等初始loss双模态固定特征half-MSE、float64、全批量SGD η=.1/mom0/nodecay、λs=.01、r12/15下，h_i=log2/[-2log(1−ηλ_i)]、b=2log2的无拟合等权双logistic在原150点等权网格均通过RMSE≤.03/maxabs≤.05；两条件分别为.026944511/.046273237与.027124624/.048101969，各3/3坐标seed通过。",
+      "evidence": [
+        "directions/D12_cascade_sigmoid/studies/r044_low_ratio_formula/summary.json",
+        "directions/D12_cascade_sigmoid/studies/r044_low_ratio_formula/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅读D12已保存r12/15成功曲线；n=d=2固定特征、float64、half-MSE、全批量SGD η=.1/mom0/nodecay、λs=.01、L0=1、模态初始loss各.5、平台1/0、幅度.5/.5、原150点等权整数log网格0..4997。0新训练/拟合，2recipe×3坐标seed仅数值稳健性；最大误差余量.003726763/.001898031。原双段拟合更准确；原单段对照同时改变段数/参数取得方式，r12公式两项更差、r15仅RMSE更低。局部公式与谱递推属已知理论，不证明连续临界、可辨认、物理merging、grokking或其他条件/MLP/test/OOD。"
+    },
+    {
+      "id": "D5-005",
+      "direction": "D5",
+      "round": 45,
+      "text": "四旧d8/d12函数、width64固定head、SGD eta.001/mom0/decay1e-4/batch64/T256保存recipe的20同seed配对中，初始化共享Linear核ell=||P(JJᵀ/n)1||²/n在LN下全部提高，LN/noLN范围2355.235493–129377.971053倍。",
+      "evidence": [
+        "directions/D5_ln_geometry/studies/r045_mean_centered_coupling/summary.json",
+        "directions/D5_ln_geometry/studies/r045_mean_centered_coupling/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development四旧函数trigonometric8/quadratic8(d8 uniform[-1,1])/interaction12/radial12(d12 Gaussian)，train/test各256、data48291、width64/GELU输入层与3hidden block、LN010/noLN、head weight/bias固定；旧训练hidden/LN affine可更新，SGD eta.001/mom0/decay1e-4/batch64/T256，offset−3/0/+3、seeds100–104。共享input/hidden Linear weight/bias Jacobian排除head/LN affine，d8/d12参数13056/13312，float32 autograd/Jg、float64除n/去均值/平方和，ell无floor。20配对只有四函数、五seed测初始化稳健性；0新训练、无因果干预/OOD，不作iid显著性、独立函数外推或非线性/小批量/decay/test终点机制。解析一步C1=4eta²a²ell只用于固定核全批量无decay train线性化。"
+    },
+    {
+      "id": "D5-006",
+      "direction": "D5",
+      "round": 45,
+      "text": "四旧d8/d12函数、width64固定head、SGD eta.001/mom0/decay1e-4/batch64/T256的20配对中，初始化共享Linear耦合降低读数X_L=log10(ell_noLN/ell_LN)与LN chord收益r=-.452289044，相对目标Rayleigh优势-.846953876；未达注册r>=.5且优势>=.15，P1 refuted。",
+      "evidence": [
+        "directions/D5_ln_geometry/studies/r045_mean_centered_coupling/summary.json",
+        "directions/D5_ln_geometry/studies/r045_mean_centered_coupling/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅development四旧函数trigonometric8/quadratic8(d8 uniform[-1,1])/interaction12/radial12(d12 Gaussian)，train/test各256、data48291、width64/GELU输入层与3hidden block、LN010/noLN、head weight/bias固定；旧训练hidden/LN affine可更新，SGD eta.001/mom0/decay1e-4/batch64/T256，offset−3/0/+3、seeds100–104。共享input/hidden Linear weight/bias Jacobian排除head/LN affine，d8/d12参数13056/13312，float32 autograd/Jg、float64除n/去均值/平方和，ell无floor。20配对只有四函数、五seed测初始化稳健性；0新训练、无因果干预/OOD，不作iid显著性、独立函数外推或非线性/小批量/decay/test终点机制。解析一步C1=4eta²a²ell只用于固定核全批量无decay train线性化。"
+    },
+    {
+      "id": "D5-007",
+      "direction": "D5",
+      "round": 45,
+      "text": "四旧d8/d12函数、width64固定head、SGD eta.001/mom0/decay1e-4/batch64/T256的20配对扣除函数均值后，初始化共享Linear耦合降低读数X_L与LN chord收益r=-.055703551，相对目标Rayleigh优势.021132998；未达注册r>=.3且优势>=.10，P2 refuted。",
+      "evidence": [
+        "directions/D5_ln_geometry/studies/r045_mean_centered_coupling/summary.json",
+        "directions/D5_ln_geometry/studies/r045_mean_centered_coupling/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅development四旧函数trigonometric8/quadratic8(d8 uniform[-1,1])/interaction12/radial12(d12 Gaussian)，train/test各256、data48291、width64/GELU输入层与3hidden block、LN010/noLN、head weight/bias固定；旧训练hidden/LN affine可更新，SGD eta.001/mom0/decay1e-4/batch64/T256，offset−3/0/+3、seeds100–104。共享input/hidden Linear weight/bias Jacobian排除head/LN affine，d8/d12参数13056/13312，float32 autograd/Jg、float64除n/去均值/平方和，ell无floor。20配对只有四函数、五seed测初始化稳健性；0新训练、无因果干预/OOD，不作iid显著性、独立函数外推或非线性/小批量/decay/test终点机制。解析一步C1=4eta²a²ell只用于固定核全批量无decay train线性化。"
+    },
+    {
+      "id": "D6-004",
+      "direction": "D6",
+      "round": 46,
+      "text": "d3/n32 Gaussian、product/mixed_sine×width8/32、两hidden SiLU、full-batch SGD eta.05/mom0/nodecay/T256、init701/719/737，仅data_seed260606→260607后，冻结T公式的MAE=1.265316394>.70，相对冻结E MAE=.882267851改善−.383048543<.08，联合预测refuted；T仅2/12cell误差更小。",
+      "evidence": [
+        "directions/D6_kernel_drift/studies/r046_data_seed_transfer/summary.json",
+        "directions/D6_kernel_drift/studies/r046_data_seed_transfer/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅development：d3/n32 Gaussian/data260607，product/mixed_sine×width8/32，bias/两hidden SiLU，float32默认Linear初始化转float64，full-batch halfMSE SGD eta.05/mom0/nodecay/T256，init701/719/737；逐字沿用data260606旧seed校准三公式，无重拟合。4recipe非12独立条件；唯一recipe合同改动data_seed同时改变输入/clean目标/样本居中RMS，不独立归因或作width因果解释。仅一个新draw，不估计跨draw概率，不外推新函数、rt拟合、test、其他优化器/LN/depth或sealed OOD。"
+    },
+    {
+      "id": "D6-005",
+      "direction": "D6",
+      "round": 46,
+      "text": "d3/n32 Gaussian、product/mixed_sine×width8/32、两hidden SiLU、full-batch SGD eta.05/mom0/nodecay/T256、init701/719/737，仅data_seed260606→260607后，冻结W公式MAE=.790145266，相对冻结E改善.092122584≥.08，推翻预注册“W改善<.08”；mixed_sine×width8平均改善−.128349100、width32为.441226473。",
+      "evidence": [
+        "directions/D6_kernel_drift/studies/r046_data_seed_transfer/summary.json",
+        "directions/D6_kernel_drift/studies/r046_data_seed_transfer/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "refuted",
+      "boundary": "仅development：d3/n32 Gaussian/data260607，product/mixed_sine×width8/32，bias/两hidden SiLU，float32默认Linear初始化转float64，full-batch halfMSE SGD eta.05/mom0/nodecay/T256，init701/719/737；逐字沿用data260606旧seed校准三公式，无重拟合。4recipe非12独立条件；唯一recipe合同改动data_seed同时改变输入/clean目标/样本居中RMS，不独立归因或作width因果解释。仅一个新draw，不估计跨draw概率，不外推新函数、rt拟合、test、其他优化器/LN/depth或sealed OOD。"
+    },
+    {
+      "id": "D7-005",
+      "direction": "D7",
+      "round": 47,
+      "text": "d5 Gaussian train32/test256、data7339/noise733123、mixed_sine/radial×width8/32、两hidden SiLU含bias、init11/29/47、CPU float64全批量SGD eta=.05/mom0/nodecay/T512、train归一化后sigma0/1下，噪声扩大真实相对切线终点test差距：四meanD=.469371/.519513/.111892/.186296，12/12初始化D>0，原判据4/4通过；radial×8的95%初始化区间[−.081196,.304979]跨零。",
+      "evidence": [
+        "directions/D7_train_gain_test_harm/studies/r047_data_seed_transfer/summary.json",
+        "directions/D7_train_gain_test_harm/studies/r047_data_seed_transfer/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "单预指定新data draw；三init区间不含跨data/noise不确定性；更换data共同改变输入/clean目标/归一化，不拆机制比例或提供train-only早停。"
+    },
+    {
+      "id": "D7-006",
+      "direction": "D7",
+      "round": 47,
+      "text": "d5 Gaussian train32/test256、data7339/noise733123、mixed_sine/radial×width8/32、两hidden SiLU含bias、init11/29/47、CPU float64全批量SGD eta=.05/mom0/nodecay/T512、train归一化后sigma0/1的radial×32 init47 sigma1，终点真实减切线test H=.036880344>0，但真实网络128→512的test变化C=−.021062710<0；该单元真实晚期上升仅2/3 init。",
+      "evidence": [
+        "directions/D7_train_gain_test_harm/studies/r047_data_seed_transfer/summary.json",
+        "directions/D7_train_gain_test_harm/studies/r047_data_seed_transfer/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "单cell反例只区分终点比较与同模型晚期变化；无新预测，不能作早停阈值或未测条件因果外推。"
+    },
+    {
+      "id": "D1-007",
+      "direction": "D1",
+      "round": 49,
+      "text": "n=d=2固定特征谱[.001,.05]、全批量SGD eta=.1/mom0与.9、L0=1、T40000，仅读保存轨迹把持续阈值q=.01改为.001，alpha=.005/.009/.02/.1/.5的5配对条件稳态误差为.091075%–.680272%、启动为.867410%–.971817%，均<=1%；3坐标seed同值。",
+      "evidence": [
+        "directions/D1_u_effective_time/studies/r049_lower_threshold/summary.json",
+        "directions/D1_u_effective_time/studies/r049_lower_threshold/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n=d=2固定满秩特征、float64、谱[.001,.05]、全批量SGD eta=.1/mom0或.9、L0=1、零参数/速度、T40000；6个alpha和3坐标seed，只读保存轨迹的q=.01到.001对照，0新训练；seed不是数据重复，无置信区间。换算输入为同条件实测mom0持续端点，不是从零预测。公开旧曲线非盲/OOD；不外推未测q、连续临界、其他谱、Adam、mini-batch或learned features，不独立归因Rayleigh/梯度尺度或历史bigram。"
+    },
+    {
+      "id": "D1-008",
+      "direction": "D1",
+      "round": 49,
+      "text": "n=d=2固定特征谱[.001,.05]、全批量SGD eta=.1/mom0与.9、L0=1、T40000，保存轨迹在alpha=q=.001的持续端点为872/89步；稳态/启动预测88/97步，误差1.123596%/8.988764%，等号处启动未达到5%；3坐标seed同值。",
+      "evidence": [
+        "directions/D1_u_effective_time/studies/r049_lower_threshold/summary.json",
+        "directions/D1_u_effective_time/studies/r049_lower_threshold/executed/saved_evidence_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n=d=2固定满秩特征、float64、谱[.001,.05]、全批量SGD eta=.1/mom0或.9、L0=1、零参数/速度、T40000；6个alpha和3坐标seed，只读保存轨迹的q=.01到.001对照，0新训练；seed不是数据重复，无置信区间。换算输入为同条件实测mom0持续端点，不是从零预测。公开旧曲线非盲/OOD；不外推未测q、连续临界、其他谱、Adam、mini-batch或learned features，不独立归因Rayleigh/梯度尺度或历史bigram。 alpha=q命题未作为新的失败预注册；P2预先预测稳态<=5%、5%<启动<=25%且通过。"
+    },
+    {
+      "id": "D4-009",
+      "direction": "D4",
+      "round": 50,
+      "text": "n=d=2固定特征半MSE、谱[.01,1]、全批量SGD eta=.1/mom0/nodecay、L0=1、alpha=.25的3坐标seed保存曲线，在平台1/0、原150点等权log网格及t50[.01,100000]/beta[.1,10]域内，min maxabs数值界为[.08338322414783761,.08338322420604527]>.05；最大误差选解RMSE=.05041269241、maxabs=.08338322420仍不达.03/.05，不足不限于原最小二乘选解。",
+      "evidence": [
+        "directions/D4_sigmoid_training_curve/studies/r050_alpha025_maxabs/summary.json",
+        "directions/D4_sigmoid_training_curve/studies/r050_alpha025_maxabs/executed/certificate_verification.json",
+        "directions/D4_sigmoid_training_curve/studies/r050_alpha025_maxabs/executed/independent_threshold_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：n=d=2、float64固定特征半MSE、零初始化、全批量SGD eta=.1/mom0/nodecay、谱[.01,1]、L0=1、T10000的alpha=.25保存曲线、seed0/1/2仅坐标旋转；平台1/0、参数t50[.01,100000]步/beta[.1,10]、原150点整数log网格0..4997、真实动态范围1。有限网格float64可行性上下界经独立半平面裁剪核验，不是严格区间算术或连续时间全局定理，也不证明整个族RMSE>.03；不外推alpha=.5/.75、自由平台、learned features、其他谱/optimizer/网格、前段预测或sealed OOD，不报告连续临界alpha/谱比或把拟合中点当真实半衰期；全部旧LS与alpha0/.01预测失败保留。"
+    },
+    {
+      "id": "D2-004",
+      "direction": "D2",
+      "round": 51,
+      "text": "d4 Gaussian混合目标、冻结ReLU width128、population标签0/√1.25、含bias零head、全批量GD η=.3/mom0，固定n32/64各自的输入/W/features/epsilon，仅σ²=.25/.5减半为.125/.25，seed414最低点62/201→87/324步，等n/σ²=256配对比值3.724137931仍超过两倍并满足注册(2,4]；一组recipe配对×四seed，新比值.839879154–3.724137931，3/4两倍内。",
+      "evidence": [
+        "directions/D2_overfitting_u_curve/studies/r051_noise_halving/summary.json",
+        "directions/D2_overfitting_u_curve/studies/r051_noise_halving/executed/independent_verification.json"
+      ],
+      "domain": "development",
+      "status": "measured",
+      "boundary": "仅development：d4 antithetic Gaussian目标x0+.5x0x1，frozen ReLU width128/scale.03，原train feature mean/RMS与population clean标签，float64，full-batch GD eta.3/mom0/nodecay，0..16384步，audit2048，n32/64与σ².125/.25，seed411–414。数值注册前已从旧development signal_bias+新σ²×variance_unit算出，本轮实际GD为受控复核、非盲发现或独立理论；新噪声条件不同于旧成功cell。跨n输入抽样、经验谱与目标投影不同，不单独归因谱/输入/样本量，不外推train-only早停、learned hidden、Adam、mini-batch、CE、其他width、连续噪声阈值、无限训练或sealed OOD。"
+    }
+  ],
+  "note": "中心化短 KB。只有拿到保存证据的 claim 才登记；格式见 AGENTS.md。来源背景（只读，不算本 KB 条目）：sources/v1_kb.json（v1 的 7 条）与 sources/mainline_kb_live.json（主线 143 条）。",
+  "updated_at": "2026-10-06T23:07:19.109375+00:00",
+  "last_review": {
+    "round": 48,
+    "direction": "D8_activation_pathway",
+    "added_claims": 0,
+    "reason": "lambda0的18旧成功条件重新测量，本轮违反禁止重跑要求而失效；原P1/P2数值支持仅作归档，不登记科学claim。",
+    "evidence": [
+      "directions/D8_activation_pathway/studies/r048_lambda_collapse/executed/round_invalidation.json",
+      "directions/D8_activation_pathway/studies/r048_lambda_collapse/summary.json"
+    ]
+  }
+}

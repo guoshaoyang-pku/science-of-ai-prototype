@@ -1,0 +1,136 @@
+{
+  "study": "r020_matched_two_moments",
+  "round": 20,
+  "direction_round": 3,
+  "direction": "D3_capacity_resolution",
+  "created_at": "2026-10-06T22:07:53.719855+08:00",
+  "domain": "development",
+  "question": "固定n=d=9、p=2谱、L0及SGD recipe，匹配目标Rayleigh商m1与二阶谱矩m2（因而实际第一步loss下降），1%阈值预算能否仍分离？",
+  "data_contract": {
+    "sample_count": 9,
+    "dimension": 9,
+    "dtype": "float64",
+    "eigenvalues": "lambda_i=i^-2, i=1..9",
+    "rotation": "default_rng(seed).normal(9,9)的QR正交R；同seed固定R，仅参数坐标旋转",
+    "features": "X_ij=sqrt(n*lambda_i)*R_ji；K=XX.T/n=diag(lambda)",
+    "target": "y_i=sqrt(n*w_i)，目标幅值非负；四个可用模态为1/2/3/9，每个目标使用其中两个",
+    "initial_parameter": "theta0=0",
+    "loss": "L=||Xtheta-y||²/(2n)，L0=.5",
+    "pairing": "同seed完全相同X/谱/参数数/trace/有效秩/eta/mom/decay；匹配L0、m1=7/55、m2=1/33、||g0||²=7/55、L1=581/1320与L0-L1=79/1320；只改模态目标权重；目标参数范数与高阶谱矩不匹配",
+    "common_moments_note": "不同于旧m1=1/9。本轮共同m1=7/55；若仍用单模态m1=1/9与m2=1/81，零谱方差将强制全部权重在第三模态，不能非平凡配对"
+  },
+  "optimizer": {
+    "name": "full_batch_SGD",
+    "eta": 0.5,
+    "momentum": 0,
+    "weight_decay": 0,
+    "steps": 1000,
+    "update": "theta-=eta*X.T@(Xtheta-y)/n"
+  },
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "targets": {
+    "fast_pair": [
+      "1/55",
+      "0",
+      "54/55",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "slow_pair": [
+      "0",
+      "2048/4235",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "2187/4235"
+    ]
+  },
+  "threshold": 0.01,
+  "minimum_step_ratio": 7,
+  "tolerances": {
+    "matching_absolute": 1e-12,
+    "execution_absolute": 1e-10
+  },
+  "counts": {
+    "spectrum_recipes": 1,
+    "target_conditions": 2,
+    "coordinate_seeds": 3,
+    "planned_cells": 6,
+    "planned_same_seed_pairs": 3
+  },
+  "counting": "两个目标条件、一个同谱配对设计、3坐标seed，6cell/3配对；seed仅数值稳健性，不是独立数据重复，不给置信区间。",
+  "analytic_reference": {
+    "weights_selection": "四模态1/2/3/9；v_j=1/prod_{k!=j}(lambda_j-lambda_k)的正/负部分分别归一化。精确分数审查见executed/feasibility.json，无训练或训练结果扫描",
+    "normalized_loss": "sum_i w_i*(1-eta*lambda_i)^(2t)",
+    "loss_drop1": "L0*(2*eta*m1-eta²*m2)",
+    "gradient0_norm_squared": "2*L0*m1",
+    "predicted_fast_step": 41,
+    "predicted_slow_step": 319,
+    "predicted_step_difference": 278,
+    "predicted_step_ratio": 7.780487804878049,
+    "theory_status": "已知固定特征谱递推是解析工具；解析预测不登记为measured，保存SGD结果验证的受控反例才登记"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "known_theory_execution_audit",
+      "prediction": "6cell的谱曲线、保存每步参数损失及SGD更新复算maxabs<=1e-10；各实际阈值等于注册谱及独立eigh预测，<=1000；3配对X完全相同且L0/m1/m2/g0范数平方/L1/第一步实际下降/参数数/trace/有效秩的差<=1e-12",
+      "register_as_new_discovery": false
+    },
+    {
+      "id": "P2",
+      "kind": "controlled_separation",
+      "prediction": "三个同seed配对slow/fast的1%阈值步数比均>=7；任何一对小于7或删失即refuted，测量后登记保存反例或支持证据"
+    },
+    {
+      "id": "P3",
+      "kind": "numerical_endpoint_prediction",
+      "prediction": "三个坐标seed均fast_pair=41步、slow_pair=319步；任一不等或删失即refuted，不与P2重复登记claim"
+    }
+  ],
+  "evaluation_contract": {
+    "primary_endpoint": "首次保存整数步loss/L0<=.01，含0..1000，不插值、不改变阈值",
+    "censoring": "未达到记null/censored，不扩预算、不用1000代替真实步数，P1/P2/P3失败",
+    "paired_reporting": "逐seed差、比、匹配误差和min/max，不只均值，无CI",
+    "validity": "若P1匹配或执行核验失败，不声称匹配后的反例；保留全部失败记录",
+    "new_claim_rule": "只有保存结果；P1不是新发现，P2/P3失败也如实登记且不重复同一claim"
+  },
+  "resume_protocol": "--preregistration-commit必须是HEAD祖先；git show该commit的prereg/run/analysis/feasibility/prior audit逐字节匹配，source pin匹配后才训练；先1cell，分析核验后续跑；成功metadata/NPZ/receipt/request/pins hash先核验，任何缺文件或hash错误停止，不覆盖成功cell",
+  "analysis": "只读取保存数组，eigh重算谱/权重/矩，从theta_history复算loss与每步SGD更新，重算首次阈值与配对误差；不调用训练、不生成数据；旧证据hash核验",
+  "boundaries": [
+    "仅development：n=d=9、满秩固定线性特征、λ_i=i^-2、float64、零初始化、SGD eta=.5/mom0/nodecay、L0=.5、整数0..1000、epsilon=.01。",
+    "权重仅A=(1/55 on1,54/55 on3)，B=(2048/4235 on2,2187/4235 on9)；共同m1=7/55,m2=1/33，与旧单矩反例的共同m1不同。",
+    "目标参数范数平方A=487/55、B=2407/55，高阶谱矩及慢模态能量不匹配，不能独立归因这些竞争解释。",
+    "阈值预算条件化于目标/优化器/epsilon；两目标可最终插值，不是永久表示容量差。",
+    "未测learned features、width/depth/activation/LN、泛化、空间频率分辨率或sealed OOD；不证明任何标量都不能预测。",
+    "原r004/r012成功结果只读，不重跑，旧matmul警告及未定根因保留；新源码用逐元素构造与einsum避免该matmul路径，不声称根因解决。"
+  ],
+  "compute_budget": {
+    "maximum_seconds": 1200,
+    "device": "CPU",
+    "threads": 1,
+    "network": false,
+    "planned_updates": 6000
+  },
+  "source_sha256": {
+    "executed/run.py": "f8fd088c74404a4e204af875cba179478dbab8ae727033c6f7468bb315cbf6de",
+    "executed/feasibility.py": "9d25d14ed3d9fa935eac3312e5aa66384dca076f23f077b0c8057b5efd60b61e",
+    "analysis.py": "fca3075fed376e5ff0f1b35341060c1ee61930655c8f566db44fd78617f5bde9"
+  },
+  "pretraining_status": {
+    "new_training_cells": 0,
+    "feasibility_only": true,
+    "old_18_cells_hash_verified": true
+  }
+}

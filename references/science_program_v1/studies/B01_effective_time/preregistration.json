@@ -1,0 +1,204 @@
+{
+  "study": "B01_effective_time",
+  "created_at": 1791223320.163148,
+  "execution_source_sha256": "ee19bc76b964a2d5b885c62d0dab312f4eb237a84c8a6ef87d1d2bea5bbab5db",
+  "source_role": "analytic calibration, not claimed new optimization theorem",
+  "loss": "half squared error, full batch, no decay, float64",
+  "steps": 1024,
+  "coordinates": [
+    "diagonal",
+    "rotation_17",
+    "rotation_29",
+    "rotation_43"
+  ],
+  "recipes": [
+    {
+      "name": "sgd_small",
+      "optimizer": "SGD",
+      "lr": 0.05,
+      "momentum": 0.0
+    },
+    {
+      "name": "momentum_small",
+      "optimizer": "SGD",
+      "lr": 0.005,
+      "momentum": 0.9
+    },
+    {
+      "name": "sgd_large",
+      "optimizer": "SGD",
+      "lr": 0.2,
+      "momentum": 0.0
+    },
+    {
+      "name": "momentum_large",
+      "optimizer": "SGD",
+      "lr": 0.02,
+      "momentum": 0.9
+    },
+    {
+      "name": "momentum_long_startup",
+      "optimizer": "SGD",
+      "lr": 0.002,
+      "momentum": 0.99
+    },
+    {
+      "name": "adam",
+      "optimizer": "Adam",
+      "lr": 0.02,
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "eps": 1e-08
+    }
+  ],
+  "development_conditions": [
+    {
+      "name": "geometric_fast_d8",
+      "dimension": 8,
+      "spectrum": "geometric",
+      "alignment": "fast",
+      "minimum_eigenvalue": 0.01
+    },
+    {
+      "name": "geometric_slow_d8",
+      "dimension": 8,
+      "spectrum": "geometric",
+      "alignment": "slow",
+      "minimum_eigenvalue": 0.01
+    },
+    {
+      "name": "two_bands_fast_d8",
+      "dimension": 8,
+      "spectrum": "two_bands",
+      "alignment": "fast",
+      "eigenvalues": [
+        1,
+        1,
+        1,
+        1,
+        0.01,
+        0.01,
+        0.01,
+        0.01
+      ]
+    },
+    {
+      "name": "two_bands_slow_d8",
+      "dimension": 8,
+      "spectrum": "two_bands",
+      "alignment": "slow",
+      "eigenvalues": [
+        1,
+        1,
+        1,
+        1,
+        0.01,
+        0.01,
+        0.01,
+        0.01
+      ]
+    }
+  ],
+  "ood_conditions": [
+    {
+      "name": "geometric_fast_d16",
+      "dimension": 16,
+      "spectrum": "geometric",
+      "alignment": "fast",
+      "minimum_eigenvalue": 0.003
+    },
+    {
+      "name": "geometric_slow_d16",
+      "dimension": 16,
+      "spectrum": "geometric",
+      "alignment": "slow",
+      "minimum_eigenvalue": 0.003
+    },
+    {
+      "name": "uneven_fast_d16",
+      "dimension": 16,
+      "spectrum": "uneven",
+      "alignment": "fast",
+      "eigenvalues": [
+        1,
+        0.7,
+        0.4,
+        0.25,
+        0.16,
+        0.1,
+        0.08,
+        0.04,
+        0.02,
+        0.012,
+        0.009,
+        0.006,
+        0.004,
+        0.003,
+        0.002,
+        0.001
+      ]
+    },
+    {
+      "name": "uneven_slow_d16",
+      "dimension": 16,
+      "spectrum": "uneven",
+      "alignment": "slow",
+      "eigenvalues": [
+        1,
+        0.7,
+        0.4,
+        0.25,
+        0.16,
+        0.1,
+        0.08,
+        0.04,
+        0.02,
+        0.012,
+        0.009,
+        0.006,
+        0.004,
+        0.003,
+        0.002,
+        0.001
+      ]
+    }
+  ],
+  "preregistered_predictions": [
+    {
+      "id": "P1",
+      "scope": "All SGD cells development and OOD",
+      "statement": "Full mode recurrence matches float64 trajectories at absolute error < 1e-10"
+    },
+    {
+      "id": "P2",
+      "scope": "Matched spectrum and target under orthogonal coordinates, SGD only",
+      "statement": "Half-MSE trajectories invariant at absolute error < 1e-10"
+    },
+    {
+      "id": "P3",
+      "scope": "Adam first update, all cells",
+      "statement": "Coordinate-normalized first update formula matches mode trajectories at absolute error <1e-10"
+    },
+    {
+      "id": "P4",
+      "scope": "Adam on d16 slow target, geometric OOD",
+      "statement": "Every dense rotation has larger first-step target-mode decrease than diagonal coordinates, but no monotone endpoint prediction"
+    },
+    {
+      "id": "P5",
+      "scope": "Target alignment, same spectrum/recipe SGD",
+      "statement": "A universal saturation U fails: fast target reaches 1% relative loss within1024 steps, slow target does not for small nominal time recipes"
+    },
+    {
+      "id": "P6",
+      "scope": "Momentum .99 startup, fast target",
+      "statement": "Nominal eta*T/(1-m) overstates early progress; exact recurrence has lower RMS prediction error than nominal exponential"
+    }
+  ],
+  "saturation_definition": "First t such that every remaining loss <=0.01 * initial loss. Missing crossing is right-censored.",
+  "statistics_unit": "fixed spectrum/target/optimizer recipe; rotation seeds test coordinate robustness, not independent targets",
+  "ood_frozen_before_any_B01_result": true,
+  "no_endpoint_Adam_winner_prediction": true
+}

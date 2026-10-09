@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 66/66 fixed-n=8192 cells; all budgets exactly matched n=d controls, both predictions passed, and evidence, reports, KB, handoff, and verified closeout were committed.

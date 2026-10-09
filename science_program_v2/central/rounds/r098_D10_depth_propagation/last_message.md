@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | eta=.04 width32 12/12 cell完成，P1/P2 supported；全核比值.75–1、最慢组17.5–60.5，修正独立核验12 cell/96 checkpoint通过并完成科学收尾提交。

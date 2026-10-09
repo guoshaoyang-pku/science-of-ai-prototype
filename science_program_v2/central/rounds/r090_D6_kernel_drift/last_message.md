@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 12/12 cells; data260609 supported negative T improvement (−0.045043418), all four recipe intervals crossed zero, and verified scientific closeout was committed.

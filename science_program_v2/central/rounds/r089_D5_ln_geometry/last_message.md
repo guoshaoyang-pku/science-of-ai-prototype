@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 20/20 LN affine kernel cells with no new training; direction matching remained 0/20 (P1 refuted), and scientific closeout was committed and verified.

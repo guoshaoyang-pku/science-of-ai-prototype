@@ -1,0 +1,1 @@
+ROUND_RESULT: failed | A review subtask wrote outside the workspace; the file was removed, no new training ran, and the failure record plus the 293-file/132-cell prior-evidence audit were committed.

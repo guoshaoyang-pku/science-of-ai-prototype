@@ -1,0 +1,1 @@
+ROUND_RESULT: failed | Read-only .git permissions blocked both commits; no training ran, and the preregistration, scripts, failure evidence, and handoff updates are saved.

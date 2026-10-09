@@ -1,0 +1,105 @@
+{
+  "round": 110,
+  "direction_round": 7,
+  "direction": "D8_activation_pathway",
+  "domain": "development",
+  "created_at": "2026-10-08T01:33:24.726736+08:00",
+  "question": "固定旧输入/权重，仅新增λ=±3、a=.075，解析F与三个小尺度加新尺度的两项2%判据是否仍全部失败？",
+  "bias_root": 2.3993572805154675,
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106
+  ],
+  "lambdas": [
+    -3,
+    3
+  ],
+  "scales": [
+    0.075
+  ],
+  "control_scales": [
+    0.0125,
+    0.025,
+    0.05
+  ],
+  "planned_cells": 12,
+  "design": {
+    "data_seed": 31001,
+    "dimension": 4,
+    "train_n": 128,
+    "width": 64,
+    "activation": "冻结单层SiLU，float64",
+    "input_projection": "直接复用旧train_x/W/u，所有λ和尺度同seed配对",
+    "bias": "共同加性bias=b*+λa²，反射时bias固定",
+    "center": "even=(f(b+au)+f(b-au))/2-mean_train[f(b+au)]，与原合同逐位一致",
+    "ratio": "R=mean(even²)/mean(odd²); Q=R/a⁶",
+    "optimizer": "不适用；0新训练",
+    "units": "无量纲",
+    "label_or_test_read": false,
+    "counts": "2个新λ×尺度条件，12新cell；旧36cell只读，12同seed/λ四尺度配对；6seed只测初始化稳健性"
+  },
+  "prediction_origin": "非盲development。已见a=.0125/.025/.05以及a=.1结果，a=.075候选来自旧交接。新signed(Q/F−1)点预期=2.25×保存a=.05的偏差，假设首修正随a²。点绝对误差范围.026148543185–.029042583299；每seed signed误差、Q与spread点及区间见executed/numeric_forecasts.json，各误差或spread容许范围为该点±.002；不是CI。没有拟合或预览a=.075激活，旧r048只作失效归档。",
+  "formula": "F_s(λ)=mean((f3(b*)λU2/2+f4(b*)U4/24)²)/(f1(b*)²mean(u²)); Q=R/a⁶；F保持旧解析值.015779531472–.140811355279。",
+  "predictions": [
+    {
+      "id": "P1",
+      "text": "12/12新cell abs(Q/F−1)在各seed事前点±.002区间，λ−3偏差正、λ+3负，且原≤.02判据全部失败",
+      "interval_source": "executed/numeric_forecasts.json absolute_relative_error_interval/Q_interval",
+      "required_count": 12,
+      "point_formula": "2.25×保存a=.05偏差；非盲development"
+    },
+    {
+      "id": "P2",
+      "text": "12/12同seed/λ的三个保存小尺度加新a=.075的spread在各seed事前点±.002区间，且原≤.02折叠判据全部失败",
+      "interval_source": "executed/numeric_forecasts.json four_scale_spread_interval",
+      "required_count": 12,
+      "point_formula": "新pointQ与三个保存Q共同算spread"
+    }
+  ],
+  "criteria": {
+    "original_F_error_max": 0.02,
+    "original_fold_spread_max": 0.02,
+    "complete_required": true,
+    "array_reconstruction_tolerance": 2e-14,
+    "independent_F_tolerance": 1e-10,
+    "independent_energy_tolerance": 1e-12,
+    "intervals": "只对每λ的6seed配对差给df5双侧95%t区间；跨格点仅描述范围，不用pooled CI；预测区间不是置信区间",
+    "numeric_interval_source": "executed/numeric_forecasts.json；每seed/λ point±.002，同时要求两项> .02与P1方向"
+  },
+  "historical_condition_policy": "注册前核查5个历史Cartesian及426保存request，12新请求零重叠。旧36对照只读保存数组并固定原request/contract/hash，不调用旧激活/训练/分析。所有940旧study文件hash/mtime和文件集合锁定。任何重叠或不匹配拒绝激活。",
+  "execution": {
+    "python": "python3",
+    "device": "cpu",
+    "threads": 1,
+    "dtype": "float64",
+    "maximum_seconds": 1200,
+    "first_cell_audit": true,
+    "successful_cells_never_overwrite": true,
+    "commit_gate": "唯一preregistration文件历史commit绑定全部pinned源码/输入/审计。测量与恢复前全局扫描所有本批结果，孤立/失败/未知/额外结果和混合manifest一律拒绝；匹配后才导入torch并激活；first limit1独立核验通过后续测。 新activation_started_time_ns逐cell保存；first/summary/独立回执write-once，first单独摘要不覆盖final摘要。"
+  },
+  "reference_studies": [
+    "r008_bias_inflection",
+    "r024_near_root_crossover",
+    "r048_lambda_collapse（协议失效，只归档）",
+    "r080_lambda_outer_collapse",
+    "r092_scale01_boundary"
+  ],
+  "boundary": "仅development固定data31001对称Gaussian d4/n128/width64冻结单层SiLU/共同加性bias/训练列居中/seed101–106/λ±3、a=.075和三个保存小尺度；a=.1旧证据只读保留。0训练，无标签/test/OOD。仅离散条件边界，不给连续临界尺度/λ、跨数据或seed概率、目标核、训练性能、干预收益、随机bias、非对称输入、多层、learned hidden、CE、小批量或其他优化器外推。",
+  "source_sha256": {
+    "executed/prepare.py": "05722f0d3dff8dc220aa3386e24ed05508bba02e46f6566bd99c5d9fe1cd0466",
+    "executed/run.py": "704f20e7a4802d893d3b1adf47d1596b24cbb7bb9f35238030f1bdc741e321b9",
+    "analysis.py": "ed16526f6f872fa96b215cc245296848af1cd63c6e279dd7f11f1b8202d010b3",
+    "executed/verify.py": "7f53401c4ec6375697d350274c9f2226e6fdf7e84d2540e734a47126f38fe7ea",
+    "executed/input_snapshot.npz": "13a026ccfa1e1745b426af1e9e98411b7afad9954a73f98da43c04b5db81c9ff",
+    "executed/numeric_forecasts.json": "4b82778a6f71bd736319fcc4e382372dee6a0cdd9d4771f89f0a59bd95e3d8f4",
+    "executed/readonly_controls.json": "69f7404a2ebedfe9216ade48c8a5c3a2835f3c1b9f9c8056b26039e698429eb8",
+    "executed/old_evidence_manifest.json": "6eea524c480f81fd277481c5d755d3423fbcc7dfbf12e6159973158d593a825a",
+    "executed/prior_closeout_audit.json": "0a9dc72e2b77442d80b4d69ba5cb3b8679ff1835152c1f82fc3805f30cd72069",
+    "executed/condition_audit.json": "0b2f5eadfa399be18775c24a0554c935ee8cb8c18d4e4dd0f146ea7c14ded1a8",
+    "executed/state_before.json": "66bcd1a9fba320cf4f27296c7042d036b358b24b72cdacd903839f082b04fc3b"
+  }
+}

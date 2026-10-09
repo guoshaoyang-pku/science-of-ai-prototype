@@ -1,0 +1,15 @@
+{
+  "direction": "A", "iteration": 3, "domain": "development; A02 functions now exposed",
+  "question": "Is the lost offset benefit caused by width64 or absence of LN?",
+  "recipes": {
+    "LN010_w64": {"width":64,"depth":3,"activation":"gelu","layer_norm":[false,true,false],"residual":false,"weight_decay":0.0001,"steps":256,"batch_size":64},
+    "noLN_w192": {"width":192,"depth":3,"activation":"gelu","layer_norm":[false,false,false],"residual":false,"weight_decay":0.0001,"steps":256,"batch_size":64}
+  },
+  "baselines": "Reuse A02 LN010_w192 and noLN_w64, do not retrain successful cells",
+  "predictions": [
+    {"id":"LN_more_than_width","prediction":"fixed-head SGD offset centered chord is more negative with LN at both widths","success":"8/8 function/width comparisons"},
+    {"id":"LN_suffices_w64","prediction":"LN010_w64 fixed-head centered chord remains negative","success":"4/4 functions"},
+    {"id":"width_noLN_insufficient","prediction":"noLN_w192 absolute fixed-head benefit is <50% of LN010_w192 benefit","success":"4/4 functions"}
+  ],
+  "scope": "SGD.001/m0, T256/b64, 4 targets/2 newrecipes, 5 paired seeds. Only LN pairs at same width are initialization matched. Width comparisons necessarily have different dimensions/RNG. All finite high losses retained. No solver/OOD claim."
+}

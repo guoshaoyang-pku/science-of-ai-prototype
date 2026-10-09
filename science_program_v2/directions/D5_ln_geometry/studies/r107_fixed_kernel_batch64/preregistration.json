@@ -1,0 +1,276 @@
+{
+  "study": "r107_fixed_kernel_batch64",
+  "round": 107,
+  "direction_round": 7,
+  "domain": "development",
+  "question": "保持共享Linear+LN affine初始化核，仅换成保存的batch64顺序递推，eta=.001/a=3/T=256的train方向匹配是否改善？",
+  "conditions": {
+    "functions": [
+      "trigonometric8",
+      "quadratic8",
+      "interaction12",
+      "radial12"
+    ],
+    "seeds": [
+      100,
+      101,
+      102,
+      103,
+      104
+    ],
+    "n": 256,
+    "batch_size": 64,
+    "steps": 256,
+    "eta": 0.001,
+    "offset_amplitude": 3,
+    "width": 64,
+    "head": "fixed",
+    "activation": "GELU",
+    "momentum": 0,
+    "linearized_weight_decay": 0,
+    "real_training_weight_decay": 0.0001,
+    "data_seed": 48291,
+    "kernel_LN": "r089 total_kernel",
+    "kernel_noLN": "r077 kernel",
+    "new_training_cells": 0,
+    "new_kernel_cells": 0,
+    "evaluation_cells": 40,
+    "pairs": 20
+  },
+  "batch_order": {
+    "type": "saved_actual_training_order",
+    "source_algorithm": "torch.manual_seed(seed); original Model construction; 256 torch.randint(0,256,(64,)) calls",
+    "sampling": "with replacement; repeated indices count individually",
+    "verified_training_cells": 120,
+    "unique_sequences": 10,
+    "LN_noLN_and_offsets_same_sequence": true,
+    "torch": "2.13.0",
+    "training_source_sha256": "786db4490138fabbba82ebe19bb7d35c9a38b53a149eac0edb321236f75dc0d2",
+    "training_preregistration_commit": "5144cbdf818c7ac3dca76d21fbb85bb5a3a4d036"
+  },
+  "formulation": {
+    "kernel": "K=J J^T/n, from immutable saved source",
+    "residual_update": "r[t+1]=r[t]-(2*eta*n/b)*K[:,B_t] r[t][B_t]; B_t is saved ordered multiset",
+    "offset_vector": "v[0]=ones(n); v[t+1]=v[t]-.008*K[:,B_t]v[t][B_t]",
+    "chord": "C_batch=9*mean((v[256]-mean(v[256]))^2); same B across -3/0/+3, ideal exact additive offset",
+    "delta": "LN-noLN; real train chord uses immutable saved predictions/labels",
+    "step_unit": "one minibatch update, 256 updates, not 256 epochs",
+    "zero_sign_threshold": 1e-12
+  },
+  "predictions": {
+    "P1": {
+      "criterion": "M_batch64 == 0/20, equal to saved fullbatch M=0, no direction improvement",
+      "point_matches": 0
+    },
+    "P2": {
+      "criterion": "all 20 abs(delta_batch64-delta_full) <= .005 label_squared",
+      "max_absolute_shift": 0.005,
+      "per_pair_numerical_predictions": [
+        {
+          "function": "trigonometric8",
+          "seed": 100,
+          "point": 0.01984969182060787,
+          "interval": [
+            0.014849691820607868,
+            0.02484969182060787
+          ]
+        },
+        {
+          "function": "trigonometric8",
+          "seed": 101,
+          "point": 0.043216925636116524,
+          "interval": [
+            0.038216925636116526,
+            0.04821692563611652
+          ]
+        },
+        {
+          "function": "trigonometric8",
+          "seed": 102,
+          "point": 0.04277924347975752,
+          "interval": [
+            0.03777924347975752,
+            0.04777924347975752
+          ]
+        },
+        {
+          "function": "trigonometric8",
+          "seed": 103,
+          "point": 0.021962586536229962,
+          "interval": [
+            0.01696258653622996,
+            0.026962586536229963
+          ]
+        },
+        {
+          "function": "trigonometric8",
+          "seed": 104,
+          "point": 0.031839931279917515,
+          "interval": [
+            0.026839931279917514,
+            0.03683993127991751
+          ]
+        },
+        {
+          "function": "quadratic8",
+          "seed": 100,
+          "point": 0.024141781206298233,
+          "interval": [
+            0.019141781206298232,
+            0.029141781206298234
+          ]
+        },
+        {
+          "function": "quadratic8",
+          "seed": 101,
+          "point": 0.03120132510033679,
+          "interval": [
+            0.02620132510033679,
+            0.03620132510033679
+          ]
+        },
+        {
+          "function": "quadratic8",
+          "seed": 102,
+          "point": 0.028498368598657096,
+          "interval": [
+            0.023498368598657095,
+            0.0334983685986571
+          ]
+        },
+        {
+          "function": "quadratic8",
+          "seed": 103,
+          "point": 0.01647579239128242,
+          "interval": [
+            0.011475792391282418,
+            0.02147579239128242
+          ]
+        },
+        {
+          "function": "quadratic8",
+          "seed": 104,
+          "point": 0.02610681209763859,
+          "interval": [
+            0.02110681209763859,
+            0.031106812097638593
+          ]
+        },
+        {
+          "function": "interaction12",
+          "seed": 100,
+          "point": 0.027633239614670686,
+          "interval": [
+            0.022633239614670685,
+            0.032633239614670684
+          ]
+        },
+        {
+          "function": "interaction12",
+          "seed": 101,
+          "point": 0.018201995468692018,
+          "interval": [
+            0.013201995468692017,
+            0.02320199546869202
+          ]
+        },
+        {
+          "function": "interaction12",
+          "seed": 102,
+          "point": 0.028020101404917695,
+          "interval": [
+            0.023020101404917694,
+            0.03302010140491769
+          ]
+        },
+        {
+          "function": "interaction12",
+          "seed": 103,
+          "point": 0.01662494145335208,
+          "interval": [
+            0.011624941453352078,
+            0.02162494145335208
+          ]
+        },
+        {
+          "function": "interaction12",
+          "seed": 104,
+          "point": 0.026600092675473776,
+          "interval": [
+            0.021600092675473775,
+            0.03160009267547378
+          ]
+        },
+        {
+          "function": "radial12",
+          "seed": 100,
+          "point": 0.025397290293728243,
+          "interval": [
+            0.02039729029372824,
+            0.030397290293728244
+          ]
+        },
+        {
+          "function": "radial12",
+          "seed": 101,
+          "point": 0.014690203348936172,
+          "interval": [
+            0.009690203348936173,
+            0.01969020334893617
+          ]
+        },
+        {
+          "function": "radial12",
+          "seed": 102,
+          "point": 0.03379698822187168,
+          "interval": [
+            0.02879698822187168,
+            0.03879698822187168
+          ]
+        },
+        {
+          "function": "radial12",
+          "seed": 103,
+          "point": 0.015228581124858578,
+          "interval": [
+            0.010228581124858579,
+            0.020228581124858577
+          ]
+        },
+        {
+          "function": "radial12",
+          "seed": 104,
+          "point": 0.029793624445915753,
+          "interval": [
+            0.024793624445915752,
+            0.03479362444591575
+          ]
+        }
+      ]
+    }
+  },
+  "prediction_provenance": "development非盲：已知真实train20负/固定全批量20正与小eta；预测batch差与旧full差距离<=.005是未检验猜测，不由计算新递推选出，不称blind或sealed OOD。",
+  "analysis": "same-seed paired values and df4 t95 per function; no iid function inference; no fit/tuning/alternate batches",
+  "verification": {
+    "step_error_max": 1e-12,
+    "scalar_chord_error_max": 1e-12,
+    "scalar_real_chord_error_max": 1e-12,
+    "independent_method": "bincount multiplicities followed by sum over all 256 columns",
+    "first_cell_then_complete": true,
+    "recovery_no_overwrite": true,
+    "max_seconds": 1200
+  },
+  "inputs": {
+    "snapshot_commit": "f8dd6659f61a884b51195dceda52e192f2bb032e",
+    "previous_preregistration_commit": "99a9ed117c73bcd79f10e5b37deca5e900603442",
+    "previous_summary_sha256": "e3fa37f38198bda5a9a52a678f368d8aadf7b3fb27d808fd5cbe8303384db5e7"
+  },
+  "manifest_sha256": "73dd94e65d2538ebcbf3aae5d019b51cdaae89dfdb758abcdeacefccd4c99440",
+  "source_sha256": {
+    "executed/run.py": "e8ea4b9582d8cbeba25dea3057e57c2284b92ee39b40de0e2f405e10577c0ad3",
+    "analysis.py": "08fa8d39f0d9713931062c79519401e74adbfbd1a4fb5f1dc0f7c650757a32c1",
+    "executed/verify.py": "ec53d50b6fffa6e32d74632b32dc3b7ccc1c72e98da8d7659354b7022c907207",
+    "executed/freeze_inputs.py": "ec2039e84b9046f919997eb5faa652137f15bc3d62fc4bbdb83c7897f7888770"
+  },
+  "boundary": "只区分固定核batch算子；同保存实际训练顺序不等于复现训练动力学；不识别核漂移、decay、非线性、test、因果、sealed OOD或跨函数概率。"
+}

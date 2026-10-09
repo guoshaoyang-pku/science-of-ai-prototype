@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 48/48 cells after preregistration commit 0eddd3b; both slow-energy predictions passed, original P4 failures retained, reports and central updates committed in 3f2fcaa with receipt 64020fe.

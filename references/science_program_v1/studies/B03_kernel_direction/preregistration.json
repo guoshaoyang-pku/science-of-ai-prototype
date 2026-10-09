@@ -1,0 +1,116 @@
+{
+  "study": "B03_kernel_direction",
+  "created_at": 1791224489.530876,
+  "run_source_sha256": "48ec629484f84d8bd5e2b7ceb6f819b3036cc0509678ce5153699f13643c4638",
+  "model_source_sha256": "323fbcf46f384d21c72435290f11c67ac06e7c042fba5f006e9a8285f05114c6",
+  "pretrain_lr": 0.05,
+  "pretrain_steps": 128,
+  "probe_steps": 512,
+  "probe_stability_fraction": 0.5,
+  "development_conditions": [
+    {
+      "input_dim": 3,
+      "distribution": "gaussian",
+      "train_samples": 32,
+      "test_samples": 256,
+      "data_seed": 9873,
+      "name": "product_d3_seed9873",
+      "function": "product"
+    },
+    {
+      "input_dim": 3,
+      "distribution": "gaussian",
+      "train_samples": 32,
+      "test_samples": 256,
+      "data_seed": 9873,
+      "name": "mixed_sine_d3_seed9873",
+      "function": "mixed_sine"
+    }
+  ],
+  "ood_conditions": [
+    {
+      "input_dim": 7,
+      "distribution": "uniform",
+      "train_samples": 32,
+      "test_samples": 256,
+      "data_seed": 14771,
+      "name": "triple_product_d7_uniform",
+      "function": "triple_product"
+    },
+    {
+      "input_dim": 7,
+      "distribution": "uniform",
+      "train_samples": 32,
+      "test_samples": 256,
+      "data_seed": 14771,
+      "name": "soft_bump_d7_uniform",
+      "function": "soft_bump"
+    }
+  ],
+  "development_widths": [
+    8,
+    32
+  ],
+  "ood_widths": [
+    8,
+    64
+  ],
+  "seeds": [
+    11,
+    29,
+    47
+  ],
+  "permutation_seeds": [
+    5101,
+    5102,
+    5103,
+    5104,
+    5105,
+    5106,
+    5107,
+    5108,
+    5109,
+    5110,
+    5111,
+    5112,
+    5113,
+    5114,
+    5115,
+    5116,
+    5117,
+    5118,
+    5119,
+    5120,
+    5121,
+    5122,
+    5123,
+    5124,
+    5125,
+    5126,
+    5127,
+    5128,
+    5129,
+    5130,
+    5131,
+    5132
+  ],
+  "loss": "halfMSE fullbatch float64 nodecay noLN noresidual SiLU",
+  "intervention": "Use same learned outputs/residuals; only kernel differs. Initial kernel multiplied by trace(Klate)/trace(Kinit). Probe_lr shared within pairedcase and set.5/maxlambda across all3kernels; no optimizer momentum.",
+  "predictions": [
+    {
+      "id": "B03_P1",
+      "statement": "Equal-trace learned versus initial kernel differs by >5% endpoint relative probe residual in at least one development/OOD unit. Scalar global acceleration is not universally sufficient."
+    },
+    {
+      "id": "B03_P2",
+      "statement": "Learned equal-trace kernel has greater initial residual Rayleigh than initial equal-trace kernel, on both development functions at width32 averaged3seeds. This is a directional hypothesis, retained if it fails."
+    },
+    {
+      "id": "B03_P3",
+      "statement": "If target-directed kernel change, actual-residual Rayleigh ratio exceeds mean32random residual permutations, both development functions at width32. Direction not assumed at narrowwidth."
+    }
+  ],
+  "known_source": "B02 showed fixedJ0failure, but kernel drift norm poor predictor; newdataseed9873 andpretrainT128 not repeatedB02successfulmeasurements",
+  "ood_conditions_frozen_before_any_B03_result": true,
+  "statistics_unit": "function,width;3seed robustness;32permutationsdiagnostic null, not32newfunctions"
+}

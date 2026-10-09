@@ -1,0 +1,14 @@
+{
+ "direction":"A","iteration":4,"domain":"development",
+ "question":"LN forward geometry versus affine/weight learning under fixed head",
+ "recipe":{"width":192,"depth":3,"activation":"gelu","layer_norm":[false,true,false],"residual":false,"weight_decay":0.0001,"steps":256,"batch_size":64},
+ "functions":["trigonometric8","quadratic8","interaction12","radial12"],
+ "means":[-3,0,3],"seeds":[100,101,102,103,104],
+ "interventions":["head_frozen_ln_fixed","head_frozen_weights_only","head_frozen_affine_only"],
+ "predictions":[
+  {"id":"LN_forward_sufficient","prediction":"Fix LN gain/bias while preserving its forward normalization retains at least50% of frozen-head centered-offset benefit","success":"4/4 functions"},
+  {"id":"weights_sufficient","prediction":"Only hidden Linear weights trainable retain at least50% of frozen-head centered-offset benefit","success":"4/4 functions"},
+  {"id":"affine_not_sufficient","prediction":"Only hidden Linear biases and LN gain/bias trainable retain less than50% of frozen-head benefit","success":"4/4 functions"}
+ ],
+ "baselines":"A02 frozen_head LN010_w192, no retraining. All initialization/functions/stream identical. SGD.001/m0, four fixed targets; no new final OOD or solver claim. Retain all finite high endpoints."
+}

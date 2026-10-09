@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | All 6 saved-curve evaluations passed RMSE≤.03 and maxabs≤.05 without training or fitting; reports, KB, handoff, and verified closeout were committed.

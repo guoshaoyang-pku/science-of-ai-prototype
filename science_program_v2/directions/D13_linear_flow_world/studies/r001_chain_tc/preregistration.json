@@ -1,0 +1,36 @@
+{
+  "study_id": "r001_chain_tc",
+  "question": "在固定宽度32、固定目标线性映射和全批量GD的无skip深度线性链上，协议A/B提取的相变时间是否一致，且t_c是否随深度L近似线性增长？",
+  "status": "development",
+  "generator": {
+    "input_dim": 4,
+    "output_dim": 4,
+    "hidden_width": 32,
+    "depths": [1, 2, 4, 8],
+    "seeds": [11, 22, 33],
+    "target_seed": 20261007,
+    "target": "固定4x4正交矩阵；X为128x4标准正态，Y=X@T.T",
+    "weight_init": "每层N(0, sigma^2/fan_in)，sigma=0.8，float64",
+    "optimizer": "full-batch vanilla GD，learning_rate=0.02，无momentum、无weight_decay",
+    "steps": 3000,
+    "record": "step 0..3000每步记录MSE"
+  },
+  "protocol_A": {
+    "model": "loss(t)=c+(a-c)/(1+exp(k*(log1p(t)-logtc)))",
+    "fit": "全部step点最小二乘；a,c,k,logtc有界，k>0，c>=0，tc>=1",
+    "pass": "归一化RMSE<=0.05且R2>=0.99",
+    "tc": "exp(logtc)-1"
+  },
+  "protocol_B": {
+    "smoothing": "在log1p(step)轴上对loss做11点移动平均（边界缩短窗口）",
+    "tc": "平滑曲线对log1p(step)的一阶差分中负斜率绝对值最大处对应的step",
+    "lower_bound": "final recorded loss"
+  },
+  "predictions": {
+    "P1_single_sigmoid": "12个cell中至少9个A拟合通过",
+    "P2_protocol_agreement": "每个cell的tc_A/tc_B在[0.5,2.0]，且12个cell中至少9个满足",
+    "P3_seed_robustness": "每个深度3个seed的tc_A变异系数<=0.25",
+    "P4_depth_scaling": "按深度均值拟合tc_A=b0+b1*L，b1>0，R2>=0.90，且每个深度均值预测相对误差<=0.25"
+  },
+  "analysis_policy": "不以失败cell替换或删除；所有12个预注册cell均保存原始曲线与拟合结果。"
+}

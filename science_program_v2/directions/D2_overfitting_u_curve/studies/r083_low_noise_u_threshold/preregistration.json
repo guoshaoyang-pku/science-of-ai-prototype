@@ -1,0 +1,143 @@
+{
+  "study": "r083_low_noise_u_threshold",
+  "round": 83,
+  "direction_round": 6,
+  "direction": "D2_overfitting_u_curve",
+  "domain": "development",
+  "question": "仅复用n32/seed412固定population条件的signal_bias与variance_unit，将噪声方差.125减半至.0625，有限窗口终点风险比最低点高至少.05的操作性U型判据是否仍成立？",
+  "cell": {
+    "n": 32,
+    "seed": 412,
+    "noise_variance": 0.0625
+  },
+  "source_curve": "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed412_var0.125.npz",
+  "source_data": "directions/D2_overfitting_u_curve/studies/r051_noise_halving/executed/data_n32_seed412.npz",
+  "data_contract": {
+    "reuse": "只读原保存数组，无RNG/重抽/特征计算/训练；来源NPZ、JSON、receipt、summary、data与源码固定hash。",
+    "target": "(x0+.5*x0*x1)/sqrt(1.25)",
+    "input_dim": 4,
+    "audit_rows": 2048,
+    "hidden": "frozen ReLU",
+    "width": 128,
+    "scale": 0.03,
+    "features": "原train feature mean/RMS归一化、含bias列",
+    "head": "zero initialization",
+    "dtype": "float64",
+    "invariants": [
+      "train_x",
+      "audit_x",
+      "hidden_weight",
+      "train_features",
+      "audit_features",
+      "epsilon",
+      "train_y",
+      "audit_y",
+      "target_mean_rms"
+    ],
+    "population_mean": 0,
+    "population_rms": "sqrt(1.25)",
+    "baseline_noise_variance": 0.125,
+    "only_changed_factor": "归一化标签单位的噪声方差sigma²"
+  },
+  "optimizer": {
+    "type": "full_batch_GD",
+    "lr": 0.3,
+    "momentum": 0,
+    "weight_decay": 0,
+    "loss": "mean squared error",
+    "steps": 16384,
+    "device": "CPU",
+    "new_training_cells": 0
+  },
+  "evaluation_contract": {
+    "grid": "全部整数0..16384",
+    "formula": "R(t;s)=signal_bias(t)+s*variance_unit(t)",
+    "oracle": "first global minimum over finite saved grid",
+    "delta": "R(16384;s)-min_t R(t;s)",
+    "operational_u_shape": "0<t_star<16384 and delta>=.05",
+    "threshold": 0.05,
+    "units": "risk/delta/sigma²为归一化标签平方；t为更新步",
+    "baseline": "同n32/seed412的旧.125保存risk，配对报告t*、最低/终点风险和delta差",
+    "counting": "1个新recipe×1个seed=1评价cell，另1保存配对control；0新训练，不把16385步当重复",
+    "saved_arrays": [
+      "steps",
+      "signal_bias",
+      "variance_unit",
+      "expected_risk",
+      "baseline_risk"
+    ],
+    "no_exclusions": true
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "development_threshold_prediction",
+      "interval": [
+        0.01,
+        0.04
+      ],
+      "claim": "sigma²=.0625的delta在[.01,.04]内，因此低于.05操作性U型阈值。",
+      "criterion": "supported iff .01<=delta<=.04 and operational_u_shape=false；否则refuted。最低点是否内部仅描述，不另注册数值范围。",
+      "rationale": "旧.125终点减最低点=.05138887404123888，仅略高于.05；噪声减半粗略估计约.025，但最低点重优化与signal项未预先计算。该估计不假设delta精确线性缩放。"
+    }
+  ],
+  "prediction_provenance": {
+    "new_sigma_evaluated_before_registration": false,
+    "new_endpoint_or_minimum_computed_before_registration": false,
+    "selection": "用户/旧交接按旧.125余量最小的n32/seed412选择，属于已知development条件；并非随机选择、封存OOD或盲发现。",
+    "old_known": {
+      "noise_variance": 0.125,
+      "t_star": 313,
+      "minimum_risk": 0.1043385144583564,
+      "final_risk": 0.15572738849959528,
+      "delta": 0.05138887404123888
+    },
+    "numeric_interval_origin": "仅基于旧summary差值和降噪的粗略判断；注册前未组合.0625新risk、端点或argmin。"
+  },
+  "independent_validation": {
+    "method": "原data重新构造K/eigh、log1p/expm1闭式响应复算signal/variance/risk；不调用训练器",
+    "maxabs_tolerance": 1e-09,
+    "compare": [
+      "全步risk",
+      "signal_bias",
+      "variance_unit",
+      "first argmin",
+      "endpoint-minus-minimum",
+      "操作性阈值"
+    ],
+    "known_theory_not_registered": true
+  },
+  "resume_protocol": "唯一execution_binding绑定一个完整冻结commit；每次先验证源码、输入与旧文件hashmtime。results为空才评价；全部成功文件集合须完全匹配且receipt hash/mtime通过；孤立、混合、额外/缺失文件均拒绝。成功cell不再计算、不覆盖。",
+  "compute_budget_seconds": 1200,
+  "boundaries": [
+    "仅development：d4 antithetic Gaussian目标x0+.5*x0*x1、frozen ReLU width128/scale.03、原train feature normalization、population clean标签、含bias零head、float64、full-batch GD eta.3/mom0/nodecay、n32/seed412、audit2048、整数0..16384。",
+    "只评价.125→.0625一个配对；源曲线已知，0新训练。操作性阈值失败不等于没有内部最低点或任何风险回升。",
+    "不外推连续噪声临界值、无限训练、其他seed/n/width、learned hidden、Adam、mini-batch、CE、train-only早停、谱/输入因果或sealed OOD。"
+  ],
+  "input_sha256": {
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed412_var0.125.npz": "b2eb83f096aea327c34e662309e0c086b7ae067ef36c57aaed3e474f4435cbf4",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed412_var0.125.json": "ea9e42a14d017b4d7b5ec057a8e725b6377d4f311865f5891c664ad6904cc91b",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/receipt.json": "e50627164f51795d21c6078584fa4af1e4f3bae816192f5911164d37c5535979",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/summary.json": "702a303e1931fbf82cee2b65a9809eba89cb82e62b51f311f43ac050ac1ad27f",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/executed/data_n32_seed412.npz": "35ccef1c220bf2212b7d6dfa68009cbd88b1c41b574d3763097494d46ee101f4",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/executed/data_n32_seed412.json": "f57d7886c2c00a5c2b08133397f5eb4e4c96da4885d14515bee819756ed97ba9",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/preregistration.json": "e6241d739464b42413da25bac03b205c815a162e8b8b4a4c43614eece6f2e7a4",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/executed/run.py": "ef0ce00c9ace755dc901b7cc04809688d9c885380e7bffddc5b78f92dc1397a4",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/analysis.py": "997dfbd02b2d9d93994cd7b943a37708d413feedbb29166f6f77a60f5d438cb1",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/executed/final_commit_verification.json": "65256e0301266cc3ac306130bb90411f0abe891d156f6b3b79fbd9ecba70aca3",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/executed/independent_verification.json": "9b69eb7d30b19d958be8c51bcbad4ed4bc6f271c13af39135e01ff0ebb2ddc89",
+    "directions/D2_overfitting_u_curve/studies/r083_low_noise_u_threshold/executed/prior_closeout_audit.json": "d3a92bc6cb408b8f69fb170833c90beb3d9948e78c6d3cb1d79361f764ddd5b1",
+    "directions/D2_overfitting_u_curve/studies/r083_low_noise_u_threshold/executed/independent_prior_closeout_audit.json": "0cae908cd1bec048c882b143b6b2b9d3d4ba19928a97a53a0008f3bd2fe2061d"
+  },
+  "source_sha256": {
+    "executed/run.py": "bd7ab7f01bb89939fae06cc5ae93b24b60d173a84d849b5cc1486c30515f788a",
+    "analysis.py": "1cdfa5ee1e67bff150560c63f9dd51f09b86cbc4bec8f100168553f26b0aa96f",
+    "executed/independent_verify.py": "251fae9da1f008da960205c28157225b88640cd09c89d336a5c84468b26057c4"
+  },
+  "source_commits": {
+    "curve_and_data_scientific_closeout": "f61b6fee48d85f6e032df6f0735327fab39a9f1c",
+    "source_generation_pinned_commit": "ba838844d8f256f8476a1c6b4268cdb4e868eb99",
+    "new_execution": "唯一新冻结提交由executed/execution_binding.json记录；三个源码和预注册逐字节匹配该提交才允许评价"
+  },
+  "created_at": "2026-10-07T04:13:34.356720+00:00"
+}

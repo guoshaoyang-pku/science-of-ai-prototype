@@ -1,0 +1,121 @@
+{
+  "study": "r021_target_rayleigh",
+  "round": 21,
+  "direction_round": 3,
+  "direction": "D5_ln_geometry",
+  "domain": "development",
+  "question": "固定head旧recipe中，初始化hidden Linear参数Jacobian的居中目标Rayleigh商相比终点hidden Gram总条件数，是否更关联同seed的LN chord收益？",
+  "functions": [
+    "trigonometric8",
+    "quadratic8",
+    "interaction12",
+    "radial12"
+  ],
+  "recipes": {
+    "LN010_w64": {
+      "width": 64,
+      "depth": 3,
+      "activation": "gelu",
+      "layer_norm": [
+        false,
+        true,
+        false
+      ],
+      "weight_decay": 0.0001,
+      "steps": 256,
+      "batch_size": 64,
+      "optimizer": "SGD",
+      "lr": 0.001,
+      "momentum": 0.0
+    },
+    "noLN_w64": {
+      "width": 64,
+      "depth": 3,
+      "activation": "gelu",
+      "layer_norm": [
+        false,
+        false,
+        false
+      ],
+      "weight_decay": 0.0001,
+      "steps": 256,
+      "batch_size": 64,
+      "optimizer": "SGD",
+      "lr": 0.001,
+      "momentum": 0.0
+    }
+  },
+  "offsets": [
+    -3,
+    0,
+    3
+  ],
+  "seeds": [
+    100,
+    101,
+    102,
+    103,
+    104
+  ],
+  "data_seed": 48291,
+  "train_n": 256,
+  "test_n": 256,
+  "normalization": "train target centered and standardized once; same transform applied to test",
+  "data_contract": "只读r013保存输入、初始预测、Linear初值pins和终点hidden/预测；所有247文件SHA及收尾commit b4eaaab冻结于executed/input_manifest.json，不重跑或覆盖120个旧训练cell。",
+  "operator": {
+    "parameters": "input Linear与三个hidden block Linear的weight/bias；排除固定head weight/bias和LN affine，LN/noLN参数维度相同：d8 13056、d12 13312。原训练中LN affine可更新，此算子仅覆盖匹配hidden Linear方向。",
+    "jacobian": "J0=∂f0(train_x)/∂theta_hidden，n×p；模型/输入/参数为原float32，使用原seed重新生成并逐参数hash核对初始化。",
+    "center": "P=I-11^T/n，yc=P y_train,offset0；Kc=P J0 J0^T P/n。",
+    "rayleigh": "q=yc^T Kc yc/(yc^T yc)=||J0^T yc||²/(n ||yc||²)。VJP目标sum_i yc_i f0_i，没有额外除n；float32 autograd，objective与梯度平方和用float64。",
+    "cross_offset": "初始化与offset无关，P(y+m1)=Py；只取offset0 yc，各offset的输入/初始预测须一致，居中标签最大误差<3e-7用于float32平移舍入核验。不对q做chord。",
+    "positive_predictor": "X_R=log10(q_LN/q_noLN)，预期越大则B越大。",
+    "gram_baseline": "每recipe的log10κ为step256三个offset的等权均值；G=(PH)^T(PH)/n，floor=1e-12；X_G=mean_m(log10κ_noLN,m-log10κ_LN,m)，预期越大则B越大。该聚合不等同旧offset0基线r=.420774419。",
+    "outcome": "E_m=mean[(test residual-mean)^2]；C=(E_-3+E_+3)/2-E_0；B=C_noLN-C_LN=-Δchord，20个函数×seed配对重复。"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "prediction": "20个配对重复中，Pearson r(X_R,B)>=.5且r(X_R,B)-r(X_G,B)>=.15。",
+      "success": "两个阈值同时满足，否则refuted；无方差为refuted。",
+      "rationale": "候选目标方向几何预计比全谱尾更关联目标形状收益；无新q pilot，幅度阈值为前瞻development假设。"
+    },
+    {
+      "id": "P2",
+      "prediction": "分别扣除各函数5seed的X_R/X_G/B均值后，pooled r(X_R,B)>=.3且比r(X_G,B)高至少.10。",
+      "success": "两个阈值同时满足，否则refuted；不以函数间差异替代函数内判据。",
+      "rationale": "若目标相关量有重复内说明力，应在固定函数后仍保留正关联。"
+    }
+  ],
+  "analysis_contract": {
+    "counts": "8函数×recipe初始化测量条件、每条件5seed，共40cell；复用24旧函数×recipe×offset条件的120训练cell；20 chord配对不是20独立函数。",
+    "intervals": "每函数5seed报告X_R/X_G/B的mean、min/max及配对seed t95区间，只覆盖初始化变化；每函数r及总体/函数去均值r均无iid p值。",
+    "descriptive": "leave-one-seed-out删同一个seed在全部四函数的重复，报告总体与函数去均值r范围，仅稳健性描述，不改主判据。",
+    "complete": "40cell完整且旧120cell与q/Gram/chord可复算后才判断预测；不足not_evaluated。",
+    "independent": "首cell逐样本autograd生成J复算J^Tyc及q；梯度L2相对误差<=3e-5、最大绝对误差<=3e-6、q相对误差<=3e-5；随后逐cell保存VJP复算及独立终点Gram/chord核验。"
+  },
+  "execution": {
+    "python": "python3",
+    "device": "cpu",
+    "threads": 1,
+    "max_seconds": 1200,
+    "network": false,
+    "new_training_cells": 0,
+    "planned_measurement_cells": 40,
+    "immutable_success_cells": true
+  },
+  "resume_protocol": "新预注册与run/analysis/verify/input_manifest逐字节匹配祖先commit，SHA门禁成功才测量。先1cell独立核验，再补39cell；恢复先核合同及NPZ/hash，不覆盖成功或孤立NPZ，有限高值保留，非有限停，不换seed。",
+  "boundaries": [
+    "仅四个旧development函数、n256/train/test、width64、GELU、同初始化/数据/固定head、SGD eta.001/mom0/decay1e-4/batch64/T256的保存轨迹；无新训练、sealed OOD或因果干预。",
+    "算子不含LN affine，虽原训练中affine可更新；只测初始化Linear方向，不能称全部可训练Jacobian、训练谱改善或因果中介。",
+    "clean-target Rayleigh不是初始训练残差下降率。原loss未居中；固定Jacobian full-batch MSE线性化的chord由mean-to-centered leakage PK1决定，目标Rayleigh不能直接描述此耦合。",
+    "原step256 Gram条件数是事后指标，本比较为同旧样本上的关联，不是独立前瞻预测效能或泛化验证。函数均值去除不能排除全部混杂，t区间只覆盖5seed。",
+    "原P2 r=.420774419<.5 refuted、LN初始化60/60更低且仅7/60训练下降必须保留；旧offset标签由独立saved_evidence_verification.json更正，不改原源码/summary；原matmul警告根因未定，finite/einsum核验保留。"
+  ],
+  "created_at": "2026-10-06T22:29:10.633949+08:00",
+  "source_sha256": {
+    "executed/run.py": "4e2c001eb49edaf4db6be7edbe6e1b452809dba6607d4214e69b1843dcfd811b",
+    "analysis.py": "5e5a73bcebcbc07a753119422822362eb48a84d938c78fe020413df83aa635d4",
+    "executed/verify.py": "9227d4d0e2a4ca6391e44d611c7dc3e23ae3aa93eccb04dcafa4ad2cfd4300a6",
+    "executed/input_manifest.json": "2db486c4eb3c40f980f3c78a6f2b983ad48826e0b74394c6c451432eb9aa5f36"
+  }
+}

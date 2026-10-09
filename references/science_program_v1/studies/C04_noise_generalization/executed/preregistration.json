@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "study": "C04_noise_generalization",
+  "phase": "development_generalization",
+  "question": "Does test risk turn upward because target fitting and sample-noise fitting occur at different spectral times?",
+  "architecture": {"input_dim": 4, "width": 128, "hidden": "frozen", "hidden_bias": false, "head_initialization": "zero", "feature_centering": "train_mean", "normalization": "total_feature_RMS", "head_bias": true},
+  "data": {"distribution": "gaussian_antithetic", "train_rows": [32, 128], "test_rows": 2048, "target": "x0 + 0.5*x0*x1", "target_normalization": "training_clean_mean_and_rms", "noise_sd": [0.0, 1.0], "noise": "independent Gaussian per training row; clean test labels; same eps/noise samples reused across paired activation andscale"},
+  "seeds": [411, 412, 413, 414],
+  "scales": [0.03, 0.3],
+  "activations": ["relu", "silu"],
+  "optimizer": {"type": "full_batch_GD", "lr": 0.3, "steps": 16384, "momentum": 0, "decay": 0},
+  "checkpoints": [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+  "noise_risk_theory": "Fit separate clean and epsilon heads on same fixed features; clean-test MSE = signal-bias + realized-noise-energy + cross-term. Expected variance over iid trainnoise uses exact spectral estimator, no fittedtime parameter.",
+  "predictions": [
+    {"id": "N1", "claim": "Noisy training MSE does not turn up while expected clean-test risk can turn up.", "criterion": "all64train curves monotone to tolerance1e-10; n32 ReLU noise1 expected risk has an interior minimum followed by increase>=.05 at16384 for>=3/4seeds", "scope": "finite constant-kernel stable GD"},
+    {"id": "N2", "claim": "The risk decomposition and conditional noise-variance prediction identify noise fitting rather than scalar nominal U as the source of the late increase.", "criterion": "risk decomposition error<1e-8; expected-noise-energy nondecreasing allconditions; at n32 ReLU mean late noise growth exceeds mean late signal-bias reduction after expected-riskminimum", "scope": "expected-risk minimum is descriptive, not deployment early-stoppingselection"},
+    {"id": "N3", "claim": "More samples reduce final expected noise-driven risk for ReLU under this matched target/width.", "criterion": "mean expected final risk n128<n32 atnoise1; reportallseeds/actualrisk", "scope": "new pointdraws; not same-population universal law"},
+    {"id": "N4", "claim": "Small-SiLU delays learning even signal and noisy nonlinear modes, so its optimum is not the same nominal U as ReLU.", "criterion": "n32noise1 median expected-riskminimum step small-SiLU>ReLU; finalnoisevariance small-SiLU<ReLU", "scope": "noisy mixed target; a failed prediction retained"}
+  ],
+  "all_results_retained": true,
+  "statistical_unit": "one target recipe and sample-size/noise conditions; four paired data/feature repeats",
+  "solver_evaluation": "not_run",
+  "status": "sealed_before_measurement"
+}

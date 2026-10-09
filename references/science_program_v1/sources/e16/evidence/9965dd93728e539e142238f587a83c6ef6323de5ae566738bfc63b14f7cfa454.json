@@ -1,0 +1,818 @@
+{
+  "schema_version": 1,
+  "recorder_version": "regression_mse_v1",
+  "request": {
+    "version": "regression_mse_v1",
+    "steps": [
+      1,
+      8,
+      32,
+      128,
+      256
+    ],
+    "max_eval_samples": 256
+  },
+  "seed": 9,
+  "optimizer_type": "SGD",
+  "initial_metrics": {
+    "train_mse": 4.214358806610107,
+    "test_mse": 4.569416522979736,
+    "train_prediction_mean": 0.007643013879714999,
+    "test_prediction_mean": 0.009650849649915472,
+    "train_target_mean": 1.6225915587274358,
+    "test_target_mean": 1.6250828031916171
+  },
+  "initial_parameters": {
+    "net.0.weight": {
+      "shape": [
+        192,
+        8
+      ],
+      "dtype": "torch.float32",
+      "sha256": "09a310daa4bca8aaf3595aaf438b01e5bd83bfc0c0190f94bc4d2c0b5cb13792"
+    },
+    "net.0.bias": {
+      "shape": [
+        192
+      ],
+      "dtype": "torch.float32",
+      "sha256": "076808aee40612c0dd5ef883bc706c9d9ec817d1e797a853a8350028c74ed6a9"
+    },
+    "net.2.linear.weight": {
+      "shape": [
+        192,
+        192
+      ],
+      "dtype": "torch.float32",
+      "sha256": "62ee548c89542646092570a64904687d2a88944966feb0dafddc81c369d95609"
+    },
+    "net.2.linear.bias": {
+      "shape": [
+        192
+      ],
+      "dtype": "torch.float32",
+      "sha256": "457d1c835360f651d5df26f51aa3d9a043ded0cc69b28e0d88b6244a0d28b0e1"
+    },
+    "net.3.norm.weight": {
+      "shape": [
+        192
+      ],
+      "dtype": "torch.float32",
+      "sha256": "5ce183e97a10e7aeeeecc15c49c055053961896c1d5d514d6e4c59dfd0544310"
+    },
+    "net.3.norm.bias": {
+      "shape": [
+        192
+      ],
+      "dtype": "torch.float32",
+      "sha256": "ef115a0e0c15cdc41958ca46b5b14b456115f4baec5e3ca68599d2a8f435e3b8"
+    },
+    "net.3.linear.weight": {
+      "shape": [
+        192,
+        192
+      ],
+      "dtype": "torch.float32",
+      "sha256": "502b17fb960567c24f8bd9663a9416687156a07befdb8a157c7c1f1c627bb12a"
+    },
+    "net.3.linear.bias": {
+      "shape": [
+        192
+      ],
+      "dtype": "torch.float32",
+      "sha256": "f1d727fcdb8a5ef0bf601ce9904151555a57292dc8489c748aa05a1b397ac8fd"
+    },
+    "net.4.linear.weight": {
+      "shape": [
+        192,
+        192
+      ],
+      "dtype": "torch.float32",
+      "sha256": "a75e8c382109b22b4f68c46792178f8a79c3f74a7cb5ed0e1a7d6c32b8578d6c"
+    },
+    "net.4.linear.bias": {
+      "shape": [
+        192
+      ],
+      "dtype": "torch.float32",
+      "sha256": "fa8edbeedc9f47f3e4533f66c90143ddf08145eda51eea312a75607999a06c49"
+    },
+    "net.5.weight": {
+      "shape": [
+        1,
+        192
+      ],
+      "dtype": "torch.float32",
+      "sha256": "8e9ab9f959722bc5c7dcdd8bb137476fd018056202b4e2be2fe458362369889e"
+    },
+    "net.5.bias": {
+      "shape": [
+        1
+      ],
+      "dtype": "torch.float32",
+      "sha256": "296d4f517bb0450b179294b6fcadc0ecc0bd6539eaf5ee2fc20aa98da1eaff63"
+    }
+  },
+  "optimizer_defaults": {
+    "lr": 0.001,
+    "momentum": 0.0,
+    "dampening": 0,
+    "weight_decay": 0.0001,
+    "nesterov": false,
+    "maximize": false,
+    "foreach": null,
+    "differentiable": false,
+    "fused": null
+  },
+  "inputs": {
+    "train_x": {
+      "shape": [
+        256,
+        8
+      ],
+      "dtype": "torch.float32",
+      "sha256": "d0f49b0295e5c8caf0e691d4daeacdd7d053eaf328b0c4cf1d2e0350f200e537"
+    },
+    "train_y": {
+      "shape": [
+        256,
+        1
+      ],
+      "dtype": "torch.float32",
+      "sha256": "a08f21c3219805feadb53f7fc5c255e48808fabf961f059835b8e85612f99b6e"
+    },
+    "test_x": {
+      "shape": [
+        256,
+        8
+      ],
+      "dtype": "torch.float32",
+      "sha256": "e02c590885a8ea6364714cca3614c5c85cda43c5c755e0900504b25c6213c42f"
+    },
+    "test_y": {
+      "shape": [
+        256,
+        1
+      ],
+      "dtype": "torch.float32",
+      "sha256": "ddce440a405af56de4d511fe93820c6a3ca916be33052ac84c9ba5ee6a8cd5ad"
+    }
+  },
+  "steps": [
+    {
+      "step": 1,
+      "minibatch": {
+        "shape": [
+          64
+        ],
+        "dtype": "torch.int64",
+        "sha256": "aa230e114c41e749d5805ebd541bb845d6e82815df64bee34887c37d7f706141"
+      },
+      "parameters": [
+        {
+          "name": "net.0.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 7.9728206067816165,
+          "data_gradient_norm": 0.7425853222235269,
+          "descent_norm": 0.0007425979055147787,
+          "displacement_norm": 0.0007425979055147787
+        },
+        {
+          "name": "net.0.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 2.801830480375489,
+          "data_gradient_norm": 0.5030247183924388,
+          "descent_norm": 0.0005029956991990471,
+          "displacement_norm": 0.0005029956991990471
+        },
+        {
+          "name": "net.2.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.015572674532311,
+          "data_gradient_norm": 4.297798516440743,
+          "descent_norm": 0.004297798855472629,
+          "displacement_norm": 0.004297798855472629
+        },
+        {
+          "name": "net.2.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5824637849471389,
+          "data_gradient_norm": 1.5381789927681733,
+          "descent_norm": 0.001538180749212168,
+          "displacement_norm": 0.001538180749212168
+        },
+        {
+          "name": "net.3.norm.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 13.856406460551018,
+          "data_gradient_norm": 0.17551430055618034,
+          "descent_norm": 0.0001756247798673294,
+          "displacement_norm": 0.0001756247798673294
+        },
+        {
+          "name": "net.3.norm.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.0,
+          "data_gradient_norm": 0.19712579908278802,
+          "descent_norm": 0.00019712580956380072,
+          "displacement_norm": 0.00019712580956380072
+        },
+        {
+          "name": "net.3.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.016045424185569,
+          "data_gradient_norm": 3.8348139358046356,
+          "descent_norm": 0.003834819444442924,
+          "displacement_norm": 0.003834819444442924
+        },
+        {
+          "name": "net.3.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5732412694956223,
+          "data_gradient_norm": 0.3029533722573962,
+          "descent_norm": 0.00030295264687949896,
+          "displacement_norm": 0.00030295264687949896
+        },
+        {
+          "name": "net.4.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.009910819554598,
+          "data_gradient_norm": 4.1964446838201415,
+          "descent_norm": 0.004196449592304637,
+          "displacement_norm": 0.004196449592304637
+        },
+        {
+          "name": "net.4.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5769216479204352,
+          "data_gradient_norm": 1.0383898899838122,
+          "descent_norm": 0.001038386414453903,
+          "displacement_norm": 0.001038386414453903
+        },
+        {
+          "name": "net.5.weight",
+          "role": "head",
+          "active": true,
+          "parameter_norm": 0.5747474265657287,
+          "data_gradient_norm": 4.240846535221573,
+          "descent_norm": 0.004240851597768353,
+          "displacement_norm": 0.004240851597768353
+        },
+        {
+          "name": "net.5.bias",
+          "role": "head",
+          "active": true,
+          "parameter_norm": 0.05252572149038315,
+          "data_gradient_norm": 3.443336009979248,
+          "descent_norm": 0.0034433305263519287,
+          "displacement_norm": 0.0034433305263519287
+        }
+      ],
+      "metrics": {
+        "train_mse": 4.13539981842041,
+        "test_mse": 4.490453720092773,
+        "train_prediction_mean": 0.03244382917910116,
+        "test_prediction_mean": 0.03442199765413534,
+        "train_target_mean": 1.6225915587274358,
+        "test_target_mean": 1.6250828031916171
+      }
+    },
+    {
+      "step": 8,
+      "minibatch": {
+        "shape": [
+          64
+        ],
+        "dtype": "torch.int64",
+        "sha256": "1a5aa63b49ca0383648f2b38236c2dda328f91aa7340beb5ec81f1bccdb2855f"
+      },
+      "parameters": [
+        {
+          "name": "net.0.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 7.97271877665867,
+          "data_gradient_norm": 0.6330286297224545,
+          "descent_norm": 0.0006330513252959703,
+          "displacement_norm": 0.005151896355885357
+        },
+        {
+          "name": "net.0.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 2.802140115115193,
+          "data_gradient_norm": 0.4236527086545896,
+          "descent_norm": 0.0004236247150067122,
+          "displacement_norm": 0.0034709867599165846
+        },
+        {
+          "name": "net.2.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.015591544351674,
+          "data_gradient_norm": 3.689460060557811,
+          "descent_norm": 0.003689462383187904,
+          "displacement_norm": 0.030095924926064298
+        },
+        {
+          "name": "net.2.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5823869930112687,
+          "data_gradient_norm": 1.3191839952291768,
+          "descent_norm": 0.0013191832201792108,
+          "displacement_norm": 0.01072955253726519
+        },
+        {
+          "name": "net.3.norm.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 13.856401379044131,
+          "data_gradient_norm": 0.15668090140224963,
+          "descent_norm": 0.00015655750822767738,
+          "displacement_norm": 0.0012265451825245225
+        },
+        {
+          "name": "net.3.norm.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.0012058891005575117,
+          "data_gradient_norm": 0.17056739642529334,
+          "descent_norm": 0.0001705672827058482,
+          "displacement_norm": 0.0013742610013999662
+        },
+        {
+          "name": "net.3.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.01605300110234,
+          "data_gradient_norm": 3.2448361989876537,
+          "descent_norm": 0.0032448282488956896,
+          "displacement_norm": 0.026579118591153132
+        },
+        {
+          "name": "net.3.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5732342645774371,
+          "data_gradient_norm": 0.259464384463922,
+          "descent_norm": 0.00025946484504290435,
+          "displacement_norm": 0.0021028666979668173
+        },
+        {
+          "name": "net.4.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.009912319139888,
+          "data_gradient_norm": 3.5599100102924264,
+          "descent_norm": 0.0035599040148756936,
+          "displacement_norm": 0.029334602469449158
+        },
+        {
+          "name": "net.4.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5775043194069746,
+          "data_gradient_norm": 0.8935117915734895,
+          "descent_norm": 0.0008935050395988524,
+          "displacement_norm": 0.007277121291227446
+        },
+        {
+          "name": "net.5.weight",
+          "role": "head",
+          "active": true,
+          "parameter_norm": 0.5750532471259264,
+          "data_gradient_norm": 3.6426826936350665,
+          "descent_norm": 0.003642676780671254,
+          "displacement_norm": 0.029788221361639666
+        },
+        {
+          "name": "net.5.bias",
+          "role": "head",
+          "active": true,
+          "parameter_norm": 0.07365067303180695,
+          "data_gradient_norm": 2.932548761367798,
+          "descent_norm": 0.002932541072368622,
+          "displacement_norm": 0.02405749261379242
+        }
+      ],
+      "metrics": {
+        "train_mse": 3.6841840744018555,
+        "test_mse": 4.039888381958008,
+        "train_prediction_mean": 0.18267968174768612,
+        "test_prediction_mean": 0.1843820515787229,
+        "train_target_mean": 1.6225915587274358,
+        "test_target_mean": 1.6250828031916171
+      }
+    },
+    {
+      "step": 32,
+      "minibatch": {
+        "shape": [
+          64
+        ],
+        "dtype": "torch.int64",
+        "sha256": "583c82cb7542a97ad9548cca001fd3b2a750c39f01507d087be4858d15c5ad3f"
+      },
+      "parameters": [
+        {
+          "name": "net.0.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 7.972090603410882,
+          "data_gradient_norm": 0.44363504122832526,
+          "descent_norm": 0.00044368431138491255,
+          "displacement_norm": 0.019288790738714062
+        },
+        {
+          "name": "net.0.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 2.803147343144001,
+          "data_gradient_norm": 0.2903549151810604,
+          "descent_norm": 0.0002903269358263291,
+          "displacement_norm": 0.012689273742189044
+        },
+        {
+          "name": "net.2.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.01553575948152,
+          "data_gradient_norm": 2.5024388226040553,
+          "descent_norm": 0.002502441344849239,
+          "displacement_norm": 0.11249942614087977
+        },
+        {
+          "name": "net.2.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5838537819408853,
+          "data_gradient_norm": 0.8661529644385156,
+          "descent_norm": 0.0008661483091021086,
+          "displacement_norm": 0.03935736234127794
+        },
+        {
+          "name": "net.3.norm.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 13.85781618032663,
+          "data_gradient_norm": 0.17368545528253893,
+          "descent_norm": 0.0001731149467467079,
+          "displacement_norm": 0.005719867865782113
+        },
+        {
+          "name": "net.3.norm.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.005327379575278498,
+          "data_gradient_norm": 0.13818370267284075,
+          "descent_norm": 0.00013818319470265886,
+          "displacement_norm": 0.0054583467291876644
+        },
+        {
+          "name": "net.3.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.01855450244168,
+          "data_gradient_norm": 2.4387309464404683,
+          "descent_norm": 0.0024386901149717408,
+          "displacement_norm": 0.1012708560508253
+        },
+        {
+          "name": "net.3.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5731175375376575,
+          "data_gradient_norm": 0.19070165298676073,
+          "descent_norm": 0.00019070266647268412,
+          "displacement_norm": 0.007998111751103036
+        },
+        {
+          "name": "net.4.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.01202947912018,
+          "data_gradient_norm": 2.4058672740616585,
+          "descent_norm": 0.0024058347533615554,
+          "displacement_norm": 0.10844158239388811
+        },
+        {
+          "name": "net.4.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5799561195433303,
+          "data_gradient_norm": 0.45053137765603285,
+          "descent_norm": 0.0004505207062758104,
+          "displacement_norm": 0.024819825297014902
+        },
+        {
+          "name": "net.5.weight",
+          "role": "head",
+          "active": true,
+          "parameter_norm": 0.6033241520463397,
+          "data_gradient_norm": 2.5617807515336635,
+          "descent_norm": 0.0025617529506688215,
+          "displacement_norm": 0.11288423436913278
+        },
+        {
+          "name": "net.5.bias",
+          "role": "head",
+          "active": true,
+          "parameter_norm": 0.12957315146923065,
+          "data_gradient_norm": 1.251373529434204,
+          "descent_norm": 0.0012513548135757446,
+          "displacement_norm": 0.07829878479242325
+        }
+      ],
+      "metrics": {
+        "train_mse": 2.3170015811920166,
+        "test_mse": 2.669123411178589,
+        "train_prediction_mean": 0.7879078504629433,
+        "test_prediction_mean": 0.7884160322137177,
+        "train_target_mean": 1.6225915587274358,
+        "test_target_mean": 1.6250828031916171
+      }
+    },
+    {
+      "step": 128,
+      "minibatch": {
+        "shape": [
+          64
+        ],
+        "dtype": "torch.int64",
+        "sha256": "f682500862e852ace1345316abaac510cc5569738fec60f0db7914f92dc92379"
+      },
+      "parameters": [
+        {
+          "name": "net.0.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 7.971104979213967,
+          "data_gradient_norm": 0.34383275470384433,
+          "descent_norm": 0.0003438338361954965,
+          "displacement_norm": 0.03787523756404511
+        },
+        {
+          "name": "net.0.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 2.80340707025681,
+          "data_gradient_norm": 0.24317486416405365,
+          "descent_norm": 0.00024320921918062388,
+          "displacement_norm": 0.02070232796327961
+        },
+        {
+          "name": "net.2.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.015165028073348,
+          "data_gradient_norm": 1.7511505299039705,
+          "descent_norm": 0.0017511527198933036,
+          "displacement_norm": 0.19456069201818046
+        },
+        {
+          "name": "net.2.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5881838374929302,
+          "data_gradient_norm": 0.6977762387409707,
+          "descent_norm": 0.0006977765578046574,
+          "displacement_norm": 0.055143185499948046
+        },
+        {
+          "name": "net.3.norm.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 13.860392011269267,
+          "data_gradient_norm": 0.12624491443734845,
+          "descent_norm": 0.00012686391831293295,
+          "displacement_norm": 0.012144853587432114
+        },
+        {
+          "name": "net.3.norm.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.009542159888353701,
+          "data_gradient_norm": 0.08606423358603002,
+          "descent_norm": 8.606508102524397e-05,
+          "displacement_norm": 0.00946244151531427
+        },
+        {
+          "name": "net.3.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.023180861171772,
+          "data_gradient_norm": 1.6078137212675172,
+          "descent_norm": 0.0016078586597375881,
+          "displacement_norm": 0.18115830220845966
+        },
+        {
+          "name": "net.3.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5728703831822797,
+          "data_gradient_norm": 0.10997427074891108,
+          "descent_norm": 0.00010997590383636329,
+          "displacement_norm": 0.013282756440466394
+        },
+        {
+          "name": "net.4.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.016075429739137,
+          "data_gradient_norm": 1.4176972574034568,
+          "descent_norm": 0.001417739244502038,
+          "displacement_norm": 0.1838457377131852
+        },
+        {
+          "name": "net.4.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5818535927653441,
+          "data_gradient_norm": 0.19600668828241036,
+          "descent_norm": 0.00019601850438950028,
+          "displacement_norm": 0.036022568562962536
+        },
+        {
+          "name": "net.5.weight",
+          "role": "head",
+          "active": true,
+          "parameter_norm": 0.6508804318748748,
+          "data_gradient_norm": 1.4906648953558959,
+          "descent_norm": 0.0014907005016423015,
+          "displacement_norm": 0.18629190928133937
+        },
+        {
+          "name": "net.5.bias",
+          "role": "head",
+          "active": true,
+          "parameter_norm": 0.15948763489723206,
+          "data_gradient_norm": 0.43891477584838867,
+          "descent_norm": 0.00043892860412597656,
+          "displacement_norm": 0.10652298480272293
+        }
+      ],
+      "metrics": {
+        "train_mse": 1.505033254623413,
+        "test_mse": 1.7798256874084473,
+        "train_prediction_mean": 1.5681012733839452,
+        "test_prediction_mean": 1.5651235608384013,
+        "train_target_mean": 1.6225915587274358,
+        "test_target_mean": 1.6250828031916171
+      }
+    },
+    {
+      "step": 256,
+      "minibatch": {
+        "shape": [
+          64
+        ],
+        "dtype": "torch.int64",
+        "sha256": "cb47df829afc09064ab01eaa109bc94d3b4c5f357e80338236eaaa70331e1cdc"
+      },
+      "parameters": [
+        {
+          "name": "net.0.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 7.970902957164955,
+          "data_gradient_norm": 0.32168682870365617,
+          "descent_norm": 0.0003216773131977421,
+          "displacement_norm": 0.05492221236728638
+        },
+        {
+          "name": "net.0.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 2.801652610636365,
+          "data_gradient_norm": 0.1304513135566473,
+          "descent_norm": 0.0001304728839249847,
+          "displacement_norm": 0.029152864120673843
+        },
+        {
+          "name": "net.2.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.01480798727279,
+          "data_gradient_norm": 1.2244859657355651,
+          "descent_norm": 0.0012244861766828367,
+          "displacement_norm": 0.25125778929903436
+        },
+        {
+          "name": "net.2.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5915294057826274,
+          "data_gradient_norm": 0.25668325051602137,
+          "descent_norm": 0.0002566892146742691,
+          "displacement_norm": 0.06008381217628633
+        },
+        {
+          "name": "net.3.norm.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 13.861676647519197,
+          "data_gradient_norm": 0.09290061849049051,
+          "descent_norm": 9.230154050343095e-05,
+          "displacement_norm": 0.01629163036205887
+        },
+        {
+          "name": "net.3.norm.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.009714693758285433,
+          "data_gradient_norm": 0.04292598881771105,
+          "descent_norm": 4.292508295451309e-05,
+          "displacement_norm": 0.009752335614966993
+        },
+        {
+          "name": "net.3.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.025617660415438,
+          "data_gradient_norm": 1.0387789732892652,
+          "descent_norm": 0.0010387265865186152,
+          "displacement_norm": 0.23060113250504724
+        },
+        {
+          "name": "net.3.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5726131985555398,
+          "data_gradient_norm": 0.05457271649688428,
+          "descent_norm": 5.457578733227281e-05,
+          "displacement_norm": 0.013679402946158251
+        },
+        {
+          "name": "net.4.linear.weight",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 8.018409096875153,
+          "data_gradient_norm": 0.9149976148779482,
+          "descent_norm": 0.0009149444890026859,
+          "displacement_norm": 0.2256369183223672
+        },
+        {
+          "name": "net.4.linear.bias",
+          "role": "hidden",
+          "active": true,
+          "parameter_norm": 0.5814949678568759,
+          "data_gradient_norm": 0.0798507686777245,
+          "descent_norm": 7.9844512140073e-05,
+          "displacement_norm": 0.03625445307772859
+        },
+        {
+          "name": "net.5.weight",
+          "role": "head",
+          "active": true,
+          "parameter_norm": 0.6749289896658237,
+          "data_gradient_norm": 0.913488752754142,
+          "descent_norm": 0.0009134430083531004,
+          "displacement_norm": 0.22081525866371196
+        },
+        {
+          "name": "net.5.bias",
+          "role": "head",
+          "active": true,
+          "parameter_norm": 0.15675953030586243,
+          "data_gradient_norm": 0.13142460584640503,
+          "descent_norm": 0.00013141334056854248,
+          "displacement_norm": 0.10436522215604782
+        }
+      ],
+      "metrics": {
+        "train_mse": 1.2849915027618408,
+        "test_mse": 1.4416261911392212,
+        "train_prediction_mean": 1.5841769617982209,
+        "test_prediction_mean": 1.5808646893128753,
+        "train_target_mean": 1.6225915587274358,
+        "test_target_mean": 1.6250828031916171
+      }
+    }
+  ],
+  "status": "completed",
+  "minibatch_stream_sha256": "b33edeae5b0dc8caf3639cc53a16100e0a82d4a0671584edbbc5901e4aeb27ac",
+  "final_metrics": {
+    "train_mse": 1.2849915027618408,
+    "test_mse": 1.4416261911392212,
+    "train_prediction_mean": 1.5841769617982209,
+    "test_prediction_mean": 1.5808646893128753,
+    "train_target_mean": 1.6225915587274358,
+    "test_target_mean": 1.6250828031916171,
+    "mse": 1.4416261911392212
+  },
+  "profile": "v1.5",
+  "candidate_id": "x_6a53539770",
+  "selection_metric": "test_mse",
+  "dataset_id": "mvar_02036a"
+}

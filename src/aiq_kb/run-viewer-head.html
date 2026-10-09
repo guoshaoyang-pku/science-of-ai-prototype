@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KB Science Loop viewer</title>
+<style>
+:root{--bg:#f7f8fa;--card:#fff;--ink:#1f2937;--mute:#6b7280;--line:#e5e7eb;--blue:#2563eb;--amber:#d97706;--violet:#7c3aed;--green:#059669;--red:#dc2626;--teal:#0d9488}
+*{box-sizing:border-box}body{margin:0;font:13px/1.5 -apple-system,"PingFang SC","Noto Sans SC",sans-serif;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;z-index:5;background:#111827;color:#fff;padding:8px 16px;display:flex;gap:16px;align-items:center}
+header b{font-size:15px}header nav button{background:none;border:0;color:#cbd5e1;font:inherit;padding:6px 10px;border-radius:6px;cursor:pointer}
+header nav button.on{background:#374151;color:#fff}
+body{height:100vh;display:flex;flex-direction:column}
+header{flex-wrap:wrap;flex:none}
+main{display:flex;flex:1;min-height:0}
+#side{width:250px;overflow:auto;border-right:1px solid var(--line);background:#fff;flex:none}
+#view{flex:1;min-width:0;overflow:auto;padding:14px 18px}
+.item{padding:6px 10px;border-bottom:1px solid var(--line);cursor:pointer}.item:hover{background:#f3f4f6}.item.on{background:#e0e7ff}
+.item small{color:var(--mute)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0}
+.card>h3{margin:0 0 6px;font-size:14px}
+.solver{border-left:4px solid var(--blue)}.disc{border-left:4px solid var(--amber)}.summ{border-left:4px solid var(--violet)}.kbc{border-left:4px solid var(--green)}
+pre{white-space:pre-wrap;word-break:break-word;margin:4px 0;font:12px/1.45 ui-monospace,Menlo,monospace;background:#f9fafb;border:1px solid var(--line);border-radius:6px;padding:6px 8px;max-height:420px;overflow:auto}
+pre.tall{max-height:none}
+details{margin:4px 0}summary{cursor:pointer;color:#374151;font-weight:600}
+.tag{display:inline-block;padding:0 6px;border-radius:9px;font-size:11px;margin-right:4px;background:#eef2ff;color:#3730a3}
+.ok{background:#dcfce7;color:#166534}.bad{background:#fee2e2;color:#991b1b}.mid{background:#fef3c7;color:#92400e}
+.turn{border-top:1px dashed var(--line);padding-top:6px;margin-top:6px}
+.call{margin:4px 0 4px 10px;border-left:2px solid #cbd5e1;padding-left:8px}
+.call .nm{font-weight:600;color:var(--teal)}
+table{border-collapse:collapse;width:100%;background:#fff}td,th{border:1px solid var(--line);padding:3px 6px;vertical-align:top;text-align:left}
+th{background:#f3f4f6;position:sticky;top:0}
+tr.shown td:first-child{border-left:4px solid var(--green)}
+.add{background:#ecfdf5}.del{background:#fef2f2}.chg{background:#fffbeb}
+.kb-merge{background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:10px;margin:10px 0}
+.kb-merge h4{font-size:13px;margin:0 0 6px}.kb-merge>p{margin:6px 0}.merge-reason{color:#78350f}
+.kb-merge table{table-layout:fixed}.kb-merge th:first-child{width:62px}.kb-merge th:nth-child(2){width:68px}
+td{overflow-wrap:anywhere}.card{overflow-x:auto}
+button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@media(max-width:760px){header{gap:4px 12px;padding:8px}header nav{width:100%;overflow-x:auto;white-space:nowrap}header #meta{width:100%}main{flex-direction:column}#side{width:100%;max-height:112px;display:flex;flex-wrap:wrap;overflow:auto;border-right:0;border-bottom:1px solid var(--line)}#side .item{flex:none}#view{padding:8px}.flow{display:block}.flow>div{margin:6px 0}}
+.sub button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 10px;margin-right:6px;cursor:pointer}.sub button.on{background:#111827;color:#fff}
+input[type=search]{width:100%;padding:5px 8px;border:1px solid var(--line);border-radius:6px}
+.bar{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;width:80px;display:inline-block;vertical-align:middle}.bar i{display:block;height:100%;background:var(--green)}
+.note{color:var(--mute);font-size:12px}
+.flow{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}.flow div{flex:1;min-width:180px;padding:8px;border-radius:8px;background:#fff;border:1px solid var(--line)}
+mark{background:#fde68a}
+#pop{position:fixed;inset:0;z-index:30;background:rgba(15,23,42,.35);display:none}
+#popc{position:absolute;width:min(780px,94vw);max-height:84vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+#popc h3{margin:0 0 6px;font-size:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#popx{margin-left:auto;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:6px;padding:1px 10px;font:inherit}
+</style>
+</head>
+<body>
+<header><a id="home" style="color:#93c5fd;text-decoration:none;font-weight:600" href="#">← 主站</a><b id="title">KB Science Loop</b><nav id="nav"></nav><span class="note" style="color:#9ca3af" id="meta"></span></header>
+<main><div id="side"></div><div id="view"></div></main>
+<div id="pop" onclick="if(event.target===this)closePop()"><div id="popc"></div></div>
+<script>

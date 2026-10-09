@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 40/40 measurements with no new training; both Rayleigh association predictions were refuted, evidence and handoff saved, closeout bf6070c verified and receipt committed in ffb9e1b.

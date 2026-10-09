@@ -1,0 +1,106 @@
+{
+  "study": "r003_noise_sample_scaling",
+  "round": 3,
+  "direction": "D2_overfitting_u_curve",
+  "domain": "development",
+  "status": "blocked_before_training",
+  "round_result": "failed",
+  "training_started": false,
+  "fit_started": false,
+  "preregistration_sha256": "fdb393b27054d523a475d1fb390bb24c8b2b2cb83bf68e3a96095ddd11909b76",
+  "execution_source_sha256": "15c95cb013ca76fbbca1b5b3f11ed9caf0a058dc865de006148f69977547cbad",
+  "analysis_source_sha256": "28629c916d9b3d8a73f0ac964ff8c82c1c6e8a36f1392b5456c849785d1b3728",
+  "counts": {
+    "condition_recipe_units": 15,
+    "data_feature_repeats_per_unit": 4,
+    "planned_cells": 60,
+    "meaning": "seed只检验重复稳定性，不计为60个独立科学recipe。",
+    "saved_cells": 0,
+    "boundary_minima": 0
+  },
+  "compute_seconds": 0,
+  "predictions": {
+    "P1": {
+      "status": "not_evaluated",
+      "reason": "No complete committed experiment"
+    },
+    "P2": {
+      "status": "not_evaluated",
+      "reason": "No complete committed experiment"
+    },
+    "P3": {
+      "status": "not_evaluated",
+      "reason": "No complete committed experiment"
+    }
+  },
+  "cells": [],
+  "equal_ratio_pairs": [],
+  "leave_one_n_out_fits": [
+    {
+      "held_n": 32,
+      "training_cells": 0,
+      "a": null,
+      "b": null
+    },
+    {
+      "held_n": 64,
+      "training_cells": 0,
+      "a": null,
+      "b": null
+    },
+    {
+      "held_n": 128,
+      "training_cells": 0,
+      "a": null,
+      "b": null
+    }
+  ],
+  "forecasts": [],
+  "boundaries": [
+    "仅所列Gaussian mixed-target/frozen ReLU width128/zero-head/GD eta .3 mom0/MSE设置。",
+    "n变化同时改变输入抽样、谱与target train RMS，不能把n的均值差解释为单纯噪声平均因果效应。",
+    "不检验learned hidden、mini-batch、Adam、CE、无test标签早停或封存OOD。",
+    "有限16384步内全局最低点；不能外推无限训练最优步数。"
+  ],
+  "commit_attempts": [
+    {
+      "attempted_at": "2026-10-06T17:38:21.907828+08:00",
+      "phase": "final",
+      "training_started": false,
+      "saved_cells": 0,
+      "message": "r003 D2: commit blocked; preserve noise-sample scaling handoff",
+      "add": {
+        "command": [
+          "git",
+          "add",
+          "-A"
+        ],
+        "exit_code": 128,
+        "stdout": "",
+        "stderr": "fatal: Unable to create 'science_program_v2/.git/index.lock': Operation not permitted\n"
+      },
+      "commit": null
+    },
+    {
+      "attempted_at": "2026-10-06T17:29:22.901835+08:00",
+      "phase": "preregistration",
+      "preregistration_sha256_at_attempt": "61630a3538b9b62cf6f63a03612a11a322ec0886571bb902fae6e4f213b203a4",
+      "training_started": false,
+      "saved_cells": 0,
+      "add": {
+        "command": [
+          "git",
+          "add",
+          "-A"
+        ],
+        "exit_code": 128,
+        "stdout": "",
+        "stderr": "fatal: Unable to create 'science_program_v2/.git/index.lock': Operation not permitted\n"
+      },
+      "commit": null,
+      "response": "No training; preserve failure evidence and prepare reproducible handoff. No permission workaround."
+    }
+  ],
+  "measured_claims": [],
+  "next_action": "先在本repo成功commit预注册与pinned源码，运行executed/run.py --max-new-cells 1，核验恢复后续跑，再运行analysis.py。"
+}

@@ -1,0 +1,66 @@
+{
+  "study": "Disambiguate target offset: output-bias matching and fixed hidden features",
+  "origin_epoch": 17,
+  "created_at": 1791214708.004742,
+  "parent_report": "R613055ebce@44b021dec5f5349960da03162810a50493d192b4",
+  "datasets": [
+    "mvar_02036a",
+    "mvar_071e42",
+    "mvar_0852dd"
+  ],
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "means": [
+    -3,
+    0,
+    3
+  ],
+  "conditions": [
+    {
+      "id": "matched_bias",
+      "definition": "Before optimizer construction add mu to output bias; labels have train mean mu; all parameters then train."
+    },
+    {
+      "id": "frozen_hidden",
+      "definition": "Keep original initialization; freeze hidden parameters and train only final head; labels have train mean mu."
+    }
+  ],
+  "optimizers": [
+    "SGD",
+    "Adam"
+  ],
+  "recipe": "Identical archived e16 model/loss/rates/decay/T256/b64; controlled interventions explicit in new local executable snapshot.",
+  "predictions": [
+    {
+      "id": "startup",
+      "prediction": "With matching initial output shift, SGD at +/-3 should lose its centered-error advantage relative to mean0; endpoint direction should return toward centered Adam preference. Bias coupled-decay means exact invariance is not claimed."
+    },
+    {
+      "id": "fixed_features",
+      "prediction": "For SGD with frozen hidden, L(-3)+L(+3)-2L(0) >= 0 per paired seed up to floating tolerance. Persistence of negative curvature falsifies the fixed-affine proof or implementation."
+    }
+  ],
+  "independent_units": "three previously studied functions; ten paired seeds conditional on each fixed split. Six changed startup winner directions, three within-function convexity tests. No new-target generalization claim.",
+  "training_runs": 360,
+  "cached_base_runs": 240,
+  "no_paid_model_calls": true,
+  "holdout_policy": "Only archived controlled datasets; no final benchmark test or solver replay.",
+  "verification": [
+    "Executed model/optimizer/loss/train hashes",
+    "Intervention train.py/source hash and declaration",
+    "same hidden initialization and minibatch stream",
+    "initial prediction shift matches mu",
+    "frozen hidden parameter max displacement zero",
+    "SGD head-label affine second difference measured in predictions"
+  ]
+}

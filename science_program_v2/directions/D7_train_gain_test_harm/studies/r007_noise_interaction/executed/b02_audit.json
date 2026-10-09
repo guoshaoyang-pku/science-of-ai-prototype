@@ -1,0 +1,498 @@
+{
+  "kind": "read_only_recomputation_of_existing_v1_evidence",
+  "source_root": "references/science_program_v1/studies/B02_nonlinear_clock",
+  "source_sha256": {
+    "run.py": "880eae2e2ddd7a30062ead5895f9e6369558c829c02420bcc6f7febae0577627",
+    "executed/experiment.py": "323fbcf46f384d21c72435290f11c67ac06e7c042fba5f006e9a8285f05114c6",
+    "preregistration.json": "57b24f25d3d34e81c009067dc6e186d0ac7f3c4d980580e4687539f81d19f1f6",
+    "ood_cells.csv": "ba5c76643d7cfa0f359081b0fb396dc5d77445862f63fb45c1a829d09ce3df24",
+    "ood_analysis.json": "06688828668cc12e11a8fc9485d5f729d828ef207c79f06bbb1917d7faac10fc",
+    "report.md": "779fc0bacca587204d324bcb775e96426f1968fd52f969c792a971201a266126"
+  },
+  "source_lines": {
+    "run.py": [
+      {
+        "line": 33,
+        "text": "    rng = np.random.default_rng(condition[\"data_seed\"])"
+      },
+      {
+        "line": 35,
+        "text": "    train_x = rng.normal(size=(condition[\"train_samples\"], dimension))"
+      },
+      {
+        "line": 36,
+        "text": "    test_x = rng.normal(size=(condition[\"test_samples\"], dimension))"
+      },
+      {
+        "line": 47,
+        "text": "    train_y, test_y = target(train_x), target(test_x)"
+      },
+      {
+        "line": 48,
+        "text": "    center, scale = train_y.mean(), train_y.std()"
+      },
+      {
+        "line": 49,
+        "text": "    train_y, test_y = (train_y - center) / scale, (test_y - center) / scale"
+      },
+      {
+        "line": 81,
+        "text": "    tangent = torch.nn.Parameter(torch.zeros(j_train.shape[1], dtype=torch.float64))"
+      },
+      {
+        "line": 92,
+        "text": "        true_loss = (true_train - train_y).square().mean() / 2"
+      },
+      {
+        "line": 93,
+        "text": "        linear_loss = (linear_train - train_y).square().mean() / 2"
+      }
+    ],
+    "executed/experiment.py": [
+      {
+        "line": 64,
+        "text": "class Model(nn.Module):"
+      },
+      {
+        "line": 73,
+        "text": "            nn.Linear(recipe[\"input_dim\"], width), activation(act),"
+      },
+      {
+        "line": 74,
+        "text": "            *[Block(width, n, act, recipe.get(\"residual\", False)) for n in norms],"
+      },
+      {
+        "line": 75,
+        "text": "            nn.Linear(width, 1),"
+      }
+    ]
+  },
+  "data_contract": {
+    "input_dim": 5,
+    "train_n": 32,
+    "test_n": 256,
+    "data_seed": 7331,
+    "seeds": [
+      11,
+      29,
+      47
+    ],
+    "label_noise": "none: both y arrays are deterministic target(x), normalized with clean training center/std; no random labels are added"
+  },
+  "counts": {
+    "sgd_recipe_units": 8,
+    "all_unit_mean_train_gain_above_005_initial": 8,
+    "positive_unit_mean_test_gap": 6
+  },
+  "groups": [
+    {
+      "condition": "mixed_sine_d5",
+      "width": 8,
+      "recipe": "sgd_plain",
+      "paired_seed_rows": [
+        {
+          "seed": 11,
+          "cell_id": "8e11e950bd962ae7",
+          "train_gain": 0.24832648277324632,
+          "test_gap": 0.07436110390229778,
+          "train_gain_relative_initial": 0.504314970893295
+        },
+        {
+          "seed": 29,
+          "cell_id": "052478a335b0f09a",
+          "train_gain": 0.26938215474472355,
+          "test_gap": 0.17743654326153324,
+          "train_gain_relative_initial": 0.5397400652204323
+        },
+        {
+          "seed": 47,
+          "cell_id": "daa3f21d2a9a2d11",
+          "train_gain": 0.1827246724418808,
+          "test_gap": 0.09800733172088605,
+          "train_gain_relative_initial": 0.34156884792594666
+        }
+      ],
+      "train_gain": {
+        "mean": 0.23347776998661685,
+        "seed_95pct_t_interval": [
+          0.12120290672878986,
+          0.34575263324444383
+        ]
+      },
+      "test_gap": {
+        "mean": 0.11660165962823903,
+        "seed_95pct_t_interval": [
+          -0.0175290869188882,
+          0.25073240617536624
+        ]
+      },
+      "train_gain_relative_initial": {
+        "mean": 0.46187462801322465,
+        "seed_95pct_t_interval": [
+          0.19934410890669962,
+          0.7244051471197497
+        ]
+      },
+      "train_gain_above_005_initial": true,
+      "test_harm_positive_unit_mean": true
+    },
+    {
+      "condition": "mixed_sine_d5",
+      "width": 8,
+      "recipe": "sgd_momentum",
+      "paired_seed_rows": [
+        {
+          "seed": 11,
+          "cell_id": "9eb44c0ec2395304",
+          "train_gain": 0.2389720340712045,
+          "test_gap": 0.089629091766398,
+          "train_gain_relative_initial": 0.4853174460533817
+        },
+        {
+          "seed": 29,
+          "cell_id": "4799a3c9b2933ed8",
+          "train_gain": 0.2663816360810362,
+          "test_gap": 0.17536513825102734,
+          "train_gain_relative_initial": 0.5337281594178062
+        },
+        {
+          "seed": 47,
+          "cell_id": "9609660afc2bc858",
+          "train_gain": 0.1727972414347069,
+          "test_gap": 0.1047331704249213,
+          "train_gain_relative_initial": 0.3230114132529512
+        }
+      ],
+      "train_gain": {
+        "mean": 0.22605030386231587,
+        "seed_95pct_t_interval": [
+          0.10653415389030335,
+          0.3455664538343284
+        ]
+      },
+      "test_gap": {
+        "mean": 0.12324246681411555,
+        "seed_95pct_t_interval": [
+          0.009551080885312271,
+          0.23693385274291884
+        ]
+      },
+      "train_gain_relative_initial": {
+        "mean": 0.447352339574713,
+        "seed_95pct_t_interval": [
+          0.17317961490865824,
+          0.7215250642407678
+        ]
+      },
+      "train_gain_above_005_initial": true,
+      "test_harm_positive_unit_mean": true
+    },
+    {
+      "condition": "mixed_sine_d5",
+      "width": 32,
+      "recipe": "sgd_plain",
+      "paired_seed_rows": [
+        {
+          "seed": 11,
+          "cell_id": "e3d7c45e2c367559",
+          "train_gain": 0.13869492224617674,
+          "test_gap": 0.020496656925160783,
+          "train_gain_relative_initial": 0.2796403172056747
+        },
+        {
+          "seed": 29,
+          "cell_id": "6389b1939f67ed11",
+          "train_gain": 0.15630003764986328,
+          "test_gap": 0.013778890314789183,
+          "train_gain_relative_initial": 0.30755383223881155
+        },
+        {
+          "seed": 47,
+          "cell_id": "8abf0960d8113042",
+          "train_gain": 0.15137677444342384,
+          "test_gap": 0.12429652688237813,
+          "train_gain_relative_initial": 0.32580306286314104
+        }
+      ],
+      "train_gain": {
+        "mean": 0.14879057811315463,
+        "seed_95pct_t_interval": [
+          0.12622709487833794,
+          0.17135406134797132
+        ]
+      },
+      "test_gap": {
+        "mean": 0.052857358040776035,
+        "seed_95pct_t_interval": [
+          -0.10105794285566369,
+          0.20677265893721578
+        ]
+      },
+      "train_gain_relative_initial": {
+        "mean": 0.3043324041025424,
+        "seed_95pct_t_interval": [
+          0.246577779829548,
+          0.3620870283755368
+        ]
+      },
+      "train_gain_above_005_initial": true,
+      "test_harm_positive_unit_mean": true
+    },
+    {
+      "condition": "mixed_sine_d5",
+      "width": 32,
+      "recipe": "sgd_momentum",
+      "paired_seed_rows": [
+        {
+          "seed": 11,
+          "cell_id": "b23f5c4e19d9541f",
+          "train_gain": 0.134686753918848,
+          "test_gap": 0.024169395598791388,
+          "train_gain_relative_initial": 0.2715589437543922
+        },
+        {
+          "seed": 29,
+          "cell_id": "dbee8789166fc207",
+          "train_gain": 0.15340315601661175,
+          "test_gap": 0.011186902090948303,
+          "train_gain_relative_initial": 0.3018535965815138
+        },
+        {
+          "seed": 47,
+          "cell_id": "986da556fc18f429",
+          "train_gain": 0.14787641389929573,
+          "test_gap": 0.12348865255125285,
+          "train_gain_relative_initial": 0.31826935638409026
+        }
+      ],
+      "train_gain": {
+        "mean": 0.14532210794491848,
+        "seed_95pct_t_interval": [
+          0.1214344033279667,
+          0.16920981256187026
+        ]
+      },
+      "test_gap": {
+        "mean": 0.052948316746997515,
+        "seed_95pct_t_interval": [
+          -0.09966127264070193,
+          0.20555790613469696
+        ]
+      },
+      "train_gain_relative_initial": {
+        "mean": 0.29722729890666544,
+        "seed_95pct_t_interval": [
+          0.23836226915033215,
+          0.3560923286629987
+        ]
+      },
+      "train_gain_above_005_initial": true,
+      "test_harm_positive_unit_mean": true
+    },
+    {
+      "condition": "radial_d5",
+      "width": 8,
+      "recipe": "sgd_plain",
+      "paired_seed_rows": [
+        {
+          "seed": 11,
+          "cell_id": "8e830f0fcf2ef9d7",
+          "train_gain": 0.24642707996924024,
+          "test_gap": 0.11111610193341248,
+          "train_gain_relative_initial": 0.4993037585319817
+        },
+        {
+          "seed": 29,
+          "cell_id": "c509a8365852c5df",
+          "train_gain": 0.2304564207494224,
+          "test_gap": -0.006193735219118035,
+          "train_gain_relative_initial": 0.46040922938119583
+        },
+        {
+          "seed": 47,
+          "cell_id": "7c0433398486f6eb",
+          "train_gain": 0.11350788576796347,
+          "test_gap": -0.055560031695058965,
+          "train_gain_relative_initial": 0.21754798115109192
+        }
+      ],
+      "train_gain": {
+        "mean": 0.19679712882887537,
+        "seed_95pct_t_interval": [
+          0.016520104225565546,
+          0.3770741534321852
+        ]
+      },
+      "test_gap": {
+        "mean": 0.016454111673078493,
+        "seed_95pct_t_interval": [
+          -0.19622532229589673,
+          0.22913354564205374
+        ]
+      },
+      "train_gain_relative_initial": {
+        "mean": 0.39242032302142316,
+        "seed_95pct_t_interval": [
+          0.013123746223316468,
+          0.7717168998195298
+        ]
+      },
+      "train_gain_above_005_initial": true,
+      "test_harm_positive_unit_mean": true
+    },
+    {
+      "condition": "radial_d5",
+      "width": 8,
+      "recipe": "sgd_momentum",
+      "paired_seed_rows": [
+        {
+          "seed": 11,
+          "cell_id": "da2846fd63faf8fc",
+          "train_gain": 0.23861702628655843,
+          "test_gap": 0.109479705049218,
+          "train_gain_relative_initial": 0.48347924298528805
+        },
+        {
+          "seed": 29,
+          "cell_id": "44fb6a004faf9d64",
+          "train_gain": 0.22658489199282525,
+          "test_gap": 0.00088425474022924,
+          "train_gain_relative_initial": 0.45267463224757915
+        },
+        {
+          "seed": 47,
+          "cell_id": "f42cdc590cc61bc2",
+          "train_gain": 0.0957984163609909,
+          "test_gap": -0.043061294192476895,
+          "train_gain_relative_initial": 0.18360620441304537
+        }
+      ],
+      "train_gain": {
+        "mean": 0.18700011154679153,
+        "seed_95pct_t_interval": [
+          -0.009772840750209816,
+          0.38377306384379284
+        ]
+      },
+      "test_gap": {
+        "mean": 0.022434221865656783,
+        "seed_95pct_t_interval": [
+          -0.17262184558466964,
+          0.2174902893159832
+        ]
+      },
+      "train_gain_relative_initial": {
+        "mean": 0.3732533598819709,
+        "seed_95pct_t_interval": [
+          -0.03652971162761842,
+          0.7830364313915602
+        ]
+      },
+      "train_gain_above_005_initial": true,
+      "test_harm_positive_unit_mean": true
+    },
+    {
+      "condition": "radial_d5",
+      "width": 32,
+      "recipe": "sgd_plain",
+      "paired_seed_rows": [
+        {
+          "seed": 11,
+          "cell_id": "91b0d58ce642cd04",
+          "train_gain": 0.20224872485646142,
+          "test_gap": -0.2723051353022269,
+          "train_gain_relative_initial": 0.4033530595655394
+        },
+        {
+          "seed": 29,
+          "cell_id": "ccdf5ce7c85ef937",
+          "train_gain": 0.1941611132020162,
+          "test_gap": -0.23382676403128622,
+          "train_gain_relative_initial": 0.38465678164916406
+        },
+        {
+          "seed": 47,
+          "cell_id": "6f991e215a45979b",
+          "train_gain": 0.22527097796158307,
+          "test_gap": -0.1887649407956304,
+          "train_gain_relative_initial": 0.44932757075338653
+        }
+      ],
+      "train_gain": {
+        "mean": 0.20722693867335354,
+        "seed_95pct_t_interval": [
+          0.16712962541879722,
+          0.24732425192790986
+        ]
+      },
+      "test_gap": {
+        "mean": -0.23163228004304784,
+        "seed_95pct_t_interval": [
+          -0.3355022988214531,
+          -0.12776226126464257
+        ]
+      },
+      "train_gain_relative_initial": {
+        "mean": 0.4124458039893633,
+        "seed_95pct_t_interval": [
+          0.3297726618477351,
+          0.4951189461309915
+        ]
+      },
+      "train_gain_above_005_initial": true,
+      "test_harm_positive_unit_mean": false
+    },
+    {
+      "condition": "radial_d5",
+      "width": 32,
+      "recipe": "sgd_momentum",
+      "paired_seed_rows": [
+        {
+          "seed": 11,
+          "cell_id": "caddec0d5ec609a2",
+          "train_gain": 0.19547469020889222,
+          "test_gap": -0.26528126808661495,
+          "train_gain_relative_initial": 0.3898433199978898
+        },
+        {
+          "seed": 29,
+          "cell_id": "c2d51a478f871c02",
+          "train_gain": 0.18744646241238344,
+          "test_gap": -0.2287182046941986,
+          "train_gain_relative_initial": 0.37135424171187587
+        },
+        {
+          "seed": 47,
+          "cell_id": "85801e101127382a",
+          "train_gain": 0.22110598260292044,
+          "test_gap": -0.1848841808589961,
+          "train_gain_relative_initial": 0.44102003258916656
+        }
+      ],
+      "train_gain": {
+        "mean": 0.20134237840806538,
+        "seed_95pct_t_interval": [
+          0.1576707606434251,
+          0.24501399617270564
+        ]
+      },
+      "test_gap": {
+        "mean": -0.2262945512132699,
+        "seed_95pct_t_interval": [
+          -0.3262893016362334,
+          -0.12629980079030648
+        ]
+      },
+      "train_gain_relative_initial": {
+        "mean": 0.40073919809964414,
+        "seed_95pct_t_interval": [
+          0.31109070776030356,
+          0.4903876884389847
+        ]
+      },
+      "train_gain_above_005_initial": true,
+      "test_harm_positive_unit_mean": false
+    }
+  ],
+  "boundary": "来源复核，不是本轮新实验或封存验证。6/8指函数×宽度×SGD recipe的3个初始化seed均值；test gap为step512真实减切线，不等于同模型继续训练的增量。确定性标签排除添加标签噪声作为该6/8的必要原因；仍不能区分样本特异方向、隐式偏置、速度或有限样本误差。"
+}

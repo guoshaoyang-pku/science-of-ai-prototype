@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "direction": "C_activation_generalization",
+  "status": "proposed_not_applied",
+  "changes": [
+    {
+      "type": "add",
+      "text": "Small preactivation SiLU need not learn uniformly slower than ReLU. With symmetric zero-bias frozen features and equal total feature RMS, its odd channel is z/2 but even channel is O(z²), so even-target kernel energy is suppressed as scale². In sealed dim8 Uniform/Laplace interaction tests, label-free even-energy matching improved MSE .953→.0043 and1.136→.0150; linear targets favored plain SiLU. Scope: frozen hidden/linear head; learned hidden, bias/asymmetry, classification and solver gains untested. Full hidden SGD partially escaped: smallscale SiLU test1.252→.925 but larger-scale SiLU .0068 beat ReLU .139; initial fixed-kernel forecast then failed.",
+      "reports": [
+        "studies/C01_activation_scale/report.md",
+        "studies/C02_parity_ood/report.md",
+        "studies/C03_hidden_boundary/report.md"
+      ],
+      "evidence": [
+        "studies/C01_activation_scale/summary.json",
+        "studies/C02_parity_ood/summary.json"
+      ],
+      "boundary": "not a universal activation/time/ranking law"
+    },
+    {
+      "type": "add",
+      "text": "In stable fixed-feature MSE training, full-fit and overfit are target/spectrum/noise dependent, not a universal U=lr*steps threshold. Risk splits into signal-bias plus expected noise fitting; small-SiLU can delay both nonlinear signal and noise. In sealed dim6 Uniform/new-target/noise tests, initial-spectrum forecasts matched24riskminimum steps exactly17/24, allwithin2x; MC risk within3SE48/48. Scope: frozen features, known target/data; learned hidden/Adam/CE/solver transfer untested.",
+      "reports": [
+        "studies/C04_noise_generalization/report.md",
+        "studies/C05_risk_ood/report.md"
+      ],
+      "evidence": [
+        "studies/C04_noise_generalization/summary.json",
+        "studies/C05_risk_ood/summary.json"
+      ],
+      "boundary": "fixed-feature conditional risk, not universal model selection"
+    }
+  ],
+  "solver_evaluation": "not_run"
+}

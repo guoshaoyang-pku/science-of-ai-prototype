@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 3/3 fits with zero new training; alpha=.75 min maxabs lower bound .09797454940>.05 supported both predictions, and scientific closeout plus verification receipt were committed.

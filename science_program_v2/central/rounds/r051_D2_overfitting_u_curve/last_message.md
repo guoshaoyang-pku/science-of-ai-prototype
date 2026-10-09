@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 8/8 cells; halving noise retained seed414’s 3.724138× minimum-time counterexample, with disclosed prediction provenance, verified evidence, and closeout commits.

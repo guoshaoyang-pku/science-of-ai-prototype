@@ -1,0 +1,244 @@
+# D5：LN同宽度收益的机制
+
+## 结论
+
+LN同宽度收益的机制仍未确立。真实训练收益成立，但已检验的初始化几何候选量没有达到预注册的解释判据。共享Linear与LN affine初始化核采用旧实际batch64顺序后，仍与真实train方向0/20匹配。范围限于四个development（开发条件，未封存）函数和以下配方：width64（隐藏层宽度64）、固定head（保持输出层权重与偏置不变）、GELU（高斯误差线性单元）激活函数、SGD（随机梯度下降）lr=.001、momentum0、weight_decay1e-4、batch64、256步。lr是学习率，momentum是动量，weight decay是权重衰减，batch是每步样本数。
+
+- LN（LayerNorm，层归一化）相对noLN（不使用层归一化）的真实train chord差值20/20为负。范围为−0.288059215～−0.027001544。train指训练样本。chord指标签偏移−3/0/+3下，去均值残差方差的两端均值减去中点值。
+- 在上述配方中，LN使终点 hidden Gram（隐藏表示列居中后的内积矩阵）条件数降低：12/12函数×offset（标签加性偏移）单元通过，总计54/60 seed（初始化随机种子）配对下降。但条件数差与chord差的Pearson相关（线性相关系数）为0.420774419，未达注册0.5。条件数降低不足以解释收益大小。
+- 同一配方的目标Rayleigh商（居中目标方向上的平均核特征值）在20/20配对中提高83.831–368.100倍。其收益相关为0.394664832，扣除函数均值后为−0.076836549。两项预注册关联判据均失败。初始化均值耦合（均值方向经核传播后进入去均值形状的强度）也未达收益关联阈值，LN反而使它放大2,355.235–129,377.971倍。
+- 仅用 input（输入层）与三个 hidden Linear（隐藏线性层）的初始化Jacobian（输出对参数的一阶导数矩阵）构造固定核（训练期间保持初始化Jacobian不变的核）时，一步和256步的LN−noLN预测均20/20为正。与真实train方向的匹配均为0/20。延长传播步数没有修正方向，原预测被推翻。
+- 加入原训练可更新的LN affine（层归一化的缩放与偏置）Jacobian后，固定核256步预测仍与真实train方向0/20匹配，未达注册16/20。遗漏LN affine参数单独不能修复方向冲突。
+- 固定核采用旧实际batch64顺序后，方向匹配仍为0/20，改善0对。LN−noLN ΔC全部为正，范围+0.014394736～+0.042791743；相对全批量的最大变化为0.000671323，20/20在注册0.005容差内。单独更换批次算子没有修复方向。
+- 固定核方向冲突仍未定位原因。在上述20配对中，补入LN affine仍为0/20匹配。核漂移（Jacobian随训练变化）和weight decay（权重衰减）仍未区分。本次只区分固定核的批次算子，真实非线性训练中的小批量作用仍未知。
+
+## Formulation
+
+\[
+P_n=I_n-\mathbf1\mathbf1^\top/n,\quad
+G_t=(P_nH_t)^\top(P_nH_t)/n,\quad
+\kappa_t=\frac{\max(\lambda_{\max}(G_t),10^{-12})}{\max(\lambda_{\min}(G_t),10^{-12})}.
+\]
+\[
+E_m=\|P_{n_v}(f_{256,m}(X_v)-y_{v,m})\|^2/n_v,\quad
+C=\tfrac12(E_{-3}+E_{+3})-E_0,\quad
+\Delta C=C_{\rm LN}-C_{\rm noLN}.
+\]
+\[
+J_0=\partial f_0(X)/\partial\theta_h,\quad
+K_c=P_nJ_0J_0^\top P_n/n,\quad y_c=P_ny_0,\quad
+q_0=\frac{y_c^\top K_cy_c}{y_c^\top y_c}
+ =\frac{\|J_0^\top y_c\|^2}{n\|y_c\|^2}.
+\]
+\[
+X_R=\log_{10}(q_{0,\rm LN}/q_{0,\rm noLN}),\quad
+X_G=\tfrac13\sum_{m\in\{-3,0,+3\}}(\log_{10}\kappa_{256,m,\rm noLN}-\log_{10}\kappa_{256,m,\rm LN}),\quad
+B=-\Delta C.
+\]
+
+\[
+K=J_0J_0^\top/n,\quad u=P_nK\mathbf1,\quad
+\ell=\|u\|^2/n=\|P_nJ_0(J_0^\top\mathbf1)\|^2/n^3,\quad
+L=\log_{10}(\ell_{\rm LN}/\ell_{\rm noLN}),\quad X_L=-L.
+\]
+\[
+A=I-2\eta K,\quad C_t^{\rm linear,train}=a^2\|P_nA^t\mathbf1\|^2/n,\quad
+C_1^{\rm linear,train}=4\eta^2a^2\ell.
+\]
+\[
+J_{\rm aff}=\partial f_0(X)/\partial(\gamma_{\rm LN},\beta_{\rm LN}),\quad
+K_{\rm total}=K_{\rm linear}+J_{\rm aff}J_{\rm aff}^{\top}/n,\quad
+A_{\rm total}=I-2\eta K_{\rm total}.
+\]
+
+$I_n$ 是$n$维单位矩阵。$\lambda_{\max}$与$\lambda_{\min}$分别是最大与最小特征值。条件数是最大与最小特征值按下限处理后的比值。$n=n_v=256$ 是训练/测试样本数。$P$ 去掉样本均值。$H_t$ 是第 $t$ 步最后隐藏层激活，列数为width64。$G_t$ 是列居中表示的Gram矩阵，特征值单位为激活平方。$\kappa_t$ 是无量纲条件数。$m=-3,0,+3$ 是标签偏移，单位为归一化标签。$X_v,y_{v,m},f_{256,m}$ 是测试输入、偏移后标签、256步预测。$E_m,C,\Delta C$ 单位为归一化标签平方，负的 $\Delta C$ 表示LN的标签偏移下的去均值chord更低。$t$ 单位为SGD更新次数。$10^{-12}$ 是固定特征值下限（floor）。
+
+$X,y_0,f_0$ 是训练输入、offset0标签及初始化预测。$\theta_h$ 是input/三个hidden Linear的weight与bias，排除head和LN affine，共d8（输入维度8）13056/d12（输入维度12）13312个坐标。weight与bias分别指权重与偏置。$J_0$ 是输出对这些参数的Jacobian，单位为归一化标签/参数坐标。$K_c,q_0$ 使用固定模型参数坐标，单位为归一化标签平方/参数坐标平方，数值依赖参数化。$\Delta\log_{10}\kappa$ 是LN−noLN的条件数对数差。$X_R,X_G$ 无量纲，$B$ 单位为归一化标签平方，越大表示LN chord收益越大。居中后加性offset抵消，$q_0$ 只算一次。模型及autograd（自动微分）为float32（32位浮点）。目标、VJP（向量与Jacobian的乘积）平方和与Gram汇总为float64（64位浮点）。
+
+$\mathbf1$ 是无量纲全1向量。$u$ 是均值方向经未居中核传播后的居中部分，单位与$K$相同。$\ell$ 单位为归一化标签四次方/参数坐标四次方，依赖固定参数化。$L,X_L$ 无量纲。$a$ 是标签offset幅度，单位为归一化标签。$\eta$ 是MSE（残差平方均值）学习率（参数坐标平方/标签平方），$A$ 无量纲，$C_t^{\rm linear,train}$ 单位为归一化标签平方。最后一式仅适用于固定Jacobian、全批量、无weight decay、损失为mean(residual²)（残差平方均值）的train线性化，是解析关系。train线性化指用初始化处的一阶导数近似网络训练。
+
+LN010指只在三个隐藏块中的第二个块启用LN。$J_{\rm aff}$ 是LN010配方第二个hidden block（隐藏块，模块名net.3.norm）的LayerNorm scale（缩放）$\gamma_{\rm LN}$ 与 bias $\beta_{\rm LN}$（共128坐标）对应的逐样本Jacobian。$K_{\rm linear}$ 来自共享input与三个hidden Linear层weight/bias，两个参数子集互不相交，因此核相加不含交叉项。$K_{\rm total}$ 是共享Linear+LN affine核，仍排除固定head，与$K$同单位。Jacobian由float32模型/autograd生成后转float64，核构造和传播使用float64。$A_{\rm total}$按同一固定核迭代256步，仅用于全批量、无decay（权重衰减）的train线性化。
+
+\[
+E^{\rm train}_m=\|P_n(f_{256,m}(X)-y_m)\|^2/n,\quad
+C^{\rm real,train}=\tfrac12(E^{\rm train}_{-3}+E^{\rm train}_{+3})-E^{\rm train}_0,\quad
+\Delta C^{\rm real,train}=C^{\rm real,train}_{\rm LN}-C^{\rm real,train}_{\rm noLN}.
+\]
+\[
+\Delta C_t^{\rm fixed}=C_{t,\rm LN}^{\rm linear,train}-C_{t,\rm noLN}^{\rm linear,train},\quad
+M_t=\sum_{f,s}\mathbf1\{\operatorname{sgn}_{10^{-12}}(\Delta C_t^{\rm fixed})
+=\operatorname{sgn}_{10^{-12}}(\Delta C^{\rm real,train})\ne0\}.
+\]
+
+$y_m$ 与$f_{256,m}(X)$ 是各offset的训练标签与256步train预测。$E^{\rm train}_m,C^{\rm real,train},\Delta C^{\rm real,train},\Delta C_t^{\rm fixed}$ 单位为归一化标签平方。$f,s$ 是四函数与五初始化seed，$M_t$ 是20同函数同seed配对的方向匹配数，单位为对。$\operatorname{sgn}_{10^{-12}}$ 将绝对值≤$10^{-12}$的差值按零方向处理，零方向算不匹配。
+
+\[
+Q_t=\operatorname{diag}(c_{t,1},\ldots,c_{t,n}),\quad
+c_{t,i}=\#\{j\in B_t:j=i\},\quad
+r_{t+1}=\left(I-\frac{2\eta n}{b}KQ_t\right)r_t.
+\]
+\[
+v_0=\mathbf1,\quad v_{t+1}=v_t-.008K[:,B_t]v_t[B_t],\quad
+C^{\rm batch,train}_{256}=a^2\|P_nv_{256}\|^2/n,\quad
+\Delta C^{\rm batch}=C^{\rm batch}_{\rm LN}-C^{\rm batch}_{\rm noLN}.
+\]
+
+$B_t$是第$t$个batch的64个有放回样本索引，含重复。$c_{t,i}$是样本$i$出现次数，$Q_t$无量纲。$b=64$，$n=256$，$\eta=.001$，所以$2\eta n/b=.008$。$r_t$是训练残差，单位为归一化标签；$v_t$是加性offset残差差除以offset幅度后的无量纲向量。索引重复必须重复求和。三offset和LN/noLN使用同函数同seed的同一已保存顺序。该等式适用于固定初始化Jacobian、无decay、每batch损失为残差平方均值的train线性化。它由线性递推解析导出；$C^{\rm batch}$与$\Delta C^{\rm batch}$单位为归一化标签平方。一“步”是一次batch更新。本次测得的匹配数沿用$10^{-12}$方向门槛。
+
+## 成立程度
+
+结论仅在以下范围成立：四个旧函数、width64、固定head、GELU、SGD lr=.001/mom0/weight_decay1e-4、batch64、256步。终点条件数下降通过12/12函数×offset单元（54/60 seed配对），但offset0 $\Delta\log_{10}\kappa$ 与 $\Delta C$ 的相关为 .420774419，未达注册 0.5。720 checkpoint（保存的训练时点）均未命中特征值下限。
+
+同范围的目标Rayleigh商在20/20配对中提高83.831–368.100倍，但收益相关为 .394665，未达 0.5。相对跨offset条件数的相关优势 .112061，未达 .15。函数去均值后相关为 −.076837，未达 .3，两个预注册关联判据均失败。
+
+同一实测范围中，LN的$\ell$在20/20配对提高2,355.235–129,377.971倍。预设“耦合降低”读数$X_L$与收益总体$r=-.452289044$，函数去均值$r=-.055703551$，未达到注册$0.5/.3$，比目标Rayleigh的优势$-.846953876/.021132998$也未达到$.15/.10$。该局部量的收益关联预测失败，解析式不外推非线性、小批量、weight decay或test（测试样本）终点。
+
+在上述四函数recipe（训练配方）上，固定核256步方向匹配为0/20，低于注册16/20。相对一步0/20的改善为0，低于注册10对。真实train的20/20 $\Delta C$为负（−.288059215～−.027001544），固定核一步和256步的20/20 $\Delta C_t$均为正，256步范围+.014591431～+.043046065。最大$\eta\lambda_{\max}=.001323758<1$。冲突出现在稳定的固定核传播内，未定位真实动力学中的缺失因素。
+
+加入LN affine项后，共享Linear+LN affine核的256步固定核$\Delta C$仍为正，范围+.014690203～+.043216926。真实train差仍20/20为负，方向匹配0/20，未达预注册16/20。该预注册登记了至少16/20的方向匹配门槛，但未登记效应量范围或预期0/20。最大$\eta\lambda_{\max}=.001330483<1$。因此在这四个development函数及该recipe内，单纯补齐LN affine初始化Jacobian不足以恢复真实train方向。该固定核模型仍未包含训练中的核变化、小批量采样和weight decay。
+
+条件数方向预测P1通过：12/12函数×offset单元都达到至少3/5 seed终点Δlog10κ<0，超过注册的至少8/12。总计54/60配对下降。收益关联预测P2被推翻：20函数×seed重复中，offset0终点Δlog10κ与三offset的Δchord的Pearson r=.420774419，低于注册r≥0.5。20重复只有四函数，不视为20个独立函数，不报告iid（独立且同分布）p值（显著性检验概率）。
+
+20/20 Δchord为负，但条件数降低不足以解释收益大小。扣除函数均值后的描述性r=−.097223524。LN初始化已有60/60配对κ更低。训练期间仅7/60 LN cell（一个条件和seed组合的运行）的κ比初始化更低。offset0四函数平均Δlog10κ从初始化−2.437/−2.387/−1.795/−1.819变为终点−2.406/−2.389/−1.785/−1.822。终点差异主要已存在于架构初始化，不证明训练改善条件数带来收益。以上checkpoint事实只作描述。
+
+删除同一个seed在四函数中的全部重复后，总体Rayleigh相关范围 .362036–.418195，优势 .062854–.142270。函数去均值相关范围 −.366976–.154053。区间只覆盖初始化变化，20配对只含四函数，不作iid显著性或独立前瞻预测效能声明。
+
+删除同一个seed在四函数中的重复后，总体$r(X_L,B)$范围−.525269–−.367698、相对Rayleigh优势−.943464–−.753289。函数去均值相关−.299069–.187275，方向不稳定。20重复只有四函数，区间只覆盖初始化变化，没有独立函数外推或iid显著性结论。
+
+这些20配对只含四函数。五seed区间只覆盖初始化变化，不外推其他函数、width、优化器或sealed OOD（封存的分布外条件）。旧关联阈值失败只反驳具体候选量及聚合规则，不排除所有Jacobian机制。
+
+固定共享Linear+LN affine核，仅采用旧实际batch64顺序后，20/20配对的ΔC为正（+0.014394736～+0.042791743），方向匹配0/20。预注册P1预测仍为0/20，得到支持。相对同核全批量的最大变化0.000671323，20/20未超过P2的0.005容差，P2支持。独立重复计数求和的全轨迹误差≤4.996004e−16，终点chord误差≤1.040834e−17，低于注册1e−12。仅复用这一已保存批次顺序；不对其他顺序、batch大小或真实非线性训练中的小批量作用外推。
+
+## 方法与条件
+
+### 数据、配方与计数
+
+四个旧 development 函数：trigonometric8/quadratic8 为 d8 uniform[-1,1]（区间内均匀分布），interaction12/radial12 为 d12 Gaussian（高斯分布）。train/test 各256，数据seed48291，标签按train mean/标准差归一化。width64、GELU输入层及三个hidden block，LN010/noLN。固定head weight/bias，hidden和LN affine可训练。SGD lr=.001、momentum0、weight_decay1e-4、batch64、256步，offset −3/0/+3、seeds100–104。24个函数×recipe×offset条件，五seed仅为重复，120cell计算9.201867秒。
+
+Gram为train hidden列居中后的HᵀH/n。模型float32，Gram float64，κ=lambda_max/max(lambda_min,1e-12)。保存step0/1/8/32/128/256的矩阵、谱和预测，step0/256另存hidden。Chord是测试残差去均值后的方差E的[E(−3)+E(+3)]/2−E(0)。两种Δ均为LN−noLN，更负的Δchord代表offset收益更大。
+
+五seed的t95指配对差均值的95% Student t区间。cell指一个函数、配方、offset和seed组合的运行或测量。初始化测量cell不等于训练cell。iid指相互独立且同分布。本报告不把同函数的seed重复当作独立函数。
+
+### 既有同宽度对照
+
+v1 A03在GELU、SGD、三个offset和四函数中显示，同宽度开启中间LN后固定head的centered chord更负。w64/w192的8/8同宽度配对区间不跨零。A04显示固定LN affine仍保留约99–111%收益。这定位了LN条件，未证明Jacobian、Gram谱或梯度方向中介。
+
+### 条件数与测试chord的配对结果
+
+| 函数 | Δchord 均值 [配对 seed t95 区间] | offset0 Δlog10κ 均值 | 函数内 r |
+|---|---:|---:|---:|
+| trigonometric8 | -0.261939 [-0.308159, -0.215718] | -2.405511 | 0.7737 |
+| quadratic8 | -0.017806 [-0.031305, -0.004307] | -2.389292 | 0.5130 |
+| interaction12 | -0.040574 [-0.057891, -0.023257] | -1.785286 | -0.7628 |
+| radial12 | -0.072184 [-0.102777, -0.041591] | -1.821541 | -0.7625 |
+
+### 目标Rayleigh商的配对结果
+
+共享hidden Linear参数的初始化目标Rayleigh商在全部20个函数×seed配对中更高，LN范围 .0111211–.111032、noLN范围 .0000687318–.000520556，比值83.831–368.100。该量测量目标形状方向的参数几何。83.831–368.100倍的提高没有达到预注册的收益幅度关联判据。
+
+总体 $r(X_R,B)=.394664832$，三offset平均终点条件数的 $r(X_G,B)=.282604295$，优势 .112060538。未同时达到 0.5/.15 两阈值。扣除函数均值后，两个相关分别为 −.076836549/−.295981431，优势 .219144881 虽超过 .10，Rayleigh相关仍未达 .3。旧offset0条件数相关 .420774419 保留。新基线的降低来自训练前固定的跨offset聚合，不是旧证据修订。
+
+| 函数 | $X_R$ 均值 [配对seed t95] | Rayleigh与收益函数内r | $X_G$ 均值 [配对seed t95] |
+|---|---:|---:|---:|
+| trigonometric8 | 2.420718 [2.343816, 2.497620] | −.003899 | 1.193345 [1.136947, 1.249742] |
+| quadratic8 | 2.430916 [2.330509, 2.531323] | .859822 | 1.303241 [1.161601, 1.444881] |
+| interaction12 | 1.969700 [1.923333, 2.016068] | −.908828 | .635840 [.503156, .768524] |
+| radial12 | 1.969139 [1.923688, 2.014590] | −.771687 | .677886 [.581262, .774509] |
+
+### 均值耦合的配对结果
+
+| 函数 | $X_L$均值 [配对seed t95] | $r(X_L,B)$ | LN/noLN耦合比范围 |
+|---|---:|---:|---:|
+| trigonometric8 | −4.632475 [−5.044974, −4.219975] | −.012539 | 16,963.598–129,377.971 |
+| quadratic8 | −4.524612 [−4.752436, −4.296788] | −.525836 | 20,970.102–53,050.940 |
+| interaction12 | −3.651439 [−3.865332, −3.437545] | −.009477 | 2,722.538–7,571.721 |
+| radial12 | −3.635439 [−3.907286, −3.363591] | −.006013 | 2,355.235–7,810.906 |
+
+### 固定核的传播与训练方向比较
+
+共享Linear固定核保持input与三个hidden Linear的weight/bias参数集合，float32逐样本Jacobian转float64后构造$K=JJ^\top/256$，以$a=3,\eta=.001$逐步传播到$t=1/256$。不使用测试预测。
+
+r077和r089的方向比较均用保存的train标签及offset对应的256步train预测计算，不用test预测。每个函数与seed构成一个配对，方向阈值为$10^{-12}$，小于或等于阈值按零并算不匹配。r089复用120个训练cell与r077旧核，只测20个新的LN affine Jacobian cell，0新训练。
+
+| 函数 | 真实train ΔC：均值 [配对seed t95] | 固定核256步 ΔC：均值 [配对seed t95] | 一步/256步匹配数 |
+|---|---:|---:|---:|
+| trigonometric8 | -0.253569426 [-0.302746404, -0.204392447] | +0.031789444 [0.018083301, 0.045495587] | 0/5、0/5 |
+| quadratic8 | -0.072570879 [-0.078545936, -0.066595822] | +0.025171443 [0.018257471, 0.032085416] | 0/5、0/5 |
+| interaction12 | -0.042038086 [-0.063925532, -0.020150639] | +0.023278645 [0.016468557, 0.030088734] | 0/5、0/5 |
+| radial12 | -0.086818135 [-0.121892371, -0.051743898] | +0.023644030 [0.013007722, 0.034280338] | 0/5、0/5 |
+
+### 固定核采用实际 batch64 顺序
+
+120/120旧训练cell的批次、Linear初值及NPZ hash核验通过。按seed构造原模型后，用256次有放回torch.randint抽样，可逐位重建保存的256×64索引。LN/noLN与三个offset使用相同顺序，四函数和五seed合计10个不同序列。本次直接读取保存索引，复用LN总核及noLN Linear核；0新训练、0新核测量，40/40评价cell累计1.365258秒。
+
+| 函数 | batch64 ΔC：均值 [配对seed t95] | batch64−全批量 ΔC：均值 [配对seed t95] | 方向匹配 |
+|---|---:|---:|---:|
+| trigonometric8 | +0.031636951 [+0.018082021, +0.045191880] | -0.000292725 [-0.000497017, -0.000088433] | 0/5 |
+| quadratic8 | +0.025306186 [+0.018362451, +0.032249922] | +0.000021371 [-0.000132313, +0.000175054] | 0/5 |
+| interaction12 | +0.023456081 [+0.016480307, +0.030431854] | +0.000040007 [-0.000474907, +0.000554920] | 0/5 |
+| radial12 | +0.023599606 [+0.012741354, +0.034457857] | -0.000181732 [-0.000534971, +0.000171508] | 0/5 |
+
+逐cell保存257×256传播向量轨迹，保留原核、批次及旧train数组。独立核验按样本重复次数汇总，重新传播全轨迹，最大差4.996004e−16。标量求和chord误差1.040834e−17，真实train chord误差2.220446e−16，summary复算一致。593个旧文件hash/mtime未变。恢复新增0评价，80个新结果文件和1个summary的hash/mtime未变。预注册前的回执字段名和既有cache扫描失败已保存；发生时没有新传播，未混用预注册提交。
+
+### 保存证据的既有核验
+
+核验记录使用JVP（Jacobian与向量的乘积）、VJP和显式Jacobian交叉检查。Hessian指二阶导数矩阵。detach指停止对中间量求导。einsum是数组乘积求和，eigh是对称矩阵特征分解。NPZ是保存数组的文件格式。hash/SHA用于核对文件内容，mtime用于核对修改时间，pin指固定的内容校验值。下列误差与耗时均来自已有记录。
+
+独立复算通过全部120 NPZ/hash、重生成输入、Linear初值、256个batch、固定head、720组谱和240个hidden→Gram矩阵。全部数组有限，Gram最大误差0，hidden→head预测最大误差5.461e-7，720 checkpoint均未命中1e-12 floor。原分析中的offset标签被统计均值覆盖，只影响标签。原始结果保留，另存正确标签。原NumPy matmul（矩阵乘法）警告根因未定，einsum复算通过。
+
+40个初始化测量完整，0个新训练cell。120个原训练cell只读。所有VJP重建逐字节一致，首测量的显式Jacobian相对梯度误差2.568e-7、Rayleigh相对误差1.789e-8。旧Gram/chord与新配对相关独立复算通过。该目标Rayleigh核验独立于均值耦合测量。
+
+均值耦合新增40个初始化测量，8函数×recipe条件各5seed，0新训练。旧120训练和40Rayleigh测量只读。重生成同seed初值后逐参数核hash，VJP得到g=Jᵀ1并detach，再二次反向求Jg，排除head/LN affine。不含Hessian项。autograd和Jg为float32，除n、去均值与平方和为float64。ell无floor/epsilon（下限或附加小常数）。40cell累计计算.140806秒。
+
+每cell保存input pins、g、K1和PK1，ell从保存向量复算误差0。逐cell独立forward JVP最大K1绝对误差2.384186e−7、PK1相对误差7.533457e−6、ell相对误差1.484466e−6。首cell显式J的PK1/ell相对误差4.755500e−7/8.093449e−8，均小于注册1e−4/2e−4。350旧文件与80新结果文件hash/mtime未变，恢复0新测量。旧B/X_R及配对相关独立复算通过。五seed的t95只是条件初始化区间。耦合比原尺度t区间可能跨零，不作为物理非负范围，正文使用log尺度区间。
+
+固定核新增40个初始化K测量，0新训练，复用120个保存训练cell以及40Rayleigh、40coupling（均值耦合）cell。保存K、谱、t0/1/256向量、旧train标签和终点预测。未保存完整J，J可由冻结源码、seed和输入重新生成。构核和传播均float64。Jacobian的逐样本autograd为原float32。核最小特征值门槛为−1e−10，稳定门槛为eta×最大特征值<1，全部通过。40cell累计计算14.688749秒，预测前固定一步和256步，未换eta、参数集合、offset或终点。
+
+40cell的两随机VJP→forward JVP核探针最大相对误差3.970981e−7。旧K1最大绝对误差2.667165e−7、旧PK1最大相对误差8.894393e−6、旧ell最大相对误差1.905531e−6。独立eigh传播向量最大误差2.142730e−14，chord最大相对误差1.367005e−10。从原始train残差标量平方和复算ΔC最大误差1.332268e−15。444个历史文件及80个新结果的SHA/mtime核验通过。恢复0新测量，成功cell未覆盖。配对seed区间只覆盖初始化变化，20配对仍只有四函数。
+
+LN affine的20/20初始化Jacobian结果完成，复用已保存的40个LN/noLN核及120个训练cell，0新训练。新测量累计1.491398秒。执行记录显示，首次结果在恢复调用前已保存，恢复调用新增19个结果。模型/autograd为float32，逐样本Jacobian转float64。$K_{\rm aff}=J_{\rm aff}J_{\rm aff}^{\top}/256$，与Linear核相加及256步传播均为float64。记录固定核一步和256步预测、初始化预测、输入及旧结果pins，并从原始保存train残差独立复算real chord。
+
+独立核验通过20/20 NPZ hash与有限值、测量时间门禁、旧核谱系与hash、affine/total kernel重构及对称性、eigh传播和随机VJP。最大核重构绝对误差0，传播向量与独立eigh最大差4.662937e−15，VJP最大相对误差8.439118e−7，初始预测逐位一致。冻结核验脚本引用NPZ中不存在的kernel_pin数组字段。排查时的临时源码改动已在续测前恢复，全部cell门禁绑定同一冻结提交。独立核验脚本直接用保存的Linear核与affine Jacobian重建并比对核pin，完成相同核心验证。
+
+### 失败与反例
+
+采用旧实际batch64顺序未修复方向：初始化共享Linear+LN affine核仍预测LN增大train chord，20/20为正，匹配0/20。这个反例只排除当前固定核下单独更换批次算子的解释。不能用它排除真实非线性训练中的小批量作用，也不识别核漂移或weight decay。
+
+
+初始化共享Linear核的均值到形状耦合在LN下反而放大2,355.235–129,377.971倍：$\ell_{\rm LN}=.00834410–.03684069$，$\ell_{\rm noLN}=2.847524\times10^{-7}–6.174840\times10^{-6}$，全部20配对LN更高。虽然真实测试chord在20/20配对中改善，按已知一步train线性化解释，当前参数子集的LN耦合产生更大的局部offset形状误差。这构成“LN通过初始化共享Linear核抑制一步均值泄漏”的反例；不能排除多步传播、核漂移、LN affine及训练/测试算子差异。
+
+把初始化共享Linear核从一步传播延长到256步，没有恢复真实train offset收益的方向。真实train中LN使chord下降，20/20差为负；相同Linear核的256步线性化仍预测LN增加chord，20/20差为正。该反例将原先的局部冲突延伸到初始化Linear固定核的256步终点，并排除了“只因采用一步近似而方向错误”在当前核、学习率和步数下的解释。它没有区分LN affine遗漏、核漂移、小批量及decay，也不证明其中任一因素是原因。
+
+原报告保留边界：固定核传播与真实训练方向冲突，核漂移、小批量和 weight decay 仍未区分；本结果不支持把冲突归因于参数子集遗漏。
+
+最初的hidden Gram草稿因Git写权限拒绝，0/120cell、预测未评估。之后在训练前修正配对分母、相关符号及head干预。未执行草稿不登记为测量失败。
+
+终点Gram条件数关联未达≥.5（实测.420774419）。目标Rayleigh总体与函数去均值关联分别.394664832/−.076836549，两项联合阈值均失败。跨offsetGram基线.282604295不改旧offset0反例。
+
+均值耦合预测两项均refuted。总体r(X_L,B)=−.452289044，相对Rayleigh优势−.846953876，未达≥0.5/≥.15。函数去均值r=−.055703551、优势.021132998，未达≥.3/≥.10。原始LN/noLN log比L的相关为+.452289044/+.055703551，与预设负方向相反。不在测后换符号或阈值。
+
+固定核256步方向预测P1 refuted：匹配0/20，未达16/20。多步相对一步改善预测P2 refuted：两者均0/20，改善0，未达10对。描述性Pearson相关为一步−.565540903、256步−.452698990，不替代符号判据。旧一步coupling的float32 Jg计算与新显式Jacobian/float64构核只有容差内差异，不把该数值差异归因于传播步数。
+
+补入LN affine初始化核项的方向预测也refuted：4函数×5 seed的real train差20/20为负，共享Linear+LN affine固定核差20/20为正，匹配0/20，低于注册16/20。该核传播稳定性门槛通过。这个对照只否定“遗漏LN affine参数单独解释方向冲突”，不支持核漂移、小批量或decay中的任何一个作为原因。冻结核验脚本因读取不存在的NPZ字段无法完成其原定核pin检查。文件按冻结要求保留，独立核验另行重建核并通过，不把它报告为冻结脚本通过。
+
+## 未决问题
+
+最后hidden Gram不是参数Jacobian神经切线核（由输出对参数的Jacobian构造的核）。局部曲率（损失随参数变化的二阶性质）、hidden bias（隐藏层偏置）、LN affine与目标谱投影（目标在核特征向量上的分量）的独立作用仍未区分。没有人工谱干预，也没有新width/函数前瞻复现。
+
+目标Rayleigh是初始化几何读数，不是未居中MSE的残差下降率。解析上，在固定Jacobian、全批量、无weight decay的MSE线性化中，$A=I-2\eta JJ^\top/n$，offset大小为 $a$ 的chord满足 $C_t=a^2\|P_nA^t\mathbf1\|^2/n$。$\eta$ 是学习率，$A$ 是无量纲残差更新矩阵。其直接耦合来自 $P_nK\mathbf1$，$K=JJ^\top/n$，而非clean-target（未加偏移的目标）Rayleigh。此等式是简化动力学的已知解析关系，不能当作非线性、mini-batch（小批量）、weight decay及test chord的实测机制结论。原训练中LN affine可更新。旧Rayleigh、coupling及共享Linear固定核算子排除它，本次共享Linear+LN affine核已纳入它。旧关联阈值失败只反驳具体候选量及聚合规则，不排除所有Jacobian机制。
+
+下一小问题仅development：保持全部保存核、实际batch顺序、eta=.001、a=3、T=256，单独加入原SGD的weight_decay=1e−4，方向匹配是否仍0/20？先冻结offset差递推$v_{t+1}=(1-\eta\,wd)v_t+\eta\,wd\mathbf1-.008K[:,B_t]v_t[B_t]$，其中$wd$是参数衰减系数，$\eta\,wd$无量纲。保留常数项，再预注册数值预测和输入hash、pinned源码单一commit，之后才计算。0新训练。核漂移、非线性和test机制仍未区分。
+
+## 证据
+
+- [已保存的条件数/chord结果](studies/r013_gram_condition_review/summary.json)。[独立核验及正确offset标签](studies/r013_gram_condition_review/executed/saved_evidence_verification.json)。
+- [训练前修订、预注册提交与复算方法](findings/r013_gram_condition_review.md)。[未执行草稿失败记录](findings/r005_gram_condition.md)。
+- [目标Rayleigh预注册与参数边界](studies/r021_target_rayleigh/preregistration.json)。[40测量及20配对结果](studies/r021_target_rayleigh/summary.json)。[首cell显式Jacobian核验](studies/r021_target_rayleigh/executed/first_cell_verification.json)。[全量导数及旧证据复算](studies/r021_target_rayleigh/executed/saved_evidence_verification.json)。[目标Rayleigh执行交接](findings/r021_target_rayleigh.md)。
+- [均值耦合预注册与固定尺度](studies/r045_mean_centered_coupling/preregistration.json)。[40测量与关联反例](studies/r045_mean_centered_coupling/summary.json)。[独立forward JVP与显式J核验](studies/r045_mean_centered_coupling/executed/saved_evidence_verification.json)。[旧证据与恢复核验](studies/r045_mean_centered_coupling/executed/handoff_verification.json)。[执行记录](findings/r045_mean_centered_coupling.md)。
+
+- [固定核train chord预注册](studies/r077_fixed_kernel_train_chord/preregistration.json)。[40核测量与方向反例](studies/r077_fixed_kernel_train_chord/summary.json)。[核探针、谱传播与train残差核验](studies/r077_fixed_kernel_train_chord/executed/saved_evidence_verification.json)。[上一轮收尾核验](studies/r077_fixed_kernel_train_chord/executed/prior_handoff_verification.json)。[固定核记录](findings/r077_fixed_kernel_train_chord.md)。
+- [LN affine核预注册](studies/r089_ln_affine_kernel/preregistration.json)。[20 cell结果及方向比较](studies/r089_ln_affine_kernel/summary.json)。[独立核重构、谱传播和VJP核验](studies/r089_ln_affine_kernel/executed/saved_evidence_verification.json)。[收尾提交核验](studies/r089_ln_affine_kernel/executed/final_commit_verification.json)。[LN affine记录](findings/r089_ln_affine_kernel.md)。
+
+- [冻结LN affine核验脚本（verify.py）](studies/r089_ln_affine_kernel/executed/verify.py)。[独立核验脚本](studies/r089_ln_affine_kernel/executed/independent_verify.py)。
+
+- [batch64预注册与逐配对数值区间](studies/r107_fixed_kernel_batch64/preregistration.json)。[40评价和20配对结果](studies/r107_fixed_kernel_batch64/summary.json)。[旧收尾及实际批次重建](studies/r107_fixed_kernel_batch64/executed/precommit_audit.json)。[独立完整轨迹与标量核验](studies/r107_fixed_kernel_batch64/executed/saved_evidence_verification.json)。[恢复不覆盖核验](studies/r107_fixed_kernel_batch64/executed/recovery_verification.json)。[本轮记录](findings/r107_fixed_kernel_batch64.md)。[收尾提交核验](studies/r107_fixed_kernel_batch64/executed/final_commit_verification.json)。

@@ -1,0 +1,129 @@
+{
+  "study": "r003_noise_sample_scaling",
+  "round": 3,
+  "direction_round": 1,
+  "direction": "D2_overfitting_u_curve",
+  "date": "2026-10-06",
+  "domain": "development",
+  "question": "在C04固定ReLU特征recipe中，期望clean-risk最低点步数能否仅按n/sigma²折叠，并由单一幂律跨样本量预测？",
+  "architecture": {
+    "input_dim": 4,
+    "width": 128,
+    "hidden": "frozen",
+    "hidden_bias": false,
+    "activation": "relu",
+    "scale": 0.03,
+    "feature_centering": "train_mean",
+    "normalization": "total_feature_RMS_then_divide_sqrt_width",
+    "head_bias": true,
+    "head_initialization": "zero",
+    "dtype": "float64"
+  },
+  "data": {
+    "distribution": "gaussian_antithetic",
+    "train_rows": [
+      32,
+      64,
+      128
+    ],
+    "risk_audit_rows": 2048,
+    "target": "x0 + 0.5*x0*x1",
+    "target_normalization": "training_clean_mean_and_rms",
+    "noise_variance": [
+      0.25,
+      0.5,
+      1.0,
+      2.0,
+      4.0
+    ],
+    "noise_sd": "sqrt(noise_variance)",
+    "dataset_rng": "torch.Generator().manual_seed(34000+seed+17*n); sequential draws train half, risk-audit half, epsilon; concatenate each half and its negative",
+    "feature_rng": "torch.Generator().manual_seed(seed); randn(width,4)/sqrt(4)",
+    "pairing": "同n/seed的原始数据、clean标签、W与epsilon跨sigma固定；跨n保持W seed，但按C04独立重新抽输入，train标签RMS也重算。跨n不是同一输入样本的配对因果效应。",
+    "source_contract": "n32/n128数据生成与C04一致；n64为该development合同的中间条件；audit标签由指定解析函数生成，不读benchmark test。"
+  },
+  "seeds": [
+    411,
+    412,
+    413,
+    414
+  ],
+  "optimizer": {
+    "type": "full_batch_GD",
+    "lr": 0.3,
+    "steps": 16384,
+    "momentum": 0,
+    "weight_decay": 0,
+    "loss": "mean((prediction-target)**2)",
+    "gradient": "2*Phi.T@(Phi*w-target)/n",
+    "device": "CPU",
+    "threads": 1
+  },
+  "counts": {
+    "condition_recipe_units": 15,
+    "data_feature_repeats_per_unit": 4,
+    "planned_cells": 60,
+    "meaning": "seed只检验重复稳定性，不计为60个独立科学recipe。"
+  },
+  "measurements": {
+    "checkpoints": "所有整数step=0..16384；不使用doubling-grid近似最优点",
+    "training": "实际GD同时执行clean/noisy/epsilon三个head；保存每步noisy train MSE、实际clean-GD signal_bias、variance_unit和expected_risk，另存audit Gram/target projection、basis Gram/target projection与final heads供独立复算。全步head不保存。",
+    "expected_risk": "固定输入和特征，对iid Gaussian train-noise取条件期望：实际clean-GD audit MSE + sigma²*sum_j mean(test_basis_j²)*spectral_factor_j(t)²。逐步signal_bias由实际head及audit Gram计算；analysis从独立保存的谱统计逐步复算并对照signal_bias，最后一步从保存数据直接预测核验。",
+    "noise_formula": "K=Phi*Phi.T/n=V*diag(lambda)*V.T; q=1-2*eta*lambda; B=Phi_audit*Phi.T*V/n; f_j(t)=(1-q_j**t)/lambda_j，零模态取2*eta*t。固定谱公式为已知理论，不登记成新发现。",
+    "oracle": "t_star是所有整数step中期望风险的首个全局最小点；需要clean train/audit标签，不是train-only早停。",
+    "u_shape": "0<t_star<16384 且 final-risk minus minimum >=.05；仅描述，不用于筛掉失败条件。",
+    "boundary": "t_star=0或16384单列为边界最优，不作为无限预算最优点；幂律评估将其记为预测失败。"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "execution_audit",
+      "claim": "60个cell有限，train MSE最大增加<=1e-10；直接final clean-risk与Gram复算误差<=1e-9；signal-GD与固定谱risk在全部整数步误差<=1e-9。",
+      "register_as_new_discovery": false
+    },
+    {
+      "id": "P2",
+      "kind": "controlled_prediction",
+      "claim": "所有同seed且n/sigma²相等的跨n配对均有正的内部t_star，且两端t_star之比在[.5,2]内。",
+      "criterion": "枚举所有等n/sigma²跨n pair。任一有效反例即refuted；若数据不全且无反例则not_evaluated。报告每pair与每ratio组的seed范围，不报仅均值。"
+    },
+    {
+      "id": "P3",
+      "kind": "controlled_prediction",
+      "claim": "log(t_star)=a+b*log(n/sigma²)的leave-one-n-out预测，在全部60个cell中至少80%与oracle相差不超过factor2。",
+      "criterion": "每个n用另外两个n的内部正t_star拟合OLS，逐cell等权；预测clip到[1,16384]但不round；边界oracle、无可拟合训练数据、缺失结果均记失败。b与train残差仅描述。合格预测>=48/60支持，否则refuted；未完成实验则not_evaluated。",
+      "scope": "三个n均属development；这不是封存OOD验证。"
+    }
+  ],
+  "analysis_contract": {
+    "target": "仅从保存的JSON/NPZ复算risk、t_star、equal-ratio配对、leave-one-n-out幂律、各seed结果及边界最优数",
+    "paired_intervals": "同seed等n/sigma²配对报告log2(tstar_ratio)全部值和min/max；跨n独立输入限制写入报告；不以4个seed构造普遍置信度。",
+    "all_results_retained": true,
+    "exclude_conditions_after_results": false,
+    "prediction_failures_retained": true
+  },
+  "resume_protocol": "预注册和自包含源码必须在本repo git HEAD中同内容commit后执行。先--max-new-cells 1，恢复核对prereg/source/data-contract/NPZ/metadata hash；成功cell不覆盖，缺失或不符即停止。每cell receipt保存JSON hash。",
+  "compute_budget": {
+    "maximum_seconds": 1200,
+    "per_cell_goal_seconds": 10,
+    "network": false,
+    "GPU": false,
+    "solver_evaluation": "not_run"
+  },
+  "boundaries": [
+    "仅所列Gaussian mixed-target/frozen ReLU width128/zero-head/GD eta .3 mom0/MSE设置。",
+    "n变化同时改变输入抽样、谱与target train RMS，不能把n的均值差解释为单纯噪声平均因果效应。",
+    "不检验learned hidden、mini-batch、Adam、CE、无test标签早停或封存OOD。",
+    "有限16384步内全局最低点；不能外推无限训练最优步数。"
+  ],
+  "reference_source_sha256": {
+    "studies/C04_noise_generalization/executed/run_study.py": "c9e1e41218ad1c7a27a2e06e502ccb26364678e9b8c626c49eccf0ad926b8061",
+    "studies/C04_noise_generalization/executed/c01_executor.py": "8dcd77b1cef83f589bdc1ae567f911bf0656c026e6ef4ec57caf482ae88b2ac3",
+    "studies/C04_noise_generalization/executed/preregistration.json": "9f5705d293427041320ee30ec443ab0619cf741885e353d0477799b48e50b3a8",
+    "studies/C05_risk_ood/executed/run_study.py": "3eff186382d25f1b1289215089c25fbfd6678d2d0d33ab05d9dd4704413db204"
+  },
+  "scientific_review": "n/sigma²折叠与幂律均是经验假设；单模态基线在额外假设下可给出log(1+c*n/sigma²)而非幂律。跨n谱/输入/target RMS变化已明确；本轮不添加对数律拟合候选。",
+  "execution_source_sha256": "15c95cb013ca76fbbca1b5b3f11ed9caf0a058dc865de006148f69977547cbad",
+  "analysis_source_sha256": "28629c916d9b3d8a73f0ac964ff8c82c1c6e8a36f1392b5456c849785d1b3728",
+  "commit_status": "uncommitted_draft_after_permission_failure; commit this exact finalized contract and pinned sources before any training"
+}

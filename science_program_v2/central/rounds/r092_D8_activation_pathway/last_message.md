@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 12 new a=0.1 cells with zero training; both boundary predictions passed, both original 2% criteria passed 0/12, and evidence plus closeout commits were verified.

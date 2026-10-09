@@ -1,0 +1,94 @@
+{
+  "round": 80,
+  "direction_round": 5,
+  "direction": "D8_activation_pathway",
+  "domain": "development",
+  "question": "固定旧input/W，只用未测lambda=-3/+3，Q=R/a^6能否在a=.0125/.025/.05同seed折叠且接近解析F？",
+  "created_at": "2026-10-07T11:12:41.027912+08:00",
+  "bias_root": 2.3993572805154675,
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106
+  ],
+  "lambdas": [
+    -3,
+    3
+  ],
+  "scales": [
+    0.0125,
+    0.025,
+    0.05
+  ],
+  "planned_cells": 36,
+  "design": {
+    "data_seed": 31001,
+    "dimension": 4,
+    "train_n": 128,
+    "width": 64,
+    "input": "旧保存对称Gaussian train_x",
+    "projection": "旧float64 u逐位复用，W固定",
+    "activation": "SiLU",
+    "bias": "共同加性bias=b*+lambda*a²；反射时bias固定",
+    "center": "even=(f(b+au)+f(b-au))/2-mean_train[f(b+au)]",
+    "energy_ratio": "R=mean(even²)/mean(odd²)",
+    "units": "无量纲",
+    "training_steps": 0,
+    "label_or_test_read": false,
+    "counts": "6 lambda×scale条件；六seed仅测初始化稳健性；12同seed/lambda三尺度配对；36新测量cell，0历史重叠"
+  },
+  "prediction_origin": "非盲解析预测；注册前只从旧保存u矩与根导数计算F，不计算新bias激活；阈值沿用失效study的2%，旧失效数值已知且不作为新验证。 F点预测范围=[0.015779531471975642, 0.140811355278681]；全部12固定F见analytic_forecasts.json，点预期Q=F、spread=0；有限尺度判据2%。",
+  "formula": "F_s(lambda)=mean((f3(b*)lambda U2/2+f4(b*)U4/24)²)/(f1(b*)² mean(u²)); Q=R/a⁶ -> F at fixed lambda, a -> 0",
+  "predictions": [
+    {
+      "id": "P1",
+      "text": "全部12同seed/lambda三尺度配对的max(Q)/min(Q)-1<=.02",
+      "threshold": 0.02,
+      "point_expectation": 0
+    },
+    {
+      "id": "P2",
+      "text": "全部36cell abs(Q/F-1)<=.02，F来自旧u矩与根导数且禁止拟合",
+      "threshold": 0.02,
+      "point_expectation": "Q=F，具体12个F见executed/analytic_forecasts.json"
+    }
+  ],
+  "criteria": {
+    "fold_spread_max": 0.02,
+    "relative_F_error_max": 0.02,
+    "array_reconstruction_tolerance": 2e-14,
+    "complete_required": true,
+    "intervals": "只对每lambda六seed配对统计给t区间；跨格点误差仅min/max/mean，不报告pooled CI"
+  },
+  "execution": {
+    "python": "python3",
+    "device": "cpu",
+    "threads": 1,
+    "dtype": "float64",
+    "maximum_seconds": 1200,
+    "first_cell_audit": true,
+    "successful_cells_never_overwrite": true,
+    "commit_gate": "HEAD必须包含匹配preregistration及全部pinned文件；先核对Cartesian条件、所有历史request、输入hash与806旧文件hash/mtime，失败则0测量"
+  },
+  "reference_studies": [
+    "directions/D8_activation_pathway/studies/r008_bias_inflection",
+    "directions/D8_activation_pathway/studies/r024_near_root_crossover",
+    "directions/D8_activation_pathway/studies/r048_lambda_collapse"
+  ],
+  "boundary": "仅development：固定data31001对称Gaussian d4/n128、width64冻结单层SiLU、共同加性bias、训练列居中、seed101–106、lambda±3×三尺度离散网格；0新训练，不读标签/test/OOD；不外推连续lambda/临界值、其他数据/seed、目标核、性能、随机bias、非对称输入、多层、learned hidden、CE或小批量。旧r048失效结果只归档。",
+  "source_sha256": {
+    "executed/prepare.py": "feade020bfbb57271e44054d92e94feff9e19444c540a75a19e05150696520f8",
+    "executed/run.py": "2da73511a1b4176b3de8d4fd521baee64121c7bc72bb7a650c26539e1ccd0763",
+    "analysis.py": "9735a6c691434a81212841561916096f6a238db6a185b4e1e052ad6d8c30e3b7",
+    "executed/verify.py": "c65148fb8f7c6e5905d2635f92bf06c6e24c196ea155e022f6a465f84e84590f",
+    "executed/input_snapshot.npz": "13a026ccfa1e1745b426af1e9e98411b7afad9954a73f98da43c04b5db81c9ff",
+    "executed/analytic_forecasts.json": "6cb0d84e73ec146ae79c8940b7b7c31558622e7e8437593682d57c3648637772",
+    "executed/old_evidence_manifest.json": "9a87d171380643d821927b18a25f754b8aa1b7550f0a12a4719ce5e7677af03b",
+    "executed/prior_closeout_audit.json": "48f5e922f2e4f888c43793edc4f0dc5f1a36e3d35c0552ca66a275d507ef039f",
+    "executed/condition_audit.json": "a887639434d443c1f0454b70e4cf8eeb001c10837764411509b7ac65ebd8e274"
+  },
+  "historical_condition_policy": "注册前核对全部378保存request和三份Cartesian合同，36新请求零重叠；执行gate重复核对，任何历史重叠直接停止，禁止重新调用激活。需重叠时必须先提交明确读取/复制旧数组与原合同/hash方案。"
+}

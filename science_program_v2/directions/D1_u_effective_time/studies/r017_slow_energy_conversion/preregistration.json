@@ -1,0 +1,127 @@
+{
+  "study": "r017_slow_energy_conversion",
+  "round": 17,
+  "direction_round": 3,
+  "direction": "D1_u_effective_time",
+  "domain": "development",
+  "created_at": "2026-10-06T21:09:52.730505+08:00",
+  "question": "固定谱、η和初始loss，仅改变双模态目标慢模态初始loss能量占比，能否预测q=.01持续至T端点的稳态/启动U配对换算失效？",
+  "data_contract": {
+    "dimension": 2,
+    "sample_count": 2,
+    "dtype": "float64",
+    "loss": "L=||Xθ−y||²/(2n)，固定L0=1；θ0=0，v0=0",
+    "features": "X=diag(sqrt(n*lambda)) R.T；R为default_rng(seed)正态2x2矩阵的NumPy QR正交矩阵",
+    "target": "a=[alpha,1-alpha]为各模态初始loss占比；c_i=sqrt(2*L0*a_i/lambda_i)，θ*=R c，y=Xθ*；c_i均取正",
+    "execution_coordinate": "δ=θ−θ*，梯度X.T Xδ/n，用einsum计算；全程保存参数模态残差和模态loss能量",
+    "optimizer": "CPU NumPy全批量SGD：v(t+1)=mu*v(t)+g(t)，δ(t+1)=δ(t)−eta*v(t+1)；无decay/dampening/Nesterov",
+    "pairing": "同alpha与seed的mom0/.9固定X、y、θ0、L0、eta；不同alpha同seed固定X、谱、L0、eta，只改变目标模态能量分配",
+    "unmatched": "不同alpha的初始梯度范数、目标Rayleigh商、目标参数范数及第一步loss下降会变化；这些由能量分配引起，不能声称独立控制",
+    "seeds": "0/1/2仅坐标旋转稳健性，不是数据重复，区间为min/max而非置信区间"
+  },
+  "spectrum": [
+    0.001,
+    0.5
+  ],
+  "learning_rate": 0.1,
+  "initial_loss": 1.0,
+  "momenta": [
+    0.0,
+    0.9
+  ],
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "steps": 40000,
+  "threshold": 0.01,
+  "conditions": [
+    {
+      "id": "alpha_000",
+      "slow_energy_fraction": 0.001
+    },
+    {
+      "id": "alpha_001",
+      "slow_energy_fraction": 0.005
+    },
+    {
+      "id": "alpha_002",
+      "slow_energy_fraction": 0.009
+    },
+    {
+      "id": "alpha_003",
+      "slow_energy_fraction": 0.01
+    },
+    {
+      "id": "alpha_004",
+      "slow_energy_fraction": 0.011
+    },
+    {
+      "id": "alpha_005",
+      "slow_energy_fraction": 0.02
+    },
+    {
+      "id": "alpha_006",
+      "slow_energy_fraction": 0.1
+    },
+    {
+      "id": "alpha_007",
+      "slow_energy_fraction": 0.5
+    }
+  ],
+  "cell_count": 48,
+  "counting": "8个目标条件×2优化器=16个条件/recipe单位；3坐标seed共48cell，不增加科学条件数",
+  "endpoints": {
+    "primary": "L(t)/L(0)<=.01持续至T40000；最后一次超阈值的下一步",
+    "secondary": "首次<=.01，仅报告震荡/端点差异，无新预测",
+    "censoring": "若T内无持续达标则null，不延长预算；相关预测不可评估"
+  },
+  "proxy_definitions": {
+    "nominal_U": "eta*t/(1-mu)",
+    "startup_U": "eta*[t/(1-mu)-mu*(1-mu**t)/(1-mu)**2]；恒梯度解析式，用于变化梯度仅近似",
+    "paired_conversion": "输入保存的mom0持续达标步数t0；预测mom=.9最小整数t使U_mu(t)>=eta*t0；稳态ceil(t0/10)",
+    "relative_abs_error": "abs(t_prediction-t_momentum)/t_momentum",
+    "failure_definition": "主判据>=50%相对绝对误差；<=5%记为本合同内准确；其间只描述",
+    "interpretation": "这是以实测mom0端点为输入的配对换算检验，不是从零预测曲线，也不定义Adam等价"
+  },
+  "predictions": [
+    {
+      "id": "A1",
+      "kind": "known_theory_and_coordinate_execution_audit",
+      "prediction": "全部48cell归一化loss与两个独立标量谱递推按初始loss占比混合的最大差<=1e-10，首次/持续端点一致；L0及alpha误差<=1e-10；不同坐标seed轨迹差<=1e-10且端点一致",
+      "register_as_new_discovery": false
+    },
+    {
+      "id": "P1",
+      "kind": "controlled_prediction",
+      "prediction": "alpha=.001/.005/.009的3个低慢能量条件，q=.01持续至T端点的稳态与启动换算相对绝对误差均>=.50",
+      "criterion": "全部3个alpha×3坐标seed，两种换算均满足；任一条件违反即refuted；seed不计为独立科学条件"
+    },
+    {
+      "id": "P2",
+      "kind": "controlled_prediction",
+      "prediction": "alpha=.02/.1/.5的3个高慢能量条件，q=.01持续至T端点的稳态与启动换算相对绝对误差均<=.05",
+      "criterion": "全部3个alpha×3坐标seed，两种换算均满足；任一条件违反即refuted"
+    }
+  ],
+  "prediction_rationale": "仅使用旧r009单模态证据与定性解析推理；未计算新alpha的优化器递推或训练。旧λ=.5单模态持续mom=44步但稳态/启动预测5/11，慢λ=.001单模态持续2290步但预测2303/2312。预计alpha明显低于q时快模态震荡控制持续端点，明显高于q时慢模态尾部控制。不能由此声称临界点精确等于q。",
+  "analysis": "从保存NPZ独立复算所有端点、配对误差和坐标seed min/max。alpha=.01/.011只作边界描述；不调整判据、不拟合阈值、不算iid显著性。报告启动是否比稳态更差，但不重申已被旧P4推翻的普适预测。",
+  "resume_protocol": "先--max-new-cells 2保存一对并核验，再续跑剩余；每次先核对request/prereg/source/arrays/metadata hash，成功cell不覆盖。执行器必须验证新预注册及pinned源码在指定commit中的字节且为HEAD祖先。",
+  "compute_budget": {
+    "maximum_seconds": 1200,
+    "threads": 1,
+    "device": "CPU",
+    "network": false,
+    "planned_cells": 48
+  },
+  "boundaries": [
+    "仅development：n=d=2固定满秩特征、谱[.001,.5]、float64、全批量SGD eta=.1/mom0或.9、L0=1、零初始化、T40000、8个alpha与3坐标seed。",
+    "只检验本谱与固定q=.01的配对换算；慢能量占比不能单独推广到其他谱、eta、q、optimizer或learned features。",
+    "不同alpha未匹配初始梯度范数与Rayleigh；本轮不能区分这些伴随量，也不给历史K1019的10倍作因果分摊。",
+    "启动U只是假设恒梯度时的解析式；原r009 P4在6/10条件失败不变，不宣称启动总优于稳态。",
+    "持续只保证至T40000；3seed只测坐标稳健性，无封存OOD，不测Adam/mini-batch/非线性网络。"
+  ],
+  "execution_source_sha256": "54243e51e545ee313893002efba110c8e5c6a4ef2590d02fb5722d007e2e3a06",
+  "analysis_source_sha256": "5cf2d192e33b547d7445d84c723f31064fba5c3de078c662b219cacf88804573"
+}

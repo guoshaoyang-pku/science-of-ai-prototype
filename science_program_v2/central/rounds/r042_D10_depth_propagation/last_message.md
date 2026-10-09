@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 12/12 width32 eta=.02 cells; all summed-kernel ratios stayed within .75–1, slowest-group ratios were 16.6–73, and verified evidence, reports, KB, handoff, and closeout commits are saved.

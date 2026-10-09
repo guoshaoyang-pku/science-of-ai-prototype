@@ -1,0 +1,177 @@
+{
+  "round": 9,
+  "direction_round": 3,
+  "study": "r001_momentum_startup",
+  "audit_started_at": "2026-10-06T18:48:22.837113+08:00",
+  "preregistration_origin_round": 1,
+  "preregistration_commit": "7da7d8a7acb274cd88a242e2e564c92ddca33aa3",
+  "preregistration_commit_time": "2026-10-06T17:10:50+08:00",
+  "checks": [
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/preregistration.json",
+      "sha256": "4d78b8c1d9821e0dffdd6a1a07be9a3d13bee85eebd0d7dd2690cf83377f7350",
+      "committed_bytes_match": true
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/executed/run.py",
+      "sha256": "e818264c7b375c8a702ba36998fbbbc1f11d9c6796fd61debb652d93f0f1819c",
+      "committed_bytes_match": true
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/analysis.py",
+      "sha256": "eb2cba4b75ecae5c1599de427c8befd33f110123ba9cd0f87c4fa33a215c8b55",
+      "committed_bytes_match": true
+    }
+  ],
+  "saved_cells_before_execution": 0,
+  "prior_summary_before_resume": {
+    "study": "r001_momentum_startup",
+    "round": 1,
+    "direction": "D1_u_effective_time",
+    "domain": "development",
+    "status": "blocked_before_training",
+    "preregistration_commit": null,
+    "preregistration_sha256": "4d78b8c1d9821e0dffdd6a1a07be9a3d13bee85eebd0d7dd2690cf83377f7350",
+    "execution_source_sha256": "e818264c7b375c8a702ba36998fbbbc1f11d9c6796fd61debb652d93f0f1819c",
+    "analysis_source_sha256": "eb2cba4b75ecae5c1599de427c8befd33f110123ba9cd0f87c4fa33a215c8b55",
+    "counts": {
+      "planned_cells": 60,
+      "saved_cells": 0,
+      "paired_condition_units_measured": 0
+    },
+    "predictions": [
+      {
+        "id": "P1",
+        "status": "not_evaluated",
+        "reason": "预注册commit未成功，按纪律不启动实验"
+      },
+      {
+        "id": "P2",
+        "status": "not_evaluated",
+        "reason": "预注册commit未成功，按纪律不启动实验"
+      },
+      {
+        "id": "P3",
+        "status": "not_evaluated",
+        "reason": "预注册commit未成功，按纪律不启动实验"
+      },
+      {
+        "id": "P4",
+        "status": "not_evaluated",
+        "reason": "预注册commit未成功，按纪律不启动实验"
+      }
+    ],
+    "measured_claims": [],
+    "blocker_evidence": "executed/preregistration_commit_attempt.json",
+    "numeric_results": null,
+    "boundaries": [
+      "仅development、n=d=8固定特征单模态目标、float64、全批量SGD、eta=.1、mu0/.9、该固定谱和两档梯度幅度。",
+      "同eta比较不检验同eta/(1−mu)下的momentum bonus；不测Adam、不测mini-batch或非线性网络。",
+      "g0在legacy代理中是固定初始L2梯度，不是沿途梯度平均；两档幅度初始loss不同，因此只比较归一化误差，不比较绝对误差。",
+      "对历史K1019的10倍只核对代数来源，不给其bigram现象作因果分摊。",
+      "恒梯度启动项是已知理论；新登记仅为特定配对预测的验证/反例。"
+    ]
+  },
+  "git_write_attempt": {
+    "command": "git add -A",
+    "exit_code": 128,
+    "stderr": "fatal: Unable to create '.git/index.lock': Operation not permitted",
+    "cause": "当前沙箱将.git列为只读；POSIX owner权限已有写位，不能用chmod解决；未升级或绕过权限。"
+  },
+  "decision": "使用supervisor已于训练前提交且字节完全一致的原合同与pinned源码；不修改原预测。",
+  "static_audit": "AST与源码pin通过；独立审查未见阻断错误。原analysis仅支持完整60 cell，首2 cell须独立核对hash与标量递推。",
+  "final_commit_status": "blocked_by_git_metadata_read_only",
+  "first_two_cells": {
+    "verified_at_epoch": 1791283750.064472,
+    "hash_contract_recurrence_passed": true,
+    "cells": [
+      {
+        "cell_id": "84123db48469756e",
+        "arrays_sha256": "d5ab49f3b206602119254880e427ca8b5baf31e4a35c3d45864b6a1f17fb3395",
+        "metadata_sha256": "9e670d51fa87a84e9ef8d8c88a4da1435499cbb14942b801deae5023cb450752",
+        "max_loss_recurrence_error": 3.785860513971784e-14,
+        "commit_precedes_training": true
+      },
+      {
+        "cell_id": "42aafeae343b15bf",
+        "arrays_sha256": "3cba500bb4fff42a4e9df7d564f6ce4f95791a4cb17e3323b81dce9d1cd40d09",
+        "metadata_sha256": "323b026d8e5e9d79b8777c60275801ce4e91b0be53f69b371d33282927fb224a",
+        "max_loss_recurrence_error": 3.7780889527994077e-13,
+        "commit_precedes_training": true
+      }
+    ]
+  },
+  "experiment_completed_at": "2026-10-06T18:54:10.156922+08:00",
+  "results": {
+    "saved_cells": 60,
+    "paired_condition_units": 10,
+    "condition_recipe_units": 20,
+    "training_seconds": 13.775226831436157,
+    "P2": "passed",
+    "P3": "passed",
+    "P4": "refuted",
+    "P4_counterexample_condition_units": 6
+  },
+  "analysis_warnings": {
+    "location": "analysis.py:56",
+    "messages": [
+      "divide by zero encountered in matmul",
+      "overflow encountered in matmul",
+      "invalid value encountered in matmul"
+    ],
+    "disposition": "未修改冻结analysis；summary所有数值有限，60个保存数组全部有限，逐元素独立Hessian复算最大误差5.551115123125783e-17。具体运行时警告来源未确定，未影响配对判据。"
+  },
+  "saved_evidence_verification": "executed/saved_evidence_verification.json",
+  "center_updates": {
+    "rounds_done_before": 2,
+    "rounds_done_after": 3,
+    "last_round": "9",
+    "claims_added": [
+      "D1-001",
+      "D1-002",
+      "D1-003"
+    ],
+    "history_append": "未追加，由supervisor统一记录本轮rec，避免重复history。",
+    "supervisor_accounting_note": "本轮按用户要求将rounds_done从2设为3、last_round设为字符串9；现有supervisor.py收尾逻辑会再次+1并覆盖last_round为rec，未修改该独立调度器，后续计数须按轮次证据核验。"
+  },
+  "diff_review": {
+    "checker": "kill-slop/scripts/check-diff.sh",
+    "status": "OVER_BUDGET",
+    "reason": "用户固定流程要求逐cell落盘（60×arrays/metadata=120文件），另含审计、receipt、findings、report和中心更新；无研究范围扩展或无关源码改动。检查器临时文件已清除。",
+    "pinned_source_changed": false,
+    "nonstudy_code_changes": false
+  },
+  "independent_review": "只读独立审查确认60个cell hash、提交源码pin、配对控制、保存端点；P4为6/10条件失败，3坐标seed均复现。",
+  "final_commit_attempts": [
+    {
+      "command": [
+        "git",
+        "add",
+        "-A"
+      ],
+      "exit_code": 128,
+      "stdout": "",
+      "stderr": "fatal: Unable to create 'science_program_v2/.git/index.lock': Operation not permitted\n"
+    },
+    {
+      "command": [
+        "git",
+        "commit",
+        "-m",
+        "r009 D1: 启动修正早期准确，晚期扩展被反例推翻"
+      ],
+      "exit_code": 128,
+      "stdout": "",
+      "stderr": "fatal: Unable to create 'science_program_v2/.git/index.lock': Operation not permitted\n"
+    }
+  ],
+  "round_result": "partial",
+  "finalized_at": "2026-10-06T18:55:58.636209+08:00",
+  "handoff_hashes": {
+    "central/kb.json": "1bc2ddc241c3c1333566cd7b0d215eff03abd08cbb4443962cb09ecf318c3d98",
+    "central/state.json": "19faaf1846af7d0b86ffae409882b2c397dba9ae84c198d20ee85bd95fc8f1ab",
+    "reports/PROGRESS.md": "c17b4ed6270ee82c4e316ceeedc479a004b250429ff00a335a75dcb1a25004f1",
+    "directions/D1_u_effective_time/report.md": "80ac1c9dd98b6c0462996fcce20ab73f00f4123c56628b2e518e2c639a68b049",
+    "directions/D1_u_effective_time/findings/r009_momentum_startup_resume.md": "343652bdbb1665a48d7df78b0f627b725a2190276de15fcf0f6fcdf26029e09c"
+  }
+}

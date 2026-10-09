@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一夜之间，自动研究把四个模糊方向变成了公式级规律</title>
+<style>
+  :root {
+    --dark: #141413; --light: #faf9f5; --mid: #b0aea5; --soft: #e8e6dc;
+    --muted: #5e5d59; --orange: #d97757; --blue: #6a9bcc; --green: #788c5d;
+    --head: "Poppins", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", Arial, sans-serif;
+    --body: "Lora", "Noto Serif CJK SC", "Songti SC", Georgia, serif;
+    --mono: "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--light); color: var(--dark); font: 17px/1.8 var(--body); }
+  main { max-width: 760px; margin: 0 auto; padding: 72px 24px 96px; }
+  h1, h2, h3 { font-family: var(--head); font-weight: 600; line-height: 1.35; letter-spacing: -0.01em; }
+  h1 { font-size: 32px; margin: 0 0 16px; }
+  h2 { font-size: 22px; margin: 64px 0 12px; }
+  p { margin: 0 0 16px; }
+  .lede { font-size: 19px; }
+  a { color: inherit; text-decoration: underline; text-decoration-color: var(--orange); text-underline-offset: 3px; }
+  code, .id { font-family: var(--mono); font-size: 0.86em; background: var(--soft); padding: 1px 5px; border-radius: 4px; }
+  .settings { display: flex; flex-wrap: wrap; gap: 8px 20px; list-style: none; padding: 0; margin: 24px 0 0;
+              font: 14px/1.6 var(--head); color: var(--muted); }
+  .settings li { display: inline-flex; align-items: center; gap: 6px; }
+  .settings svg { width: 15px; height: 15px; stroke: var(--dark); fill: none; stroke-width: 1.6;
+                  stroke-linecap: round; stroke-linejoin: round; }
+  .settings b { color: var(--dark); font-weight: 500; }
+  figure { margin: 28px 0; padding: 20px; background: #fff; border: 1px solid var(--soft); border-radius: 10px; }
+  figure img, figure svg.chart { display: block; width: 100%; height: auto; }
+  figcaption { margin-top: 12px; font: 14px/1.6 var(--head); color: var(--muted); }
+  .warn { border-left: 3px solid var(--orange); padding: 4px 0 4px 16px; margin: 24px 0; }
+  .warn strong { font-family: var(--head); }
+  .formula { background: #fff; border: 1px solid var(--soft); border-radius: 10px; padding: 14px 18px;
+             font: 15px/1.9 var(--mono); margin: 16px 0; overflow-x: auto; }
+  details { margin: 16px 0; }
+  summary { cursor: pointer; font: 15px var(--head); color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font: 14px/1.6 var(--head); margin: 16px 0; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--soft); }
+  th { font-weight: 500; color: var(--muted); }
+  td.num { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+  footer { margin-top: 80px; font: 13px var(--head); color: var(--mid); }
+</style>
+</head>
+<body>
+<main>
+
+<h1>一夜之间，自动研究把四个模糊方向变成了公式级规律</h1>
+<p class="lede">27 个有效研究轮次把知识库从 30 条扩到 75 条带证据的结论。模型拟合目标所需的时间现在可以从目标能量的分布精确算出；训练曲线的形状有明确的适用边界；两者都有闭式公式。</p>
+<ul class="settings">
+  <li><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></svg>模型 <b>gpt-6.1-sol（Sol 6.1 Ultra）</b></li>
+  <li><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>有效轮次 <b>51 / 启动 73</b></li>
+  <li><svg viewBox="0 0 24 24"><path d="M4 19l5-7 4 4 7-10"/></svg>方向 <b>12 个</b></li>
+  <li><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/></svg>知识库 <b>75 条</b></li>
+  <li><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>计算 <b>本机 CPU 小张量</b></li>
+  <li><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><b>2026-10-06 16:58 起</b></li>
+</ul>
+
+<h2>拟合步数由目标加权谱精确算出，任何单一标量指标都不够</h2>
+<p>把训练目标分解到特征曲率的每个本征方向上，得到一组"方向能量"，称为目标加权谱。在固定特征、全批量、平方损失下，任意时刻的损失比例是一个精确级数，用它算"降到初始损失 1% 的步数"，与 66 个实测点一致，误差不超过 9e-16。</p>
+<div class="formula">L(t)/L₀ = Σᵢ wᵢ·(1−ηλᵢ)²ᵗ<br>T₁% = 2.25·d<sup>1.003</sup>（目标在中间模态）&nbsp;&nbsp;4.44·d<sup>1.005</sup>（目标在首尾模态）</div>
+<p>式中 Σᵢ 表示对全部本征方向求和；η 是学习率；λᵢ 是第 i 个方向的曲率特征值；wᵢ 是训练目标在该方向上的初始损失能量占比（全部 wᵢ 加起来等于 1）；t 是训练步数；d 是参数维度；T₁% 是损失降到初始值 1% 所需步数。</p>
+<p>对照实验构造了两个目标，它们的 Rayleigh 商（目标加权的平均特征值）、二阶谱矩、初始梯度范数、第一步损失下降和目标参数范数全部相同，拟合预算仍差 1.99 倍（68 步对 135 步）。所以标量摘要不够，必须用完整谱。幂律在维度 8 到 8192（三个数量级）上成立，最大拟合误差 2.5%。</p>
+<figure>
+  <svg class="chart" style="width:100%;height:auto" xmlns:xlink="http://www.w3.org/1999/xlink" width="451.27pt" height="233.371pt" viewBox="0 0 451.27 233.371" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-07T08:55:08.549350</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.9, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 233.371 
+L 451.27 233.371 
+L 451.27 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 42.31 195.696 
+L 444.07 195.696 
+L 444.07 7.2 
+L 42.31 7.2 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 60.571818 195.696 
+L 60.571818 7.2 
+" clip-path="url(#pbe76608974)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2">
+      <defs>
+       <path id="mbdde9bb6c1" d="M 0 0 
+L 0 3.5 
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#mbdde9bb6c1" x="60.571818" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_1">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="60.571818" y="209.859437" transform="rotate(-0 60.571818 209.859437)">8</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 133.619091 195.696 
+L 133.619091 7.2 
+" clip-path="url(#pbe76608974)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4">
+      <g>
+       <use xlink:href="#mbdde9bb6c1" x="133.619091" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_2">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="133.619091" y="209.859437" transform="rotate(-0 133.619091 209.859437)">32</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 206.666364 195.696 
+L 206.666364 7.2 
+" clip-path="url(#pbe76608974)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6">
+      <g>
+       <use xlink:href="#mbdde9bb6c1" x="206.666364" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="206.666364" y="209.859437" transform="rotate(-0 206.666364 209.859437)">128</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_7">
+      <path d="M 279.713636 195.696 
+L 279.713636 7.2 
+" clip-path="url(#pbe76608974)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_8">
+      <g>
+       <use xlink:href="#mbdde9bb6c1" x="279.713636" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_4">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="279.713636" y="209.859437" transform="rotate(-0 279.713636 209.859437)">512</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_9">
+      <path d="M 352.760909 195.696 
+L 352.760909 7.2 
+" clip-path="url(#pbe76608974)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_10">
+      <g>
+       <use xlink:href="#mbdde9bb6c1" x="352.760909" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_5">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="352.760909" y="209.859437" transform="rotate(-0 352.760909 209.859437)">2048</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_11">
+      <path d="M 425.808182 195.696 
+L 425.808182 7.2 
+" clip-path="url(#pbe76608974)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_12">
+      <g>
+       <use xlink:href="#mbdde9bb6c1" x="425.808182" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_6">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="425.808182" y="209.859437" transform="rotate(-0 425.808182 209.859437)">8192</text>
+     </g>
+    </g>
+    <g id="xtick_7">
+     <g id="line2d_13">
+      <defs>
+       <path id="mb8c40ab0d6" d="M 0 0 
+L 0 2 
+" style="stroke: #5e5d59; stroke-width: 0.6"/>
+      </defs>
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="45.413139" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_8">
+     <g id="line2d_14">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="53.535719" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_9">
+     <g id="line2d_15">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="66.778097" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_10">
+     <g id="line2d_16">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="108.853439" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_11">
+     <g id="line2d_17">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="130.218397" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_12">
+     <g id="line2d_18">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="145.377076" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_13">
+     <g id="line2d_19">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="157.13506" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_14">
+     <g id="line2d_20">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="166.742033" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_15">
+     <g id="line2d_21">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="174.864613" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_16">
+     <g id="line2d_22">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="181.900712" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_17">
+     <g id="line2d_23">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="188.106991" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_18">
+     <g id="line2d_24">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="230.182333" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_19">
+     <g id="line2d_25">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="251.547291" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_20">
+     <g id="line2d_26">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="266.705969" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_21">
+     <g id="line2d_27">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="278.463954" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_22">
+     <g id="line2d_28">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="288.070927" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_23">
+     <g id="line2d_29">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="296.193507" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_24">
+     <g id="line2d_30">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="303.229606" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_25">
+     <g id="line2d_31">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="309.435885" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_26">
+     <g id="line2d_32">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="351.511227" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_27">
+     <g id="line2d_33">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="372.876184" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_28">
+     <g id="line2d_34">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="388.034863" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_29">
+     <g id="line2d_35">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="399.792848" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_30">
+     <g id="line2d_36">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="409.399821" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_31">
+     <g id="line2d_37">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="417.522401" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_32">
+     <g id="line2d_38">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="424.558499" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_33">
+     <g id="line2d_39">
+      <g>
+       <use xlink:href="#mb8c40ab0d6" x="430.764778" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="text_7">
+     <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #141413" x="243.19" y="223.880375" transform="rotate(-0 243.19 223.880375)">参数维度 d（=样本数 n）</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_40">
+      <path d="M 42.31 148.750302 
+L 444.07 148.750302 
+" clip-path="url(#pbe76608974)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_41">
+      <defs>
+       <path id="me10b974dca" d="M 0 0 
+L -3.5 0 
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#me10b974dca" x="42.31" y="148.750302" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_8">
+      <!-- $\mathdefault{10^{2}}$ -->
+      <g style="fill: #5e5d59" transform="translate(21.45 152.332021)">
+       <text>
+        <tspan x="0" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.110938" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">2</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_42">
+      <path d="M 42.31 97.217764 
+L 444.07 97.217764 
+" clip-path="url(#pbe76608974)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_43">
+      <g>
+       <use xlink:href="#me10b974dca" x="42.31" y="97.217764" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_9">
+      <!-- $\mathdefault{10^{3}}$ -->
+      <g style="fill: #5e5d59" transform="translate(21.45 100.799483)">
+       <text>
+        <tspan x="0" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.110938" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">3</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_44">
+      <path d="M 42.31 45.685226 
+L 444.07 45.685226 
+" clip-path="url(#pbe76608974)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_45">
+      <g>
+       <use xlink:href="#me10b974dca" x="42.31" y="45.685226" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_10">
+      <!-- $\mathdefault{10^{4}}$ -->
+      <g style="fill: #5e5d59" transform="translate(21.45 49.266945)">
+       <text>
+        <tspan x="0" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">4</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_46">
+      <defs>
+       <path id="mb0c52b2d41" d="M 0 0 
+L -2 0 
+" style="stroke: #5e5d59; stroke-width: 0.6"/>
+      </defs>
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="184.77" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_47">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="175.695571" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_48">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="169.257161" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_49">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="164.263142" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_8">
+     <g id="line2d_50">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="160.182731" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_9">
+     <g id="line2d_51">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="156.732793" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_10">
+     <g id="line2d_52">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="153.744321" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_11">
+     <g id="line2d_53">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="151.108302" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_12">
+     <g id="line2d_54">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="133.237462" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_13">
+     <g id="line2d_55">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="124.163033" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_14">
+     <g id="line2d_56">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="117.724623" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_15">
+     <g id="line2d_57">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="112.730604" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_16">
+     <g id="line2d_58">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="108.650193" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_17">
+     <g id="line2d_59">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="105.200255" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_18">
+     <g id="line2d_60">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="102.211783" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_19">
+     <g id="line2d_61">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="99.575764" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_20">
+     <g id="line2d_62">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="81.704924" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_21">
+     <g id="line2d_63">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="72.630495" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_22">
+     <g id="line2d_64">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="66.192085" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_23">
+     <g id="line2d_65">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="61.198066" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_24">
+     <g id="line2d_66">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="57.117655" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_25">
+     <g id="line2d_67">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="53.667717" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_26">
+     <g id="line2d_68">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="50.679245" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_27">
+     <g id="line2d_69">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="48.043226" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_28">
+     <g id="line2d_70">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="30.172386" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_29">
+     <g id="line2d_71">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="21.097957" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_30">
+     <g id="line2d_72">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="14.659546" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_31">
+     <g id="line2d_73">
+      <g>
+       <use xlink:href="#mb0c52b2d41" x="42.31" y="9.665528" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="text_11">
+     <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #141413" x="15.159375" y="101.448" transform="rotate(-90 15.159375 101.448)">拟合到初始损失 1% 所需步数 T</text>
+    </g>
+   </g>
+   <g id="line2d_74">
+    <path d="M 60.571818 186.983548 
+L 425.808182 31.364859 
+L 425.808182 31.364859 
+" clip-path="url(#pbe76608974)" style="fill: none; stroke: #d97757; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_75">
+    <path d="M 60.571818 171.686776 
+L 425.808182 15.768 
+L 425.808182 15.768 
+" clip-path="url(#pbe76608974)" style="fill: none; stroke-dasharray: 5.92,2.56; stroke-dashoffset: 0; stroke: #6a9bcc; stroke-width: 1.6"/>
+   </g>
+   <g id="line2d_76">
+    <defs>
+     <path id="m2c575cf4df" d="M 0 2.5 
+C 0.663008 2.5 1.29895 2.236584 1.767767 1.767767 
+C 2.236584 1.29895 2.5 0.663008 2.5 0 
+C 2.5 -0.663008 2.236584 -1.29895 1.767767 -1.767767 
+C 1.29895 -2.236584 0.663008 -2.5 0 -2.5 
+C -0.663008 -2.5 -1.29895 -2.236584 -1.767767 -1.767767 
+C -2.236584 -1.29895 -2.5 -0.663008 -2.5 0 
+C -2.5 0.663008 -2.236584 1.29895 -1.767767 1.767767 
+C -1.29895 2.236584 -0.663008 2.5 0 2.5 
+z
+" style="stroke: #ffffff; stroke-width: 0.8"/>
+    </defs>
+    <g clip-path="url(#pbe76608974)">
+     <use xlink:href="#m2c575cf4df" x="60.571818" y="187.128" style="fill: #d97757; stroke: #ffffff; stroke-width: 0.8"/>
+     <use xlink:href="#m2c575cf4df" x="97.095455" y="171.61516" style="fill: #d97757; stroke: #ffffff; stroke-width: 0.8"/>
+     <use xlink:href="#m2c575cf4df" x="133.619091" y="155.793622" style="fill: #d97757; stroke: #ffffff; stroke-width: 0.8"/>
+     <use xlink:href="#m2c575cf4df" x="170.142727" y="140.128015" style="fill: #d97757; stroke: #ffffff; stroke-width: 0.8"/>
+     <use xlink:href="#m2c575cf4df" x="206.666364" y="124.615175" style="fill: #d97757; stroke: #ffffff; stroke-width: 0.8"/>
+     <use xlink:href="#m2c575cf4df" x="243.19" y="109.064306" style="fill: #d97757; stroke: #ffffff; stroke-width: 0.8"/>
+     <use xlink:href="#m2c575cf4df" x="279.713636" y="93.551467" style="fill: #d97757; stroke: #ffffff; stroke-width: 0.8"/>
+     <use xlink:href="#m2c575cf4df" x="316.237273" y="78.02913" style="fill: #d97757; stroke: #ffffff; stroke-width: 0.8"/>
+     <use xlink:href="#m2c575cf4df" x="352.760909" y="62.511543" style="fill: #d97757; stroke: #ffffff; stroke-width: 0.8"/>
+     <use xlink:href="#m2c575cf4df" x="389.284545" y="46.99633" style="fill: #d97757; stroke: #ffffff; stroke-width: 0.8"/>
+     <use xlink:href="#m2c575cf4df" x="425.808182" y="31.48349" style="fill: #d97757; stroke: #ffffff; stroke-width: 0.8"/>
+    </g>
+   </g>
+   <g id="line2d_77">
+    <defs>
+     <path id="mb904ccd0db" d="M -2.5 2.5 
+L 2.5 2.5 
+L 2.5 -2.5 
+L -2.5 -2.5 
+z
+" style="stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </defs>
+    <g clip-path="url(#pbe76608974)">
+     <use xlink:href="#mb904ccd0db" x="60.571818" y="172.245633" style="fill: #6a9bcc; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+     <use xlink:href="#mb904ccd0db" x="97.095455" y="156.102321" style="fill: #6a9bcc; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+     <use xlink:href="#mb904ccd0db" x="133.619091" y="140.280782" style="fill: #6a9bcc; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+     <use xlink:href="#mb904ccd0db" x="170.142727" y="124.691429" style="fill: #6a9bcc; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+     <use xlink:href="#mb904ccd0db" x="206.666364" y="109.102336" style="fill: #6a9bcc; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+     <use xlink:href="#mb904ccd0db" x="243.19" y="93.570473" style="fill: #6a9bcc; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+     <use xlink:href="#mb904ccd0db" x="279.713636" y="78.038627" style="fill: #6a9bcc; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+     <use xlink:href="#mb904ccd0db" x="316.237273" y="62.51629" style="fill: #6a9bcc; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+     <use xlink:href="#mb904ccd0db" x="352.760909" y="46.998703" style="fill: #6a9bcc; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+     <use xlink:href="#mb904ccd0db" x="389.284545" y="31.484677" style="fill: #6a9bcc; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+     <use xlink:href="#mb904ccd0db" x="425.808182" y="15.97065" style="fill: #6a9bcc; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 42.31 195.696 
+L 42.31 7.2 
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 42.31 195.696 
+L 444.07 195.696 
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="legend_1">
+    <g id="line2d_78">
+     <path d="M 49.96 18.640469 
+L 58.46 18.640469 
+L 66.96 18.640469 
+" style="fill: none; stroke: #d97757; stroke-width: 1.6; stroke-linecap: square"/>
+    </g>
+    <g id="text_12">
+     <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="73.76" y="21.615469" transform="rotate(-0 73.76 21.615469)">拟合律 2.25·d^1.003（中间目标）</text>
+    </g>
+    <g id="line2d_79">
+     <path d="M 49.96 31.602969 
+L 58.46 31.602969 
+L 66.96 31.602969 
+" style="fill: none; stroke-dasharray: 5.92,2.56; stroke-dashoffset: 0; stroke: #6a9bcc; stroke-width: 1.6"/>
+    </g>
+    <g id="text_13">
+     <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="73.76" y="34.577969" transform="rotate(-0 73.76 34.577969)">拟合律 4.44·d^1.005（首尾目标）</text>
+    </g>
+    <g id="line2d_80">
+     <g>
+      <use xlink:href="#m2c575cf4df" x="58.46" y="44.565469" style="fill: #d97757; stroke: #ffffff; stroke-width: 0.8"/>
+     </g>
+    </g>
+    <g id="text_14">
+     <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="73.76" y="47.540469" transform="rotate(-0 73.76 47.540469)">实测（中间目标，3 seed 均值）</text>
+    </g>
+    <g id="line2d_81">
+     <g>
+      <use xlink:href="#mb904ccd0db" x="58.46" y="57.527969" style="fill: #6a9bcc; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+     </g>
+    </g>
+    <g id="text_15">
+     <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="73.76" y="60.502969" transform="rotate(-0 73.76 60.502969)">实测（首尾目标，3 seed 均值）</text>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pbe76608974">
+   <rect x="42.31" y="7.2" width="401.76" height="188.496"/>
+  </clipPath>
+ </defs>
+</svg>
+
+  <figcaption>每点是 3 个随机种子下实测步数的均值；线是拟合的幂律。横轴是参数维度，纵轴是拟合到初始损失 1% 的步数，双对数坐标。</figcaption>
+</figure>
+
+<h2>训练曲线在时间尺度比 15 以内是单 sigmoid，之外用无拟合的两段公式</h2>
+<p>训练曲线指损失比例随步数的变化。在对数时间轴上，单 logistic 函数 H(t)=1/(1+(t/t₅₀)<sup>β</sup>)——t₅₀ 是曲线降到半幅的中点步数，β 是对数时间轴上的陡度——在快慢特征值之比（下称谱比）为 1、3、10、12、15 时通过注册阈值（均方根误差 ≤.03 且最大误差 ≤.05），在 20、25、30、100 时失败。边界在 15 与 20 之间。</p>
+<p>超过边界后，两段级联接管，而且每段参数有闭式公式，不需要任何拟合：每段中点等于 log2 除以该模态的解析衰减率（log2 是 2 的自然对数，约 .693），陡度固定为 2log2≈1.386。这个公式在谱比 12 到 100 的六个格点全部通过，最小误差余量 .00064。</p>
+<p>两条精细边界。其一，单 sigmoid 的"失败"依赖拟合目标的选择：慢模态能量占比很小的两个条件，改用最小化最大误差的选解就通过。其二，占比 .25 的条件在注册网格和参数域内可证明达不到阈值，数值下界 .0834 大于 .05，用 60 位小数复核。</p>
+
+<h2>动量换算的适用性由慢模态能量占比决定</h2>
+<p>比较优化器时常用等效训练时间：稳态式 U=ηt/(1−μ)，其中 μ 是动量系数（0 到 1 之间，常用 .9）；启动式再减去动量积累期的修正。单模态、浅目标（损失降到 90%）时启动式精确到 0 步误差：实测 62/12 步等于预测 62/12 步。深目标（降到 1%）时，10 个配对条件里 6 个启动式反而比稳态式差。</p>
+<p>双模态下找到了控制参数：慢模态的初始损失占比 α。α≤.009 时两种换算误差都不小于 50%；α≥.02 时都不超过 5%。阈值在 .009 与 .02 之间。把目标加深到千分之一，稳态式误差又回到 1% 以内，适用域不是单调的。</p>
+<div class="warn"><strong>用户点名的"动量为 0 时等效时间异常变小"已有答案：</strong>把初始梯度范数从 .01 改到 .003，归一化损失轨迹最大只差 3.22e-15。梯度范数只是单位换算。所谓 10 倍差是 1/(1−m) 的代数因子，不是动力学异常。限本合成系统。</div>
+
+<h2>深网络的拟合时间等于逐层核之和的时间，不是最慢层的时间</h2>
+<p>把网络在初始化处线性化，每层参数贡献一块切线核。深度 1、2、4、6 层，宽度 16 和 32 下："最慢层主导"的预测超出实测 4.7 到 2067 倍，12/12 出界。"逐层核求和再算时间"的预测在 2 倍以内，10–12/12 通过；宽度 32、学习率 .02 时全部落在实测的 .75 到 1 倍之间。</p>
+
+<h2>过拟合最低点跟 n/σ² 走，但严格折叠不成立</h2>
+<p>给训练标签加方差为 σ² 的噪声后，干净测试风险先降后升，最低点步数记为 t*。n 是样本量。经验公式 log t* = a + b·log(n/σ²)，三次留出拟合的 b 为 .97、1.09、1.06，系数 e<sup>a</sup> 在 .68 到 1.10。一阶规律就是 t* ≈ n/σ²。60 个预测里 57 个在 2 倍以内，3 个失败点误差 2.1 到 2.6 倍。</p>
+<p>"同 n/σ² 严格折叠到同一 t*"被推翻：一个种子的反例（比值 3.24）在噪声减半后仍在（3.72）。细结构由输入抽样和标签归一化决定。注意：这不是无标签早停方法，t* 的确定用了干净标签。</p>
+
+<h2>小批量在低学习率下保住最低点位置，统一重标度不存在</h2>
+<p>小批量与全批量的 t* 比值不服从任何统一的有效学习率重标度：学习率 .3 时比值散布在 .21 到 3.6。把学习率降到 .1 并对抽样轨迹取平均后，24 个条件里 22 个落入 [0.5, 2]。两个越界点在轨迹数从 8 加到 64 后回到界内，区间上界小于 2，说明它们是抽样噪声不是规律反例。风险口径要紧：固定同一份标签噪声与对噪声取期望，两种分母的通过率不同（22/24 对 20/24）。</p>
+
+<h2>激活偶通路的指数律在曲率零点从平方切换为六次方</h2>
+<p>SiLU 网络的特征按输入反射分成奇、偶两个通路，R 是偶通路与奇通路的能量比，a 是输入尺度。普通偏置下 R 随 a² 增长；在 SiLU 二阶导数的零点（偏置 2.3994）处，R 随 a⁶ 增长。实测：尺度加倍时 R 增长 3.98–4.00 倍（预测 4），零点处 63.95–63.99 倍（预测 64）。全部系数来自 Taylor 导数，没有经验拟合。</p>
+<p>切换很尖锐：偏置偏离零点 ±1e-4，增长倍数就离开 [60, 68] 窗口。近零点的混合公式在偏移 0 到 ±1e-3 的网格上误差不超过 .0012。</p>
+
+<h2>标签噪声稳定放大特征学习的测试差距</h2>
+<p>真实网络与它的初始切线模型（冻结初始 Jacobian 的线性近似）在干净测试集上的差距，在训练标签加噪后扩大。4 个函数×宽度单元、12 个初始化、两个独立噪声批次、一个新数据批次全部同向，平均扩大量 .11 到 .80。这是本程序目前跨批次最稳定的效应。但"每个种子在训练晚期都继续受损"不成立。</p>
+
+<h2>两个负结果：核漂移公式不跨数据批次，层归一化的条件数解释被推翻</h2>
+<p>核漂移方向：用早期（32 步）读数预测晚期（256 步）的冻结线性公式，在原数据批次通过（平均绝对误差 .44，阈值 .70），换一个数据批次失败（1.27）。方向保留性在 4 个配方里 3 个成立，反例保留。</p>
+<p>层归一化（LN）机制：LN 确实系统性降低隐藏表示的条件数（12/12 单元方向一致），但降幅与收益的相关系数 .42 低于注册的 .5，两个耦合关联预测也被推翻，而且条件数差在初始化时刻已存在。机制仍未定，候选范围收窄。失败都按纪律登记。</p>
+
+<h2>清晨网络中断烧掉 20 轮预算，已退回并加了预检</h2>
+<p>07:12 本机域名解析失效，两个模型上游都无法连通。一轮带 73k token 的工作中途断线，随后 20 轮每轮约 40 秒即失败但轮数照扣，07:55 预算"耗尽"全线停车。处置：短于 120 秒的轮次定义为基建失败，从预算退回；调度器加了网络预检，不通就不开轮、每 300 秒重试。08:45 链路烟测通过，08:47 恢复研究。剩余有效轮次预算 20。</p>
+
+<h2>其他线安静</h2>
+<p>旧主线（15 轮解题循环、143 条知识库）已归档，公开页发布器仍按 30 分钟周期推送。第一版定向科学保持开源 v0.2.0 静态。强化学习训练线的本地证据停在 10-06 综合验收：0.8B 主线选择 +12.3pp、排序 +6.9pp，条件反转能力未证实；混合专家线到 step 50。远端集群进度未刷新。基准仓库无活动。</p>
+
+<details>
+  <summary>十二方向一览（规律一句话 · 有效轮次）</summary>
+  <table>
+    <tr><th>方向</th><th>当前规律一句话</th><th>轮次</th></tr>
+    <tr><td>等效训练时间 <span class="id">D1</span></td><td>动量换算适用性由慢模态能量占比 α 决定：α≥.02 误差 ≤5%，α≤.009 误差 ≥50%</td><td class="num">5/6</td></tr>
+    <tr><td>过拟合最低点 <span class="id">D2</span></td><td>t* ≈ n/σ²（b=.97–1.09），57/60 在 2 倍内；严格折叠被推翻</td><td class="num">5/6</td></tr>
+    <tr><td>容量描述量 <span class="id">D3</span></td><td>完整目标加权谱精确预测拟合步数；五个标量全匹配仍差 1.99 倍</td><td class="num">5/6</td></tr>
+    <tr><td>sigmoid 曲线 <span class="id">D4</span></td><td>单 logistic 适用到谱比 15；部分失败依赖拟合选解目标</td><td class="num">5/6</td></tr>
+    <tr><td>层归一化机制 <span class="id">D5</span></td><td>条件数方向一致但与收益不相关（r=.42&lt;.5），耦合解释被推翻</td><td class="num">4/6</td></tr>
+    <tr><td>核漂移预测 <span class="id">D6</span></td><td>早期→晚期线性公式在原数据批次成立，换批次失败</td><td class="num">4/6</td></tr>
+    <tr><td>训练益/测试害 <span class="id">D7</span></td><td>标签噪声放大真实网络对切线模型的测试差距，4/4 单元跨批次同向</td><td class="num">4/6</td></tr>
+    <tr><td>激活通路 <span class="id">D8</span></td><td>偶/奇能量比按 a² 增长，曲率零点处按 a⁶；实测 4.00 与 64.0 倍</td><td class="num">4/6</td></tr>
+    <tr><td>小批量噪声 <span class="id">D9</span></td><td>统一有效学习率重标度被推翻；低学习率+轨迹平均下 t* 比值 22/24 在 2 倍内</td><td class="num">4/6</td></tr>
+    <tr><td>深度传播 <span class="id">D10</span></td><td>拟合时间≈逐层核之和的时间；最慢层预测超界至 2067 倍</td><td class="num">5/6</td></tr>
+    <tr><td>宽度标度 <span class="id">D11</span></td><td>T₁% ∝ d^1.003–1.005，跨三个数量级，误差 ≤2.5%</td><td class="num">3/6</td></tr>
+    <tr><td>级联 sigmoid <span class="id">D12</span></td><td>无拟合两段公式 h=log2/a、b=2log2 在谱比 12–100 全部通过</td><td class="num">4/6</td></tr>
+  </table>
+</details>
+
+<footer>来源：science_program_v2 的中心日志、知识库与 12 份方向报告 · 2026-10-07</footer>
+</main>
+</body>
+</html>

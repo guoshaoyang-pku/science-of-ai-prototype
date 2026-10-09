@@ -1,0 +1,1 @@
+ROUND_RESULT: failed | Repeated 18 prior successful measurement conditions; all results, failure records, and handoff files were committed, with zero new training or scientific claims.

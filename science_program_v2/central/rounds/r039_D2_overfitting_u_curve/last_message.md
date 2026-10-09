@@ -1,0 +1,1 @@
+ROUND_RESULT: failed | A temporary script violated the workspace write boundary; it was removed, no new training ran, and failure evidence plus handoff files were committed.

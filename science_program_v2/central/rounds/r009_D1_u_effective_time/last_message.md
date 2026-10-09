@@ -1,0 +1,1 @@
+ROUND_RESULT: partial | Completed 60 cells: startup correction passed early tests but failed in 6/10 late conditions; reports, KB, and state saved, final commit blocked by read-only .git.

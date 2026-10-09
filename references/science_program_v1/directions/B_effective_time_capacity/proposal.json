@@ -1,0 +1,56 @@
+{
+  "direction": "B_effective_time_capacity",
+  "proposal_id": "B01_effective_time_spectrum",
+  "status": "ready_for_release_review",
+  "operations": [
+    {
+      "operation": "add",
+      "local_id": "B_U_SPECTRUM",
+      "text": "Nominal U=lr*T/(1-m) is not a universal fit threshold. In full-batch fixed-feature half-MSE, each target-aligned curvature mode λ follows exact SGD/momentum recurrence; slow modes and momentum startup determine saturation. Adam progress also depends on parameter coordinates, so no model-independent constant SGD-to-Adam U conversion follows. Apply exact theory to fixed features only; measure Jacobian drift before using it for nonlinear capacity comparisons.",
+      "evidence": "192 fixed-feature development/OOD calibration cells; known exact recurrence and coordinate dependence verified. B02/B03 separately measure nonlinear departures; no solver evaluation.",
+      "report_path": "studies/B01_effective_time/report.md",
+      "related_claims": [
+        "K1001",
+        "K1012",
+        "K1019",
+        "K1038",
+        "K1073"
+      ]
+    },
+    {
+      "operation": "add",
+      "local_id": "B_NONLINEAR_CLOCK",
+      "text": "Initial-Jacobian spectrum predicts early MLP SGD progress, not late fit or generalization. In full-batch SiLU MLPs32samples/w8,32, nonlinear feature learning beats fixed initial-Jacobian fit on8/8predeclared new-function/d5SGDunits, but test loss is worse on6/8. Capacity and learning progress therefore cannot be reduced to initial scalarU; distinguish target-directed kernel change and implicit bias before ranking generalization.",
+      "evidence": "72paired true/tangentcells144models, including36sealedOODcells;3initializationseeds/unit; firststepaccurate, endpointdivergence; no sol evaluation",
+      "related_claims": [
+        "K1001",
+        "K1012",
+        "K1038",
+        "K1073",
+        "K1197"
+      ],
+      "report_path": "studies/B02_nonlinear_clock/report.md"
+    },
+    {
+      "operation": "add",
+      "local_id": "B_TARGET_SPECTRUM",
+      "text": "MLP feature learning changes target-related kernel structure beyond scalar acceleration. At identical residuals and kernel trace, late learned Jacobian kernels outperform trace-rescaled initial kernels on4preregistered new-function/d7/uniform/w8,64units: continuation loss gain.114-.132 of initial residual loss, targetRayleigh1.82-4.73x. True-residual gain exceeds32permutation mean by1.21-1.80x. Use target-weighted spectrum, not totaltrace/U alone; fixedkernel probe is not full nonlinear or generalization evidence.",
+      "related_claims": [
+        "K1001",
+        "K1012",
+        "K1019",
+        "K1038"
+      ],
+      "report_path": "studies/B03_kernel_direction/report.md",
+      "evidence": "24newMLPpretrains,72analyticalprobe trajectories;4OODunits/3seedseach;12correlatedchecks pass; softbump w8SElarge"
+    }
+  ],
+  "scientific_novelty": "Nonlinear clock failure and equaltrace kernel intervention with target-alignment/OOD evidence; known kernel optimization identities used explicitly",
+  "solver_evaluation": "not_run",
+  "completed_studies": [
+    "B01",
+    "B02",
+    "B03"
+  ],
+  "handoff": "directions/B_effective_time_capacity/handoff.md"
+}

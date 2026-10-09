@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "study": "C01_activation_scale",
+  "phase": "development",
+  "question": "Does small-scale SiLU lose target-aligned even features rather than merely scale all gradients?",
+  "architecture": {"input_dim": 4, "width": 64, "hidden": "frozen", "zero_bias": true, "head_initialization": "zero", "feature_centering": "training_mean", "normalization": "global_training_feature_rms"},
+  "data": {"distribution": "gaussian_antithetic", "train_rows": 128, "test_rows": 1024, "dataset_seed": 31001, "targets": ["linear", "quadratic"], "target_center_scale": "training_mean_and_rms", "noise_sd": 0},
+  "seeds": [101, 102, 103, 104, 105, 106],
+  "scales": [0.05, 0.2, 1.0],
+  "activations": ["relu", "silu"],
+  "controls": ["none", "preactivation_ln", "linear_skip"],
+  "optimizer": {"type": "full_batch_GD", "lr": 0.8, "momentum": 0, "decay": 0, "steps": 1024},
+  "checkpoints": [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024],
+  "predictions": [
+    {"id": "P1", "claim": "RMS-normalized ReLU features and learning curves are invariant to positive weight scale.", "criterion": "paired maximum training/test-MSE curve difference below 1e-8 across scales", "scope": "all controls except finite-epsilon LayerNorm tolerance 1e-4"},
+    {"id": "P2", "claim": "For no-LN SiLU, even-feature/odd-feature squared-energy ratio grows approximately as scale squared in the two smallest scales.", "criterion": "median ratio at scale0.2 divided by ratio at scale0.05 lies between 10 and 20; expected factor16", "scope": "none and linear_skip"},
+    {"id": "P3", "claim": "At scale0.05 without LN, SiLU quadratic-target initial progress is below one tenth ReLU despite equal total feature RMS; the linear-target initial progress is not below one half ReLU.", "criterion": "target-aligned kernel-energy ratios and measured first-step MSE reductions satisfy both bounds in median across seeds", "scope": "none"},
+    {"id": "P4", "claim": "Preactivation LN removes most input weight-scale dependence and linear skip fails to restore the weak quadratic SiLU channel.", "criterion": "LN target-aligned energy changes below1% between0.05 and1; linear_skip at0.05 does not double quadratic energy relative to none", "scope": "fixed width64, Gaussian symmetric dataset, frozen hidden"},
+    {"id": "P5", "claim": "The fixed-feature gradient-descent spectral recurrence predicts measured train curves.", "criterion": "maximum absolute loss difference below1e-8", "scope": "all216 seed conditions; this checks execution and a scoped model, not novel universal theory"}
+  ],
+  "analysis": {"research_units": "two target functions and exact recipes; six seeds are within-condition repeats", "endpoint": "finite results are retained regardless of benchmark cutoff", "solver_evaluation": "not_run", "source": "analytic parity decomposition plus new synthetic data; frozen KB is development motivation"},
+  "status": "sealed_before_measurement"
+}

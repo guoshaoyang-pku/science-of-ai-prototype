@@ -1,0 +1,125 @@
+{
+  "study": "r045_mean_centered_coupling",
+  "round": 45,
+  "direction_round": 4,
+  "direction": "D5_ln_geometry",
+  "domain": "development",
+  "question": "同固定head recipe与共享Linear核，初始化mean-to-centered coupling的LN/noLN log比是否比目标Rayleigh更关联同seed LN chord收益？",
+  "functions": [
+    "trigonometric8",
+    "quadratic8",
+    "interaction12",
+    "radial12"
+  ],
+  "recipes": {
+    "LN010_w64": {
+      "width": 64,
+      "depth": 3,
+      "activation": "gelu",
+      "layer_norm": [
+        false,
+        true,
+        false
+      ],
+      "weight_decay": 0.0001,
+      "steps": 256,
+      "batch_size": 64,
+      "optimizer": "SGD",
+      "lr": 0.001,
+      "momentum": 0.0
+    },
+    "noLN_w64": {
+      "width": 64,
+      "depth": 3,
+      "activation": "gelu",
+      "layer_norm": [
+        false,
+        false,
+        false
+      ],
+      "weight_decay": 0.0001,
+      "steps": 256,
+      "batch_size": 64,
+      "optimizer": "SGD",
+      "lr": 0.001,
+      "momentum": 0.0
+    }
+  },
+  "offsets": [
+    -3,
+    0,
+    3
+  ],
+  "seeds": [
+    100,
+    101,
+    102,
+    103,
+    104
+  ],
+  "data_seed": 48291,
+  "train_n": 256,
+  "test_n": 256,
+  "normalization": "train target centered and standardized once; same transform applied to test",
+  "data_contract": "只读复用r013120训练cell与r02140Rayleigh cell；旧350文件SHA/mtime及HEAD snapshot逐文件冻结于input_manifest，不覆盖旧成功cell。",
+  "operator": {
+    "parameters": "input Linear与三个hidden block Linear的weight/bias；排除固定head weight/bias和LN affine，LN/noLN参数维度相同：d8 13056、d12 13312。原训练中LN affine可更新，此算子仅覆盖匹配hidden Linear方向。",
+    "jacobian": "J0=∂f0(train_x)/∂theta_hidden，n×p；模型/输入/参数为原float32，使用原seed重新生成并逐参数hash核对初始化。",
+    "coupling": "K=J0 J0^T/n，u=P K 1，ell=||u||²/n=||P J0(J0^T1)||²/n³。先VJP g=J0^T1并detach，再对cotangent二次反传得到J0 g；无Hessian项，不对输出先居中。",
+    "precision": "模型/输入/参数、autograd、未除n的J0g均float32；转float64后除n、去样本均值和平方均值。保存g、K1、PK1及input pins。float32量化/小耦合相消边界通过首cell与全量JVP核验限定，不加floor/epsilon；ell<=0或非有限即停止并保留失败。",
+    "scale": "J单位归一化标签/参数坐标；K单位归一化标签²/参数坐标²；ell单位归一化标签⁴/参数坐标⁴，依赖固定参数化。n为样本数256、1为无量纲全1向量。两recipe参数集合和head初值匹配；不作坐标重参数化不变性声明。",
+    "cross_offset": "初始化/输入/预测在三个offset一致；只测offset0代表，不用目标标签计算ell。没有ell chord；标签float32平移居中误差沿用<3e-7核验。",
+    "raw_log_ratio": "L=log10(ell_LN/ell_noLN)。一步简化chord越小要求ell越小，预测corr(L,B)为负。",
+    "positive_predictor": "X_L=-L=log10(ell_noLN/ell_LN)，与B正相关；相同的Pearson比较沿用旧X_R=log10(q_LN/q_noLN)，不得事后换符号。",
+    "outcome": "E_m=mean[(test residual-mean)^2]；C=(E_-3+E_+3)/2-E_0；B=C_noLN-C_LN=-Δchord，20个函数×seed配对重复。",
+    "analytic_boundary": "仅固定J、全批量、无decay、MSE定义mean(residual²)的train线性化，A=I-2etaK，offset a有C_t=a²||P A^t1||²/n，C_1=4eta²a²ell。已知解析关系不登记新发现，不当nonlinear/minibatch/decay/test终点机制。"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "prediction": "20同seed配对中r(X_L,B)>=.5且r(X_L,B)-r(X_R,B)>=.15，等价raw LN/noLN log比r<=-.5。",
+      "success": "两阈值同时满足，否则refuted；无方差refuted。",
+      "rationale": "无ell pilot；局部offset耦合候选预计比目标Rayleigh关联更强，旧r(X_R,B)=.394664832已知，故要求新r至少.544664832。仅development假设。"
+    },
+    {
+      "id": "P2",
+      "prediction": "各函数扣除5seed均值后pooled r(X_L,B)>=.3且比旧X_R高至少.10。",
+      "success": "两阈值同时满足，否则refuted；不以函数间差异替代函数内判据。",
+      "rationale": "若局部耦合有重复内说明力，应在固定函数后仍保留正关联；旧函数去均值r=-.076836549已知。"
+    }
+  ],
+  "analysis_contract": {
+    "counts": "8函数×recipe初始化测量条件、每条件5seed，共40cell；复用24旧函数×recipe×offset条件的120训练cell；20 chord配对不是20独立函数。",
+    "intervals": "每函数5seed报告X_L/X_R/B及ell_LN/ell_noLN比值的mean/min/max与配对seed t95；函数内/总体/函数去均值r无iid p值；区间只覆盖初始化变化。",
+    "descriptive": "leave-one-seed-out删同一个seed在全部四函数的重复，报告总体与函数去均值r范围，仅稳健性描述，不改主判据。",
+    "complete": "40cell完整、导数核验及旧120训练/40Rayleigh可复算后才判预测；不足not_evaluated。",
+    "independent": "首cell逐样本显式J以float64收缩复算K1、PK1、ell；每cell独立forward-mode JVP复算。K1最大绝对误差<=3e-6，PK1 L2相对误差<=1e-4，ell相对误差<=2e-4；g逐字节一致。若不通过停止，不换seed不调阈值。保存向量和g复算ell误差为0；旧B/X_R差<1e-10。"
+  },
+  "execution": {
+    "python": "python3",
+    "device": "cpu",
+    "threads": 1,
+    "max_seconds": 1200,
+    "network": false,
+    "new_training_cells": 0,
+    "planned_measurement_cells": 40,
+    "immutable_success_cells": true
+  },
+  "resume_protocol": "匹配祖先commit和pinned源码/manifest后才测量；先1cell独立显式J/forwardJVP核验，再补39cell。恢复先核合同/hash，成功cell不覆盖；全量核验saved keys/pins及有限性。0训练、1200秒预算。",
+  "boundaries": [
+    "仅四个旧development函数、n256/train/test、width64、GELU、同初始化/数据/固定head、SGD eta.001/mom0/decay1e-4/batch64/T256的保存轨迹；无新训练、sealed OOD或因果干预。",
+    "算子不含LN affine，虽原训练中affine可更新；只测初始化Linear方向，不能称全部可训练Jacobian、训练谱改善或因果中介。",
+    "clean-target Rayleigh不是初始训练残差下降率。原loss未居中；固定Jacobian full-batch MSE线性化的chord由mean-to-centered leakage PK1决定，目标Rayleigh不能直接描述此耦合。",
+    "原step256 Gram条件数是事后指标，本比较为同旧样本上的关联，不是独立前瞻预测效能或泛化验证。函数均值去除不能排除全部混杂，t区间只覆盖5seed。",
+    "原P2 r=.420774419<.5 refuted、LN初始化60/60更低且仅7/60训练下降必须保留；旧offset标签由独立saved_evidence_verification.json更正，不改原源码/summary；原matmul警告根因未定，finite/einsum核验保留。",
+    "本轮ell不含head/LN affine；已知解析仅fixed-kernel局部train offset耦合；不证明真实训练、终点test或因果中介。不预设LN总体降低ell，主检验仅指定log比与B的关联。",
+    "新预测已知旧B/X_R和旧失败；ell未测，无pilot。全部旧条件为development，不是sealed OOD或独立函数外推。"
+  ],
+  "created_at": "2026-10-07T05:49:04.834733+08:00",
+  "source_sha256": {
+    "executed/run.py": "7deb4dc6c91514e6e2c216d6dfb62a6248b3cb2ac7f4b078a7cd6487f3aef15d",
+    "analysis.py": "4b5d906547aa5940469853e2627062ec817493d4a6d3b9d4260997d99fc0d1b8",
+    "executed/verify.py": "fddaa649af5aaa7f717450973e2ac4e21ab1b59590569ef567dbcb03bfdb3f85",
+    "executed/input_manifest.json": "898f9d7c88bd2d9729ae2f2a61dce947dcfae88997b878a02fe6cb11d6d10b4e"
+  }
+}

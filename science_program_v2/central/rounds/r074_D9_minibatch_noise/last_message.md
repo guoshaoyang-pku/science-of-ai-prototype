@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 2/2 exact batch-risk cells with zero new training; ratios 1.020408 and 1.029412 supported P1, and independent verification plus scientific closeout were committed.

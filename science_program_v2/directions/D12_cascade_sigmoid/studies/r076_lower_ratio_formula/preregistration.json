@@ -1,0 +1,435 @@
+{
+  "study": "r076_lower_ratio_formula",
+  "round": 76,
+  "direction_round": 5,
+  "direction": "D12_cascade_sigmoid",
+  "created_date": "2026-10-07",
+  "domain": "development",
+  "question": "固定逐模态h/b、原150点等权网格、平台1/0、幅度.5/.5及.03/.05阈值，D4保存r3/10能否通过，误差是否落入注册区间？",
+  "data_contract": {
+    "sample_count": 2,
+    "dimension": 2,
+    "dtype": "float64",
+    "source": "仅读D4 r002的r3/10保存成功曲线；0新训练/拟合；QR坐标seed0/1/2只检查数值稳健性。",
+    "loss": "L=||Xθ−y||²/(2n)，L0=1，两模态初始损失各.5；y=Xθ*、θ0=0",
+    "optimizer": "全批量SGD η=.1/momentum0/nodecay；lambda_slow=.01、lambda_fast=ratio*.01",
+    "saved_steps": 10000,
+    "paired_control": "同一保存curve与D4 r002原最小二乘单logistic作描述性对照；不新增双段拟合。原平台、幅度、网格、权重、判据不变，只由原单段拟合转为冻结无拟合双段公式。参数个数与参数取得方式同时不同，不独立归因。",
+    "parameter_norm": "固定模态初始loss；不同谱比参数范数和初始梯度不同。"
+  },
+  "learning_rate": 0.1,
+  "ratios": [
+    3,
+    10
+  ],
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "cells": [
+    {
+      "cell_id": "ratio_003_seed_0",
+      "ratio": 3,
+      "seed": 0,
+      "arrays_path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_003_seed_0/arrays.npz",
+      "metadata_path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_003_seed_0/metadata.json"
+    },
+    {
+      "cell_id": "ratio_003_seed_1",
+      "ratio": 3,
+      "seed": 1,
+      "arrays_path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_003_seed_1/arrays.npz",
+      "metadata_path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_003_seed_1/metadata.json"
+    },
+    {
+      "cell_id": "ratio_003_seed_2",
+      "ratio": 3,
+      "seed": 2,
+      "arrays_path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_003_seed_2/arrays.npz",
+      "metadata_path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_003_seed_2/metadata.json"
+    },
+    {
+      "cell_id": "ratio_010_seed_0",
+      "ratio": 10,
+      "seed": 0,
+      "arrays_path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_010_seed_0/arrays.npz",
+      "metadata_path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_010_seed_0/metadata.json"
+    },
+    {
+      "cell_id": "ratio_010_seed_1",
+      "ratio": 10,
+      "seed": 1,
+      "arrays_path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_010_seed_1/arrays.npz",
+      "metadata_path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_010_seed_1/metadata.json"
+    },
+    {
+      "cell_id": "ratio_010_seed_2",
+      "ratio": 10,
+      "seed": 2,
+      "arrays_path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_010_seed_2/arrays.npz",
+      "metadata_path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_010_seed_2/metadata.json"
+    }
+  ],
+  "formula": {
+    "a": "a_i=-2 log(1-eta lambda_i)，步^-1",
+    "h": "h_i=log(2)/a_i，步；真实单模态连续延拓半衰期，不是拟合段中点",
+    "b": "b_i=2 log(2)=1.3862943611198906，无量纲",
+    "curve": "C_formula(t)=.5/[1+(t/h_s)^b]+.5/[1+(t/h_f)^b]；t=0按1处理",
+    "derivation": "E_i=e^-a_i t 在h_i值.5；dE_i/dlog t在h_i为-log(2)/2。H在h_i为.5，dH/dlog t=-b/4，故b=2log(2)。局部匹配不保证全窗口误差。",
+    "registration": "公式推导与精确谱递推为已知解析工具，不作为新发现；本轮登记保存曲线上的受控验证或失败。"
+  },
+  "evaluation": {
+    "grid": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      27,
+      28,
+      29,
+      30,
+      31,
+      33,
+      34,
+      36,
+      37,
+      39,
+      41,
+      42,
+      44,
+      46,
+      48,
+      50,
+      52,
+      55,
+      57,
+      60,
+      62,
+      65,
+      68,
+      71,
+      74,
+      77,
+      80,
+      84,
+      87,
+      91,
+      95,
+      99,
+      104,
+      108,
+      113,
+      118,
+      123,
+      128,
+      134,
+      140,
+      146,
+      152,
+      159,
+      166,
+      173,
+      180,
+      188,
+      196,
+      205,
+      214,
+      223,
+      233,
+      243,
+      254,
+      265,
+      276,
+      288,
+      301,
+      314,
+      327,
+      342,
+      357,
+      372,
+      388,
+      405,
+      423,
+      441,
+      460,
+      480,
+      501,
+      523,
+      546,
+      570,
+      594,
+      620,
+      647,
+      675,
+      705,
+      735,
+      767,
+      801,
+      836,
+      872,
+      910,
+      950,
+      991,
+      1034,
+      1079,
+      1126,
+      1175,
+      1226,
+      1279,
+      1335,
+      1393,
+      1454,
+      1517,
+      1583,
+      1652,
+      1723,
+      1798,
+      1877,
+      1958,
+      2044,
+      2132,
+      2225,
+      2322,
+      2423,
+      2528,
+      2638,
+      2753,
+      2873,
+      2998,
+      3128,
+      3264,
+      3407,
+      3555,
+      3709,
+      3871,
+      4039,
+      4215,
+      4398,
+      4589,
+      4789,
+      4997
+    ],
+    "origin": "直接读取D4 r002 summary原150点等权整数对数网格0..4997；与r028/r032逐点相同，不新建窗口。",
+    "platforms": [
+      1,
+      0
+    ],
+    "amplitudes": [
+      0.5,
+      0.5
+    ],
+    "normalization": "真实初始动态范围L0-L∞=1",
+    "adequacy": {
+      "rmse_maximum": 0.03,
+      "maxabs_maximum": 0.05,
+      "logic": "两者同时<=才通过"
+    },
+    "aggregation": "2个recipe条件×3个坐标seed=6个cell；报告每ratio误差min/max、最大残差步及同seed公式减原单段拟合差；不计算坐标seed统计CI。"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "controlled_numerical_prediction",
+      "prediction": "r3/10各3/3坐标seed均RMSE<=.03且maxabs<=.05。",
+      "rmse_upper_bound": 0.03,
+      "maxabs_upper_bound": 0.05,
+      "required_success_cells": 6,
+      "criterion": "任一有效cell不同时满足两阈值即refuted；保存反例，不调h/b/幅度/网格，不训练或拟合。",
+      "basis": "已有r12/15/20/25/30/100通过；旧r1局部单模态公式RMSE=.03334976043153364、maxabs=.06636634806294173失败，低谱比风险不能忽略。不同模态的近似误差可能部分错开，作为development风险预测；未预计算r3/10新公式误差，不称盲发现。"
+    },
+    {
+      "id": "P2",
+      "kind": "controlled_numerical_interval_prediction",
+      "prediction": "每个坐标seed，r3的RMSE在[.025,.030]、maxabs在[.045,.050]；r10的RMSE在[.025,.030]、maxabs在[.040,.050]。",
+      "intervals": {
+        "3": {
+          "rmse": [
+            0.025,
+            0.03
+          ],
+          "maxabs": [
+            0.045,
+            0.05
+          ]
+        },
+        "10": {
+          "rmse": [
+            0.025,
+            0.03
+          ],
+          "maxabs": [
+            0.04,
+            0.05
+          ]
+        }
+      },
+      "criterion": "闭区间；任一有效cell任一指标在对应区间外即refuted；保留原区间与反例。",
+      "basis": "沿用已测r12/15的误差量级，将低谱比视作误差重叠风险；是未校准的宽区间数值预测，不是连续谱比公式。"
+    }
+  ],
+  "previous_summary": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/summary.json",
+  "input_manifest": [
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/preregistration.json",
+      "sha256": "d3eef699d0d129309a7eaa6e44f3b4c5d4341ce04b7106adbf7f346372f91eb0"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/summary.json",
+      "sha256": "2905b46c2ba808132ce32d8a0837f1428ead58bea4a763bc6706a4f296a87092"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/analysis.py",
+      "sha256": "f8155e28ccfea481674864eb37412a0889a94215e5d6ad866b2869a3d3311101"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/executed/run.py",
+      "sha256": "8b593b33445a4abb27e406d7e9f4b314312921fb6b5faf07383001c93017f045"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r032_modal_formula/preregistration.json",
+      "sha256": "86be5603e5a67f8d790153cfc2313874a9d6b031acb4d4ae4f4f8e9c7cee2804"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r032_modal_formula/summary.json",
+      "sha256": "dc00e9add785e73d979be2b4beec199edbe2bb4e20a43a420c1e53d0f677d8cc"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r032_modal_formula/executed/run.py",
+      "sha256": "207f6df1c91714f02c29d5c75f99353a49a8c8ff9c77d56ced9d0933bc62618a"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r032_modal_formula/executed/final_commit_verification.json",
+      "sha256": "b5f8a9bf96f304cba95b97bf6a1b7fe69e6bf6277be5b62112dba58cab5c98ec"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r036_large_ratio_formula/preregistration.json",
+      "sha256": "92f8a1e98c1c77e9333c54f9beaf43edbbec7ecf7f9ebb219b07173aaa572505"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r036_large_ratio_formula/summary.json",
+      "sha256": "34da1bddd6de3403a657e924502da8f2dfa142730fffb83cdcf6b699ec989eac"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r036_large_ratio_formula/executed/run.py",
+      "sha256": "aa527b82eb9184d36a092e9ad82c544cff7f6b95aa1e94b165450cc1fc58afce"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r036_large_ratio_formula/executed/final_commit_verification.json",
+      "sha256": "af9e4f1c0b809b82a1d557eeffbbbda400475e2beae0e46419ed6ec37f383e05"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r044_low_ratio_formula/preregistration.json",
+      "sha256": "7919ff4b30054cc192b3a730f6bfe0975e5c8655d5ceb5d04f3d9fb6c037fcd5"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r044_low_ratio_formula/summary.json",
+      "sha256": "c50771146731d989d990d939b1c98bbdc8a2c209ba39ed8e719184093193f062"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r044_low_ratio_formula/executed/run.py",
+      "sha256": "475d5cf53ccc9310f838d962a5fd80d29748af22e8293082e7df15a2ac4013cd"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r044_low_ratio_formula/executed/final_commit_verification.json",
+      "sha256": "e6b3792684127b4ea7e093d3170afa7e4ee3816bdb3a1d28c7178344491615ad"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r028_gap_cascade/executed/final_commit_verification.json",
+      "sha256": "7519561bda67dd0110b8233608f0dddc14ace8ce36d6488b8c35bae3fc23179c"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r076_lower_ratio_formula/executed/previous_closeout_audit.json",
+      "sha256": "15a0a22a4e8c3fa6ab7b3f406ce09b638c6a50e7965263b2ff9573c43c5280fd"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_003_seed_0/arrays.npz",
+      "sha256": "606be7e92234b453495ebd3bbc17d40d8996d5d1ed3e36373e629073ea7dfb9a"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_003_seed_0/metadata.json",
+      "sha256": "6272e24d9f36bcc6c6c8f3fc0f4dbfab5ce89a4e78c8310dc397838b0f77f07b"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_003_seed_1/arrays.npz",
+      "sha256": "647fd0a76d0f3026545c192460f63f7fad5a622c848051793d16e1d640e7cca1"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_003_seed_1/metadata.json",
+      "sha256": "aa6a1ef5e0422299c921188c63be06dea3fa09c2280607666f9e23f5ad386484"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_003_seed_2/arrays.npz",
+      "sha256": "d43f9fc76d911186625331be6f34969fbbf337e2699025d34a731c94d10a20c6"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_003_seed_2/metadata.json",
+      "sha256": "a9b205f59521d9fee252f82425d50933819c16d496edfe5b2f968736de2d0118"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_010_seed_0/arrays.npz",
+      "sha256": "07dfd5f63c5998c452808a6c4804ac754e9d5e7d9963b5547eae988a4236b070"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_010_seed_0/metadata.json",
+      "sha256": "002cfe116051cb3a184b7985382c8eb6ff99a4d9020e4fff8afa11d0e899e97c"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_010_seed_1/arrays.npz",
+      "sha256": "cc685483f50d2c04becf6f97784983c0aeaeed3e21a2edcd11a5a1c1932584d7"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_010_seed_1/metadata.json",
+      "sha256": "2e78bc0b2e547f55923c94b121a120a119a0abca328bae3c72246a45009616f2"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_010_seed_2/arrays.npz",
+      "sha256": "1867e93686fa6fb92625e9348ab7a70e1ed30d5a3991d18287d15a1b4a86fa5d"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/results/ratio_010_seed_2/metadata.json",
+      "sha256": "6368b9a88d74e23d056181dc4a11868016fc03c4b6658c7d467ae5b567b62517"
+    }
+  ],
+  "source_hashes": {
+    "directions/D12_cascade_sigmoid/studies/r076_lower_ratio_formula/executed/run.py": "aa527b82eb9184d36a092e9ad82c544cff7f6b95aa1e94b165450cc1fc58afce",
+    "directions/D12_cascade_sigmoid/studies/r076_lower_ratio_formula/analysis.py": "442b15eb3ad544b58239f4e3f3cb52be7844f1efd5496c11ec7187ff21890fc4",
+    "directions/D12_cascade_sigmoid/studies/r076_lower_ratio_formula/executed/verify_saved.py": "7365ec1222e06ea06477e85dbdf1da3279587c88024f6aec2d97aa09d67f0498",
+    "directions/D12_cascade_sigmoid/studies/r076_lower_ratio_formula/executed/prepare.py": "dc636f5625e2ea2dd93b96627726de261ce0430345a3a321b51dd2ebfa1c8a40"
+  },
+  "resume_protocol": "脚本必须验证指定preregistration commit为HEAD祖先，JSON与三份源码在该提交内容完全匹配；所有输入hash通过后才评估。逐cell新建结果且独占写；成功cell恢复核验receipt pin和contract，任何hash缺失/不符停止，不覆盖。",
+  "boundaries": [
+    "全部development；仅n=d=2固定特征half-MSE、float64、全批量SGD eta=.1/mom0/nodecay、lambda_s=.01、r3/10、L0=1/初始模态损失.5/.5。",
+    "只有原150点等权网格0..4997；平台1/0、幅度.5/.5及h/b公式固定；0训练、0新拟合，不改旧成功cell。",
+    "局部半衰期/斜率匹配为已知理论；全窗口描述判据是本轮科学问题，不证明参数可辨认、独立物理阶段、merging连续临界或grokking。",
+    "原D4纯快和alpha=.01失败及D12已有结论保留；不作连续谱比、自由平台、MLP、learned features、momentum、mini-batch、test、OOD外推。",
+    "旧单段拟合仅描述性同曲线对照；段数与参数取得方式同时变化，不把改善单独归因于两阶段。",
+    "旧r1不计算、不重判；旧纯快/alpha.01原最小二乘失败保留；六旧格点不重评，新格点不定位连续临界或独立归因于误差重叠。"
+  ],
+  "compute_budget_seconds": 1200,
+  "execution_environment": "python3，本机CPU单线程小张量，无网络/GPU/solver/模型API。",
+  "pre_evaluation_note": "无inbox；报告符合骨架。首批读操作并行，随后完整按规定顺序重读；一次错误相对目录查找只读失败，一次functions.exec JavaScript SyntaxError未启动shell或写文件。仅旧摘要/源码/合同/hash/mtime和收尾审计，未运行新公式误差、不计算或改判r1。",
+  "created_at": "2026-10-07T09:51:09.109151+08:00"
+}

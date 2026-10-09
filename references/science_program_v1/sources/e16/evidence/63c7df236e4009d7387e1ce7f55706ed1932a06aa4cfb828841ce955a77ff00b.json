@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "profile": "v1.5",
+  "dataset_id": "mvar_071e42",
+  "family": "multivariate_regression",
+  "budget": {
+    "training_steps": 256,
+    "batch_size": 64,
+    "total_samples_seen": 16384
+  },
+  "model": {
+    "type": "mlp",
+    "input_dim": 8,
+    "output_dim": 1,
+    "depth": 3,
+    "width": 192,
+    "activation": "gelu",
+    "layer_norm": [
+      false,
+      true,
+      false
+    ],
+    "residual": false
+  },
+  "optimizer": {
+    "type": "Adam",
+    "lr": 3e-05,
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "weight_decay": 0.0001
+  },
+  "loss": {
+    "loss_id": "mse"
+  },
+  "execution": {
+    "device": "cpu"
+  },
+  "files": {
+    "model": "model.py",
+    "train": "train.py",
+    "loss": "loss.py",
+    "optimizer": "optimizer.py"
+  },
+  "diagnostic_fail_threshold": 1000000000000.0,
+  "target_transform": {
+    "center": true,
+    "offset": 3.0
+  },
+  "process": {
+    "version": "regression_mse_v1",
+    "steps": [
+      1,
+      8,
+      32,
+      128,
+      256
+    ],
+    "max_eval_samples": 256
+  },
+  "candidate_id": "x_03cda364ae"
+}

@@ -1,0 +1,482 @@
+{
+  "study_id": "r102_seed22_refinement",
+  "program_round": 102,
+  "direction_round": 3,
+  "domain": "development",
+  "question": "固定L4、seed22原初始化、数据及J=4*MSE更新，仅将eta从.00125降到.0003125，reference tau_A是否相对当前读数在5%内？",
+  "condition_selection": "按已见seed22的16.817806%粗细差选取；非盲development。此前没有生成、训练或拟合新eta结果。",
+  "generator": {
+    "depth": 4,
+    "input_dim": 4,
+    "output_dim": 4,
+    "hidden_width": 32,
+    "n": 128,
+    "target_seed": 20261007,
+    "input_seed": 20261008,
+    "init_seeds": [
+      22
+    ],
+    "sigma": 0.8,
+    "dtype": "float64",
+    "init": "每层独立N(0,.8²/fan_in)，每个seed跨eta矩阵逐位相同；seed间谱不相同",
+    "target": "正交4x4，Y=X@T.T，目标奇异值均为1"
+  },
+  "optimizer": {
+    "type": "CPU full-batch GD",
+    "momentum": 0,
+    "weight_decay": 0,
+    "reported_loss": "MSE=mean(err²)",
+    "optimized_loss": "J=mean_over_n(sum_over_4_outputs(err²))=4*MSE",
+    "gradient": "g=2*err/n；逐层回传，全部梯度使用更新前权重",
+    "eta_steps": [
+      [
+        0.0003125,
+        192000
+      ]
+    ],
+    "tau": "eta*step",
+    "tau_final": 60,
+    "eta020_baseline": "旧cell全只读；不重跑r00112cell/r1016cell或9fit"
+  },
+  "cells": [
+    {
+      "id": "L4_s22_eta0003125",
+      "seed": 22,
+      "eta": 0.0003125,
+      "steps": 192000
+    }
+  ],
+  "protocol_A": {
+    "model": "c+(a-c)/(1+exp(k*(log(1+step)-h)))",
+    "tc": "expm1(h) in step",
+    "all_points": true,
+    "bounds": "a,c in [0,max(1,3*max(loss))]; k in [1e-5,30]; h in [0,log1p(1e7)]",
+    "initial": "原脚本half-index=max(10,first loss below half endpoint range)，k=1，a=loss0，c=final",
+    "solver": "scipy least_squares max_nfev4000 xtol/ftol/gtol1e-12；保留原单起点local拟合，不称全局最优",
+    "shape_pass": "success and normalized RMSE<=.05 and R²>=.99",
+    "old_contract_discrepancy": "旧文字tc>=1，实际h>=0即tc>=0；本轮冻结实际实现"
+  },
+  "reference_protocol": {
+    "purpose": "诊断原step+1与11点窗口的时间单位依赖，不代替主P1",
+    "clock": "s=tau/.02；log(1+s)在旧eta=.02基线上与原协议完全一致",
+    "A": "所有原始点least_squares，统一s时钟",
+    "B": "tau=0,.02,...,60公共网格线性插值，再使用11点平滑；窗口宽度与原基线一致",
+    "tc_units": "tau=.02*tc_s"
+  },
+  "analysis_scope": "只新增reference A单起点拟合1次及reference B峰读数；不增加legacy A拟合。全部192001个点等权。",
+  "baseline_fit": "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/fits/L4_s22_eta00125.json",
+  "baseline_npz": "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/results/L4_s22_eta00125.npz",
+  "predictions": {
+    "P1": {
+      "statement": "reference tau_A相对旧baseline变化不超过5%；正读数闭区间[baseline*.95,baseline*1.05]",
+      "quantity": "abs(tau_A_new-tau_A_baseline)/abs(tau_A_baseline)",
+      "relative_denominator": "旧baseline；按用户相对当前的措辞；r101旧P2分母为fine，本轮不混用",
+      "threshold": 0.05,
+      "baseline_tau_A": 0.018598187170700903,
+      "interval_tau_A": [
+        0.01766827781216586,
+        0.01952809652923595
+      ],
+      "point_tau_A": 0.01938013891034445,
+      "prediction_source": "旧mid到fine读数差的1/4作下一档增量的启发式点预测；预测5%收敛，非解析误差界。区间是事前判据，非统计置信区间。",
+      "source_values": {
+        "eta005_tau_A": 0.01547038021212671,
+        "eta00125_tau_A": 0.018598187170700903
+      }
+    }
+  },
+  "array_sha256": {
+    "x": "c2373de8694c122ad6d813b70c56912a07653321790ae65a7f9e5d718614727d",
+    "y": "ecd9d34e5db936cd29c76fee4d41f0a1ac20fd9285236a01bc2dac68260f8811",
+    "target": "54687305981808a52339f5d1189985777687675234e06cd7a6f833466623e660",
+    "initial_0": "f1d71d214b29260dcf0d6aef45e0c74de91abecd468740239529c8f804590286",
+    "initial_1": "ee1c1c3c3bb876dc341f228862f8d5f0c7a43855922a8f005a7db5c7638470a8",
+    "initial_2": "1e5c143dfcbffabc1887642c75410d0dda695e76af007c729bd0263e4b5614b4",
+    "initial_3": "6605c7301692dd5eecd2f998704ccbf9259dffca1c263d7fcb7f2179f5a87940"
+  },
+  "generated_hashes": {
+    "22": {
+      "layers": [
+        "f1d71d214b29260dcf0d6aef45e0c74de91abecd468740239529c8f804590286",
+        "ee1c1c3c3bb876dc341f228862f8d5f0c7a43855922a8f005a7db5c7638470a8",
+        "1e5c143dfcbffabc1887642c75410d0dda695e76af007c729bd0263e4b5614b4",
+        "6605c7301692dd5eecd2f998704ccbf9259dffca1c263d7fcb7f2179f5a87940"
+      ],
+      "data": {
+        "x": "c2373de8694c122ad6d813b70c56912a07653321790ae65a7f9e5d718614727d",
+        "y": "ecd9d34e5db936cd29c76fee4d41f0a1ac20fd9285236a01bc2dac68260f8811",
+        "target": "54687305981808a52339f5d1189985777687675234e06cd7a6f833466623e660"
+      },
+      "layer_singular_values": [
+        [
+          2.9882395397595887,
+          2.5753962260076655,
+          2.194929533208999,
+          1.6063628563447585
+        ],
+        [
+          1.4519918730809636,
+          1.3882030847186368,
+          1.2778951545113961,
+          1.2232847585994064,
+          1.1947182785466817,
+          1.1224199651225863,
+          1.032700154268391,
+          0.9566525934966794,
+          0.9456836188491904,
+          0.8609027231456058,
+          0.8376727927433989,
+          0.7981598179646235,
+          0.7617429809155402,
+          0.7386356073715867,
+          0.6880827327217405,
+          0.6618676925664992,
+          0.622722797229449,
+          0.6062265694690495,
+          0.5388086105778745,
+          0.4982022214594796,
+          0.4750507721200971,
+          0.4263971144185468,
+          0.374311785267699,
+          0.3384877686940629,
+          0.3126503065003656,
+          0.278976923963974,
+          0.23869171486896126,
+          0.1812746170627683,
+          0.17222755970532758,
+          0.14138393297718418,
+          0.09618814991263012,
+          0.04289479724966541
+        ],
+        [
+          1.5701385144668119,
+          1.398873235659587,
+          1.3418369641287196,
+          1.253551015036748,
+          1.1837765463430625,
+          1.1614960646182655,
+          1.1457393863574008,
+          0.9853809815505666,
+          0.9530877222052196,
+          0.9398815506155593,
+          0.8869331692110716,
+          0.8475653997468077,
+          0.759705304671374,
+          0.7276915656120697,
+          0.6873377501885398,
+          0.6286855535700618,
+          0.5874822483877392,
+          0.5655260331754985,
+          0.5272708816653844,
+          0.49605876428613005,
+          0.4592313347881953,
+          0.4264427148868745,
+          0.347307516800156,
+          0.3070827572066482,
+          0.28817749686229255,
+          0.26964771327537934,
+          0.2313165161045602,
+          0.16252128126728327,
+          0.13810679086572342,
+          0.09200590869487879,
+          0.04638397777788558,
+          0.002337371699100908
+        ],
+        [
+          0.9595602991803945,
+          0.8687066793417534,
+          0.7307885903627307,
+          0.5749306750627038
+        ]
+      ],
+      "target_singular_values": [
+        1.0000000000000002,
+        1.0000000000000002,
+        1.0,
+        0.9999999999999996
+      ]
+    }
+  },
+  "old_input_pins": {
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/analysis/analysis.py": {
+      "sha256": "8fc7b36c90c1b57633d56466c8aa842896006c776f47823af761d653425230d2",
+      "mtime_ns": 1791379483045086757
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/analysis/raw_summary.json": {
+      "sha256": "af16a2f6036d420efbb3194739dcc01e349382f6b10430b9c6a60ce398faccb6",
+      "mtime_ns": 1791379408819513562
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/analysis/summary.json": {
+      "sha256": "41096077deac0617c2f1d2961c67c095ff7b4f6955c1ad2f7964282dd3016f43",
+      "mtime_ns": 1791379483507463325
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/executed/run_experiment.py": {
+      "sha256": "7c6c0fea024cb5e42cd2ddf77ccd41503cefc88f68894af6ffa5f7ec6adfe2d4",
+      "mtime_ns": 1791379407248273077
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/executed_manifest.json": {
+      "sha256": "795cff26cca1e356264801dc0ecab357b251faba58a871af34b72ced2f76dc5a",
+      "mtime_ns": 1791379407559412986
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/preregistration.json": {
+      "sha256": "8c4b5e6e3b9d079f7118b3b30aa2f7c535d777518d5b071ab415e1cf6bae04ee",
+      "mtime_ns": 1791379359848188123
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L1_s11.json": {
+      "sha256": "3895ffe20a5608a1a0ce76f40097b40be9054a51338dac3e226709e182aabbf4",
+      "mtime_ns": 1791379407587649834
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L1_s11.npz": {
+      "sha256": "66482a7efc46dd20a9d9472512d1a581a43f6265b5be4664ef0e0e416585b949",
+      "mtime_ns": 1791379407579293825
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L1_s22.json": {
+      "sha256": "b094bd543e18edc2bcb80320704014a8e11e93b59c0da789308f44e7c5200c86",
+      "mtime_ns": 1791379407615326101
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L1_s22.npz": {
+      "sha256": "5d6e01ce6f269944796a10a53052b9a812e1e585f5f8a737d5624a82fed8d0dd",
+      "mtime_ns": 1791379407607304549
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L1_s33.json": {
+      "sha256": "fbc6f9b729de4e290d84b0b0cc7672885eed466a3226f50a91a746e86059d81a",
+      "mtime_ns": 1791379407642531870
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L1_s33.npz": {
+      "sha256": "563ad4eec7620e1fb5627d559bf6b31e36bbd9fdaf50285cfd5844d8a46e0017",
+      "mtime_ns": 1791379407634600526
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L2_s11.json": {
+      "sha256": "ee52c52830692db083bad03d2f44973ab434e92a27c22744a83fbf09e5961497",
+      "mtime_ns": 1791379407705093042
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L2_s11.npz": {
+      "sha256": "ba485b9a16274421af06b19aec6d69a0180370e715f8a982eda7d00a1fdd88b0",
+      "mtime_ns": 1791379407696907116
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L2_s22.json": {
+      "sha256": "834fbd764158f01740c02e19217c86bf440570f459348076d9046a4a4783727b",
+      "mtime_ns": 1791379407767393340
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L2_s22.npz": {
+      "sha256": "94294ffef21062173ade09a46d2a704e10b095ef45702427bd3ee39cbf652344",
+      "mtime_ns": 1791379407759032665
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L2_s33.json": {
+      "sha256": "95be77a9ea4bc1bd9d7a123e087dd79ca05ae7e73e90bcdc04b8974919eb48fa",
+      "mtime_ns": 1791379407829207265
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L2_s33.npz": {
+      "sha256": "17d6accdd39cc9ebe8889c9f75cfbd6cead9769db51b050466544644281087ab",
+      "mtime_ns": 1791379407821260755
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L4_s11.json": {
+      "sha256": "77d901f1486420f1175eb47ec996981d71626186512643bc418a64832632a545",
+      "mtime_ns": 1791379407943080820
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L4_s11.npz": {
+      "sha256": "d5e2668b651f0967886d4a4fd226c35adab4fa2b151bab750764d3148611cd5f",
+      "mtime_ns": 1791379407934350313
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L4_s22.json": {
+      "sha256": "22d8442c112b69f504f515e70cc079592b5ddd3d8534b5e21c9968ce76995bb9",
+      "mtime_ns": 1791379408057913705
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L4_s22.npz": {
+      "sha256": "d0e941582cba3aab63b494399a10fc7590f0deb413b8c1e441a7cb6a42d023ce",
+      "mtime_ns": 1791379408048594991
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L4_s33.json": {
+      "sha256": "150525ee8083c26402fed29998cfec4a0bcc8975b000d0737c55bf59cc8e81d9",
+      "mtime_ns": 1791379408171700260
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L4_s33.npz": {
+      "sha256": "5fe9fd537db7de8789b4d82fd6696a44a4dab9b6525b8bd4c9b251c692260800",
+      "mtime_ns": 1791379408163397293
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L8_s11.json": {
+      "sha256": "aa71ac5e02e2bfb1bd70ee452efad312af0d3c2d187044cd667b3a5439835174",
+      "mtime_ns": 1791379408385399633
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L8_s11.npz": {
+      "sha256": "d9cda437b3dccc01445f85bbb0f95d0bd7775579af7a8e1844dbc36f825e1ae0",
+      "mtime_ns": 1791379408377221290
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L8_s22.json": {
+      "sha256": "95804bc046ff2bc3fc881616470dc72ea018f3bdc3b220807fdade17d9c561db",
+      "mtime_ns": 1791379408601739788
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L8_s22.npz": {
+      "sha256": "a550c2e93cb8ed48fdb8616de203142b228828da62d5e14c9bbd391e24ddd996",
+      "mtime_ns": 1791379408592538990
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L8_s33.json": {
+      "sha256": "750a3aadce832df5ed5374a3d60786f4333b226e60935c70b5daaf8ff5aed4b6",
+      "mtime_ns": 1791379408819162771
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L8_s33.npz": {
+      "sha256": "22fd1581483dac3fe9215ca9ef187b5a84d39b6d4b79506801a426718d8d1c6e",
+      "mtime_ns": 1791379408809926391
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/analysis.py": {
+      "sha256": "b769c623f407a7d366d5018c98c193c5ad45b695e5ea36f849f12ea3fcd4408d",
+      "mtime_ns": 1791380907269181670
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/executed/execution_audit.json": {
+      "sha256": "035c9fa409e209a51955f804b57b94119a5394521f13e106ac89ec068f12b257",
+      "mtime_ns": 1791381625547802853
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/executed/final_commit_verification.json": {
+      "sha256": "0c948ed998496f91574d26a585c760c8b6989e92841ba8a089bb8882dc7e0913",
+      "mtime_ns": 1791381697425878054
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/executed/independent_verification.json": {
+      "sha256": "ed25027e83283c11db935c596fff317ebddb28b4b3cc12c5fb5ad265d9e0ab91",
+      "mtime_ns": 1791381156428122204
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/executed/recovery_verification.json": {
+      "sha256": "3069fd05ac8229eda0b626cdff5a9da3a005c721634f65b443a54be503a255d6",
+      "mtime_ns": 1791381187748266904
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/executed/run_experiment.py": {
+      "sha256": "373d295b433342965146cb1863fafa7c307fd25d17a343d9231ea0cc97d4b0e3",
+      "mtime_ns": 1791380907270501554
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/executed/verify.py": {
+      "sha256": "5aa7d50b26a1dc5c46afa2da6b4a6808d4625687b72cbffac84a64f1c00e6eb0",
+      "mtime_ns": 1791381155868386394
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/fits/L4_s11_eta00125.json": {
+      "sha256": "71586583e45965841b4d761e537b06fb34798538035b315076abdf21df3926cc",
+      "mtime_ns": 1791381060812618977
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/fits/L4_s11_eta005.json": {
+      "sha256": "6a057b5c07417deaaccce2740de38e03fac2b2f53205e95ce29212c66340d754",
+      "mtime_ns": 1791381060621240891
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/fits/L4_s11_eta020.json": {
+      "sha256": "eb8685fff6d58289f094cfed37394ca8ba414a0d820d884159b84e6b475dd759",
+      "mtime_ns": 1791381060580636000
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/fits/L4_s22_eta00125.json": {
+      "sha256": "0853943ac2a774e349b118f07f7aed1311b4173872cd9330e4ea8497610fa26a",
+      "mtime_ns": 1791381060934909111
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/fits/L4_s22_eta005.json": {
+      "sha256": "65e610fc3a71efbb337a8d9cc932b3336b3a9b602440a16c00c6395ef4799ee1",
+      "mtime_ns": 1791381060657180543
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/fits/L4_s22_eta020.json": {
+      "sha256": "d53d9b0286235fea7941c2d1d357c012c3b1a70f2c0fb8c725d306840353e702",
+      "mtime_ns": 1791381060580979794
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/fits/L4_s33_eta00125.json": {
+      "sha256": "a062496d7102dc8da79ad30a9fcb2349cbcd4e6c0160465737175c35c74cf848",
+      "mtime_ns": 1791381061055675026
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/fits/L4_s33_eta005.json": {
+      "sha256": "28f6b4cf439d31fb6485207fe7b3846beee20d12b78a5a40f07a6b44fe7d2131",
+      "mtime_ns": 1791381060690924347
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/fits/L4_s33_eta020.json": {
+      "sha256": "4888ac53eab41cca207a3a1d53ef712254cf495ee1f2e11df634070a23617dcf",
+      "mtime_ns": 1791381060581269171
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/preregistration.json": {
+      "sha256": "a653029833378fe8b55e753e1f323ea4b3a203f513962f8a1802254839d92e9e",
+      "mtime_ns": 1791380997649068492
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/results/L4_s11_eta00125.json": {
+      "sha256": "18856d196b86612bafe73fb547fa71c5eae5e73bd8ccaf0c219c3c70cdcce0f3",
+      "mtime_ns": 1791381044521534811
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/results/L4_s11_eta00125.npz": {
+      "sha256": "cc68834dcbae0f6da822d49e9ea997b7ddf55a4d98ee04f2a66bc69ce5039665",
+      "mtime_ns": 1791381044520927015
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/results/L4_s11_eta005.json": {
+      "sha256": "7fd9b3b97ba86599563f3c16a9681f35dc392343bf573d421e531857696501e7",
+      "mtime_ns": 1791381041904388557
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/results/L4_s11_eta005.npz": {
+      "sha256": "0f39a200907390d07428939b012f162b1a198c5816ad8354aa18bbe7fc57cae4",
+      "mtime_ns": 1791381041903667511
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/results/L4_s22_eta00125.json": {
+      "sha256": "eba8c9eac365821e3229d8f464e42f11246226a00576b976fc2fee9befaaea96",
+      "mtime_ns": 1791381046270471132
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/results/L4_s22_eta00125.npz": {
+      "sha256": "d35a2f7631087c741626cb9e309d59ba28e8de81d18c352a2cb40f011752efde",
+      "mtime_ns": 1791381046269916629
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/results/L4_s22_eta005.json": {
+      "sha256": "88c1d8571c012a97f05b6dc2d92c50295f456aee3db9a2baaa5e2ee1086f2d57",
+      "mtime_ns": 1791381042339274111
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/results/L4_s22_eta005.npz": {
+      "sha256": "6946fe5519b87c124012d21205724ca43202ed1324987d82ac2390f25151232f",
+      "mtime_ns": 1791381042338700857
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/results/L4_s33_eta00125.json": {
+      "sha256": "bf241b4deb4721fdb92310ff878382f10a206511a87f27659c16a546751ff5f4",
+      "mtime_ns": 1791381048006550037
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/results/L4_s33_eta00125.npz": {
+      "sha256": "0976d66ed561fb03f22e685a41e92f1378d2b0830f8edb95158711d75745d214",
+      "mtime_ns": 1791381048005914783
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/results/L4_s33_eta005.json": {
+      "sha256": "6e23fb78fb3abd2731c9a07601900f2a3799cbe66fcea04a650dff90982b69cd",
+      "mtime_ns": 1791381042777360729
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/results/L4_s33_eta005.npz": {
+      "sha256": "448bb586a77d724b44a694fba363f1e9454481b4fd28652c6f738a33d574ff68",
+      "mtime_ns": 1791381042774082374
+    },
+    "directions/D13_linear_flow_world/studies/r101_lr_protocol_offset/summary.json": {
+      "sha256": "ab809eaba794ff2de5fb148862042bdbe4d6ff903b5dc4cff0b4d3a95b2ad5d2",
+      "mtime_ns": 1791381187716637001
+    }
+  },
+  "state_guard": {
+    "round": 102,
+    "directions_rounds_done": {
+      "D1_u_effective_time": 7,
+      "D2_overfitting_u_curve": 7,
+      "D3_capacity_resolution": 7,
+      "D4_sigmoid_training_curve": 7,
+      "D5_ln_geometry": 6,
+      "D6_kernel_drift": 6,
+      "D7_train_gain_test_harm": 6,
+      "D8_activation_pathway": 6,
+      "D9_minibatch_noise": 7,
+      "D10_depth_propagation": 7,
+      "D11_width_scaling": 7,
+      "D12_cascade_sigmoid": 6,
+      "D13_linear_flow_world": 2
+    }
+  },
+  "preservation": "结果/回执/fit/summary exclusive create；恢复先核对freeze/合同/hash，未知或孤立文件拒绝；全部旧study hash+mtime固定。",
+  "boundary": "仅无skip L4,width32,n128,d4,正交目标,sigma.8,seed22,float64,全批量GD,无动量衰减,J=4*MSE,tau<=60。单个初始化离散eta配对不外推seed总体、其他sigma/width/谱/目标/optimizer/泛化、无限梯度流或d_eff；local fit非全局最优，粗B零变化非真峰收敛。",
+  "prior_audit": {
+    "scientific_closeout": "d5dc2f6375b7d3b5e840c07d406b541d9f98d99b",
+    "git_blob_count": 34,
+    "old_file_count": 30,
+    "r101_success_file_count": 21,
+    "status": "passed",
+    "note": "读入回执并独立核验git blob与hashmtime；state旧blob匹配但当前由supervisor推进102，非本轮修改旧回执。独立只读审查重算72checkpoint/12更新及已有拟合误差。"
+  },
+  "implementation_notes": [
+    "已有报告符合骨架，无重排commit；无inbox。",
+    "源码草稿两次引号转义在shell执行前静态失败，无生成/训练/拟合；修改完静态编译后冻结。",
+    "git add -A按要求包括已有supervisor日志/状态/round目录；没有修改其他方向。",
+    "旧tc文字>=1与实现>=0偏差及matmul告警根因未定均保留。"
+  ],
+  "compute_budget": "本机CPU单线程、小矩阵；训练+拟合<1200秒，不用网络/GPU/外部solver或模型评测。SciPy least_squares仅拟合本地保存曲线。",
+  "source_sha256": {
+    "executed/run_experiment.py": "672ced88c3fc0c0b45106515aa5fcd0e0fb376a1c96a150c442b8e554049f59a",
+    "analysis.py": "fbb2abd9a03f48519f195c987d009e34b96a2b944bee4f8081c215094cf46222",
+    "executed/verify.py": "04790e9ea673e3f93870c20b1d5d351b61a6515d78120c5adc53015111af4c22"
+  }
+}

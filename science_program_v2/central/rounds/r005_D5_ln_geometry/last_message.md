@@ -1,0 +1,1 @@
+ROUND_RESULT: failed | 预注册与收尾 commit 均因 `.git/index.lock` 写权限被拒，未启动训练，保存 0/120 cell，Gram 条件数与 chord 预测未评估。

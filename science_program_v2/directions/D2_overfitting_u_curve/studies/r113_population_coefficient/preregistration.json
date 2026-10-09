@@ -1,0 +1,640 @@
+{
+  "study": "r113_population_coefficient",
+  "round": 113,
+  "direction_round": 9,
+  "direction": "D2_overfitting_u_curve",
+  "domain": "development",
+  "created_at": "2026-10-08T11:27:55.529611+00:00",
+  "question": "相同 n/sigma²=128,256 格点下，共享 population 标签归一化能否使 n32/64 的固定幂次1起点比例系数极差至少减半？",
+  "data_contract": {
+    "input": "d4 antithetic Gaussian",
+    "target": "x0+0.5*x0*x1",
+    "width": 128,
+    "hidden": "frozen ReLU scale .03",
+    "features": "原 train 居中、总RMS归一化、含bias",
+    "labels": [
+      "原train mean/RMS",
+      "population mean0/RMSsqrt1.25"
+    ],
+    "head": "zero initialization",
+    "dtype": "float64",
+    "audit_rows": 2048,
+    "optimizer": "full-batch GD eta=.3/mom0/nodecay squared loss",
+    "grid": "integer 0..16384",
+    "intervention": "每个 n/seed 内只改标签 mean/RMS；噪声方差用共同 x=n/sigma²=128,256格点，跨 n 原始输入不同",
+    "no_training": true,
+    "no_rng": true
+  },
+  "cells": [
+    {
+      "label": "sample_n32_seed411_x128",
+      "normalization": "sample",
+      "n": 32,
+      "seed": 411,
+      "x": 128,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed411_var0.25.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed411_var0.25.npz"
+    },
+    {
+      "label": "sample_n32_seed411_x256",
+      "normalization": "sample",
+      "n": 32,
+      "seed": 411,
+      "x": 256,
+      "noise_variance": 0.125,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed411_var0.25.npz",
+      "saved_same_noise_source": null
+    },
+    {
+      "label": "sample_n32_seed412_x128",
+      "normalization": "sample",
+      "n": 32,
+      "seed": 412,
+      "x": 128,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed412_var0.25.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed412_var0.25.npz"
+    },
+    {
+      "label": "sample_n32_seed412_x256",
+      "normalization": "sample",
+      "n": 32,
+      "seed": 412,
+      "x": 256,
+      "noise_variance": 0.125,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed412_var0.25.npz",
+      "saved_same_noise_source": null
+    },
+    {
+      "label": "sample_n32_seed413_x128",
+      "normalization": "sample",
+      "n": 32,
+      "seed": 413,
+      "x": 128,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed413_var0.25.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed413_var0.25.npz"
+    },
+    {
+      "label": "sample_n32_seed413_x256",
+      "normalization": "sample",
+      "n": 32,
+      "seed": 413,
+      "x": 256,
+      "noise_variance": 0.125,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed413_var0.25.npz",
+      "saved_same_noise_source": null
+    },
+    {
+      "label": "sample_n32_seed414_x128",
+      "normalization": "sample",
+      "n": 32,
+      "seed": 414,
+      "x": 128,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed414_var0.25.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed414_var0.25.npz"
+    },
+    {
+      "label": "sample_n32_seed414_x256",
+      "normalization": "sample",
+      "n": 32,
+      "seed": 414,
+      "x": 256,
+      "noise_variance": 0.125,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed414_var0.25.npz",
+      "saved_same_noise_source": null
+    },
+    {
+      "label": "sample_n64_seed411_x128",
+      "normalization": "sample",
+      "n": 64,
+      "seed": 411,
+      "x": 128,
+      "noise_variance": 0.5,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed411_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed411_var0.5.npz"
+    },
+    {
+      "label": "sample_n64_seed411_x256",
+      "normalization": "sample",
+      "n": 64,
+      "seed": 411,
+      "x": 256,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed411_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed411_var0.25.npz"
+    },
+    {
+      "label": "sample_n64_seed412_x128",
+      "normalization": "sample",
+      "n": 64,
+      "seed": 412,
+      "x": 128,
+      "noise_variance": 0.5,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed412_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed412_var0.5.npz"
+    },
+    {
+      "label": "sample_n64_seed412_x256",
+      "normalization": "sample",
+      "n": 64,
+      "seed": 412,
+      "x": 256,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed412_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed412_var0.25.npz"
+    },
+    {
+      "label": "sample_n64_seed413_x128",
+      "normalization": "sample",
+      "n": 64,
+      "seed": 413,
+      "x": 128,
+      "noise_variance": 0.5,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed413_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed413_var0.5.npz"
+    },
+    {
+      "label": "sample_n64_seed413_x256",
+      "normalization": "sample",
+      "n": 64,
+      "seed": 413,
+      "x": 256,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed413_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed413_var0.25.npz"
+    },
+    {
+      "label": "sample_n64_seed414_x128",
+      "normalization": "sample",
+      "n": 64,
+      "seed": 414,
+      "x": 128,
+      "noise_variance": 0.5,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed414_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed414_var0.5.npz"
+    },
+    {
+      "label": "sample_n64_seed414_x256",
+      "normalization": "sample",
+      "n": 64,
+      "seed": 414,
+      "x": 256,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed414_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed414_var0.25.npz"
+    },
+    {
+      "label": "population_n32_seed411_x128",
+      "normalization": "population",
+      "n": 32,
+      "seed": 411,
+      "x": 128,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed411_var0.25.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed411_var0.25.npz"
+    },
+    {
+      "label": "population_n32_seed411_x256",
+      "normalization": "population",
+      "n": 32,
+      "seed": 411,
+      "x": 256,
+      "noise_variance": 0.125,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed411_var0.25.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed411_var0.125.npz"
+    },
+    {
+      "label": "population_n32_seed412_x128",
+      "normalization": "population",
+      "n": 32,
+      "seed": 412,
+      "x": 128,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed412_var0.25.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed412_var0.25.npz"
+    },
+    {
+      "label": "population_n32_seed412_x256",
+      "normalization": "population",
+      "n": 32,
+      "seed": 412,
+      "x": 256,
+      "noise_variance": 0.125,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed412_var0.25.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed412_var0.125.npz"
+    },
+    {
+      "label": "population_n32_seed413_x128",
+      "normalization": "population",
+      "n": 32,
+      "seed": 413,
+      "x": 128,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed413_var0.25.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed413_var0.25.npz"
+    },
+    {
+      "label": "population_n32_seed413_x256",
+      "normalization": "population",
+      "n": 32,
+      "seed": 413,
+      "x": 256,
+      "noise_variance": 0.125,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed413_var0.25.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed413_var0.125.npz"
+    },
+    {
+      "label": "population_n32_seed414_x128",
+      "normalization": "population",
+      "n": 32,
+      "seed": 414,
+      "x": 128,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed414_var0.25.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed414_var0.25.npz"
+    },
+    {
+      "label": "population_n32_seed414_x256",
+      "normalization": "population",
+      "n": 32,
+      "seed": 414,
+      "x": 256,
+      "noise_variance": 0.125,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed414_var0.25.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed414_var0.125.npz"
+    },
+    {
+      "label": "population_n64_seed411_x128",
+      "normalization": "population",
+      "n": 64,
+      "seed": 411,
+      "x": 128,
+      "noise_variance": 0.5,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed411_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed411_var0.5.npz"
+    },
+    {
+      "label": "population_n64_seed411_x256",
+      "normalization": "population",
+      "n": 64,
+      "seed": 411,
+      "x": 256,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed411_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n64_seed411_var0.25.npz"
+    },
+    {
+      "label": "population_n64_seed412_x128",
+      "normalization": "population",
+      "n": 64,
+      "seed": 412,
+      "x": 128,
+      "noise_variance": 0.5,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed412_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed412_var0.5.npz"
+    },
+    {
+      "label": "population_n64_seed412_x256",
+      "normalization": "population",
+      "n": 64,
+      "seed": 412,
+      "x": 256,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed412_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n64_seed412_var0.25.npz"
+    },
+    {
+      "label": "population_n64_seed413_x128",
+      "normalization": "population",
+      "n": 64,
+      "seed": 413,
+      "x": 128,
+      "noise_variance": 0.5,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed413_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed413_var0.5.npz"
+    },
+    {
+      "label": "population_n64_seed413_x256",
+      "normalization": "population",
+      "n": 64,
+      "seed": 413,
+      "x": 256,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed413_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n64_seed413_var0.25.npz"
+    },
+    {
+      "label": "population_n64_seed414_x128",
+      "normalization": "population",
+      "n": 64,
+      "seed": 414,
+      "x": 128,
+      "noise_variance": 0.5,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed414_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed414_var0.5.npz"
+    },
+    {
+      "label": "population_n64_seed414_x256",
+      "normalization": "population",
+      "n": 64,
+      "seed": 414,
+      "x": 256,
+      "noise_variance": 0.25,
+      "source": "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed414_var0.5.npz",
+      "saved_same_noise_source": "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n64_seed414_var0.25.npz"
+    }
+  ],
+  "seeds": [
+    411,
+    412,
+    413,
+    414
+  ],
+  "registered_definition": {
+    "x": "n/sigma²",
+    "point_coefficient": "k=eta*t_star/x",
+    "n_coefficient": "c_n=eta*sum_over_seed_and_x(x*t_star)/sum_over_seed_and_x(x²); fixed exponent1, zero intercept, equal cell weight",
+    "spread": "D_norm=abs(c64-c32), raw coefficient range; not normalized/log spread",
+    "P1": "supported iff D_sample>0, 0<=D_population/D_sample<=.5, all32 first global minima internal; otherwise refuted",
+    "predicted_interval": [
+      0,
+      0.5
+    ],
+    "units": "U=eta*t, c has U/(n/sigma²) units"
+  },
+  "prediction_provenance": {
+    "blind": false,
+    "sealed_ood": false,
+    "known_population_tstar_x128": {
+      "n32": [
+        144,
+        184,
+        129,
+        62
+      ],
+      "n64": [
+        152,
+        185,
+        141,
+        201
+      ]
+    },
+    "known_population_tstar_x256": {
+      "n32": [
+        331,
+        313,
+        230,
+        87
+      ],
+      "n64": [
+        278,
+        383,
+        212,
+        324
+      ]
+    },
+    "coordinator_posthoc_already_seen": {
+      "identity_max_error": 0.0,
+      "concentration": {
+        "411": {
+          "ns": [
+            32,
+            64,
+            128
+          ],
+          "devN": [
+            0.47155118659082296,
+            0.3934368686819141
+          ],
+          "devB": [
+            0.6678528825761103,
+            0.5824896054827458
+          ]
+        },
+        "412": {
+          "ns": [
+            32,
+            64,
+            128
+          ],
+          "devN": [
+            0.23553353964959403,
+            0.08144156138833039
+          ],
+          "devB": [
+            0.3693547077187603,
+            0.40031259551290044
+          ]
+        },
+        "413": {
+          "ns": [
+            32,
+            64,
+            128
+          ],
+          "devN": [
+            0.2144157049724341,
+            0.2875605925866021
+          ],
+          "devB": [
+            0.6534235550014315,
+            0.48217479141164404
+          ]
+        },
+        "414": {
+          "ns": [
+            32,
+            64,
+            128
+          ],
+          "devN": [
+            0.38679012880007996,
+            0.27631476052984205
+          ],
+          "devB": [
+            0.6828463041730553,
+            0.6042884309337216
+          ]
+        }
+      },
+      "scatter": {
+        "sample_all4": 0.788704527263026,
+        "population_all4": 0.4777503735570412,
+        "sample_ex414": 0.5543216709074764,
+        "population_ex414": 0.07138203781203722,
+        "ratios": {
+          "sample": {
+            "411": 0.5,
+            "412": 1.0919540229885059,
+            "413": 0.6896551724137931,
+            "414": 2.8125
+          },
+          "population": {
+            "411": 1.0555555555555556,
+            "412": 1.0054347826086956,
+            "413": 1.0930232558139534,
+            "414": 3.2419354838709675
+          }
+        }
+      },
+      "global_fit": {
+        "a": -1.3701307014479611,
+        "b": 1.0262176975951143,
+        "C": 0.2540737495755931,
+        "within2": 58,
+        "ncells": 60,
+        "max_factor": 2.2256448134004656
+      },
+      "n_cells": 79,
+      "label": "coordinator zero-training post-hoc (development), 2026-10-08"
+    },
+    "disclosure": "所有population最低点已保存且已见；coordinator绝对log2配对散布已见。新定义固定幂次1系数未先计算；sample n32 sigma²=.125未先组合。本轮是注册定义下development检验，不是盲预测。"
+  },
+  "diagnostics": {
+    "window": [
+      64,
+      4096
+    ],
+    "curves": [
+      "M=n*variance_unit",
+      "B=signal_bias",
+      "delta_M",
+      "delta_B"
+    ],
+    "deviation": "maxabs(curve64-curve32)/maxabs(curve32) in fixed inclusive window; differences indexed by left step",
+    "role": "辅助解释P1；不增加第二主问题、不调阈值、不登记已知风险递推为发现"
+  },
+  "counts": {
+    "evaluation_cells": 32,
+    "new_noise_grid_cells": 4,
+    "saved_noise_grid_recalculations": 28,
+    "training_cells": 0,
+    "underlying_draws": 8,
+    "normalizations": 2,
+    "x_grid": 2,
+    "seeds_per_n": 4
+  },
+  "compute_budget_seconds": 1200,
+  "resume": "固定唯一commit，首cell独立核验gate后续跑；成功cell不覆盖，来源全hash与旧文件集合/hashmtime核验；analysis和验证输出write-once。",
+  "input_sha256": {
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/preregistration.json": "fdb393b27054d523a475d1fb390bb24c8b2b2cb83bf68e3a96095ddd11909b76",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/run.py": "15c95cb013ca76fbbca1b5b3f11ed9caf0a058dc865de006148f69977547cbad",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/analysis.py": "28629c916d9b3d8a73f0ac964ff8c82c1c6e8a36f1392b5456c849785d1b3728",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/summary.json": "d97afab5bc29776a2dc2028ceee8f8c92b2b36a6322c736e550b11a8e60bf180",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/receipt.json": "dcb30e9bcdd7020f685043fa02274befb037193d64716f9f25d4314b6101f7bf",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed411_var0.25.npz": "c003527c4bf66839560ba238289df7a197d4cddc9683ee3b4506e0afc69b2632",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed411_var0.25.json": "f2a82926109e3e067ed8b9adbb3dd49a8486fe48598b3508a85e761587a4c89f",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed411.npz": "09c330d7e3a7c3c5070eb130ed0cf64905fffe8e2c482eebdb80e3f8a0dd50e8",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed411.json": "b9cd0ac53f76a22d1026f83d8b66d16bab93c444416f2fe758a67cd23d0d30f0",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed412_var0.25.npz": "77b7c91faf3cd8b01020252ff9ac50bf2f0ada1e2c08ca70e00cb9bd4403fb57",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed412_var0.25.json": "3758f7ee5678c101cabd87df2833a49fecdffb325cb45101c0203da48cd0b255",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed412.npz": "50a3919f4f4f59152c3f1a400c2a8f26b7ed39d24c42467ab0382dfe3de8d666",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed412.json": "f27982ed684437cbbf53c9bd71a0e33e947929042a2e843464082f70c7ecf38f",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed413_var0.25.npz": "56cb688d5af151e4c05c4f1b9e41a675412572e1efdf372c7ee5b29cf6fc3773",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed413_var0.25.json": "1f2911f82357d7764d9a6418d09795dc3dbb9d25ee85f8979e1bc882853ee81f",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed413.npz": "674158eb9c084d49c89fbfca97d6d7c7e7a9f1d653b4803f958c5374eff2f690",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed413.json": "f39637de89d17e82e5ff17707787b3634f1abf434af8cf30420a6e6a96f8b907",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed414_var0.25.npz": "7877ade02cb0ff11ba9204093984df9b8306d6ffc8b9d7fde59ef3bcb9329d29",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed414_var0.25.json": "a5768b5434c774d0c4b2bc37e931926e7f15a657dcdee2ff3a7bc54ab8542f43",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed414.npz": "520e140dccbbfc2d841d5615c6c5828b6c5f3deb3ee9525be3b1d2bc390ba17b",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed414.json": "575c4f2e8336e2d8798c501746aa01b5a525fe6d47aba0b093916fb40e333bc1",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed411_var0.5.npz": "06190d36ccfab1d6bb68f411747888b55aeb7028d5ddd8f6130a25d8e65eed8c",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed411_var0.5.json": "7347420c5de7b42fbbf406f3db9d670a8a0575c50c3b488e5688023b698d8bc9",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed411.npz": "fb8397ea38970429c4c81a7eb7aae6e92da3952b817283fcafb848bbacb97992",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed411.json": "04902a5f4b744d25aec57954792af1c04bc9eaef1a3c8a2a42c420469293d044",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed411_var0.25.npz": "27ac95d466d837bf8b874aca6af5bd4db4d8ff1832541e6a95cf119381d80ab3",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed411_var0.25.json": "ece843de1fbbbea950f1db5b9783b66ce3f35d8c6e7d1252e047069392860a45",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed412_var0.5.npz": "21a19804d433248660d225873204481a715a0aed909db90fe1f74081e2c71657",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed412_var0.5.json": "fbe8b7c7ee68d8b5455b2536fb50e5c010c47f79399049e097cb397bcd0a1209",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed412.npz": "9be7a247f0532d43d22ab807d67da344c839cc644ba2c44043b1f79bcfbc1ddf",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed412.json": "ea82a86707b3bd3536bc4dcf104c7fdbfb7e0d8a7a8c884f824d158f9570e582",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed412_var0.25.npz": "7726ebe8e1d015a19acf9dd6fd3b6c4574cc722673cd577142a69053322ad504",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed412_var0.25.json": "cbc7e5bebf1dde1b05c5c6b897cf51699eaeadfcf867159f4b412173a9c7f7d0",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed413_var0.5.npz": "a6333c08c806dc1a732815c89d3bcc7cac9fec3a1c0777bbec9fe2da4f7a3da6",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed413_var0.5.json": "c4017b1cbb30a326ea0c7ce6ce82efb250c44613afaf3417efe35498dab82656",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed413.npz": "ed7b7b3612d9f0121c14478702fc2c2ca96a6bf6506f6a26429cb5daccda79f1",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed413.json": "ec8e47bb854cf272fb877d329e110da4304135f48ef82b566dc18e78d7f0f90b",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed413_var0.25.npz": "64356f5117ab50e39c338198c1acd1403c9784baae492b654f6d8fa6d6aaac69",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed413_var0.25.json": "9b379e0bed992242de41055f34b9c0defb7a26cd478e02bd71d916398de671c8",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed414_var0.5.npz": "689b392e87415a429defe7f128a6a7f4e2de93c815cfa36a93e97633579d1dd9",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed414_var0.5.json": "7ea8b6e858b71ed76b7592079d6cb1a4b13e3bcc75552740839285161e8680a9",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed414.npz": "14ce32862ba9e73da81b27cda96acdfd94e68b691f8797ae3d4a0aa7f5103a92",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed414.json": "6922be3453b484f7a85f82f3d96b933b6c65673d7d94bce1953e2cf810413c69",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed414_var0.25.npz": "61fa24bfbea8b6bbed6adb56e87c6829ed6f4d3338986ef0302d98e3aeaf4dfd",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed414_var0.25.json": "965d436224f0120114a2e4e3c3a4ecc93c20c02fed7a704bf7dac93a8b36a9b4",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/preregistration.json": "1afdf96aea8762bb8aa1f6f1dc2bf8b2c3912d1b149369fd9e147868f4d5b493",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/run.py": "474ab07bb9b221694b8b1f2ad50172715d49f52764cf4ec85355324077717556",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/analysis.py": "6274ccf564d8c8a2d24576c12736942666e6116f0d03e981ccd9922b415c8fee",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/summary.json": "c2190cebff9228f2d13f0b5c58a3065d20ddd43ceba3d21b7eebfc06a39bc2e3",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/receipt.json": "392fd1db7d67d9ef42432770b1673c8fa053076290a97829e6b49b1b40af083b",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed411_var0.25.npz": "69918cc2c6acfc141aaf4b51b30a2adc3759ab27f228a4a8c9ee790ed368096d",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed411_var0.25.json": "fdd819822a0c75b33bdb72470275996031bae5233a9d74cb7e936cf7952e3eff",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n32_seed411.npz": "7bafb12315aac8e3a066ecab526a753801be5faa7f839ee3cb5df5ba8f1eac1c",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n32_seed411.json": "e0b2443051131d3e0f269b1a9011ffaa91f397f7ea419ec23980dc11e5782f0d",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed411_var0.125.npz": "f886fce86ad15dca94e50f5d3131d87e372659c06541a0b373032d0c9e1364bd",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed411_var0.125.json": "0e65d0da75f7a90bece54cf0dece7e37fecb2dd9a11c6b0b41f989408b828e94",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed412_var0.25.npz": "36c3011f0775f3bdeb87fd59163c1c06cf6eec19cafcad832c1c8bcfa83f8ebb",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed412_var0.25.json": "b7a6924d14560b707e49382665031b80ad8264fb4d0f0951bfd0aa23e494b05b",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n32_seed412.npz": "35ccef1c220bf2212b7d6dfa68009cbd88b1c41b574d3763097494d46ee101f4",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n32_seed412.json": "ebb4acd05468fe4004cc33f81a242ed63d1280e8f9fb2c8c9bd081fa4b8f5c2c",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed412_var0.125.npz": "b2eb83f096aea327c34e662309e0c086b7ae067ef36c57aaed3e474f4435cbf4",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed412_var0.125.json": "ea9e42a14d017b4d7b5ec057a8e725b6377d4f311865f5891c664ad6904cc91b",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed413_var0.25.npz": "e5414d8cbdebc46cdf56391e47467d964e7b64c1ac88963828707aaf603d67c0",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed413_var0.25.json": "cd09776b271723414f82e4596f450089dd4cd50b76e01ddd2b5eaf25cfc61f8d",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n32_seed413.npz": "b8fae8a9640cf5310323c655a4a9aa9c351bdebe6ab3f705e94cf11538f67dfe",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n32_seed413.json": "187da05134ff15754beb6b1989ee7d3c6a447db9adf7ea2a811dea240a677491",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed413_var0.125.npz": "807e64641ad74742a5eed5aed37ead645cc416b00ad6e2f31a3d8225f1db1591",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed413_var0.125.json": "2b81b77974446dd11ea333f4d0c410da18761b063187a789e8c90471cf52da88",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed414_var0.25.npz": "36b9e907189b43324d1d3557bc0c5bec6b9b94d39594ef070dd33f68bda8734c",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n32_seed414_var0.25.json": "b6d63a7887bd6cfa6bf85d700225df079f85d94ca75500b0b992828fe3ebb0de",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n32_seed414.npz": "d60e9bc2c4d20d36d548250df980b104db5f770bd938d60cfce3d4143f55811e",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n32_seed414.json": "5a365ad700354715bd5c2072d8735ef5205910ad439942248d02c6009454d4ce",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed414_var0.125.npz": "61f4a801ce6da38fa2e0c2fc9d9aad18e0c4c07e004222d5bf84bae6e6954caa",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n32_seed414_var0.125.json": "b5fc6f64f3ba830e854ab66b4d951eafdb49d7949da5f0bf7415947341a47bda",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed411_var0.5.npz": "cd246ff157197ec43eff7cb9cd43a4d9e5718207799509bdc3d8fe1516330f1a",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed411_var0.5.json": "02c8b4e272fd1f40675ff82e98052aa59d796b3a190e8f92a9d5b7e1a68ca42e",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n64_seed411.npz": "065be8e84090ae189e5b2ac5b6a6b822c9c18f25d87f0e672c7e60d0a521ab11",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n64_seed411.json": "7e1c8be68aa80cbe3977cb24674ccf8fdd01067ab631b1769965311993a383b5",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n64_seed411_var0.25.npz": "bb01eeb4b43c73d8276acfd32633aa7f163d9a67d50204a5f24652dae13dff27",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n64_seed411_var0.25.json": "ea37d7007e64bad73ef6722099369c4de7edd52f2b495829579151ea5927dde0",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed412_var0.5.npz": "230ba4c236a3042400e2b13ddd918762d792428b83d919f0addc45dde946df9c",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed412_var0.5.json": "b41b3eda60f67b0bb3513430d1a49c310b27b75a9b7ec3fee3e2d867b86a2cc2",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n64_seed412.npz": "00dc928fe26d2220333a71b75b89ba5ad35c972ef84043008d77241e42ad5887",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n64_seed412.json": "289cf56fd1fb901b519ab38ffc465d6d2f0ae40da197c72a4121794f09f6b562",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n64_seed412_var0.25.npz": "2151e1205a5ce53e9ffaf2a8dcfdf17403a2bbc97353233403abfd8fd64be9b7",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n64_seed412_var0.25.json": "6614128fbd888c4940053a5773ca55bd30a2b76ac75443086d12b3d3e3080ccc",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed413_var0.5.npz": "6b50cb56e8df69ac2e66de5cd0c6cd7519f22184e0101b5c92b27b32c762b4fa",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed413_var0.5.json": "ecf05fed5d26fc4c1b7f3320f1a14043fb7595922c15dd842ae890e54f623475",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n64_seed413.npz": "86c9f10bfe9de16516446259de0b2efc8daa71789a156cea00d7b1527c2cd435",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n64_seed413.json": "cd4d69385c05aec752f1e41899b1f75aa7280f57f8503cac126d04d6c91852ce",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n64_seed413_var0.25.npz": "37de692863b4d3e6c89c7fa48ce6728ecb40b0e834a3c23b9f2781749a130697",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n64_seed413_var0.25.json": "683f5865343f4fd24cb3fc434c85177faca26244c1b1100af3a960f86382769b",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed414_var0.5.npz": "901a8984fbf66d43206244dd82b7eb5100a632dacd50f8419912d1de07f9a566",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/results/n64_seed414_var0.5.json": "fdee5a65d83f918f487d4604810945bcdf6642fc8b317c164626fdc8eddd3f77",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n64_seed414.npz": "24b74e73c62501270d44062c08027121650772b3fc5088879075ac88210fb190",
+    "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/data_n64_seed414.json": "72c22a24db1126e4c12a5d62a7c1e890937b723b1a6a1ab665122c9c33fcc602",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n64_seed414_var0.25.npz": "a3b497387919e45be7a02091137976352b7dc6ed506fa246c8ed8f15f7beea3e",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/n64_seed414_var0.25.json": "6a4aab7ba22df4d400ded7a65be66ce5c11b794e64832e6836a68e866bd8c02e",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/results/receipt.json": "e50627164f51795d21c6078584fa4af1e4f3bae816192f5911164d37c5535979",
+    "directions/D2_overfitting_u_curve/studies/r051_noise_halving/preregistration.json": "e6241d739464b42413da25bac03b205c815a162e8b8b4a4c43614eece6f2e7a4",
+    "directions/D2_overfitting_u_curve/studies/integration_20261008/analysis.py": "d772157dae87d1988c618350d496bfa71bc3005b3c1c82378321e82401562b32",
+    "directions/D2_overfitting_u_curve/studies/integration_20261008/summary.json": "80fe61b9b8d2dab12716847049cd06452217972d1fec377abe64aac5bf0f5417"
+  },
+  "source_sha256": {
+    "analysis.py": "179697dbbf9e95fdeb69fd5fbd1a3e9311562638dafdb0098dea8396fa2ecf6f",
+    "executed/run.py": "f215800debe9880d984a24c24d3685a8a2809c50fede1f1d00fbdd59502f4eae",
+    "executed/plot.py": "dec616cf06d460307d0bac2c704cb1dfe9f6286070b01cea3a5a325a7fc587bd",
+    "executed/verify.py": "57759606b7d61beef82350197b66276f9dda31aed3ad75e27b187f32ddfaa7e4",
+    "executed/prior_snapshot.json": "2ec8919603bc1dbfca84dfcef6fde35dd4a2b9ca5eabf7c0106afa60623effb5"
+  },
+  "boundaries": [
+    "只测 n32/64 与 x128/256、四已选seed、冻结特征、有限整数窗口；不代表n128或其他噪声格点。",
+    "固定幂次1的c不等于旧自由指数留出拟合0.20–0.33，不比较不匹配recipe范围。",
+    "不排seed414，不把聚合系数误差当跨seed概率；逐seed符号差完整保留。",
+    "无train-only早停、连续阈值、learned hidden、mini-batch、Adam、CE、sealed OOD或谱因果外推。",
+    "即便P1通过，也只支持标签归一化干预对指定散布的影响；未独立控制谱，不能将剩余散布归因为有限n谱。"
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "study": "r040_matched_norm",
+  "round": 40,
+  "direction_round": 4,
+  "direction": "D3_capacity_resolution",
+  "created_at": "2026-10-06T20:51:09.910109+00:00",
+  "domain": "development",
+  "question": "固定n=d=9、p=2谱、L0和SGD recipe，匹配m1、m2及目标参数范数平方后，1%阈值预算是否仍分离？",
+  "data_contract": {
+    "sample_count": 9,
+    "dimension": 9,
+    "dtype": "float64",
+    "eigenvalues": "lambda_i=i^-2, i=1..9",
+    "rotation": "default_rng(seed).normal(9,9)的QR正交R；同seed固定R，仅参数坐标旋转",
+    "features": "X_ij=sqrt(n*lambda_i)*R_ji；K=XX.T/n=diag(lambda)",
+    "target": "y_i=sqrt(n*w_i)，非负；可用模态合并为1/2/3/4/9，slow使用1/3/9、fast使用2/4，其他为0",
+    "initial_parameter": "theta0=0",
+    "loss": "L=||Xtheta-y||²/(2n)，L0=.5",
+    "pairing": "同seed完全相同X/谱/参数数/trace/有效秩/eta/mom/decay；匹配L0=.5、m1=109/964、m2=19/964、m_minus1=theta_star范数平方=3076/241、g0范数平方=109/964、首步下降=417/7712；只改变目标权重。高阶矩和慢模态能量仍不同。",
+    "common_moments_note": "新的共同矩值，与r020共同7/55和1/33不同；参数范数只在L0=.5时等于m_minus1，通式为2L0*m_minus1。不得跨研究比较为控制因果差异。"
+  },
+  "optimizer": {
+    "name": "full_batch_SGD",
+    "eta": 0.5,
+    "momentum": 0,
+    "weight_decay": 0,
+    "steps": 1000,
+    "update": "theta-=eta*X.T@(Xtheta-y)/n"
+  },
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "targets": {
+    "slow_pair": [
+      "1001/123392",
+      "0",
+      "57915/61696",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "6561/123392"
+    ],
+    "fast_pair": [
+      "0",
+      "65/241",
+      "0",
+      "176/241",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  "threshold": 0.01,
+  "minimum_step_ratio": 1.9,
+  "tolerances": {
+    "matching_absolute": 1e-12,
+    "execution_absolute": 1e-10
+  },
+  "counts": {
+    "spectrum_recipes": 1,
+    "target_conditions": 2,
+    "coordinate_seeds": 3,
+    "planned_cells": 6,
+    "planned_same_seed_pairs": 3
+  },
+  "counting": "两个目标条件、一个同谱配对设计、3坐标seed，6cell/3配对；seed仅数值稳健性，不是独立数据重复，不给置信区间。",
+  "analytic_reference": {
+    "weights_selection": "v_j=lambda_j/prod_{k!=j}(lambda_j-lambda_k), positive/negative parts normalized",
+    "available_modes": [
+      1,
+      2,
+      3,
+      4,
+      9
+    ],
+    "feasibility_proof": "For <=4 distinct positive nodes, multiply each column of [1,lambda,lambda^2,1/lambda] by lambda. Reordering rows gives the full-rank Vandermonde powers 0..3. Thus no nonzero weight difference exists on <=4 usable modes; five is minimal.",
+    "normalized_loss": "sum_i w_i*(1-eta*lambda_i)^(2t)",
+    "loss_drop1": "L0*(2*eta*m1-eta²*m2)",
+    "gradient0_norm_squared": "2*L0*m1",
+    "theta_star_norm_squared": "2*L0*sum_i(w_i/lambda_i)",
+    "predicted_fast_step": 68,
+    "predicted_slow_step": 135,
+    "predicted_step_difference": 67,
+    "predicted_step_ratio": 1.9852941176470589,
+    "prediction_provenance": "Registered before training; endpoints calculated from known fixed-feature scalar spectral recurrence, not a blind discovery. Fixed modes 1/2/3/4/9; no training-results search.",
+    "other_prior_analytic_candidate_disclosure": "Independent review also reported modes1/2/3/5/9 with endpoints207/105 before registration; that candidate is not trained or used to optimize this fixed design.",
+    "theory_status": "已知谱递推与解析可行性不登记新发现；只有保存SGD验证的受控区分才登记。"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "known_theory_execution_and_matching_audit",
+      "prediction": "6cell的谱曲线、保存每步参数loss/SGD更新及插值参数范数恒等式误差<=1e-10；各阈值等于注册谱与独立eigh预测、<=1000。3配对X逐字节相同，L0/m1/m2/m_minus1/插值参数范数平方/g0范数平方/L1/首步实际下降/参数数/trace/有效秩差<=1e-12。",
+      "register_as_new_discovery": false
+    },
+    {
+      "id": "P2",
+      "kind": "controlled_separation",
+      "prediction": "三同seed配对slow/fast的1%阈值比均>=1.9。任一小于1.9或删失即refuted；匹配/执行失败时不声称匹配反例。"
+    },
+    {
+      "id": "P3",
+      "kind": "numerical_endpoint_prediction",
+      "prediction": "三坐标seed均fast_pair=68、slow_pair=135整数步；任一不等或删失即refuted。预测来自训练前已知递推，不声称盲发现；不与P2重复登记claim。"
+    }
+  ],
+  "evaluation_contract": {
+    "primary_endpoint": "首次保存整数步loss/L0<=.01，含0..1000，不插值、不改变阈值",
+    "censoring": "未达到记null/censored，不扩预算、不用1000代替真实步数，P1/P2/P3失败",
+    "paired_reporting": "逐seed差、比、匹配误差和min/max，不只均值，无CI",
+    "validity": "若P1匹配或执行核验失败，不声称匹配后的反例；保留全部失败记录",
+    "new_claim_rule": "只有保存结果；P1不是新发现，P2/P3失败也如实登记且不重复同一claim"
+  },
+  "resume_protocol": "--preregistration-commit必须是HEAD祖先；git show该commit的prereg/run/analysis/feasibility/prior audit逐字节匹配，source pin匹配后才训练；先1cell，分析核验后续跑；成功metadata/NPZ/receipt/request/pins hash先核验，任何缺文件或hash错误停止，不覆盖成功cell",
+  "analysis": "只读取保存数组，eigh复算谱/权重/矩和插值参数；从theta_history复算loss与每步更新、首次阈值；逐seed匹配误差/比/差；hash和mtime核验旧证据。",
+  "boundaries": [
+    "仅development：n=d=9、满秩固定线性特征、lambda_i=i^-2、float64、零初始化、全批量SGD eta=.5/mom0/nodecay、L0=.5、0..1000整数步、epsilon=.01。",
+    "只测固定五可用模态1/2/3/4/9；两个目标分别3/2非零模态；共同m1=109/964、m2=19/964、m_minus1=3076/241，与旧配对共同矩值不同。",
+    "目标参数范数、初始梯度与第一步实际下降配对匹配。高阶矩/慢模态能量仍共同变化，不能独立归因慢能量或高阶矩。",
+    "完整目标加权谱预测为已知线性递推；解析可行性及注册前数值预测不是新测量或盲发现。",
+    "两目标最终均可插值，预算不等于永久表示容量；不外推learned features、架构轴、泛化、空间频率分辨率或sealed OOD。",
+    "原r004/r01218cell及r0206cell只读、不重跑不覆盖；旧matmul警告根因未定及原>=10草稿非实验失败的纠正保留。新einsum不用于解释旧根因。"
+  ],
+  "compute_budget": {
+    "maximum_seconds": 1200,
+    "device": "CPU",
+    "threads": 1,
+    "network": false,
+    "planned_updates": 6000
+  },
+  "source_sha256": {
+    "executed/run.py": "c38e7f5dec95a6498be036ee5944f9f27f54d7c8ddee405cbd5521f3375ce1a8",
+    "executed/feasibility.py": "ba77c2963436b94f3d5be0d2909e243da7bdb9b1bb21f5689718eea14155632b",
+    "analysis.py": "01bde78f4e7b4fda1cc47cc15425078055e18ccb348b31c2a94b3aad968d8e9c"
+  },
+  "pretraining_status": {
+    "new_training_cells": 0,
+    "feasibility_only": true,
+    "old_24_cells_hash_verified": true,
+    "old_86_files_immutable": true
+  }
+}

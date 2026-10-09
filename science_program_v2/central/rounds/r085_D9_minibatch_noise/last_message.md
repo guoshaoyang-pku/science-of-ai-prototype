@@ -1,0 +1,1 @@
+ROUND_RESULT: partial | Completed 2/2 B4 expectation cells with zero training; minima 52/324 supported both predictions, but registered bitwise mean checks failed; evidence and verified closeout committed.

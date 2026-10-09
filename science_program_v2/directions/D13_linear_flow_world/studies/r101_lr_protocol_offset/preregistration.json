@@ -1,0 +1,586 @@
+{
+  "study_id": "r101_lr_protocol_offset",
+  "program_round": 101,
+  "direction_round": 2,
+  "domain": "development",
+  "question": "固定L4无skip链、逐seed初始权重与目标奇异值后，降低GD学习率能否消除原协议A/B的相变时间偏移？",
+  "condition_selection": "选择上一轮最大分歧的L4；非盲development条件选择，不是sealed OOD；新eta结果未生成或拟合。",
+  "generator": {
+    "depth": 4,
+    "input_dim": 4,
+    "output_dim": 4,
+    "hidden_width": 32,
+    "n": 128,
+    "target_seed": 20261007,
+    "input_seed": 20261008,
+    "init_seeds": [
+      11,
+      22,
+      33
+    ],
+    "sigma": 0.8,
+    "dtype": "float64",
+    "init": "每层独立N(0,.8²/fan_in)，每个seed跨eta矩阵逐位相同；seed间谱不相同",
+    "target": "正交4x4，Y=X@T.T，目标奇异值均为1"
+  },
+  "optimizer": {
+    "type": "CPU full-batch GD",
+    "momentum": 0,
+    "weight_decay": 0,
+    "reported_loss": "MSE=mean(err²)",
+    "optimized_loss": "J=mean_over_n(sum_over_4_outputs(err²))=4*MSE",
+    "gradient": "g=2*err/n；逐层回传，全部梯度使用更新前权重",
+    "eta_steps": [
+      [
+        0.02,
+        3000
+      ],
+      [
+        0.005,
+        12000
+      ],
+      [
+        0.00125,
+        48000
+      ]
+    ],
+    "tau": "eta*step",
+    "tau_final": 60,
+    "eta020_baseline": "只读旧保存曲线和已存A/B结果，不重训"
+  },
+  "cells": [
+    {
+      "id": "L4_s11_eta005",
+      "seed": 11,
+      "eta": 0.005,
+      "steps": 12000
+    },
+    {
+      "id": "L4_s22_eta005",
+      "seed": 22,
+      "eta": 0.005,
+      "steps": 12000
+    },
+    {
+      "id": "L4_s33_eta005",
+      "seed": 33,
+      "eta": 0.005,
+      "steps": 12000
+    },
+    {
+      "id": "L4_s11_eta00125",
+      "seed": 11,
+      "eta": 0.00125,
+      "steps": 48000
+    },
+    {
+      "id": "L4_s22_eta00125",
+      "seed": 22,
+      "eta": 0.00125,
+      "steps": 48000
+    },
+    {
+      "id": "L4_s33_eta00125",
+      "seed": 33,
+      "eta": 0.00125,
+      "steps": 48000
+    }
+  ],
+  "protocol_A": {
+    "model": "c+(a-c)/(1+exp(k*(log(1+step)-h)))",
+    "tc": "expm1(h) in step",
+    "all_points": true,
+    "bounds": "a,c in [0,max(1,3*max(loss))]; k in [1e-5,30]; h in [0,log1p(1e7)]",
+    "initial": "原脚本half-index=max(10,first loss below half endpoint range)，k=1，a=loss0，c=final",
+    "solver": "scipy least_squares max_nfev4000 xtol/ftol/gtol1e-12；保留原单起点local拟合，不称全局最优",
+    "shape_pass": "success and normalized RMSE<=.05 and R²>=.99",
+    "old_contract_discrepancy": "旧文字tc>=1，实际h>=0即tc>=0；本轮冻结实际实现"
+  },
+  "protocol_B": {
+    "tc": "11点原始step等权移动平均（边界缩短），gradient(smoothed_loss,log1p(step))最小位置",
+    "bottom": "实测final loss；实际只取斜率，不拟合另一个logistic，下边界的常数平移不改变斜率"
+  },
+  "reference_protocol": {
+    "purpose": "诊断原step+1与11点窗口的时间单位依赖，不代替主P1",
+    "clock": "s=tau/.02；log(1+s)在旧eta=.02基线上与原协议完全一致",
+    "A": "所有原始点least_squares，统一s时钟",
+    "B": "tau=0,.02,...,60公共网格线性插值，再使用11点平滑；窗口宽度与原基线一致",
+    "tc_units": "tau=.02*tc_s"
+  },
+  "predictions": {
+    "P1": {
+      "statement": "eta=.00125时原A/B 3/3在[.5,2]且对数偏移相对eta=.02各减少>=25%",
+      "quantity": "1-|ln(tcA_fine/tcB_fine)|/|ln(tcA_base/tcB_base)|",
+      "threshold": 0.25,
+      "source": "旧L4 ratio=.1397003453/.0534790089/.2695991086均小于.5；预测是减步长解释的前瞻检验，非已有公式"
+    },
+    "P2": {
+      "statement": "统一时钟的eta=.005与.00125相变时间，A/B各3/3相对差<=10%",
+      "quantity": "abs(tau_mid-tau_fine)/max(abs(tau_fine),1e-12)",
+      "threshold": 0.1,
+      "source": "四倍缩小步长后有限步长效应应减小的启发式预测，不是解析误差界"
+    }
+  },
+  "analysis": {
+    "unit": "2新增eta recipe，各3seed，共6训练cell；3旧cell只读复用",
+    "paired": "逐seed ratio变化和log偏移减少率，报全部配对与df2双侧95%t区间；仅3已选初始化，不外推seed总体",
+    "seed_diagnostic": "按eta报告tcA sample SD/mean；CV<=.25仅旧稳健性参考，不新增独立问题",
+    "preservation": "新cell与fit成功文件exclusive create；恢复先hash；旧study全部file hash+mtime锁定",
+    "boundary": "只回答L4和两档离散新eta；不标定d_eff，不测skip/宽度/新sigma/新目标/泛化；不称梯度流已证明"
+  },
+  "old_input_pins": {
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/analysis/analysis.py": {
+      "sha256": "8fc7b36c90c1b57633d56466c8aa842896006c776f47823af761d653425230d2",
+      "mtime_ns": 1791379483045086757
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/analysis/raw_summary.json": {
+      "sha256": "af16a2f6036d420efbb3194739dcc01e349382f6b10430b9c6a60ce398faccb6",
+      "mtime_ns": 1791379408819513562
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/analysis/summary.json": {
+      "sha256": "41096077deac0617c2f1d2961c67c095ff7b4f6955c1ad2f7964282dd3016f43",
+      "mtime_ns": 1791379483507463325
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/executed/run_experiment.py": {
+      "sha256": "7c6c0fea024cb5e42cd2ddf77ccd41503cefc88f68894af6ffa5f7ec6adfe2d4",
+      "mtime_ns": 1791379407248273077
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/executed_manifest.json": {
+      "sha256": "795cff26cca1e356264801dc0ecab357b251faba58a871af34b72ced2f76dc5a",
+      "mtime_ns": 1791379407559412986
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/preregistration.json": {
+      "sha256": "8c4b5e6e3b9d079f7118b3b30aa2f7c535d777518d5b071ab415e1cf6bae04ee",
+      "mtime_ns": 1791379359848188123
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L1_s11.json": {
+      "sha256": "3895ffe20a5608a1a0ce76f40097b40be9054a51338dac3e226709e182aabbf4",
+      "mtime_ns": 1791379407587649834
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L1_s11.npz": {
+      "sha256": "66482a7efc46dd20a9d9472512d1a581a43f6265b5be4664ef0e0e416585b949",
+      "mtime_ns": 1791379407579293825
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L1_s22.json": {
+      "sha256": "b094bd543e18edc2bcb80320704014a8e11e93b59c0da789308f44e7c5200c86",
+      "mtime_ns": 1791379407615326101
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L1_s22.npz": {
+      "sha256": "5d6e01ce6f269944796a10a53052b9a812e1e585f5f8a737d5624a82fed8d0dd",
+      "mtime_ns": 1791379407607304549
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L1_s33.json": {
+      "sha256": "fbc6f9b729de4e290d84b0b0cc7672885eed466a3226f50a91a746e86059d81a",
+      "mtime_ns": 1791379407642531870
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L1_s33.npz": {
+      "sha256": "563ad4eec7620e1fb5627d559bf6b31e36bbd9fdaf50285cfd5844d8a46e0017",
+      "mtime_ns": 1791379407634600526
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L2_s11.json": {
+      "sha256": "ee52c52830692db083bad03d2f44973ab434e92a27c22744a83fbf09e5961497",
+      "mtime_ns": 1791379407705093042
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L2_s11.npz": {
+      "sha256": "ba485b9a16274421af06b19aec6d69a0180370e715f8a982eda7d00a1fdd88b0",
+      "mtime_ns": 1791379407696907116
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L2_s22.json": {
+      "sha256": "834fbd764158f01740c02e19217c86bf440570f459348076d9046a4a4783727b",
+      "mtime_ns": 1791379407767393340
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L2_s22.npz": {
+      "sha256": "94294ffef21062173ade09a46d2a704e10b095ef45702427bd3ee39cbf652344",
+      "mtime_ns": 1791379407759032665
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L2_s33.json": {
+      "sha256": "95be77a9ea4bc1bd9d7a123e087dd79ca05ae7e73e90bcdc04b8974919eb48fa",
+      "mtime_ns": 1791379407829207265
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L2_s33.npz": {
+      "sha256": "17d6accdd39cc9ebe8889c9f75cfbd6cead9769db51b050466544644281087ab",
+      "mtime_ns": 1791379407821260755
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L4_s11.json": {
+      "sha256": "77d901f1486420f1175eb47ec996981d71626186512643bc418a64832632a545",
+      "mtime_ns": 1791379407943080820
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L4_s11.npz": {
+      "sha256": "d5e2668b651f0967886d4a4fd226c35adab4fa2b151bab750764d3148611cd5f",
+      "mtime_ns": 1791379407934350313
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L4_s22.json": {
+      "sha256": "22d8442c112b69f504f515e70cc079592b5ddd3d8534b5e21c9968ce76995bb9",
+      "mtime_ns": 1791379408057913705
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L4_s22.npz": {
+      "sha256": "d0e941582cba3aab63b494399a10fc7590f0deb413b8c1e441a7cb6a42d023ce",
+      "mtime_ns": 1791379408048594991
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L4_s33.json": {
+      "sha256": "150525ee8083c26402fed29998cfec4a0bcc8975b000d0737c55bf59cc8e81d9",
+      "mtime_ns": 1791379408171700260
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L4_s33.npz": {
+      "sha256": "5fe9fd537db7de8789b4d82fd6696a44a4dab9b6525b8bd4c9b251c692260800",
+      "mtime_ns": 1791379408163397293
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L8_s11.json": {
+      "sha256": "aa71ac5e02e2bfb1bd70ee452efad312af0d3c2d187044cd667b3a5439835174",
+      "mtime_ns": 1791379408385399633
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L8_s11.npz": {
+      "sha256": "d9cda437b3dccc01445f85bbb0f95d0bd7775579af7a8e1844dbc36f825e1ae0",
+      "mtime_ns": 1791379408377221290
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L8_s22.json": {
+      "sha256": "95804bc046ff2bc3fc881616470dc72ea018f3bdc3b220807fdade17d9c561db",
+      "mtime_ns": 1791379408601739788
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L8_s22.npz": {
+      "sha256": "a550c2e93cb8ed48fdb8616de203142b228828da62d5e14c9bbd391e24ddd996",
+      "mtime_ns": 1791379408592538990
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L8_s33.json": {
+      "sha256": "750a3aadce832df5ed5374a3d60786f4333b226e60935c70b5daaf8ff5aed4b6",
+      "mtime_ns": 1791379408819162771
+    },
+    "directions/D13_linear_flow_world/studies/r001_chain_tc/results/L8_s33.npz": {
+      "sha256": "22fd1581483dac3fe9215ca9ef187b5a84d39b6d4b79506801a426718d8d1c6e",
+      "mtime_ns": 1791379408809926391
+    }
+  },
+  "generated_hashes": {
+    "11": {
+      "layers": [
+        "7e94b2eb018c05b4f901ba77fcc7a877828607777041c9cb13f7a5651a35455c",
+        "2af13ea91a23e70510ac8b4f5747c198adc6d692900c28a52a10af289b69e6f6",
+        "11e21699525a2b07a43fb770dadab5a33279d440fd97418c6f30b17140c8c937",
+        "24bba5d111d532324d78158f3d4c92ea3e6186d91d27c487aedfe31f35b7aa0e"
+      ],
+      "data": {
+        "x": "c2373de8694c122ad6d813b70c56912a07653321790ae65a7f9e5d718614727d",
+        "y": "ecd9d34e5db936cd29c76fee4d41f0a1ac20fd9285236a01bc2dac68260f8811",
+        "target": "54687305981808a52339f5d1189985777687675234e06cd7a6f833466623e660"
+      },
+      "layer_singular_values": [
+        [
+          2.5286892834177617,
+          2.1827989004431094,
+          1.9753856513855448,
+          1.6864179984442156
+        ],
+        [
+          1.6197159336336455,
+          1.4644562639947443,
+          1.406075311067649,
+          1.2678399008989503,
+          1.218753266567442,
+          1.1599911478187332,
+          1.1417334767408311,
+          1.0067481872286173,
+          0.9500666173580679,
+          0.9271970935498892,
+          0.8644083629977708,
+          0.8516166140807272,
+          0.7983263306894549,
+          0.7529395034716337,
+          0.7040241210328407,
+          0.6768713398569407,
+          0.6025532593160042,
+          0.565439679630238,
+          0.552480201211752,
+          0.4841590945399802,
+          0.4454133085397611,
+          0.4084314208225075,
+          0.36678109117220603,
+          0.31890916406012704,
+          0.275178088429802,
+          0.261858361639986,
+          0.19791448843894366,
+          0.15856770674785384,
+          0.11373496028833532,
+          0.10495438444354804,
+          0.07370034968509102,
+          0.06049368147560458
+        ],
+        [
+          1.5111403484153636,
+          1.4265798293959546,
+          1.3578688101272591,
+          1.3195073522140304,
+          1.2111996700970815,
+          1.1411567641570328,
+          1.100644812313719,
+          1.0026023265167887,
+          0.9476040943738144,
+          0.9009751380549021,
+          0.8510330217157556,
+          0.803085758120605,
+          0.7748764693649667,
+          0.7170581737045478,
+          0.6968091694717183,
+          0.6334705272896042,
+          0.6054055627903108,
+          0.5444617265083476,
+          0.4920908147573222,
+          0.4812891965214834,
+          0.4676160149200505,
+          0.41528218912878806,
+          0.3987964771245115,
+          0.3168219843317171,
+          0.31337436934952484,
+          0.2813304074922465,
+          0.17277660496080435,
+          0.1451621066757649,
+          0.12716363249695967,
+          0.09352802817041174,
+          0.032962301829165465,
+          0.017982486829345865
+        ],
+        [
+          1.058370049369227,
+          1.0063198358389402,
+          0.8216490428491138,
+          0.6962939476521899
+        ]
+      ],
+      "target_singular_values": [
+        1.0000000000000002,
+        1.0000000000000002,
+        1.0,
+        0.9999999999999996
+      ]
+    },
+    "22": {
+      "layers": [
+        "f1d71d214b29260dcf0d6aef45e0c74de91abecd468740239529c8f804590286",
+        "ee1c1c3c3bb876dc341f228862f8d5f0c7a43855922a8f005a7db5c7638470a8",
+        "1e5c143dfcbffabc1887642c75410d0dda695e76af007c729bd0263e4b5614b4",
+        "6605c7301692dd5eecd2f998704ccbf9259dffca1c263d7fcb7f2179f5a87940"
+      ],
+      "data": {
+        "x": "c2373de8694c122ad6d813b70c56912a07653321790ae65a7f9e5d718614727d",
+        "y": "ecd9d34e5db936cd29c76fee4d41f0a1ac20fd9285236a01bc2dac68260f8811",
+        "target": "54687305981808a52339f5d1189985777687675234e06cd7a6f833466623e660"
+      },
+      "layer_singular_values": [
+        [
+          2.9882395397595887,
+          2.5753962260076655,
+          2.194929533208999,
+          1.6063628563447585
+        ],
+        [
+          1.4519918730809636,
+          1.3882030847186368,
+          1.2778951545113961,
+          1.2232847585994064,
+          1.1947182785466817,
+          1.1224199651225863,
+          1.032700154268391,
+          0.9566525934966794,
+          0.9456836188491904,
+          0.8609027231456058,
+          0.8376727927433989,
+          0.7981598179646235,
+          0.7617429809155402,
+          0.7386356073715867,
+          0.6880827327217405,
+          0.6618676925664992,
+          0.622722797229449,
+          0.6062265694690495,
+          0.5388086105778745,
+          0.4982022214594796,
+          0.4750507721200971,
+          0.4263971144185468,
+          0.374311785267699,
+          0.3384877686940629,
+          0.3126503065003656,
+          0.278976923963974,
+          0.23869171486896126,
+          0.1812746170627683,
+          0.17222755970532758,
+          0.14138393297718418,
+          0.09618814991263012,
+          0.04289479724966541
+        ],
+        [
+          1.5701385144668119,
+          1.398873235659587,
+          1.3418369641287196,
+          1.253551015036748,
+          1.1837765463430625,
+          1.1614960646182655,
+          1.1457393863574008,
+          0.9853809815505666,
+          0.9530877222052196,
+          0.9398815506155593,
+          0.8869331692110716,
+          0.8475653997468077,
+          0.759705304671374,
+          0.7276915656120697,
+          0.6873377501885398,
+          0.6286855535700618,
+          0.5874822483877392,
+          0.5655260331754985,
+          0.5272708816653844,
+          0.49605876428613005,
+          0.4592313347881953,
+          0.4264427148868745,
+          0.347307516800156,
+          0.3070827572066482,
+          0.28817749686229255,
+          0.26964771327537934,
+          0.2313165161045602,
+          0.16252128126728327,
+          0.13810679086572342,
+          0.09200590869487879,
+          0.04638397777788558,
+          0.002337371699100908
+        ],
+        [
+          0.9595602991803945,
+          0.8687066793417534,
+          0.7307885903627307,
+          0.5749306750627038
+        ]
+      ],
+      "target_singular_values": [
+        1.0000000000000002,
+        1.0000000000000002,
+        1.0,
+        0.9999999999999996
+      ]
+    },
+    "33": {
+      "layers": [
+        "6ed514f4b16f2ac5c068049dc62015245a0d2c8c2c3b38228955ed2c7876eb99",
+        "8ae8059be64fabc6074d185390c83b40173fc3b851b1be1d33da993c996fee2d",
+        "45bcd8042a7c01699b2a2f71ca75b5b45e556f700c2b83466e02d75a44d7dedf",
+        "32125b351dbea7b6619893febe79aa9621056c44e586fe4f641a95ff58b0cd32"
+      ],
+      "data": {
+        "x": "c2373de8694c122ad6d813b70c56912a07653321790ae65a7f9e5d718614727d",
+        "y": "ecd9d34e5db936cd29c76fee4d41f0a1ac20fd9285236a01bc2dac68260f8811",
+        "target": "54687305981808a52339f5d1189985777687675234e06cd7a6f833466623e660"
+      },
+      "layer_singular_values": [
+        [
+          2.3139036002616318,
+          2.1567728220939966,
+          1.8028973393518708,
+          1.6180078331282632
+        ],
+        [
+          1.566680237086126,
+          1.414441224016826,
+          1.2973181091159949,
+          1.2474328556509038,
+          1.1967345391742434,
+          1.1557223259843925,
+          1.0869426512352247,
+          1.050496131330567,
+          1.0154313364251246,
+          0.9548374914325521,
+          0.860190026926652,
+          0.8404147160236717,
+          0.8038989806824848,
+          0.7560098349878067,
+          0.6947456553456651,
+          0.6837499422731442,
+          0.6015309410595606,
+          0.5553476902695861,
+          0.5219038265907112,
+          0.4582290242594286,
+          0.4358612252153234,
+          0.3909757617802559,
+          0.34783475526212615,
+          0.2751600922841513,
+          0.26192628400435897,
+          0.25155360272943394,
+          0.19416285090414703,
+          0.1764470160617419,
+          0.1577543314538799,
+          0.11691308771147331,
+          0.06028741006696782,
+          0.032260212151162586
+        ],
+        [
+          1.529010961680037,
+          1.4058038608425745,
+          1.348302852349808,
+          1.2969276809321302,
+          1.1914942258931136,
+          1.1498130881760809,
+          1.0948846280247313,
+          1.0342131359339548,
+          0.97392091238672,
+          0.9064569024699913,
+          0.8898680168725017,
+          0.8012856579663125,
+          0.7846189503286258,
+          0.7376896067640055,
+          0.6932279387395026,
+          0.6804031326580685,
+          0.5963444472022307,
+          0.5407462916194824,
+          0.5310367246274547,
+          0.47726809813596593,
+          0.45427843302824134,
+          0.42984846142403377,
+          0.3780955988059356,
+          0.3388059143027919,
+          0.2595191988206104,
+          0.2539982136860494,
+          0.2064605624679921,
+          0.20192196112704588,
+          0.1571717349998199,
+          0.1230310799576713,
+          0.06006463753628624,
+          0.038036154256453486
+        ],
+        [
+          1.017385551793965,
+          0.8732404288997079,
+          0.811692341084902,
+          0.7024121153727821
+        ]
+      ],
+      "target_singular_values": [
+        1.0000000000000002,
+        1.0000000000000002,
+        1.0,
+        0.9999999999999996
+      ]
+    }
+  },
+  "source_sha256": {
+    "executed/run_experiment.py": "373d295b433342965146cb1863fafa7c307fd25d17a343d9231ea0cc97d4b0e3",
+    "analysis.py": "b769c623f407a7d366d5018c98c193c5ad45b695e5ea36f849f12ea3fcd4408d"
+  },
+  "state_guard": {
+    "round": 101,
+    "directions_rounds_done": {
+      "D1_u_effective_time": 7,
+      "D2_overfitting_u_curve": 7,
+      "D3_capacity_resolution": 7,
+      "D4_sigmoid_training_curve": 7,
+      "D5_ln_geometry": 6,
+      "D6_kernel_drift": 6,
+      "D7_train_gain_test_harm": 6,
+      "D8_activation_pathway": 6,
+      "D9_minibatch_noise": 7,
+      "D10_depth_propagation": 7,
+      "D11_width_scaling": 7,
+      "D12_cascade_sigmoid": 6,
+      "D13_linear_flow_world": 1
+    }
+  },
+  "implementation_notes": [
+    "冻结前analysis草稿R2表达式与换行转义错误在静态compile中修正；0训练/0新拟合。",
+    "工作树已有supervisor日志、状态及D4异步报告改动；原样保留，git add -A可能含这些外部产物。",
+    "原报告已符合八节骨架，开始无需结构重排commit。"
+  ],
+  "compute_budget": "本机CPU，OPENBLAS/OMP=1，小矩阵，训练与拟合总目标<1200秒"
+}

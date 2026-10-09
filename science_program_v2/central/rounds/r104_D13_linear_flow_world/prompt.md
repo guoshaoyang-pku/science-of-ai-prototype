@@ -1,0 +1,10 @@
+你是中心化研究程序 science_program_v2 的第 104 轮（方向 D13_linear_flow_world，该方向第 5 轮）。
+
+严格按 AGENTS.md 的每轮固定流程执行：
+1. 依次读 GOAL.md、AGENTS.md、central/state.json、directions/D13_linear_flow_world/task.md、该方向已有 findings/ 与 report.md、directions/D13_linear_flow_world/inbox.md（若存在则优先执行其中指令，执行后在文件末尾追加"[已处理 2026-10-07T22:48:18+08:00]"）。
+2. 只选一个可检验的小问题。上一轮留给你的建议：r103完成4/4新reference A拟合、0新训练，先核验scientific_closeout及executed/final_commit_verification.json、independent_verification.json、recovery_verification.json和execution_audit.json。不重跑覆盖r00112训练/r1016训练及9成功fit/r1021训练及1成功fit/r1034成功fit。唯一冻结cdad9d2早于首新fit22.294276秒，三源码与74旧study hashmtime固定；仅复用r102 L4 seed22 eta.0003125 T192000 tau60保存NPZ，width32/n128d4Gaussian/正交目标/sigma.8/float64/fullbatch GD mom0 nodecay/J=4*MSE原数据初始化不变。reference A全部192001点/free平台/原bounds clip/1e-12精度，a0=loss0 c0=final h0=log11，仅k0=.25/.5/2/4；4/4success，tau范围[.01940348123809112,.019403483131352352]，相对旧k0=1 .01940348189419637最大差6.375948340467023e-8(百分数.000006375948340467023%)，P1的1%判据supported4/4，事前四区间[.019209447075254404,.019597516713138335]、点预测均旧基准，非盲development非CI。四fit .800199秒，RMSE独立差2.168404e-19、R2/tau差0；74旧/5新成功hashmtime不变，恢复0训练0fit/reused4。下一小问题优先0新训练：相同保存曲线只改h0=log2/log101两未执行起点，固定k0=1、a0=loss0/c0=final/其余模型边界clip精度全点不变；预测两者success且tau_A距原.01940348189419637的1%内。先核查全部历史起点、冻结两条新数值预测/来源hash/pinned源码唯一commit，再拟合；不得先算后注册、重复h0=log11旧成功k0=1或本轮四k起点。不称所有p0稳定/全局最优/参数可识别，不进入skip/deff。旧reference_protocol.purpose不代替主P1与r102主reference A判据冲突原字节保留披露；旧tc>=1文字/源码>=0偏差、matmul除零overflowinvalid原日志与根因未定、旧P2 refuted2/3和CV.276924>.25保留，B tau.12第6网格点/A-B偏移不称真峰收敛。本轮fitting stderr空；恢复工具两次JS引号解析失败无shell执行、源码结果未改。无OOD/新谱sigma宽度目标optimizer/泛化/无限梯度流/seed总体或有效深度公式外推。。
+3. 预注册 JSON 先 git commit，再跑实验（python3，本机小张量，实验计算 ≤20 分钟）。
+4. 全部产物写入 directions/D13_linear_flow_world/studies/ 与 findings/；更新 report.md、central/kb.json、central/state.json（只更新本方向的 last_round 摘要与 next_question 字段，写给下一轮；**不要改 rounds_done 与 round 字段，它们由 supervisor 维护**）、reports/PROGRESS.md。
+5. 收尾 git commit。最终回复只写一行：ROUND_RESULT: <ok|partial|failed> | <一句话>。
+
+禁止：网络、GPU、solver/模型评测、写 science_program_v2 之外、git push、新建常驻进程。v1 repo 与 sources/ 只读。

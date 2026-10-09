@@ -1,0 +1,114 @@
+{
+  "claims": [
+    {
+      "id": "A0001",
+      "text": "在3个已见8D函数的d3w192 GELU/LN010,MSE,T256/b64 recipe下，SGD .001/m0的offset形状拟合收益无需head权重更新：固定weight保留61.5%/112.6%/84.3%负centered chord，30/30seeds为负。hidden须可训练；不是所有宽度/LN/数据的通则。",
+      "report": "directions/A_residual_features/report.md",
+      "evidence": "studies/A01_head_mediation/analysis.json",
+      "origin_iteration": 1,
+      "domain": "development",
+      "status": "measured",
+      "supersedes": "head_growth_needed hypothesis",
+      "solver_evidence": null
+    },
+    {
+      "id": "A0002",
+      "text": "在事前封存的三角/二次/交互/径向新目标中，LN010/w192的固定head SGD偏移形状收益4/4转移，但优化器赢家仅10/12，二次目标±3预测失败。A03同宽度补齐LN/noLN后，8/8函数×width的LN对chord效应配对区间<0；A04固定LN affine或仅学hidden weights均保留收益，仅学bias/affine不够。此recipe支持LN几何下hidden weights学习，尚无通用均值赢家阈值。",
+      "report": "studies/A02_ood_residual/report.md",
+      "evidence": "studies/A02_ood_residual/analysis.json",
+      "origin_iteration": 2,
+      "domain": "prospective_new_function_OOD",
+      "solver_evidence": null,
+      "reports": [
+        "studies/A02_ood_residual/report.md",
+        "studies/A03_ln_width/report.md",
+        "studies/A04_ln_affine/report.md"
+      ],
+      "updated_iteration": 4
+    },
+    {
+      "id": "B0001",
+      "text": "Nominal U=lr*T/(1-m) is not a universal fit threshold. In full-batch fixed-feature half-MSE, each target-aligned curvature mode λ follows exact SGD/momentum recurrence; slow modes and momentum startup determine saturation. Adam progress also depends on parameter coordinates, so no model-independent constant SGD-to-Adam U conversion follows. Apply exact theory to fixed features only; measure Jacobian drift before using it for nonlinear capacity comparisons.",
+      "report": "studies/B01_effective_time/report.md",
+      "evidence": "studies/B01_effective_time/ood_analysis.json",
+      "origin_iteration": 1,
+      "domain": "development_and_prospective_OOD",
+      "solver_evidence": null,
+      "related_source_claims": [
+        "K1001",
+        "K1012",
+        "K1019",
+        "K1038",
+        "K1073"
+      ]
+    },
+    {
+      "id": "B0002",
+      "text": "Initial-Jacobian spectrum predicts early MLP SGD progress, not late fit or generalization. In full-batch SiLU MLPs32samples/w8,32, nonlinear feature learning beats fixed initial-Jacobian fit on8/8predeclared new-function/d5SGDunits, but test loss is worse on6/8. Capacity and learning progress therefore cannot be reduced to initial scalarU; distinguish target-directed kernel change and implicit bias before ranking generalization.",
+      "report": "studies/B02_nonlinear_clock/report.md",
+      "evidence": "studies/B02_nonlinear_clock/ood_analysis.json",
+      "origin_iteration": 2,
+      "domain": "development_and_prospective_OOD",
+      "solver_evidence": null,
+      "related_source_claims": [
+        "K1001",
+        "K1012",
+        "K1038",
+        "K1073",
+        "K1197"
+      ]
+    },
+    {
+      "id": "B0003",
+      "text": "MLP feature learning changes target-related kernel structure beyond scalar acceleration. At identical residuals and kernel trace, late learned Jacobian kernels outperform trace-rescaled initial kernels on4preregistered new-function/d7/uniform/w8,64units: continuation loss gain.114-.132 of initial residual loss, targetRayleigh1.82-4.73x. True-residual gain exceeds32permutation mean by1.21-1.80x. Use target-weighted spectrum, not totaltrace/U alone; fixedkernel probe is not full nonlinear or generalization evidence.",
+      "report": "studies/B03_kernel_direction/report.md",
+      "evidence": "studies/B03_kernel_direction/ood_analysis.json",
+      "origin_iteration": 3,
+      "domain": "development_and_prospective_OOD",
+      "solver_evidence": null,
+      "related_source_claims": [
+        "K1001",
+        "K1012",
+        "K1019",
+        "K1038"
+      ]
+    },
+    {
+      "id": "C0001",
+      "text": "Small preactivation SiLU need not learn uniformly slower than ReLU. With symmetric zero-bias frozen features and equal total feature RMS, its odd channel is z/2 but even channel is O(z²), so even-target kernel energy is suppressed as scale². In sealed dim8 Uniform/Laplace interaction tests, label-free even-energy matching improved MSE .953→.0043 and1.136→.0150; linear targets favored plain SiLU. Scope: frozen hidden/linear head; learned hidden, bias/asymmetry, classification and solver gains untested. Full hidden SGD partially escaped: smallscale SiLU test1.252→.925 but larger-scale SiLU .0068 beat ReLU .139; initial fixed-kernel forecast then failed.",
+      "reports": [
+        "studies/C01_activation_scale/report.md",
+        "studies/C02_parity_ood/report.md",
+        "studies/C03_hidden_boundary/report.md"
+      ],
+      "evidence": [
+        "studies/C01_activation_scale/summary.json",
+        "studies/C02_parity_ood/summary.json"
+      ],
+      "origin_iteration": 3,
+      "domain": "development_and_prospective_OOD",
+      "solver_evidence": null,
+      "boundary": "not a universal activation/time/ranking law"
+    },
+    {
+      "id": "C0002",
+      "text": "In stable fixed-feature MSE training, full-fit and overfit are target/spectrum/noise dependent, not a universal U=lr*steps threshold. Risk splits into signal-bias plus expected noise fitting; small-SiLU can delay both nonlinear signal and noise. In sealed dim6 Uniform/new-target/noise tests, initial-spectrum forecasts matched24riskminimum steps exactly17/24, allwithin2x; MC risk within3SE at43distinct recipe/checkpoints (48 scheduledchecks,5duplicates). Forecast uses cleantrain/test labels and inputs; beststep on doublinggrid, not a blind predictor or deployabletestlabel-freeearlystopper. Scope: frozen features, known target/data; learned hidden/Adam/CE/solver transfer untested.",
+      "reports": [
+        "studies/C04_noise_generalization/report.md",
+        "studies/C05_risk_ood/report.md"
+      ],
+      "evidence": [
+        "studies/C04_noise_generalization/summary.json",
+        "studies/C05_risk_ood/summary.json"
+      ],
+      "origin_iteration": 5,
+      "domain": "development_and_prospective_OOD",
+      "solver_evidence": null,
+      "boundary": "fixed-feature conditional risk, not universal model selection"
+    }
+  ],
+  "imported_source": "sources/kb_live.json",
+  "updated_at": 1791225407.300322,
+  "solver_evaluation": "not_run",
+  "status": "completed_for_release"
+}

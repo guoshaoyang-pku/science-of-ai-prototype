@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | All 3 saved alpha=.75 curves passed RMSE=.027824997 and maxabs=.049822548, refuting P1/P2; zero training or fitting, with closeout committed and verified.

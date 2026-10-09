@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 8/8 cells; population label normalization retained the seed414 counterexample (201/62=3.24194), P2 passed, and evidence plus central updates were committed in a680b3e with verified receipt be76228.

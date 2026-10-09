@@ -1,0 +1,1 @@
+ROUND_RESULT: partial | Completed 15/15 cells under verified preregistration commit 91fc940: ratios 1/3/10 passed and 30/100 failed the fit thresholds; reports, KB, and state saved, but read-only .git blocked the final commit.

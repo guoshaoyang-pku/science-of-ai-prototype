@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 6/6 saved-curve fits with no training; alpha=0/.01 passed both thresholds under maximum-error fitting, P2 was refuted, and all evidence plus verified closeout were committed.

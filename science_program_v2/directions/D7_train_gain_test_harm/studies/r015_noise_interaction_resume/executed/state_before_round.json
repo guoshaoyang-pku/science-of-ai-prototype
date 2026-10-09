@@ -1,0 +1,273 @@
+{
+  "program": "science_program_v2",
+  "status": "running",
+  "round": 15,
+  "started_at": "2026-10-06T16:58:09+08:00",
+  "supervisor_pid": 93715,
+  "directions": {
+    "D1_u_effective_time": {
+      "rounds_done": 2,
+      "status": "active",
+      "last_round": {
+        "round": 9,
+        "direction": "D1_u_effective_time",
+        "result": "partial",
+        "summary": "Completed 60 cells: startup correction passed early tests but failed in 6/10 late conditions; reports, KB, and state saved, final commit blocked by read-only .git.",
+        "elapsed_sec": 693.4
+      },
+      "next_question": "先核验r009产物与中心更新的收尾commit（当前沙箱拒写.git；原预注册7da7d8a已在训练前提交，不要重跑或覆盖60个成功cell）。新小问题：固定谱、η和初始loss，双模态目标的慢模态能量占比能否预测q=.01持续端点的U换算失效？先写新数值预测并commit；未取得新预注册commit不训练。原P4已在6/10条件失败，须保留，不能用启动公式普适外推。",
+      "last_round_status": "experiment_complete_final_commit_blocked",
+      "last_study": "directions/D1_u_effective_time/studies/r001_momentum_startup/summary.json",
+      "last_round_result": {
+        "round": 9,
+        "direction_round": 3,
+        "result": "partial",
+        "summary": "60/60 cell完成，P2/P3通过，P4在6/10配对条件被推翻；冻结预注册commit 7da7d8a早于全部训练；收尾Git写权限被拒。",
+        "preregistration_commit": "7da7d8a7acb274cd88a242e2e564c92ddca33aa3",
+        "saved_cells": 60,
+        "final_commit": "b05588b"
+      }
+    },
+    "D2_overfitting_u_curve": {
+      "rounds_done": 2,
+      "status": "active",
+      "last_round": {
+        "round": 11,
+        "direction": "D2_overfitting_u_curve",
+        "result": "unknown",
+        "summary": "",
+        "elapsed_sec": 852.8
+      },
+      "next_question": "先核验r011产物与中心更新的收尾commit（沙箱拒写.git；冻结合同d5fae2c早于训练，60/60 cell成功，不重跑或覆盖）。原P2已refuted（40/44等比配对通过），P3 supported（57/60留出预测通过），均development、非train-only早停。下一小问题建议：仅改变clean标签归一化，保留r003 n32/.25与n64/.5四seed的原始输入、W、特征，将train mean/RMS改为共享解析population mean=0/RMS=√1.25，检查比值128配对反例是否保留；先写新数值预测与pinned源码并commit，取得匹配提交后再训练。",
+      "last_round_status": "experiment_complete_final_commit_blocked",
+      "last_study": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/summary.json",
+      "last_round_result": {
+        "round": 11,
+        "direction_round": 3,
+        "result": "partial",
+        "summary": "60/60 cell完成；P2 refuted 40/44，P3 supported 57/60；冻结提交d5fae2c早于训练，hash与独立风险核验通过；收尾Git写权限受阻。",
+        "preregistration_commit": "d5fae2cdbf2eaf66f598e74f001684a4be98ba4d",
+        "execution_head": "37ee424dc87f206e0226f5c3b56a0a048cebdae2",
+        "saved_cells": 60,
+        "final_commit": null,
+        "rounds_done_before": 2,
+        "rounds_done_after": 3
+      }
+    },
+    "D3_capacity_resolution": {
+      "rounds_done": 2,
+      "status": "active",
+      "last_round": {
+        "round": 12,
+        "direction": "D3_capacity_resolution",
+        "result": "ok",
+        "summary": "Completed 18/18 cells after preregistration commit 7fefbda; step ratios were 2.923 and 8.878, P1–P3 passed, two KB claims and handoff saved, final commit 03525ec.",
+        "elapsed_sec": 992.0
+      },
+      "next_question": "r012已完成18/18 cell，预注册commit 7fefbda先于训练；原r004成功结果不要覆盖或重跑。下一小问题：固定n=d=9、p=2的λ_i=i^(-2)、η=.5/mom0/nodecay、L0=.5，构造同时匹配目标Rayleigh商和二阶谱矩的两个非负模态权重目标（至少四个可用模态），使实际第一步loss下降也相同，检验1%阈值步数能否仍分离。先用解析权重可行性审查确定一对目标，写数值预测及pinned源码并commit，取得匹配提交后再训练。本轮未匹配目标参数范数与第一步实际loss下降；原合同关于初始梯度范数未固定的措辞错误，L0与Rayleigh相同已自动匹配g0范数，保存数据核验通过；matmul警告根因未定但18cell标量Gram/曲线/终点复算通过，原警告保留。全部development，不外推learned features或永久表示容量。",
+      "last_round_status": "failed_before_training",
+      "last_study": "directions/D3_capacity_resolution/studies/r004_matched_rayleigh/summary.json"
+    },
+    "D4_sigmoid_training_curve": {
+      "rounds_done": 2,
+      "status": "active",
+      "last_round": {
+        "round": 10,
+        "direction": "D4_sigmoid_training_curve",
+        "result": "partial",
+        "summary": "Completed 15/15 cells under verified preregistration commit 91fc940: ratios 1/3/10 passed and 30/100 failed the fit thresholds; reports, KB, and state saved, but read-only .git blocked the final commit.",
+        "elapsed_sec": 860.0
+      },
+      "next_question": "先核验r010产物与中心更新的收尾commit（本会话git add因沙箱只读.git失败；冻结合同91fc940已先于训练提交，不要重跑或覆盖15个成功cell）。新小问题建议：固定n=d=2、η=.1/mom0、λslow=.01和谱比100、总初始loss=1，只改变慢模态能量占比，检验固定平台单log-time logistic不足是否仍成立；先写新数值预测和pinned源码并commit，未取得匹配提交不训练。原P2/P3均supported，ratio10只有描述结果；不可给出10到30间临界点或把拟合参数当真实半衰期。",
+      "last_round_status": "experiment_complete_final_commit_blocked",
+      "last_study": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/summary.json",
+      "last_round_result": {
+        "round": 10,
+        "direction_round": 3,
+        "result": "partial",
+        "summary": "15/15 cell完成；谱比1/3/10拟合足够，30/100不足，P2/P3 supported；已有冻结commit先于训练，收尾Git写权限被拒。",
+        "preregistration_commit": "91fc940b310612a5b0a157366ffb97168160db8e",
+        "execution_head": "665d1373be8aac653800f00e8a9416d018895223",
+        "saved_cells": 15,
+        "final_commit": null,
+        "rounds_done_before": 2,
+        "rounds_done_after": 3
+      }
+    },
+    "D5_ln_geometry": {
+      "rounds_done": 2,
+      "status": "active",
+      "last_round": {
+        "round": 13,
+        "direction": "D5_ln_geometry",
+        "result": "ok",
+        "summary": "Completed 120/120 cells; condition-number prediction passed 12/12 units, chord-correlation prediction failed (r=0.420774<0.5); reports and KB saved, final commit b4eaaab.",
+        "elapsed_sec": 1391.8
+      },
+      "next_question": "r013已完成120/120cell，预注册commit5144cbd先于训练；不要重跑或覆盖成功cell，先核验收尾commit。P1 12/12通过（54/60seed下降），P2 r=.420774未达.5须保留refuted；LN初始化已60/60条件数更低，仅7/60 LN训练后下降，不能称训练谱改善中介。下一小问题：同固定head recipe中，初始化hidden参数Jacobian的目标Rayleigh商是否比最后hidden表示Gram的总条件数更能预测同种子Δchord？先明确目标相关算子和跨offset聚合，另写数值预测、pinned源码并commit。未取得匹配commit不训练。全部development，无因果干预或sealed OOD；冻结analysis的offset标签覆盖由executed/saved_evidence_verification.json更正；matmul警告根因未定但全部finite/einsum复算通过，旧源码不改。",
+      "last_round_status": "failed_before_training",
+      "last_study": "directions/D5_ln_geometry/studies/r005_gram_condition/summary.json"
+    },
+    "D6_kernel_drift": {
+      "rounds_done": 2,
+      "status": "active",
+      "last_round": {
+        "round": 14,
+        "direction": "D6_kernel_drift",
+        "result": "ok",
+        "summary": "r014 完成12/12 cell；P1在3/4单元通过并保留mixed_sine×width8反例，合同、hash、分析、KB、状态与报告均已提交。",
+        "elapsed_sec": 1113.1
+      },
+      "next_question": "保留本轮mixed_sine×width8反例，另写一个development小问题：在相同d3/n32 Gaussian与SiLU recipe中，step32固定r0方向读数能否按width或目标函数的早期Rayleigh幅度预测step256的log(rho)幅度；先做可行性与数值预测并取得新预注册commit，不能修改或覆盖r006结果。",
+      "last_round_status": "experiment_complete",
+      "last_study": "directions/D6_kernel_drift/studies/r006_early_direction/summary.json",
+      "last_round_result": {
+        "round": 14,
+        "direction_round": 2,
+        "result": "ok",
+        "summary": "12/12 cell；P1 3/4单元通过，mixed_sine×width8 0/3；历史冻结提交63ccb32早于训练，独立hash/finite/递推核验通过。",
+        "preregistration_commit": "63ccb32",
+        "saved_cells": 12,
+        "final_commit": "03a3741"
+      }
+    },
+    "D7_train_gain_test_harm": {
+      "rounds_done": 1,
+      "status": "active",
+      "last_round": {
+        "round": 7,
+        "direction": "D7_train_gain_test_harm",
+        "result": "failed",
+        "summary": "Read-only .git blocked both commits; no training ran (0/24 cells), and the B02 audit, preregistration, scripts, reports, and handoff updates are saved.",
+        "elapsed_sec": 732.7
+      },
+      "next_question": "先恢复science_program_v2/.git正常写权限，审查并成功commit r007_noise_interaction当前预注册及pinned源码；未取得同commit匹配前禁止训练。随后先跑1 cell并用analysis核验hash，再续跑24 cell总计划：d5 mixed_sine/radial×width8/32、init11/29/47、data7331/noise733107、sigma0/1、SGD η=.05/mom0/nodecay/512步，检验D=(test真实−切线)noise−(test真实−切线)clean是否至少3/4单元mean>=.02且各>=2/3 seed正；另外区分终点test gap与step128到512同模型test变化。全部development，当前P1未评估。",
+      "last_round_status": "failed_before_training",
+      "last_study": "directions/D7_train_gain_test_harm/studies/r007_noise_interaction/summary.json",
+      "last_round_result": {
+        "result": "failed",
+        "summary": "预注册与收尾git add均因.git/index.lock写权限失败；未训练，0/24 cell、P1未评估。B02旧证据复核确认确定性clean标签，8/8 train增益与6/8均值test差距为正，无新科学claim。"
+      }
+    },
+    "D8_activation_pathway": {
+      "rounds_done": 1,
+      "status": "active",
+      "last_round": {
+        "round": 8,
+        "direction": "D8_activation_pathway",
+        "result": "failed",
+        "summary": "Read-only .git blocked both commits; no training ran (0/72 cells), and the preregistration, scripts, failure evidence, reports, and D8 handoff are saved.",
+        "elapsed_sec": 807.0
+      },
+      "next_question": "先恢复science_program_v2/.git正常写权限，审查并成功commit r008_bias_inflection当前预注册及pinned executed/run.py、analysis.py；未取得匹配commit前禁止训练。随后先跑--limit 1并分析核验hash与核递推，再恢复72 cell总计划：对称Gaussian d4/n128、width64固定SiLU、bias0/1/b*=2.3993572805154675、scales.025/.05/.1/.2、seeds101–106、linear/quadratic双head、GD eta=.8/mom0/nodecay/1024步。检验最小两尺度R增长普通bias全部[3.6,4.4]、零点全部[48,80]以及18 cell领先系数误差<=.10；全部development。当前0 cell、预测未评估；解析a⁶领先阶不是新测量。",
+      "last_round_status": "failed_before_training",
+      "last_study": "directions/D8_activation_pathway/studies/r008_bias_inflection/summary.json",
+      "last_round_result": {
+        "result": "failed",
+        "summary": "预注册与收尾git add均因.git/index.lock写权限被拒；未训练，0/72 cell、P1–P3未评估。SiLU非零固定bias的a²/a⁶合同、自包含源码与解析求根证据已保存，无新科学claim。"
+      }
+    }
+  },
+  "history": [
+    {
+      "round": 1,
+      "direction": "D1_u_effective_time",
+      "result": "failed",
+      "summary": "Read-only .git permissions blocked both commits; no training ran, and the preregistration, scripts, failure evidence, and handoff updates are saved.",
+      "elapsed_sec": 760.6
+    },
+    {
+      "round": 2,
+      "direction": "D4_sigmoid_training_curve",
+      "result": "failed",
+      "summary": "Read-only .git permissions blocked preregistration and final commits; no training or fitting ran, and the scripts, failure evidence, reports, and handoff updates are saved.",
+      "elapsed_sec": 811.4
+    },
+    {
+      "round": 3,
+      "direction": "D2_overfitting_u_curve",
+      "result": "failed",
+      "summary": "Read-only .git blocked both commits; no training ran, and the preregistration, scripts, failure evidence, and D2 handoff files are saved.",
+      "elapsed_sec": 811.9
+    },
+    {
+      "round": 4,
+      "direction": "D3_capacity_resolution",
+      "result": "failed",
+      "summary": "Read-only .git blocked preregistration and final commits; 0 cells ran, and D3 scripts, failure evidence, reports, and handoff updates are saved.",
+      "elapsed_sec": 824.5
+    },
+    {
+      "round": 5,
+      "direction": "D5_ln_geometry",
+      "result": "failed",
+      "summary": "预注册与收尾 commit 均因 `.git/index.lock` 写权限被拒，未启动训练，保存 0/120 cell，Gram 条件数与 chord 预测未评估。",
+      "elapsed_sec": 645.0
+    },
+    {
+      "round": 6,
+      "direction": "D6_kernel_drift",
+      "result": "failed",
+      "summary": "Read-only .git blocked preregistration and final commits; 0/12 cells ran, the prediction remains unevaluated, and D6 scripts, failure evidence, and handoff files are saved.",
+      "elapsed_sec": 751.0
+    },
+    {
+      "round": 7,
+      "direction": "D7_train_gain_test_harm",
+      "result": "failed",
+      "summary": "Read-only .git blocked both commits; no training ran (0/24 cells), and the B02 audit, preregistration, scripts, reports, and handoff updates are saved.",
+      "elapsed_sec": 732.7
+    },
+    {
+      "round": 8,
+      "direction": "D8_activation_pathway",
+      "result": "failed",
+      "summary": "Read-only .git blocked both commits; no training ran (0/72 cells), and the preregistration, scripts, failure evidence, reports, and D8 handoff are saved.",
+      "elapsed_sec": 807.0
+    },
+    {
+      "round": 9,
+      "direction": "D1_u_effective_time",
+      "result": "partial",
+      "summary": "Completed 60 cells: startup correction passed early tests but failed in 6/10 late conditions; reports, KB, and state saved, final commit blocked by read-only .git.",
+      "elapsed_sec": 693.4
+    },
+    {
+      "round": 10,
+      "direction": "D4_sigmoid_training_curve",
+      "result": "partial",
+      "summary": "Completed 15/15 cells under verified preregistration commit 91fc940: ratios 1/3/10 passed and 30/100 failed the fit thresholds; reports, KB, and state saved, but read-only .git blocked the final commit.",
+      "elapsed_sec": 860.0
+    },
+    {
+      "round": 11,
+      "direction": "D2_overfitting_u_curve",
+      "result": "unknown",
+      "summary": "",
+      "elapsed_sec": 852.8
+    },
+    {
+      "round": 12,
+      "direction": "D3_capacity_resolution",
+      "result": "ok",
+      "summary": "Completed 18/18 cells after preregistration commit 7fefbda; step ratios were 2.923 and 8.878, P1–P3 passed, two KB claims and handoff saved, final commit 03525ec.",
+      "elapsed_sec": 992.0
+    },
+    {
+      "round": 13,
+      "direction": "D5_ln_geometry",
+      "result": "ok",
+      "summary": "Completed 120/120 cells; condition-number prediction passed 12/12 units, chord-correlation prediction failed (r=0.420774<0.5); reports and KB saved, final commit b4eaaab.",
+      "elapsed_sec": 1391.8
+    },
+    {
+      "round": 14,
+      "direction": "D6_kernel_drift",
+      "result": "ok",
+      "summary": "r014 完成12/12 cell；P1在3/4单元通过并保留mixed_sine×width8反例，合同、hash、分析、KB、状态与报告均已提交。",
+      "elapsed_sec": 1113.1
+    }
+  ],
+  "updated_at": "2026-10-06T20:30:58+08:00",
+  "repair_note": "2026-10-06 19:3x repaired: rounds_done/history rebuilt from log.jsonl (fixes double counting); .git sandbox write fix applied to supervisor"
+}

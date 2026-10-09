@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "study": "r024_near_root_crossover",
+  "round": 24,
+  "direction_round": 3,
+  "domain": "development",
+  "question": "SiLU二阶导数正零点附近，二次与四次偶项及其交叉项能否在固定bias偏移网格上预测R的有限尺度转折与两侧不对称？",
+  "reference_study": "directions/D8_activation_pathway/studies/r008_bias_inflection",
+  "architecture": {
+    "input_dim": 4,
+    "width": 64,
+    "hidden": "frozen",
+    "activation": "SiLU",
+    "bias": "共用固定加性b=b*+delta；不随a缩放",
+    "centering": "训练逐列均值；反射输入不反射bias",
+    "normalization": "能量比不受公共RMS归一化影响，直接测raw偶/奇"
+  },
+  "data": {
+    "dataset_seed": 31001,
+    "distribution": "Gaussian antithetic",
+    "train_rows": 128,
+    "input_source": "复用旧保存train_x与train_u；不读取合成test或标签",
+    "no_new_data": true
+  },
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106
+  ],
+  "bias_root": 2.3993572805154675,
+  "bias_offsets": [
+    -0.01,
+    -0.001,
+    -0.0001,
+    -1e-05,
+    0,
+    1e-05,
+    0.0001,
+    0.001,
+    0.01
+  ],
+  "scales": [
+    0.0125,
+    0.025,
+    0.05,
+    0.1
+  ],
+  "primary_scales": [
+    0.025,
+    0.05
+  ],
+  "planned_cells": 216,
+  "counting": "9 bias ×4 scale ×6 seed =216初始化测量cell、36 bias×scale条件；6seed仅稳健性重复；0新训练",
+  "optimizer": null,
+  "training_steps": 0,
+  "definitions": {
+    "u": "保存的xW；所有bias与scale共享同seed u",
+    "U2_U4": "u^2/u^4减训练逐列均值",
+    "R": "mean(E^2)/mean(O^2)",
+    "R24": "mean((c2*a^2*U2+c4*a^4*U4)^2)/(f1^2*a^2*mean(u^2))",
+    "c2_c4": "fsecond(b)/2, ffourth(b)/24；使用实际b的导数，系数不拟合",
+    "expanded": "R24=(c2^2*a^2*M22+2*c2*c4*a^4*M24+c4^2*a^6*M44)/(f1^2*M2)",
+    "moment_definitions": "M2=mean(u²), M22=mean(U2²), M24=mean(U2 U4), M44=mean(U4²)",
+    "a_equal": "sqrt(abs(c2/c4)*sqrt(M22/M44))：两个分项能量相等的尺度，不当总R增长阈值",
+    "near_root": "a_equal²≈abs(delta)/kappa；kappa=abs(f4(b*)/(12f3(b*)))*sqrt(M44/M22)",
+    "derivatives": "s=expit(b),q=s(1-s),h=1-2s; f1=s+bq, f2=q(2+bh), f3=q[3h+b(h²-2q)], f4=q[4(h²-2q)+b(h³-8qh)]"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "claim": "完整混合式在a=.025/.05预测R，保留交叉项",
+      "criterion": "108/108主尺度cell abs(R/R24−1)<=.02；六seed分别核验"
+    },
+    {
+      "id": "P2",
+      "claim": "近根窗口保持近a6；大偏移有限尺度转向普通或抵消区",
+      "criterion": "全部18配对在abs(delta)<=1e−5增长[60,68]；delta=−.01全部6配对[5,8]，delta=+.01全部6配对[1.5,3.5]"
+    },
+    {
+      "id": "P3",
+      "claim": "二/四次项交叉项造成根两侧不对称与超64增长",
+      "criterion": "delta=+.001减−.001的增长差全部6seed>=20，且正侧至少2/6增长>100"
+    }
+  ],
+  "forecast_basis": "由旧保存u计算的混合Taylor预测，见pinned executed/analytic_forecasts.json；不是sealed OOD，不是新激活预览",
+  "criteria": {
+    "mixed_relative_error": 0.02,
+    "array_reconstruction_tolerance": 2e-14
+  },
+  "secondary": "另外a=.0125/.1仅描述；报告每delta的六seed配对范围与95%t区间、a_equal、kappa、rho与去交叉项误差，均非新增成功判据；不作训练终点排序",
+  "execution": {
+    "python": "python3",
+    "device": "cpu",
+    "threads": 1,
+    "dtype": "float64",
+    "maximum_seconds": 1200,
+    "commit_gate": "生成新激活前要求HEAD中的预注册与全部pinned字节匹配",
+    "resume": "先limit1核验，恢复须校验JSON/NPZ/合同/hash，不覆盖成功cell，旧证据hash与mtime必须不变"
+  },
+  "boundary": "仅development单一对称Gaussian data31001、d4/n128、width64冻结单层SiLU、共用固定加性bias、train列居中、seed101–106、固定9偏移/4尺度网格。0新训练，不评估MSE、优化器或test；旧MSE/full-batch GD仅作为既有证据。有限bias/scale网格不能给连续容差阈值，a_equal是分项能量相等而非性能或增长临界点；不外推随机bias、非对称输入、learned hidden、多层、CE、小批量、目标相关核、拟合收益、其他数据/seed或sealed OOD。Taylor公式本身不登记为新发现。",
+  "source_sha256": {
+    "executed/run.py": "9da237c93f73f4b9fe3f9008bc3ec3592709ca5664e2481c5148933053cd82a9",
+    "analysis.py": "ca8d0a97537af60510eb712308339322186390c747fb45eaa81545efb7d5f946",
+    "executed/old_evidence_manifest.json": "6e0dab57e51f9c5e802c1183d0a5f1f39ba0b75ce7b6e5dadb6cb59138164ca4",
+    "executed/analytic_forecasts.json": "cdd302db15cfe78b238448225fb32a50f0f0d07117094d8991413fc24845aa6a"
+  }
+}

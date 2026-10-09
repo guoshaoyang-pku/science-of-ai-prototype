@@ -1,0 +1,1 @@
+REWRITE_RESULT: ok | 已按核心问题重写 D4 报告并保存对齐审计，保留既有数字与结论，未新增实验或执行 git commit。

@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | sigma=.5完成12/12新cell，P1支持3/4，radial×8为边界反例；独立核验与收尾提交完成。

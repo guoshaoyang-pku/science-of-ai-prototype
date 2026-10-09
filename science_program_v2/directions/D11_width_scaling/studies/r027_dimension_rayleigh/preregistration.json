@@ -1,0 +1,110 @@
+{
+  "study": "r027_dimension_rayleigh",
+  "round": 27,
+  "direction_round": 1,
+  "direction": "D11_width_scaling",
+  "created_at": "2026-10-07T01:09:35.336557+08:00",
+  "domain": "development",
+  "question": "固定p=1谱下，联合增大n=d到3个decade时，1%阈值预算的幂律是否同时让同Rayleigh两目标的预算重新一致？",
+  "dimensions": [
+    8,
+    16,
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024,
+    2048,
+    4096,
+    8192
+  ],
+  "spectral_exponent": 1,
+  "coordinate_seeds": [
+    0,
+    1,
+    2
+  ],
+  "targets": [
+    "middle",
+    "endpoints"
+  ],
+  "threshold": 0.01,
+  "data_contract": {
+    "sample_count": "n=d",
+    "parameter_count": "d",
+    "dtype": "float64",
+    "eigenvalues": "lambda_i=i^-1,i=1..d,lambda_max=1；不归一化trace；跨d谱尾、trace、目标规则一起延伸。",
+    "features": "default_rng(seed).permutation(d)与choice([-1,1],d)生成perm/sign；X[i,perm[i]]=sqrt(d*lambda_i)*sign[i]，其余0；X X^T/n=diag(lambda)。仅保存稀疏合同与向量，不分配d²。",
+    "target": "y_i=sqrt(d*w_i)；middle w_(d/2)=1；endpoints w1=1/(d−1),wd=(d−2)/(d−1)；逐d同seed配对X相同。",
+    "matched": "同d配对m1=2/d、L0=.5、初始梯度范数²=2/d、参数数、trace、有效秩、优化器；不匹配m2和theta_star范数。",
+    "loss": "L=||Xtheta−y||²/(2n)；theta0=0",
+    "parameter_mapping": "a[perm[i]]=sqrt(d lambda_i)*sign[i]；b[perm[i]]=y_i；实际残差a*theta−b与theta-=eta*a*(a*theta−b)/d。"
+  },
+  "optimizer": {
+    "name": "full_batch_SGD",
+    "eta": 0.5,
+    "momentum": 0,
+    "weight_decay": 0,
+    "max_steps_factor": 5,
+    "stop": "首次L/L0<=.01后再执行1步，保存首次前后参数；未达阈值保留删失max_steps=5d，不扩预算。"
+  },
+  "counts": {
+    "dimension_conditions": 11,
+    "targets_per_dimension": 2,
+    "conditions": 22,
+    "coordinate_seeds": 3,
+    "planned_cells": 66,
+    "planned_pairs": 33
+  },
+  "counting": "seed只作signed-permutation坐标数值稳健性；不算独立数据，不做seed置信区间；幂律每seed各11个d。",
+  "descriptors": {
+    "full": "T_full=min整数t>=0:Σ w_i(1−eta lambda_i)^(2t)<=epsilon；根据保存谱独立二分，不能当训练。",
+    "rayleigh": "m1=Σw_i lambda_i；T_R=ceil(log epsilon/(2log(1−eta m1)))；这是一种单指数近似，非对全部谱成立的定理。",
+    "error": "e_R=(T_R−T_measured)/T_measured，绝对值用于判据；分母是实测预算。",
+    "power_fit": "每目标每seed用全部11 d做等权OLS log(T)=log(c)+beta log(d)；报告c,beta,log RMSE,最大相对拟合误差及相邻指数，不做概率CI。"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "known_theory_execution_audit",
+      "register_as_new_discovery": false,
+      "prediction": "66/66保存cell实际loss与独立谱曲线maxabs<=1e-10；T_measured=T_full；保存checkpoint loss、SGD相邻更新、输入/权重/谱合同误差<=1e-10，闭式参数误差<=1e-7；同d/seed配对L0/m1差<=1e-12。"
+    },
+    {
+      "id": "P2",
+      "kind": "restricted_power_fit",
+      "prediction": "两目标各3坐标seed的全11点幂律beta均在[.98,1.04]，最大相对拟合误差<=.06；任一删失或违反即refuted。"
+    },
+    {
+      "id": "P3",
+      "kind": "controlled_scalar_counterexample",
+      "prediction": "所有endpoint cell |e_R|>=.35；所有middle cell T_R精确等于T_measured；d>=256的18个同seed配对T_endpoint/T_middle均在[1.95,2.05]；任一删失或违反即refuted。"
+    }
+  ],
+  "evaluation": {
+    "primary": "首次保存整数L/L0<=.01，不插值。prediction用保存初始谱；实测来自逐参数SGD。",
+    "censoring": "到5d仍不达阈值为null/censored，P1–P3失败；不以预算上限充当真实步数。",
+    "no_data": "部分结果仅描述并not_evaluated；不修改已注册预测。",
+    "counterexamples": "逐cell完整报告，失败预测也登记；P1已知理论审计不新增KB。"
+  },
+  "boundaries": [
+    "n=d联合轴，固定构造的满秩特征维数，不是learned hidden width；不能独立归因样本量或参数数。",
+    "谱最慢lambda=1/d与目标索引d/2、首尾权重共同按规则变化；跨d不是只改width。",
+    "目标参数范数middle=d/2,endpoints=d−1，未匹配；慢模态能量、m2与参数范数的解释不能独立归因。",
+    "结构谱可任意坐标旋转在精确算术下不变，但仅signed permutation数值检查；不测随机特征集中。",
+    "固定特征全部不漂移，不能据此识别learned模型lazy↔rich边界；预算幂律成立也不证明Rayleigh充分。",
+    "全部development，解析参考在参数训练前已算；没有sealed OOD或外推到未测width，不称新缩放理论。"
+  ],
+  "resume_protocol": "prereg/run/analysis先同commit，再执行；每次先核对所有已成功cell的JSON/NPZ/request/source hash，不覆盖；partial或hash失败即停止；先1cell核验再恢复。",
+  "compute_budget_seconds": 1200,
+  "cell_timeout_seconds": 60,
+  "device": "CPU",
+  "threads": 1,
+  "network": false,
+  "source_sha256": {
+    "executed/run.py": "bb2947c5c1f83ab012cb2240fa38646134591107ba10255b4c097d1aefadf33f",
+    "analysis.py": "1b1f9fdbcf74068b78edc6338d53275fae7be83dd42d48da23e2dd8f4e5955af"
+  },
+  "pre_execution_analytic_review": "executed/pre_execution_analytic_review.json"
+}

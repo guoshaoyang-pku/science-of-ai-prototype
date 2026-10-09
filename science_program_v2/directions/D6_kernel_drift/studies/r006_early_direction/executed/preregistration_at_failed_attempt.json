@@ -1,0 +1,166 @@
+{
+  "study": "r006_early_direction",
+  "round": 6,
+  "direction_round": 1,
+  "direction": "D6_kernel_drift",
+  "domain": "development",
+  "created_at": "2026-10-06T18:12:09.754760+08:00",
+  "question": "在固定初始残差和trace匹配下，前32步测得的目标相关核漂移方向是否保留到第256步？",
+  "basis": "task.md首轮建议；v1 B03的checkpoint Jacobian和同残差trace匹配固定核probe。只做拟合侧，不读取test数据。",
+  "functions": [
+    "product",
+    "mixed_sine"
+  ],
+  "widths": [
+    8,
+    32
+  ],
+  "seeds": [
+    611,
+    629,
+    647
+  ],
+  "data_contract": {
+    "input_dim": 3,
+    "train_n": 32,
+    "data_seed": 260606,
+    "distribution": "NumPy default_rng PCG64 standard Gaussian; each function uses the identical x",
+    "product": "tanh(x0*x1)",
+    "mixed_sine": "sin(1.7*x0)+0.4*sin(x1*x2)",
+    "normalization": "仅train target减样本均值再除ddof=0标准差；无噪声，无test数据",
+    "dtype": "float64",
+    "pairing": "同width和seed跨函数的初始化相同；同cell跨checkpoint配对"
+  },
+  "recipe": {
+    "architecture": "Linear(d,w,bias=True)->SiLU->Linear(w,w,bias=True)->SiLU->Linear(w,1,bias=True)",
+    "initialization": "torch.manual_seed(seed); PyTorch Linear default float32 initialization then .double(), matching B03",
+    "depth": 1,
+    "activation": "silu",
+    "layer_norm": false,
+    "residual": false,
+    "optimizer": "SGD",
+    "lr": 0.05,
+    "momentum": 0.0,
+    "weight_decay": 0.0,
+    "batch_size": 32,
+    "steps": 256,
+    "loss": "mean((f-y)^2)/2"
+  },
+  "checkpoints": [
+    0,
+    1,
+    8,
+    32,
+    64,
+    128,
+    256
+  ],
+  "kernel": "K_t=J_t J_t^T/n，J包括全部weight和bias；不center kernel",
+  "primary": {
+    "early_step": 32,
+    "late_step": 256,
+    "early_fraction": 0.125,
+    "fixed_vector": "r0=f0-y，所有checkpoint使用同一个r0",
+    "trace_match": "a_t=trace(K_t)/trace(K0)",
+    "ratio": "rho_t=R(r0,K_t)/R(r0,a_t*K0); R(v,K)=v^T K v/(v^T v)",
+    "deadband_ratio": 1.05,
+    "direction": "sign(log(rho_t)) if abs(log(rho_t))>log(1.05), else 0",
+    "seed_hit": "early和late的方向都非0且相同；任何deadband读数不算命中",
+    "unit_min_matching_seeds": 2,
+    "min_passing_units": 3
+  },
+  "predictions": [
+    {
+      "id": "P1_direction_persistence",
+      "prediction": "4个function×width单位中，至少3个单位有至少2/3同初始化seed在step32和step256保留同一非零漂移方向。",
+      "criterion": "仅全部12 cells保存并核验后判定；不删失败seed，不调整5% deadband；不足判not_evaluated。"
+    }
+  ],
+  "probe": {
+    "role": "诊断，不设额外预测，不把probe收益当非线性续训收益",
+    "residual": "每checkpoint各probe从完全相同rt=f_t-y开始",
+    "kernels": [
+      "K0",
+      "a_t*K0",
+      "K_t"
+    ],
+    "steps": 256,
+    "stability_fraction": 0.5,
+    "lr": "同cell所有checkpoint和3类kernel共用eta=.5/maxlambda；max同时覆盖全部K_t和a_t*K0",
+    "normalized_gain": "[L(a_t*K0,H)-L(K_t,H)]/L(rt,0)",
+    "permutation_seeds": [
+      6601,
+      6602,
+      6603,
+      6604,
+      6605,
+      6606,
+      6607,
+      6608,
+      6609,
+      6610,
+      6611,
+      6612,
+      6613,
+      6614,
+      6615,
+      6616,
+      6617,
+      6618,
+      6619,
+      6620,
+      6621,
+      6622,
+      6623,
+      6624,
+      6625,
+      6626,
+      6627,
+      6628,
+      6629,
+      6630,
+      6631,
+      6632
+    ],
+    "secondary_readouts": [
+      "固定r0和固定y的Rayleigh ratio",
+      "移动rt的Rayleigh ratio",
+      "同rt置换诊断",
+      "kernel完整谱和trace",
+      "参数位移及非线性train loss"
+    ]
+  },
+  "analysis_plan": {
+    "counting_unit": "4个function×width recipes；3 seeds只测稳健性；7 checkpoints/32 permutations/252 probes不是独立研究单位",
+    "paired_interval": "每unit按同cell给出late-minus-early log ratio的3-seed均值与95% t区间；不假设不同width或function独立",
+    "audit": "核验源码、预注册、commit、数据与NPZ SHA256；从J复算K/谱/trace/Rayleigh/probe全部轨迹",
+    "no_model_fitting": "不在本轮拟合早晚幅度公式，不凭描述性关联声称OOD预测验证"
+  },
+  "planned_cells": 12,
+  "planned_recipe_units": 4,
+  "boundaries": [
+    "development only；无sealed OOD",
+    "固定r0主指标不等价于晚期rt局部拟合速度",
+    "seed证据不推广到新数据seed",
+    "仅上述d3/SiLU/two-hidden-layer/SGD recipe；不预测泛化、Adam、LN或深网络"
+  ],
+  "execution": {
+    "python": "python3",
+    "device": "cpu",
+    "threads": 1,
+    "max_seconds": 1200,
+    "network": false,
+    "success_cells_are_immutable": true,
+    "commit_gate": "必须在本repo历史中找到与当前preregistration和pinned source逐字一致的同一个commit；无commit禁止训练",
+    "resume": "先核验request/contract、源码、input和NPZ hash；不覆盖成功cell"
+  },
+  "source_sha256": {
+    "executed/run.py": "c9baa0b130bf67d9243c8ff0c2e27ed454d06b856611153c55942fbebd2b6026",
+    "analysis.py": "f82833d460dac75dc4a9373bd2b360c5f4bebfbd32f9b0cdcf341321289aa26e"
+  },
+  "reference_sha256": {
+    "run.py": "48ec629484f84d8bd5e2b7ceb6f819b3036cc0509678ce5153699f13643c4638",
+    "executed/experiment.py": "323fbcf46f384d21c72435290f11c67ac06e7c042fba5f006e9a8285f05114c6",
+    "report.md": "d4db9189a6e0def77bd4b0a94152975367050c7eca7efe8050bb6c2b8e446a00"
+  }
+}

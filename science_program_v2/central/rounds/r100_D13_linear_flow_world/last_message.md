@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | 无 skip 线性链 12/12 cell 完成；单 sigmoid 11/12 通过，但协议 A/B 相变时间仅 5/12 一致，且未支持随深度线性增长。

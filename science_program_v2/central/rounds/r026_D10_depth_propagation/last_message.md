@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed and committed 12/12 cells; slowest-layer predictions failed all cells, while summed-kernel predictions passed 10/12, with counterexamples preserved and independent verification passed.

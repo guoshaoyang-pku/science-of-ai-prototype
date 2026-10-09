@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed and committed 12/12 eta=.005 cells; slowest-group estimates exceeded actual times by more than 2× in all cells, summed-kernel estimates passed in 10/12, and counterexamples were preserved.

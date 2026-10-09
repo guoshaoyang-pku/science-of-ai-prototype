@@ -1,0 +1,101 @@
+{
+  "study": "r074_exact_batch_expectation",
+  "round": 74,
+  "direction_round": 5,
+  "direction": "D9_minibatch_noise",
+  "date": "2026-10-07",
+  "domain": "development",
+  "question": "同data/固定epsilon下，两个B8独立无放回batch精确期望风险的有限窗首argmin是否都在同标签full两倍内？",
+  "eta": 0.1,
+  "batch": 8,
+  "variance": 1.0,
+  "steps": 2304,
+  "compute_budget_seconds": 1200,
+  "cells": [
+    {
+      "seed": 411,
+      "data": "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/executed/data_n64_seed411.npz",
+      "full": "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/results/n64_seed411_eta0.1_B64_var1.npz",
+      "old_block": "directions/D9_minibatch_noise/studies/r033_batch_mc_extension/results/n64_seed411_eta0.1_B8_var1_M64.npz",
+      "new_block": "directions/D9_minibatch_noise/studies/r041_independent_batch_block/results/n64_seed411_eta0.1_B8_var1_r64_127_M64.npz",
+      "known_full_t_star": 49,
+      "predicted_aligned_ratio": [
+        0.5,
+        2
+      ],
+      "predicted_integer_t_star_range": [
+        25,
+        98
+      ]
+    },
+    {
+      "seed": 412,
+      "data": "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/executed/data_n64_seed412.npz",
+      "full": "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/results/n64_seed412_eta0.1_B64_var1.npz",
+      "old_block": "directions/D9_minibatch_noise/studies/r033_batch_mc_extension/results/n64_seed412_eta0.1_B8_var1_M64.npz",
+      "new_block": "directions/D9_minibatch_noise/studies/r041_independent_batch_block/results/n64_seed412_eta0.1_B8_var1_r64_127_M64.npz",
+      "known_full_t_star": 306,
+      "predicted_aligned_ratio": [
+        0.5,
+        2
+      ],
+      "predicted_integer_t_star_range": [
+        153,
+        612
+      ]
+    }
+  ],
+  "data_contract": {
+    "n": 64,
+    "d": 4,
+    "width": 128,
+    "head_parameters": 129,
+    "audit_rows": 2048,
+    "dtype": "float64",
+    "features": "原D2 train-centered/RMS冻结ReLU+常数，129维head零初始化；两个训练span数值秩36，保留SVD大于eps*max(shape)*smax的全部模态。",
+    "labels": "train_y+epsilon；sigma²=1，固定原标签噪声，无epsilon积分；audit_y clean。",
+    "optimizer": "SGD无动量/衰减，每步独立均匀无放回抽B8，w <- w-2eta/B*X_S^T(X_S w-z_S)。",
+    "window": "整数步0..2304首argmin，不改窗口/epsilon/eta/full分母。",
+    "counting": "1 recipe、2 data seeds、2精确矩cell、0新batch/full训练、2复用full控制、4分别描述的独立MC块共256旧轨迹。B=n退化计算属方法核验，不计新训练/独立科学recipe。"
+  },
+  "analytic_recurrence": {
+    "basis": "V为训练row span正交基；q_i=V^T phi_i，u=V^T w，q_a=Phi_a V。",
+    "mean": "a=2eta,H=q^Tq/n,b=q^Tz/n,A=I-aH；m_next=A m+a b。",
+    "covariance": "gamma=(n-B)/(B(n-1)); C_next=A C A^T+a² gamma{q^T diag(diag(q C q^T)+(q m-z)^2)q/n-H C H-(H m-b)(H m-b)^T}。",
+    "risk": "R_exact=mean((q_a m-y_a)^2)+tr((q_a^Tq_a/Na)C)。",
+    "status": "独立batch条件线性更新已知矩闭合；递推本身不登记新发现。精确指有限步概率矩无Monte Carlo误差，实际计算有float64误差。"
+  },
+  "prediction_provenance": "两个已选旧M8反例在两个独立M64块均回到两倍内，作为development预测依据；不作盲发现/OOD验证。预注册前仅读输入shape/SVD重建、旧证据，未计算新风险/argmin。",
+  "predictions": {
+    "P1": "两个精确期望risk首argmin比值均在闭区间[.5,2]，seed411整数25..98、seed412153..612；任一失败则refuted，保持失败条件与窗口。"
+  },
+  "validation": {
+    "B_equals_n": "full covariance严格=0；full曲线与保存同epsilon full maxabs<=2e-8，首argmin49/306不变。",
+    "independent_coordinates": "独立64维样本坐标w=X^T alpha二阶矩复算，精确风险maxabs<=2e-8；最终mean head maxabs<=1e-9。",
+    "enumerated_fixture": "n4/B2独立确定性低维fixture枚举6batch，一步均值/协方差最大绝对误差<=1e-12；非新训练科学条件。",
+    "integrity": "全部新数组finite，t*在(0,2304)，C最小特征值>=-1e-10；285旧文件hash/mtime不变；恢复仅核验跳过成功cell。"
+  },
+  "descriptive_analysis": "分别保存两个M64块与精确曲线的t*、比值差及curve RMSE/maxabs；不合并块、不追溯改判旧M8/M64、不作精确期望置信区间或跨data统计保证。",
+  "boundaries": "仅本data/epsilon、n64、d4、width128、MSE/SGD eta.1无mom/decay、B8、sigma²1、T2304，development。旧r025/r029 P1/P2失败、期望分母混杂、旧改pin历史与matmul根因未定全部保留。不外推连续eta/其他n/优化器/learned feature/无限训练/train-only早停。",
+  "source_sha256": {
+    "executed/run.py": "f3ef67fc3e8ee2049efa46e25dd5d42c729bc01df10b9b90e732553f392e3dfd",
+    "analysis.py": "1a843de5d64deef12f40c46c37b5ed95eaf033e5938226790b02a87ac50e3dbf",
+    "executed/verify.py": "1bd3fa75eb17ad8a7a6a49b592b1de4022e58fc53a23ac76305b4318080cf1c7",
+    "executed/input_audit.json": "1088160bd54061ad0dac4b3dcb29abf6eb6fb4f0d7ed6799f3d43dc3268dc51d",
+    "executed/feasibility.json": "becf3f16b12679615a11149cddb9c12294edd50166547c19fe7f023cbf0884eb"
+  },
+  "input_sha256": {
+    "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/executed/data_n64_seed411.npz": "fb8397ea38970429c4c81a7eb7aae6e92da3952b817283fcafb848bbacb97992",
+    "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/results/n64_seed411_eta0.1_B64_var1.npz": "c5f31f62773e4e68443029e7028d01d954d4429333a17de1fba25dd116df1df1",
+    "directions/D9_minibatch_noise/studies/r033_batch_mc_extension/results/n64_seed411_eta0.1_B8_var1_M64.npz": "5061406966e282351c45fa2784b0b9696aa37f932b5febdfbb077ace10be845d",
+    "directions/D9_minibatch_noise/studies/r041_independent_batch_block/results/n64_seed411_eta0.1_B8_var1_r64_127_M64.npz": "696d973f69b22ed37dfd39227b32b778fab71105e17227c7cc3866b803f9c115",
+    "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/executed/data_n64_seed412.npz": "9be7a247f0532d43d22ab807d67da344c839cc644ba2c44043b1f79bcfbc1ddf",
+    "directions/D9_minibatch_noise/studies/r029_lower_eta_paired/results/n64_seed412_eta0.1_B64_var1.npz": "2a7fefefd07c3e07c71015e7119fd0be83238c87ff939defd795999e1c17932c",
+    "directions/D9_minibatch_noise/studies/r033_batch_mc_extension/results/n64_seed412_eta0.1_B8_var1_M64.npz": "9476f0433ac5a902aef7add542b41dd1ff696d99e9bd79a8e1b7a1881cd78dbf",
+    "directions/D9_minibatch_noise/studies/r041_independent_batch_block/results/n64_seed412_eta0.1_B8_var1_r64_127_M64.npz": "146966520431b669ae3711fabe8a063858764e35daf25b02b20bbfbf37602305",
+    "directions/D9_minibatch_noise/studies/r041_independent_batch_block/preregistration.json": "2f5646b32dcfc4917549bccf471660e3d4d791d4f3ba6010b34faac3a95df0ea",
+    "directions/D9_minibatch_noise/studies/r041_independent_batch_block/summary.json": "84dcbb3c32d76c6f5ecefe65d3640d152bb83ef1372d9f205e30d9fc83d39ad3",
+    "directions/D9_minibatch_noise/studies/r041_independent_batch_block/executed/source_manifest.json": "4d8a9d37a818230fb9365562159f45874eaf1ee7d68859a80bb0e0f32bd09556",
+    "directions/D9_minibatch_noise/studies/r041_independent_batch_block/executed/final_commit_verification.json": "2b6a5fd82a37d8086272fbe21393a0e8af306af7826631d7208a123d4885f832"
+  }
+}

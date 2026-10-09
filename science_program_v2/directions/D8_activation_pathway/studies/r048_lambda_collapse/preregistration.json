@@ -1,0 +1,90 @@
+{
+  "round": 48,
+  "direction_round": 4,
+  "direction": "D8_activation_pathway",
+  "domain": "development",
+  "question": "保持旧输入/权重，固定lambda=delta/a²时，Q=R/a⁶能否同seed跨三个尺度在2%内折叠，并接近同一个Taylor极限？",
+  "created_at": "2026-10-07T06:29:48.584600+08:00",
+  "bias_root": 2.3993572805154675,
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106
+  ],
+  "lambdas": [
+    -2,
+    -1,
+    0,
+    1,
+    2
+  ],
+  "scales": [
+    0.0125,
+    0.025,
+    0.05
+  ],
+  "planned_cells": 90,
+  "design": {
+    "data_seed": 31001,
+    "dimension": 4,
+    "train_n": 128,
+    "width": 64,
+    "input": "旧保存对称Gaussian train_x",
+    "projection": "旧float64 u逐位复用，W固定",
+    "activation": "SiLU",
+    "bias": "共同加性bias=b*+lambda*a²；反射时bias固定",
+    "center": "even=(f(b+au)+f(b-au))/2-mean_train[f(b+au)]",
+    "energy_ratio": "R=mean(even²)/mean(odd²)",
+    "units": "无量纲",
+    "training_steps": 0,
+    "label_or_test_read": false,
+    "counts": "15 lambda×scale条件；六seed只测初始化稳健性；30同seed/lambda三尺度配对"
+  },
+  "prediction_origin": "注册前仅从已保存旧u矩和已知Taylor导数解析计算F；未计算新lambda非零bias激活。F范围0.0011876556204974424–0.09076095542175361已经知道，不是盲发现。",
+  "formula": "F_s(lambda)=mean((f3(b*)lambda U2/2+f4(b*)U4/24)²)/(f1(b*)² mean(u²)); Q=R/a⁶ -> F at fixed lambda, a -> 0",
+  "predictions": [
+    {
+      "id": "P1",
+      "text": "全部30个同seed/lambda三尺度配对的max(Q)/min(Q)-1 <= .02",
+      "threshold": 0.02
+    },
+    {
+      "id": "P2",
+      "text": "全部90cell的abs(Q/F-1) <= .02，F固定由旧u矩/根导数得到，禁止拟合",
+      "threshold": 0.02
+    }
+  ],
+  "criteria": {
+    "fold_spread_max": 0.02,
+    "relative_F_error_max": 0.02,
+    "array_reconstruction_tolerance": 2e-14,
+    "complete_required": true,
+    "intervals": "只对每lambda六seed配对统计给t区间；跨格点误差仅min/max/mean，不报告pooled CI"
+  },
+  "execution": {
+    "python": "python3",
+    "device": "cpu",
+    "threads": 1,
+    "dtype": "float64",
+    "maximum_seconds": 1200,
+    "first_cell_audit": true,
+    "successful_cells_never_overwrite": true,
+    "commit_gate": "HEAD必须含匹配preregistration及全部pinned文件；否则0测量"
+  },
+  "reference_studies": [
+    "directions/D8_activation_pathway/studies/r008_bias_inflection",
+    "directions/D8_activation_pathway/studies/r024_near_root_crossover"
+  ],
+  "boundary": "固定data31001对称Gaussian d4/n128、width64冻结单层SiLU、同单元bias、训练列居中、seed101–106与5×3离散网格；全development；无新训练/标签/test/OOD；不外推连续lambda/临界值、目标核、性能、随机bias、非对称输入、多层、learned hidden、CE或小批量。",
+  "source_sha256": {
+    "executed/run.py": "d69e6bf9ca7500745e3af99d7ee48d3ec9af02e24899e0a636de667d5a3355b0",
+    "analysis.py": "96f9f180d10a1cb4a6fff9c4b1a9d2ab8d4cb59ae4ed206419c715ba9417385a",
+    "executed/input_snapshot.npz": "13a026ccfa1e1745b426af1e9e98411b7afad9954a73f98da43c04b5db81c9ff",
+    "executed/analytic_forecasts.json": "6f3bf95fd103786411fb79bf37782ed0cb078e159a9dca8d8de80e20abc31cbb",
+    "executed/old_evidence_manifest.json": "9e6804c0854795222367829fe9f6700e44cad0d551bd28300d6aa371c0b7c678",
+    "executed/prior_closeout_audit.json": "5a66710903c31b68ad812b21e863dc08fc46c6c5ce7ae31ecd9a88da150f8e51"
+  }
+}

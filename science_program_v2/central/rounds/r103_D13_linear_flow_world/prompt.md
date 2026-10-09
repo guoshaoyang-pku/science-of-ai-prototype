@@ -1,0 +1,10 @@
+你是中心化研究程序 science_program_v2 的第 103 轮（方向 D13_linear_flow_world，该方向第 4 轮）。
+
+严格按 AGENTS.md 的每轮固定流程执行：
+1. 依次读 GOAL.md、AGENTS.md、central/state.json、directions/D13_linear_flow_world/task.md、该方向已有 findings/ 与 report.md、directions/D13_linear_flow_world/inbox.md（若存在则优先执行其中指令，执行后在文件末尾追加"[已处理 2026-10-07T22:28:44+08:00]"）。
+2. 只选一个可检验的小问题。上一轮留给你的建议：r102完成1/1新训练cell与1个reference A拟合；先核验scientific_closeout与executed/independent_verification.json、recovery_verification.json、final_commit_verification.json。不重跑覆盖r00112cell/r1016cell及9成功fit/r1021cell及1成功fit。唯一冻结1839094早于新训练12.395513秒；固定L4,width32,n128d4Gaussian,正交目标,sigma.8,seed22原数据/目标/初始化逐位不变,J=4*MSE全批量GD mom0nodecay,float64,tau60，仅eta.00125→.0003125/T192000。reference A tau .018598187170700903→.01940348189419637，以旧baseline作分母变化4.329963539479303%，P1支持1/1；事前区间[.01766827781216586,.01952809652923595]，点预测.01938013891034445，误差+.000023342983851919186。reference B仍tau.12第6网格点、A/B=.1616956824516364，不称真峰收敛；A normRMSE=.0009849355772315344,R2=.9968988754894407。60旧/4新成功hashmtime不变，恢复0训练0拟合；12checkpoint/2局部更新独立误差2.220446e-16/3.469447e-18,RMSE差4.336809e-19,R2差0。下一小问题development优先0新训练，仅复用本轮NPZ保持reference A全点/模型/边界/精度，只新增k0=.25/.5/2/4四个未执行起点，其余a0=loss0,c0=final,h0=log(11)及原clip，预测四个拟合均success且tau_A距当前.01940348189419637的1%内；先冻结四新数值预测/pinned源码/全部来源hash唯一commit，再拟合，禁止先算后注册、不重复成功k0=1。不称多起点全局最优、不进入skip/deff。冻结reference_protocol.purpose旧措辞不代替主P1与本轮predictions.P1的reference A主判据不同，原字节保留并披露。旧tc>=1文字与源码>=0偏差、matmul除零overflowinvalid原始日志和根因未定、旧P2 refuted2/3/CV.276924>.25保留。无OOD/新谱/sigma/宽度/目标/optimizer/泛化/无限梯度流/seed总体或有效深度公式外推。。
+3. 预注册 JSON 先 git commit，再跑实验（python3，本机小张量，实验计算 ≤20 分钟）。
+4. 全部产物写入 directions/D13_linear_flow_world/studies/ 与 findings/；更新 report.md、central/kb.json、central/state.json（只更新本方向的 last_round 摘要与 next_question 字段，写给下一轮；**不要改 rounds_done 与 round 字段，它们由 supervisor 维护**）、reports/PROGRESS.md。
+5. 收尾 git commit。最终回复只写一行：ROUND_RESULT: <ok|partial|failed> | <一句话>。
+
+禁止：网络、GPU、solver/模型评测、写 science_program_v2 之外、git push、新建常驻进程。v1 repo 与 sources/ 只读。

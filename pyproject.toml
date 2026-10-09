@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aiq-kb"
+version = "0.1.0"
+description = "ArchitectureIQ knowledge-base and asynchronous science runtime"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+aiq-kb-loop = "aiq_kb.kb_science_loop:cli"
+aiq-kb-publish = "aiq_kb.kb_publish:main"
+aiq-kb-lab = "aiq_kb.kb_lab:main"
+aiq-kb-inspect = "aiq_kb.legacy:main"
+aiq-kb-viewer = "aiq_kb.build_run_pages:main"
+aiq-kb-site = "aiq_kb.kb_site:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+runtime = ["mcp>=1.0", "numpy>=1.24", "scikit-learn>=1.3"]
+research = ["numpy>=1.24", "scipy>=1.10", "matplotlib>=3.7", "torch>=2.0"]
+reports = ["markdown>=3.4"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+aiq_kb = ["*.html", "*.js", "KB_SETTING.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

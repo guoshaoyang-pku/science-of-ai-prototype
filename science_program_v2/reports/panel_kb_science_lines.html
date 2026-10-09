@@ -1,0 +1,2117 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>同样的初始表现，训练时间仍可相差7.78倍</title><style>
+  :root {
+    --dark: #141413;   /* primary text */
+    --light: #faf9f5;  /* page background */
+    --mid: #b0aea5;    /* borders, axes */
+    --soft: #e8e6dc;   /* subtle fills */
+    --muted: #5e5d59;  /* secondary text (darker than --mid for contrast) */
+    --orange: #d97757; /* primary accent: the main result */
+    --blue: #6a9bcc;   /* secondary accent */
+    --green: #788c5d;  /* tertiary accent */
+    --head: "Poppins", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", Arial, sans-serif;
+    --body: "Lora", "Noto Serif CJK SC", "Songti SC", Georgia, serif;
+    --mono: "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--light); color: var(--dark); font: 17px/1.8 var(--body); }
+  main { max-width: 760px; margin: 0 auto; padding: 72px 24px 96px; }
+  h1, h2, h3 { font-family: var(--head); font-weight: 600; line-height: 1.35; letter-spacing: -0.01em; }
+  h1 { font-size: 32px; margin: 0 0 16px; }
+  h2 { font-size: 22px; margin: 64px 0 12px; }
+  p { margin: 0 0 16px; }
+  .lede { font-size: 19px; }
+  a { color: inherit; text-decoration: underline; text-decoration-color: var(--orange); text-underline-offset: 3px; }
+  code, .id { font-family: var(--mono); font-size: 0.86em; background: var(--soft); padding: 1px 5px; border-radius: 4px; }
+
+  /* L2 settings row: monochrome line icons + label, never color emoji */
+  .settings { display: flex; flex-wrap: wrap; gap: 8px 20px; list-style: none; padding: 0; margin: 24px 0 0;
+              font: 14px/1.6 var(--head); color: var(--muted); }
+  .settings li { display: inline-flex; align-items: center; gap: 6px; }
+  .settings svg { width: 15px; height: 15px; stroke: var(--dark); fill: none; stroke-width: 1.6;
+                  stroke-linecap: round; stroke-linejoin: round; }
+  .settings b { color: var(--dark); font-weight: 500; }
+
+  figure { margin: 28px 0; padding: 20px; background: #fff; border: 1px solid var(--soft); border-radius: 10px; }
+  figure img, figure svg.chart { display: block; width: 100%; height: auto; }
+  figcaption { margin-top: 12px; font: 14px/1.6 var(--head); color: var(--muted); }
+  .legend { display: flex; gap: 18px; font: 13px var(--head); color: var(--muted); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin-right: 6px; }
+
+  .warn { border-left: 3px solid var(--orange); padding: 4px 0 4px 16px; margin: 24px 0; }
+  .warn strong { font-family: var(--head); }
+
+  /* sample browser: compare outputs side by side */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--soft); margin-bottom: 12px; }
+  .tabs button { font: 14px var(--head); background: none; border: 0; padding: 8px 12px; cursor: pointer;
+                 color: var(--muted); border-bottom: 2px solid transparent; }
+  .tabs button[aria-selected="true"] { color: var(--dark); border-bottom-color: var(--orange); }
+  .sample { display: none; white-space: pre-wrap; font: 14px/1.7 var(--mono); }
+  .sample.on { display: block; }
+
+  details { margin: 16px 0; }
+  summary { cursor: pointer; font: 15px var(--head); color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font: 14px/1.6 var(--head); margin: 16px 0; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--soft); }
+  th { font-weight: 500; color: var(--muted); }
+  footer { margin-top: 80px; font: 13px var(--head); color: var(--mid); }
+
+.compact{font:15px/1.7 var(--head);color:var(--muted)}
+.formula{font:16px/1.7 var(--mono);background:var(--soft);padding:14px 16px;overflow-x:auto}
+.results{padding:0;margin:24px 0;list-style:none}.results li{margin:0 0 20px}
+.results strong{display:block;font-family:var(--head);margin-bottom:4px}
+figure svg{display:block;width:100%;height:auto}
+.knowledge{border-top:1px solid var(--soft);padding:16px 0 0;margin-top:22px}
+.knowledge h3{font-size:18px;margin:0 0 8px}.knowledge p{font-size:15px}
+.knowledge details{font:14px/1.7 var(--head)}
+.filter{font:14px/1.6 var(--head);margin:16px 0;display:flex;flex-wrap:wrap;gap:10px}
+.filter label{display:flex;align-items:center;gap:6px}
+.filter input,.filter select{font:inherit;background:white;border:1px solid var(--mid);padding:7px 9px;color:var(--dark);border-radius:4px;min-width:0}
+.filter input{width:220px}.report-text{margin:20px 0;font:14px/1.8 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.count{font:14px var(--head);color:var(--muted)}footer{color:var(--muted)}
+.knowledge[hidden]{display:none}.report-text{max-width:100%}.evidence-list{padding-left:20px;overflow-wrap:anywhere}.technical p{font:14px/1.8 var(--head)}
+summary:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--orange);outline-offset:4px}
+@media(max-width:600px){main{padding:36px 20px 64px}h1{font-size:26px}h2{font-size:21px;margin-top:44px}body{font-size:16px}figure{padding:10px;margin:20px 0}.settings{gap:8px 16px}.filter label{max-width:100%}.filter input{width:180px}}
+</style></head><body><main><h1>同样的初始表现，训练时间仍可相差7.78倍</h1><p class="lede">初始loss、梯度范数和第一步下降相同，两个目标仍需41步与319步才能达到相同的loss阈值。</p><ul class="settings"><li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></svg>研究模型 <b>gpt-6.1-sol · ultra</b></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19l5-7 4 4 7-10"/></svg>实验 <b>固定特征与小网络</b></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>计算 <b>本机 CPU</b></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>证据 <b>开发条件下的受控测量</b></li></ul><h2>初始表现相同，训练时间仍差7.78倍</h2>
+<p>两个目标使用同一特征矩阵，初始 loss、梯度范数和第一步下降相同。它们还匹配了目标加权谱的前两阶矩：以各方向的初始loss占比为权重，分别对特征值和特征值的平方加权求和。达到初始 loss 的1%，两者仍分别需要41步和319步。<strong>这些初始统计不足以描述后续训练预算。</strong></p><figure><svg role="img" aria-label="目标谱的前两阶矩和第一步 loss 下降相同，两个目标达到 1% loss 仍分别需要 41 步和 319 步。" xmlns:xlink="http://www.w3.org/1999/xlink" width="526.79952pt" height="238.79952pt" viewBox="0 0 526.79952 238.79952" xmlns="http://www.w3.org/2000/svg" version="1.1">
+
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="matched_moments-figure_1">
+  <g id="matched_moments-patch_1">
+   <path d="M 0 238.79952
+L 526.79952 238.79952
+L 526.79952 0
+L 0 0
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="matched_moments-axes_1">
+   <g id="matched_moments-patch_2">
+    <path d="M 45.82 201.12452
+L 512.10702 201.12452
+L 512.10702 7.2
+L 45.82 7.2
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matched_moments-matplotlib.axis_1">
+    <g id="matched_moments-xtick_1">
+     <g id="matched_moments-line2d_1">
+      <path d="M 45.82 201.12452
+L 45.82 7.2
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="matched_moments-line2d_2">
+      <defs>
+       <path id="matched_moments-m3fca24a970" d="M 0 0
+L 0 3.5
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#matched_moments-m3fca24a970" x="45.82" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="matched_moments-text_1">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="45.82" y="215.287957" transform="rotate(-0 45.82 215.287957)">0</text>
+     </g>
+    </g>
+    <g id="matched_moments-xtick_2">
+     <g id="matched_moments-line2d_3">
+      <path d="M 139.077404 201.12452
+L 139.077404 7.2
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="matched_moments-line2d_4">
+      <g>
+       <use xlink:href="#matched_moments-m3fca24a970" x="139.077404" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="matched_moments-text_2">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="139.077404" y="215.287957" transform="rotate(-0 139.077404 215.287957)">100</text>
+     </g>
+    </g>
+    <g id="matched_moments-xtick_3">
+     <g id="matched_moments-line2d_5">
+      <path d="M 232.334808 201.12452
+L 232.334808 7.2
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="matched_moments-line2d_6">
+      <g>
+       <use xlink:href="#matched_moments-m3fca24a970" x="232.334808" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="matched_moments-text_3">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="232.334808" y="215.287957" transform="rotate(-0 232.334808 215.287957)">200</text>
+     </g>
+    </g>
+    <g id="matched_moments-xtick_4">
+     <g id="matched_moments-line2d_7">
+      <path d="M 325.592212 201.12452
+L 325.592212 7.2
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="matched_moments-line2d_8">
+      <g>
+       <use xlink:href="#matched_moments-m3fca24a970" x="325.592212" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="matched_moments-text_4">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="325.592212" y="215.287957" transform="rotate(-0 325.592212 215.287957)">300</text>
+     </g>
+    </g>
+    <g id="matched_moments-xtick_5">
+     <g id="matched_moments-line2d_9">
+      <path d="M 418.849616 201.12452
+L 418.849616 7.2
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="matched_moments-line2d_10">
+      <g>
+       <use xlink:href="#matched_moments-m3fca24a970" x="418.849616" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="matched_moments-text_5">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="418.849616" y="215.287957" transform="rotate(-0 418.849616 215.287957)">400</text>
+     </g>
+    </g>
+    <g id="matched_moments-xtick_6">
+     <g id="matched_moments-line2d_11">
+      <path d="M 512.10702 201.12452
+L 512.10702 7.2
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="matched_moments-line2d_12">
+      <g>
+       <use xlink:href="#matched_moments-m3fca24a970" x="512.10702" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="matched_moments-text_6">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="512.10702" y="215.287957" transform="rotate(-0 512.10702 215.287957)">500</text>
+     </g>
+    </g>
+    <g id="matched_moments-text_7">
+     <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #141413" x="278.96351" y="229.308895" transform="rotate(-0 278.96351 229.308895)">SGD 更新步数</text>
+    </g>
+   </g>
+   <g id="matched_moments-matplotlib.axis_2">
+    <g id="matched_moments-ytick_1">
+     <g id="matched_moments-line2d_13">
+      <path d="M 45.82 201.12452
+L 512.10702 201.12452
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="matched_moments-line2d_14">
+      <defs>
+       <path id="matched_moments-m268022d970" d="M 0 0
+L -3.5 0
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#matched_moments-m268022d970" x="45.82" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="matched_moments-text_8">
+      <!-- $\mathdefault{10^{-5}}$ -->
+      <g style="fill: #5e5d59" transform="translate(21.45 204.706239)">
+       <text>
+        <tspan x="0" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">−</tspan>
+        <tspan x="13.576721" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">5</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_2">
+     <g id="matched_moments-line2d_15">
+      <path d="M 45.82 163.203779
+L 512.10702 163.203779
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="matched_moments-line2d_16">
+      <g>
+       <use xlink:href="#matched_moments-m268022d970" x="45.82" y="163.203779" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="matched_moments-text_9">
+      <!-- $\mathdefault{10^{-4}}$ -->
+      <g style="fill: #5e5d59" transform="translate(21.45 166.785498)">
+       <text>
+        <tspan x="0" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">−</tspan>
+        <tspan x="13.576721" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">4</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_3">
+     <g id="matched_moments-line2d_17">
+      <path d="M 45.82 125.283039
+L 512.10702 125.283039
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="matched_moments-line2d_18">
+      <g>
+       <use xlink:href="#matched_moments-m268022d970" x="45.82" y="125.283039" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="matched_moments-text_10">
+      <!-- $\mathdefault{10^{-3}}$ -->
+      <g style="fill: #5e5d59" transform="translate(21.45 128.864757)">
+       <text>
+        <tspan x="0" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.110938" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">−</tspan>
+        <tspan x="13.576721" y="-4.110938" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">3</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_4">
+     <g id="matched_moments-line2d_19">
+      <path d="M 45.82 87.362298
+L 512.10702 87.362298
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="matched_moments-line2d_20">
+      <g>
+       <use xlink:href="#matched_moments-m268022d970" x="45.82" y="87.362298" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="matched_moments-text_11">
+      <!-- $\mathdefault{10^{-2}}$ -->
+      <g style="fill: #5e5d59" transform="translate(21.45 90.944017)">
+       <text>
+        <tspan x="0" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.110938" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">−</tspan>
+        <tspan x="13.576721" y="-4.110938" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">2</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_5">
+     <g id="matched_moments-line2d_21">
+      <path d="M 45.82 49.441557
+L 512.10702 49.441557
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="matched_moments-line2d_22">
+      <g>
+       <use xlink:href="#matched_moments-m268022d970" x="45.82" y="49.441557" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="matched_moments-text_12">
+      <!-- $\mathdefault{10^{-1}}$ -->
+      <g style="fill: #5e5d59" transform="translate(21.45 53.023276)">
+       <text>
+        <tspan x="0" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">−</tspan>
+        <tspan x="13.576721" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_6">
+     <g id="matched_moments-line2d_23">
+      <path d="M 45.82 11.520816
+L 512.10702 11.520816
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="matched_moments-line2d_24">
+      <g>
+       <use xlink:href="#matched_moments-m268022d970" x="45.82" y="11.520816" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="matched_moments-text_13">
+      <!-- $\mathdefault{10^{0}}$ -->
+      <g style="fill: #5e5d59" transform="translate(24.96 15.102535)">
+       <text>
+        <tspan x="0" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.110938" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_7">
+     <g id="matched_moments-line2d_25">
+      <defs>
+       <path id="matched_moments-m00267ce71f" d="M 0 0
+L -2 0
+" style="stroke: #5e5d59; stroke-width: 0.6"/>
+      </defs>
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="189.70924" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_8">
+     <g id="matched_moments-line2d_26">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="183.031729" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_9">
+     <g id="matched_moments-line2d_27">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="178.293959" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_10">
+     <g id="matched_moments-line2d_28">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="174.61906" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_11">
+     <g id="matched_moments-line2d_29">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="171.616448" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_12">
+     <g id="matched_moments-line2d_30">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="169.077776" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_13">
+     <g id="matched_moments-line2d_31">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="166.878679" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_14">
+     <g id="matched_moments-line2d_32">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="164.938937" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_15">
+     <g id="matched_moments-line2d_33">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="151.788499" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_16">
+     <g id="matched_moments-line2d_34">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="145.110988" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_17">
+     <g id="matched_moments-line2d_35">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="140.373218" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_18">
+     <g id="matched_moments-line2d_36">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="136.698319" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_19">
+     <g id="matched_moments-line2d_37">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="133.695707" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_20">
+     <g id="matched_moments-line2d_38">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="131.157036" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_21">
+     <g id="matched_moments-line2d_39">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="128.957938" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_22">
+     <g id="matched_moments-line2d_40">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="127.018196" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_23">
+     <g id="matched_moments-line2d_41">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="113.867758" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_24">
+     <g id="matched_moments-line2d_42">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="107.190247" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_25">
+     <g id="matched_moments-line2d_43">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="102.452478" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_26">
+     <g id="matched_moments-line2d_44">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="98.777578" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_27">
+     <g id="matched_moments-line2d_45">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="95.774967" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_28">
+     <g id="matched_moments-line2d_46">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="93.236295" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_29">
+     <g id="matched_moments-line2d_47">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="91.037197" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_30">
+     <g id="matched_moments-line2d_48">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="89.097456" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_31">
+     <g id="matched_moments-line2d_49">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="75.947017" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_32">
+     <g id="matched_moments-line2d_50">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="69.269506" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_33">
+     <g id="matched_moments-line2d_51">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="64.531737" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_34">
+     <g id="matched_moments-line2d_52">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="60.856837" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_35">
+     <g id="matched_moments-line2d_53">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="57.854226" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_36">
+     <g id="matched_moments-line2d_54">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="55.315554" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_37">
+     <g id="matched_moments-line2d_55">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="53.116457" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_38">
+     <g id="matched_moments-line2d_56">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="51.176715" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_39">
+     <g id="matched_moments-line2d_57">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="38.026277" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_40">
+     <g id="matched_moments-line2d_58">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="31.348766" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_41">
+     <g id="matched_moments-line2d_59">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="26.610996" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_42">
+     <g id="matched_moments-line2d_60">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="22.936097" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_43">
+     <g id="matched_moments-line2d_61">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="19.933485" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_44">
+     <g id="matched_moments-line2d_62">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="17.394813" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_45">
+     <g id="matched_moments-line2d_63">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="15.195716" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-ytick_46">
+     <g id="matched_moments-line2d_64">
+      <g>
+       <use xlink:href="#matched_moments-m00267ce71f" x="45.82" y="13.255974" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="matched_moments-text_14">
+     <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #141413" x="15.159375" y="104.16226" transform="rotate(-90 15.159375 104.16226)">loss / 初始 loss</text>
+    </g>
+   </g>
+   <g id="matched_moments-line2d_65">
+    <path d="M 45.82 11.520816
+L 47.685148 15.564379
+L 62.606333 45.710837
+L 158.748133 239.79952
+L 158.748133 239.79952
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #6a9bcc; stroke-width: 1.8; stroke-linecap: square"/>
+   </g>
+   <g id="matched_moments-line2d_66">
+    <path d="M 45.82 11.520816
+L 47.685148 15.46033
+L 48.617722 17.054629
+L 49.550296 18.423368
+L 51.415444 20.581952
+L 53.280592 22.138924
+L 55.14574 23.277927
+L 57.010888 24.141269
+L 59.808611 25.128782
+L 63.538907 26.157634
+L 70.999499 27.894941
+L 104.572165 35.252983
+L 512.10702 124.378369
+L 512.10702 124.378369
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke: #d97757; stroke-width: 1.8; stroke-linecap: square"/>
+   </g>
+   <g id="matched_moments-line2d_67">
+    <path d="M 45.82 87.362298
+L 512.10702 87.362298
+" clip-path="url(#matched_moments-pbe7590b3cd)" style="fill: none; stroke-dasharray: 3.7,1.6; stroke-dashoffset: 0; stroke: #b0aea5"/>
+   </g>
+   <g id="matched_moments-patch_3">
+    <path d="M 45.82 201.12452
+L 45.82 7.2
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="matched_moments-patch_4">
+    <path d="M 45.82 201.12452
+L 512.10702 201.12452
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="matched_moments-text_15">
+    <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #6a9bcc" x="92.055536" y="77.011956" transform="rotate(-0 92.055536 77.011956)">41 步</text>
+   </g>
+   <g id="matched_moments-text_16">
+    <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #d97757" x="351.311119" y="75.463736" transform="rotate(-0 351.311119 75.463736)">319 步</text>
+   </g>
+   <g id="matched_moments-text_17">
+    <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="504.646428" y="82.999028" transform="rotate(-0 504.646428 82.999028)">初始 loss 的 1%</text>
+   </g>
+   <g id="matched_moments-PathCollection_1">
+    <defs>
+     <path id="matched_moments-m6b4390538d" d="M 0 2
+C 0.530406 2 1.03916 1.789267 1.414214 1.414214
+C 1.789267 1.03916 2 0.530406 2 0
+C 2 -0.530406 1.789267 -1.03916 1.414214 -1.414214
+C 1.03916 -1.789267 0.530406 -2 0 -2
+C -0.530406 -2 -1.03916 -1.789267 -1.414214 -1.414214
+C -1.789267 -1.03916 -2 -0.530406 -2 0
+C -2 0.530406 -1.789267 1.03916 -1.414214 1.414214
+C -1.03916 1.789267 -0.530406 2 0 2
+z
+" style="stroke: #6a9bcc"/>
+    </defs>
+    <g clip-path="url(#matched_moments-pbe7590b3cd)">
+     <use xlink:href="#matched_moments-m6b4390538d" x="84.055536" y="89.011956" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+    </g>
+   </g>
+   <g id="matched_moments-PathCollection_2">
+    <defs>
+     <path id="matched_moments-mfa474f8097" d="M 0 2
+C 0.530406 2 1.03916 1.789267 1.414214 1.414214
+C 1.789267 1.03916 2 0.530406 2 0
+C 2 -0.530406 1.789267 -1.03916 1.414214 -1.414214
+C 1.03916 -1.789267 0.530406 -2 0 -2
+C -0.530406 -2 -1.03916 -1.789267 -1.414214 -1.414214
+C -1.789267 -1.03916 -2 -0.530406 -2 0
+C -2 0.530406 -1.789267 1.03916 -1.414214 1.414214
+C -1.03916 1.789267 -0.530406 2 0 2
+z
+" style="stroke: #d97757"/>
+    </defs>
+    <g clip-path="url(#matched_moments-pbe7590b3cd)">
+     <use xlink:href="#matched_moments-mfa474f8097" x="343.311119" y="87.463736" style="fill: #d97757; stroke: #d97757"/>
+    </g>
+   </g>
+   <g id="matched_moments-legend_1">
+    <g id="matched_moments-line2d_68">
+     <path d="M 425.877176 19.313437
+L 434.877176 19.313437
+L 443.877176 19.313437
+" style="fill: none; stroke: #6a9bcc; stroke-width: 1.8; stroke-linecap: square"/>
+    </g>
+    <g id="matched_moments-text_18">
+     <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="451.077176" y="22.463437" transform="rotate(-0 451.077176 22.463437)">目标 A（快）</text>
+    </g>
+    <g id="matched_moments-line2d_69">
+     <path d="M 425.877176 33.038437
+L 434.877176 33.038437
+L 443.877176 33.038437
+" style="fill: none; stroke: #d97757; stroke-width: 1.8; stroke-linecap: square"/>
+    </g>
+    <g id="matched_moments-text_19">
+     <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="451.077176" y="36.188437" transform="rotate(-0 451.077176 36.188437)">目标 B（慢）</text>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="matched_moments-pbe7590b3cd">
+   <rect x="45.82" y="7.2" width="466.28702" height="193.92452"/>
+  </clipPath>
+ </defs>
+</svg></figure><p class="compact">曲线来自保存的训练结果。三次参数坐标旋转都得到同样端点，因此不画独立样本置信区间。</p><details><summary>已知递推解释了差异，但还不能称为容量定律</summary>
+<p>固定特征、平方loss、无动量的全批量SGD，在各学习方向上分别衰减。完整的目标加权谱可以预测曲线。</p>
+<p>L(t)是第t步的loss。t（更新步数）、wᵢ（第i方向的初始loss占比）、η（学习率）和λᵢ（该方向的特征值）代入：</p>
+<div class="formula">L(t) / L(0) = ∑ᵢ wᵢ · (1 − ηλᵢ)²ᵗ</div>
+<p>这是已知递推。新增证据是：即使匹配前两阶矩和真实第一步下降，训练预算仍能分离。实验为9样本、9参数，第i个方向的特征值为i⁻²（i从1到9），学习率0.5、零初始化和1%阈值。两个目标都能最终拟合，目标参数范数和更高阶矩尚未匹配。它没有测永久表示容量、空间分辨率或泛化。</p></details><h2>动量换算需要知道目标的慢方向占比</h2>
+<p>等效训练时间U（把不同优化器的更新步数换算成相同拟合进度）不能只看动量系数。在固定快慢两方向的系统中，把慢方向的初始loss占比设为0.1%、0.5%或0.9%，两种步数换算的误差都超过50%；占比为2%、10%或50%时，误差都在5%内。</p><figure><svg role="img" aria-label="慢模态初始 loss 占比为 .001/.005/.009 时，两种动量步数换算误差均超过 50%；.02/.1/.5 时均低于 5%。" xmlns:xlink="http://www.w3.org/1999/xlink" width="526.79952pt" height="238.79952pt" viewBox="0 0 526.79952 238.79952" xmlns="http://www.w3.org/2000/svg" version="1.1">
+
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="momentum_conversion-figure_1">
+  <g id="momentum_conversion-patch_1">
+   <path d="M 0 238.79952
+L 526.79952 238.79952
+L 526.79952 0
+L 0 0
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="momentum_conversion-axes_1">
+   <g id="momentum_conversion-patch_2">
+    <path d="M 38.44 201.12452
+L 519.59952 201.12452
+L 519.59952 7.2
+L 38.44 7.2
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="momentum_conversion-matplotlib.axis_1">
+    <g id="momentum_conversion-xtick_1">
+     <g id="momentum_conversion-line2d_1">
+      <path d="M 54.289438 201.12452
+L 54.289438 7.2
+" clip-path="url(#momentum_conversion-pdca75f0090)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="momentum_conversion-line2d_2">
+      <defs>
+       <path id="momentum_conversion-mc2169fe64a" d="M 0 0
+L 0 3.5
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#momentum_conversion-mc2169fe64a" x="54.289438" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="momentum_conversion-text_1">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="54.289438" y="215.287957" transform="rotate(-0 54.289438 215.287957)">0.1</text>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_2">
+     <g id="momentum_conversion-line2d_3">
+      <path d="M 168.604582 201.12452
+L 168.604582 7.2
+" clip-path="url(#momentum_conversion-pdca75f0090)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="momentum_conversion-line2d_4">
+      <g>
+       <use xlink:href="#momentum_conversion-mc2169fe64a" x="168.604582" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="momentum_conversion-text_2">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="168.604582" y="215.287957" transform="rotate(-0 168.604582 215.287957)">0.5</text>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_3">
+     <g id="momentum_conversion-line2d_5">
+      <path d="M 217.837434 201.12452
+L 217.837434 7.2
+" clip-path="url(#momentum_conversion-pdca75f0090)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="momentum_conversion-line2d_6">
+      <g>
+       <use xlink:href="#momentum_conversion-mc2169fe64a" x="217.837434" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="momentum_conversion-text_3">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="217.837434" y="215.287957" transform="rotate(-0 217.837434 215.287957)">1</text>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_4">
+     <g id="momentum_conversion-line2d_7">
+      <path d="M 267.070286 201.12452
+L 267.070286 7.2
+" clip-path="url(#momentum_conversion-pdca75f0090)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="momentum_conversion-line2d_8">
+      <g>
+       <use xlink:href="#momentum_conversion-mc2169fe64a" x="267.070286" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="momentum_conversion-text_4">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="267.070286" y="215.287957" transform="rotate(-0 267.070286 215.287957)">2</text>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_5">
+     <g id="momentum_conversion-line2d_9">
+      <path d="M 381.38543 201.12452
+L 381.38543 7.2
+" clip-path="url(#momentum_conversion-pdca75f0090)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="momentum_conversion-line2d_10">
+      <g>
+       <use xlink:href="#momentum_conversion-mc2169fe64a" x="381.38543" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="momentum_conversion-text_5">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="381.38543" y="215.287957" transform="rotate(-0 381.38543 215.287957)">10</text>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_6">
+     <g id="momentum_conversion-line2d_11">
+      <path d="M 495.700573 201.12452
+L 495.700573 7.2
+" clip-path="url(#momentum_conversion-pdca75f0090)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="momentum_conversion-line2d_12">
+      <g>
+       <use xlink:href="#momentum_conversion-mc2169fe64a" x="495.700573" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="momentum_conversion-text_6">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="495.700573" y="215.287957" transform="rotate(-0 495.700573 215.287957)">50</text>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_7">
+     <g id="momentum_conversion-line2d_13">
+      <defs>
+       <path id="momentum_conversion-m041cf83e86" d="M 0 0
+L 0 2
+" style="stroke: #5e5d59; stroke-width: 0.6"/>
+      </defs>
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="38.44" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_8">
+     <g id="momentum_conversion-line2d_14">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="46.805893" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_9">
+     <g id="momentum_conversion-line2d_15">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="103.522291" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_10">
+     <g id="momentum_conversion-line2d_16">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="132.321663" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_11">
+     <g id="momentum_conversion-line2d_17">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="152.755143" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_12">
+     <g id="momentum_conversion-line2d_18">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="181.554516" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_13">
+     <g id="momentum_conversion-line2d_19">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="192.503529" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_14">
+     <g id="momentum_conversion-line2d_20">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="201.987996" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_15">
+     <g id="momentum_conversion-line2d_21">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="210.353888" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_16">
+     <g id="momentum_conversion-line2d_22">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="295.869659" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_17">
+     <g id="momentum_conversion-line2d_23">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="316.303139" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_18">
+     <g id="momentum_conversion-line2d_24">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="332.152577" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_19">
+     <g id="momentum_conversion-line2d_25">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="345.102511" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_20">
+     <g id="momentum_conversion-line2d_26">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="356.051524" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_21">
+     <g id="momentum_conversion-line2d_27">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="365.535991" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_22">
+     <g id="momentum_conversion-line2d_28">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="373.901884" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_23">
+     <g id="momentum_conversion-line2d_29">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="430.618282" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_24">
+     <g id="momentum_conversion-line2d_30">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="459.417654" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_25">
+     <g id="momentum_conversion-line2d_31">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="479.851134" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_26">
+     <g id="momentum_conversion-line2d_32">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="508.650507" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-xtick_27">
+     <g id="momentum_conversion-line2d_33">
+      <g>
+       <use xlink:href="#momentum_conversion-m041cf83e86" x="519.59952" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="momentum_conversion-text_7">
+     <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #141413" x="279.01976" y="229.308895" transform="rotate(-0 279.01976 229.308895)">慢方向占初始 loss 的比例（%）</text>
+    </g>
+   </g>
+   <g id="momentum_conversion-matplotlib.axis_2">
+    <g id="momentum_conversion-ytick_1">
+     <g id="momentum_conversion-line2d_34">
+      <path d="M 38.44 201.12452
+L 519.59952 201.12452
+" clip-path="url(#momentum_conversion-pdca75f0090)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="momentum_conversion-line2d_35">
+      <defs>
+       <path id="momentum_conversion-m5054de0d43" d="M 0 0
+L -3.5 0
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#momentum_conversion-m5054de0d43" x="38.44" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="momentum_conversion-text_8">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="31.44" y="204.706239" transform="rotate(-0 31.44 204.706239)">0</text>
+     </g>
+    </g>
+    <g id="momentum_conversion-ytick_2">
+     <g id="momentum_conversion-line2d_36">
+      <path d="M 38.44 161.548087
+L 519.59952 161.548087
+" clip-path="url(#momentum_conversion-pdca75f0090)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="momentum_conversion-line2d_37">
+      <g>
+       <use xlink:href="#momentum_conversion-m5054de0d43" x="38.44" y="161.548087" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="momentum_conversion-text_9">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="31.44" y="165.129806" transform="rotate(-0 31.44 165.129806)">20</text>
+     </g>
+    </g>
+    <g id="momentum_conversion-ytick_3">
+     <g id="momentum_conversion-line2d_38">
+      <path d="M 38.44 121.971655
+L 519.59952 121.971655
+" clip-path="url(#momentum_conversion-pdca75f0090)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="momentum_conversion-line2d_39">
+      <g>
+       <use xlink:href="#momentum_conversion-m5054de0d43" x="38.44" y="121.971655" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="momentum_conversion-text_10">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="31.44" y="125.553373" transform="rotate(-0 31.44 125.553373)">40</text>
+     </g>
+    </g>
+    <g id="momentum_conversion-ytick_4">
+     <g id="momentum_conversion-line2d_40">
+      <path d="M 38.44 82.395222
+L 519.59952 82.395222
+" clip-path="url(#momentum_conversion-pdca75f0090)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="momentum_conversion-line2d_41">
+      <g>
+       <use xlink:href="#momentum_conversion-m5054de0d43" x="38.44" y="82.395222" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="momentum_conversion-text_11">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="31.44" y="85.976941" transform="rotate(-0 31.44 85.976941)">60</text>
+     </g>
+    </g>
+    <g id="momentum_conversion-ytick_5">
+     <g id="momentum_conversion-line2d_42">
+      <path d="M 38.44 42.818789
+L 519.59952 42.818789
+" clip-path="url(#momentum_conversion-pdca75f0090)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="momentum_conversion-line2d_43">
+      <g>
+       <use xlink:href="#momentum_conversion-m5054de0d43" x="38.44" y="42.818789" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="momentum_conversion-text_12">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="31.44" y="46.400508" transform="rotate(-0 31.44 46.400508)">80</text>
+     </g>
+    </g>
+    <g id="momentum_conversion-text_13">
+     <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #141413" x="15.159375" y="104.16226" transform="rotate(-90 15.159375 104.16226)">动量步数换算的相对绝对误差（%）</text>
+    </g>
+   </g>
+   <g id="momentum_conversion-line2d_44">
+    <path d="M 38.44 191.230412
+L 519.59952 191.230412
+" clip-path="url(#momentum_conversion-pdca75f0090)" style="fill: none; stroke-dasharray: 3.7,1.6; stroke-dashoffset: 0; stroke: #b0aea5"/>
+   </g>
+   <g id="momentum_conversion-patch_3">
+    <path d="M 38.44 201.12452
+L 38.44 7.2
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="momentum_conversion-patch_4">
+    <path d="M 38.44 201.12452
+L 519.59952 201.12452
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="momentum_conversion-text_14">
+    <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="488.217027" y="187.272769" transform="rotate(-0 488.217027 187.272769)">5% 误差</text>
+   </g>
+   <g id="momentum_conversion-PathCollection_1">
+    <defs>
+     <path id="momentum_conversion-me98672ac3f" d="M 0 2
+C 0.530406 2 1.03916 1.789267 1.414214 1.414214
+C 1.789267 1.03916 2 0.530406 2 0
+C 2 -0.530406 1.789267 -1.03916 1.414214 -1.414214
+C 1.03916 -1.789267 0.530406 -2 0 -2
+C -0.530406 -2 -1.03916 -1.789267 -1.414214 -1.414214
+C -1.789267 -1.03916 -2 -0.530406 -2 0
+C -2 0.530406 -1.789267 1.03916 -1.414214 1.414214
+C -1.03916 1.789267 -0.530406 2 0 2
+z
+" style="stroke: #d97757"/>
+    </defs>
+    <g clip-path="url(#momentum_conversion-pdca75f0090)">
+     <use xlink:href="#momentum_conversion-me98672ac3f" x="54.289438" y="25.728966" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#momentum_conversion-me98672ac3f" x="168.604582" y="29.053074" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#momentum_conversion-me98672ac3f" x="210.353888" y="26.719902" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#momentum_conversion-me98672ac3f" x="217.837434" y="32.924681" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#momentum_conversion-me98672ac3f" x="224.607125" y="131.598355" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#momentum_conversion-me98672ac3f" x="267.070286" y="197.761084" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#momentum_conversion-me98672ac3f" x="381.38543" y="200.780377" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#momentum_conversion-me98672ac3f" x="495.700573" y="200.20981" style="fill: #d97757; stroke: #d97757"/>
+    </g>
+   </g>
+   <g id="momentum_conversion-PathCollection_2">
+    <defs>
+     <path id="momentum_conversion-me92b23716c" d="M -2 2
+L 2 2
+L 2 -2
+L -2 -2
+z
+" style="stroke: #6a9bcc"/>
+    </defs>
+    <g clip-path="url(#momentum_conversion-pdca75f0090)">
+     <use xlink:href="#momentum_conversion-me92b23716c" x="54.289438" y="52.712898" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#momentum_conversion-me92b23716c" x="168.604582" y="54.863791" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#momentum_conversion-me92b23716c" x="210.353888" y="50.197446" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#momentum_conversion-me92b23716c" x="217.837434" y="56.010934" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#momentum_conversion-me92b23716c" x="224.607125" y="155.665104" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#momentum_conversion-me92b23716c" x="267.070286" y="199.442802" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#momentum_conversion-me92b23716c" x="381.38543" y="199.231734" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#momentum_conversion-me92b23716c" x="495.700573" y="199.295101" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+    </g>
+   </g>
+   <g id="momentum_conversion-legend_1">
+    <g id="momentum_conversion-PathCollection_3">
+     <g>
+      <use xlink:href="#momentum_conversion-me98672ac3f" x="441.29952" y="20.100937" style="fill: #d97757; stroke: #d97757"/>
+     </g>
+    </g>
+    <g id="momentum_conversion-text_15">
+     <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="457.49952" y="22.463437" transform="rotate(-0 457.49952 22.463437)">稳态换算</text>
+    </g>
+    <g id="momentum_conversion-PathCollection_4">
+     <g>
+      <use xlink:href="#momentum_conversion-me92b23716c" x="441.29952" y="33.825937" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     </g>
+    </g>
+    <g id="momentum_conversion-text_16">
+     <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="457.49952" y="36.188437" transform="rotate(-0 457.49952 36.188437)">启动修正换算</text>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="momentum_conversion-pdca75f0090">
+   <rect x="38.44" y="7.2" width="481.15952" height="193.92452"/>
+  </clipPath>
+ </defs>
+</svg></figure><details><summary>两种换算与适用边界</summary>
+<p>稳态换算把无动量的实测步数除以10。启动修正再补偿最初累积动量的滞后。两者都需要无动量的实测阈值步数，不是从零预测。</p>
+<p>系统固定为两方向特征值0.001和0.5，学习率0.1，动量0或0.9，初始loss为1，最多40,000步。端点定义为达到1% loss后，在余下预算内持续达标。低占比下，首次达标与持续达标不同。</p>
+<p>占比1%和1.1%只作描述测量，不能把1%当临界点，也不能把“慢占比超过阈值”当充分条件。目标变化同时改变其他初始量，尚不能独立归因于慢方向能量。</p></details><h2>一条S形曲线的拟合边界也取决于目标</h2>
+<p>sigmoid（单一S形函数）在对数时间轴上能否描述loss，不由快慢方向的特征值比单独决定。固定该比值为100，慢方向占比99%时拟合通过，1%时失败。失败条件的最大误差约为0.06476，超过实验前登记的误差上限0.05。拟合中点也不能直接当成真实半衰期。</p><figure><svg role="img" aria-label="谱比固定 100 时，只有慢模态占比 99% 和 100% 的离散条件通过单 logistic 的两项拟合误差阈值。" xmlns:xlink="http://www.w3.org/1999/xlink" width="526.79952pt" height="238.79952pt" viewBox="0 0 526.79952 238.79952" xmlns="http://www.w3.org/2000/svg" version="1.1">
+
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="logistic_fit_boundary-figure_1">
+  <g id="logistic_fit_boundary-patch_1">
+   <path d="M 0 238.79952
+L 526.79952 238.79952
+L 526.79952 -0
+L 0 -0
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="logistic_fit_boundary-axes_1">
+   <g id="logistic_fit_boundary-patch_2">
+    <path d="M 40.952656 201.12452
+L 519.59952 201.12452
+L 519.59952 7.2
+L 40.952656 7.2
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="logistic_fit_boundary-matplotlib.axis_1">
+    <g id="logistic_fit_boundary-xtick_1">
+     <g id="logistic_fit_boundary-line2d_1">
+      <path d="M 60.208565 201.12452
+L 60.208565 7.2
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_2">
+      <defs>
+       <path id="logistic_fit_boundary-md9e5df7ba6" d="M 0 0
+L 0 3.5
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#logistic_fit_boundary-md9e5df7ba6" x="60.208565" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_1">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="60.208565" y="215.287958" transform="rotate(-0 60.208565 215.287958)">0</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-xtick_2">
+     <g id="logistic_fit_boundary-line2d_3">
+      <path d="M 115.225445 201.12452
+L 115.225445 7.2
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_4">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-md9e5df7ba6" x="115.225445" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_2">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="115.225445" y="215.287958" transform="rotate(-0 115.225445 215.287958)">1</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-xtick_3">
+     <g id="logistic_fit_boundary-line2d_5">
+      <path d="M 170.242326 201.12452
+L 170.242326 7.2
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_6">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-md9e5df7ba6" x="170.242326" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_3">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="170.242326" y="215.287958" transform="rotate(-0 170.242326 215.287958)">10</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-xtick_4">
+     <g id="logistic_fit_boundary-line2d_7">
+      <path d="M 225.259207 201.12452
+L 225.259207 7.2
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_8">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-md9e5df7ba6" x="225.259207" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_4">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="225.259207" y="215.287958" transform="rotate(-0 225.259207 215.287958)">25</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-xtick_5">
+     <g id="logistic_fit_boundary-line2d_9">
+      <path d="M 280.276088 201.12452
+L 280.276088 7.2
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_10">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-md9e5df7ba6" x="280.276088" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_5">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="280.276088" y="215.287958" transform="rotate(-0 280.276088 215.287958)">50</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-xtick_6">
+     <g id="logistic_fit_boundary-line2d_11">
+      <path d="M 335.292969 201.12452
+L 335.292969 7.2
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_12">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-md9e5df7ba6" x="335.292969" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_6">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="335.292969" y="215.287958" transform="rotate(-0 335.292969 215.287958)">75</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-xtick_7">
+     <g id="logistic_fit_boundary-line2d_13">
+      <path d="M 390.30985 201.12452
+L 390.30985 7.2
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_14">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-md9e5df7ba6" x="390.30985" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_7">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="390.30985" y="215.287958" transform="rotate(-0 390.30985 215.287958)">90</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-xtick_8">
+     <g id="logistic_fit_boundary-line2d_15">
+      <path d="M 445.326731 201.12452
+L 445.326731 7.2
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_16">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-md9e5df7ba6" x="445.326731" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_8">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="445.326731" y="215.287958" transform="rotate(-0 445.326731 215.287958)">99</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-xtick_9">
+     <g id="logistic_fit_boundary-line2d_17">
+      <path d="M 500.343612 201.12452
+L 500.343612 7.2
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_18">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-md9e5df7ba6" x="500.343612" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_9">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="500.343612" y="215.287958" transform="rotate(-0 500.343612 215.287958)">100</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-text_10">
+     <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #141413" x="280.276088" y="229.308895" transform="rotate(-0 280.276088 229.308895)">慢方向占初始 loss 的比例（%，离散条件）</text>
+    </g>
+   </g>
+   <g id="logistic_fit_boundary-matplotlib.axis_2">
+    <g id="logistic_fit_boundary-ytick_1">
+     <g id="logistic_fit_boundary-line2d_19">
+      <path d="M 40.952656 201.12452
+L 519.59952 201.12452
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_20">
+      <defs>
+       <path id="logistic_fit_boundary-mc35ae57823" d="M 0 0
+L -3.5 0
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#logistic_fit_boundary-mc35ae57823" x="40.952656" y="201.12452" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_11">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.952656" y="204.706239" transform="rotate(-0 33.952656 204.706239)">0.0</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-ytick_2">
+     <g id="logistic_fit_boundary-line2d_21">
+      <path d="M 40.952656 176.262402
+L 519.59952 176.262402
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_22">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-mc35ae57823" x="40.952656" y="176.262402" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_12">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.952656" y="179.844121" transform="rotate(-0 33.952656 179.844121)">0.5</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-ytick_3">
+     <g id="logistic_fit_boundary-line2d_23">
+      <path d="M 40.952656 151.400284
+L 519.59952 151.400284
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_24">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-mc35ae57823" x="40.952656" y="151.400284" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_13">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.952656" y="154.982003" transform="rotate(-0 33.952656 154.982003)">1.0</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-ytick_4">
+     <g id="logistic_fit_boundary-line2d_25">
+      <path d="M 40.952656 126.538166
+L 519.59952 126.538166
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_26">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-mc35ae57823" x="40.952656" y="126.538166" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_14">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.952656" y="130.119885" transform="rotate(-0 33.952656 130.119885)">1.5</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-ytick_5">
+     <g id="logistic_fit_boundary-line2d_27">
+      <path d="M 40.952656 101.676048
+L 519.59952 101.676048
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_28">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-mc35ae57823" x="40.952656" y="101.676048" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_15">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.952656" y="105.257767" transform="rotate(-0 33.952656 105.257767)">2.0</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-ytick_6">
+     <g id="logistic_fit_boundary-line2d_29">
+      <path d="M 40.952656 76.81393
+L 519.59952 76.81393
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_30">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-mc35ae57823" x="40.952656" y="76.81393" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_16">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.952656" y="80.395649" transform="rotate(-0 33.952656 80.395649)">2.5</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-ytick_7">
+     <g id="logistic_fit_boundary-line2d_31">
+      <path d="M 40.952656 51.951812
+L 519.59952 51.951812
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_32">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-mc35ae57823" x="40.952656" y="51.951812" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_17">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.952656" y="55.533531" transform="rotate(-0 33.952656 55.533531)">3.0</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-ytick_8">
+     <g id="logistic_fit_boundary-line2d_33">
+      <path d="M 40.952656 27.089694
+L 519.59952 27.089694
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="logistic_fit_boundary-line2d_34">
+      <g>
+       <use xlink:href="#logistic_fit_boundary-mc35ae57823" x="40.952656" y="27.089694" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="logistic_fit_boundary-text_18">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.952656" y="30.671413" transform="rotate(-0 33.952656 30.671413)">3.5</text>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-text_19">
+     <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #141413" x="15.170313" y="104.16226" transform="rotate(-90 15.170313 104.16226)">拟合误差 / 允许误差</text>
+    </g>
+   </g>
+   <g id="logistic_fit_boundary-line2d_35">
+    <path d="M 40.952656 151.400284
+L 519.59952 151.400284
+" clip-path="url(#logistic_fit_boundary-p264a7566d2)" style="fill: none; stroke-dasharray: 3.7,1.6; stroke-dashoffset: 0; stroke: #b0aea5"/>
+   </g>
+   <g id="logistic_fit_boundary-patch_3">
+    <path d="M 40.952656 201.12452
+L 40.952656 7.2
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="logistic_fit_boundary-patch_4">
+    <path d="M 40.952656 201.12452
+L 519.59952 201.12452
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="logistic_fit_boundary-text_20">
+    <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="508.596144" y="146.427861" transform="rotate(-0 508.596144 146.427861)">两项 ≤1 才通过</text>
+   </g>
+   <g id="logistic_fit_boundary-PathCollection_1">
+    <defs>
+     <path id="logistic_fit_boundary-md2620a04f6" d="M -2 2
+L 2 2
+L 2 -2
+L -2 -2
+z
+" style="stroke: #6a9bcc"/>
+    </defs>
+    <g clip-path="url(#logistic_fit_boundary-p264a7566d2)">
+     <use xlink:href="#logistic_fit_boundary-md2620a04f6" x="60.208565" y="181.433044" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#logistic_fit_boundary-md2620a04f6" x="115.225445" y="184.179172" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#logistic_fit_boundary-md2620a04f6" x="170.242326" y="148.096149" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#logistic_fit_boundary-md2620a04f6" x="225.259207" y="133.323117" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#logistic_fit_boundary-md2620a04f6" x="280.276088" y="101.203358" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#logistic_fit_boundary-md2620a04f6" x="335.292969" y="85.526091" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#logistic_fit_boundary-md2620a04f6" x="390.30985" y="116.572594" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#logistic_fit_boundary-md2620a04f6" x="445.326731" y="152.824338" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     <use xlink:href="#logistic_fit_boundary-md2620a04f6" x="500.343612" y="156.71758" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+    </g>
+   </g>
+   <g id="logistic_fit_boundary-PathCollection_2">
+    <defs>
+     <path id="logistic_fit_boundary-m6392281a7c" d="M 0 2
+C 0.530406 2 1.03916 1.789267 1.414214 1.414214
+C 1.789267 1.03916 2 0.530406 2 0
+C 2 -0.530406 1.789267 -1.03916 1.414214 -1.414214
+C 1.03916 -1.789267 0.530406 -2 0 -2
+C -0.530406 -2 -1.03916 -1.789267 -1.414214 -1.414214
+C -1.789267 -1.03916 -2 -0.530406 -2 0
+C -2 0.530406 -1.789267 1.03916 -1.414214 1.414214
+C -1.03916 1.789267 -0.530406 2 0 2
+z
+" style="stroke: #d97757"/>
+    </defs>
+    <g clip-path="url(#logistic_fit_boundary-p264a7566d2)">
+     <use xlink:href="#logistic_fit_boundary-m6392281a7c" x="60.208565" y="126.907016" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#logistic_fit_boundary-m6392281a7c" x="115.225445" y="136.720744" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#logistic_fit_boundary-m6392281a7c" x="170.242326" y="111.865404" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#logistic_fit_boundary-m6392281a7c" x="225.259207" y="27.74923" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#logistic_fit_boundary-m6392281a7c" x="280.276088" y="116.027872" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#logistic_fit_boundary-m6392281a7c" x="335.292969" y="87.008137" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#logistic_fit_boundary-m6392281a7c" x="390.30985" y="121.614521" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#logistic_fit_boundary-m6392281a7c" x="445.326731" y="152.02392" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#logistic_fit_boundary-m6392281a7c" x="500.343612" y="154.214547" style="fill: #d97757; stroke: #d97757"/>
+    </g>
+   </g>
+   <g id="logistic_fit_boundary-legend_1">
+    <g id="logistic_fit_boundary-PathCollection_3">
+     <g>
+      <use xlink:href="#logistic_fit_boundary-md2620a04f6" x="416.251395" y="20.100938" style="fill: #6a9bcc; stroke: #6a9bcc"/>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-text_21">
+     <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="432.451395" y="22.463438" transform="rotate(-0 432.451395 22.463438)">RMSE / 0.03</text>
+    </g>
+    <g id="logistic_fit_boundary-PathCollection_4">
+     <g>
+      <use xlink:href="#logistic_fit_boundary-m6392281a7c" x="416.251395" y="33.870938" style="fill: #d97757; stroke: #d97757"/>
+     </g>
+    </g>
+    <g id="logistic_fit_boundary-text_22">
+     <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="432.451395" y="36.233438" transform="rotate(-0 432.451395 36.233438)">最大绝对误差 / 0.05</text>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="logistic_fit_boundary-p264a7566d2">
+   <rect x="40.952656" y="7.2" width="478.646864" height="193.92452"/>
+  </clipPath>
+ </defs>
+</svg></figure><details><summary>这里只比较同一拟合合同的选解</summary>
+<p>上下平台固定为1和0，使用150个等权对数时间点，学习率0.1，无动量、无衰减，固定特征值0.01和1。以6个起点做最小二乘，取误差最小的成功解。</p>
+<p>RMSE（均方根误差）须不超过0.03，最大绝对误差须不超过0.05，两项同时满足才通过。纯快方向也在最大误差上失败，所以不能把失败都归因于两阶段下降。评价网格和拟合目标仍是竞争解释。</p>
+<p>当前选解不足不证明所有sigmoid参数都无法通过。实验没有保证全局最优，也没有测试自由平台、多层网络或训练前段外推。</p></details><h2>一个精确偏置把通路的尺度指数从2改为6</h2>
+<p>把输入反射前后保持不变的部分称为偶通路，变号的部分称为奇通路。冻结单层SiLU特征时，普通偏置下的偶／奇能量比随激活前输入尺度a（偏置相加之前的缩放系数）近似按a²增长。把偏置设在SiLU二阶导数的零点（约2.39935728）后，增长改为a⁶。尺度从0.025加倍到0.05，实测增长从约4倍变为约64倍。</p><figure><svg role="img" aria-label="激活前输入尺度从 .025 加倍到 .05，bias 0/1 的偶奇能量比增长约 4 倍，二阶导数零点 bias 的增长约 64 倍。" xmlns:xlink="http://www.w3.org/1999/xlink" width="526.79952pt" height="238.800098pt" viewBox="0 0 526.79952 238.800098" xmlns="http://www.w3.org/2000/svg" version="1.1">
+
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="bias_pathway_scaling-figure_1">
+  <g id="bias_pathway_scaling-patch_1">
+   <path d="M 0 238.800098
+L 526.79952 238.800098
+L 526.79952 -0
+L 0 -0
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="bias_pathway_scaling-axes_1">
+   <g id="bias_pathway_scaling-patch_2">
+    <path d="M 49.33 201.125098
+L 519.59952 201.125098
+L 519.59952 26.248154
+L 49.33 26.248154
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="bias_pathway_scaling-matplotlib.axis_1">
+    <g id="bias_pathway_scaling-xtick_1">
+     <g id="bias_pathway_scaling-line2d_1">
+      <path d="M 70.705887 201.125098
+L 70.705887 26.248154
+" clip-path="url(#bias_pathway_scaling-p56ddc2c539)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="bias_pathway_scaling-line2d_2">
+      <defs>
+       <path id="bias_pathway_scaling-mf4baf8fd92" d="M 0 0
+L 0 3.5
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#bias_pathway_scaling-mf4baf8fd92" x="70.705887" y="201.125098" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="bias_pathway_scaling-text_1">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="70.705887" y="215.288536" transform="rotate(-0 70.705887 215.288536)">0.025</text>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-xtick_2">
+     <g id="bias_pathway_scaling-line2d_3">
+      <path d="M 213.211802 201.125098
+L 213.211802 26.248154
+" clip-path="url(#bias_pathway_scaling-p56ddc2c539)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="bias_pathway_scaling-line2d_4">
+      <g>
+       <use xlink:href="#bias_pathway_scaling-mf4baf8fd92" x="213.211802" y="201.125098" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="bias_pathway_scaling-text_2">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="213.211802" y="215.288536" transform="rotate(-0 213.211802 215.288536)">0.05</text>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-xtick_3">
+     <g id="bias_pathway_scaling-line2d_5">
+      <path d="M 355.717718 201.125098
+L 355.717718 26.248154
+" clip-path="url(#bias_pathway_scaling-p56ddc2c539)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="bias_pathway_scaling-line2d_6">
+      <g>
+       <use xlink:href="#bias_pathway_scaling-mf4baf8fd92" x="355.717718" y="201.125098" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="bias_pathway_scaling-text_3">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="355.717718" y="215.288536" transform="rotate(-0 355.717718 215.288536)">0.1</text>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-xtick_4">
+     <g id="bias_pathway_scaling-line2d_7">
+      <path d="M 498.223633 201.125098
+L 498.223633 26.248154
+" clip-path="url(#bias_pathway_scaling-p56ddc2c539)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="bias_pathway_scaling-line2d_8">
+      <g>
+       <use xlink:href="#bias_pathway_scaling-mf4baf8fd92" x="498.223633" y="201.125098" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="bias_pathway_scaling-text_4">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="498.223633" y="215.288536" transform="rotate(-0 498.223633 215.288536)">0.2</text>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-xtick_5">
+     <g id="bias_pathway_scaling-line2d_9">
+      <defs>
+       <path id="bias_pathway_scaling-m382bf21949" d="M 0 0
+L 0 2
+" style="stroke: #5e5d59; stroke-width: 0.6"/>
+      </defs>
+      <g>
+       <use xlink:href="#bias_pathway_scaling-m382bf21949" x="108.189846" y="201.125098" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-xtick_6">
+     <g id="bias_pathway_scaling-line2d_10">
+      <g>
+       <use xlink:href="#bias_pathway_scaling-m382bf21949" x="167.335145" y="201.125098" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-xtick_7">
+     <g id="bias_pathway_scaling-line2d_11">
+      <g>
+       <use xlink:href="#bias_pathway_scaling-m382bf21949" x="250.695761" y="201.125098" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-xtick_8">
+     <g id="bias_pathway_scaling-line2d_12">
+      <g>
+       <use xlink:href="#bias_pathway_scaling-m382bf21949" x="282.387997" y="201.125098" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-xtick_9">
+     <g id="bias_pathway_scaling-line2d_13">
+      <g>
+       <use xlink:href="#bias_pathway_scaling-m382bf21949" x="309.84106" y="201.125098" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-xtick_10">
+     <g id="bias_pathway_scaling-line2d_14">
+      <g>
+       <use xlink:href="#bias_pathway_scaling-m382bf21949" x="334.056378" y="201.125098" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.6"/>
+      </g>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-text_5">
+     <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #141413" x="284.46476" y="229.309473" transform="rotate(-0 284.46476 229.309473)">激活前输入尺度</text>
+    </g>
+   </g>
+   <g id="bias_pathway_scaling-matplotlib.axis_2">
+    <g id="bias_pathway_scaling-ytick_1">
+     <g id="bias_pathway_scaling-line2d_15">
+      <path d="M 49.33 177.862062
+L 519.59952 177.862062
+" clip-path="url(#bias_pathway_scaling-p56ddc2c539)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="bias_pathway_scaling-line2d_16">
+      <defs>
+       <path id="bias_pathway_scaling-mc7ce96806f" d="M 0 0
+L -3.5 0
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#bias_pathway_scaling-mc7ce96806f" x="49.33" y="177.862062" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="bias_pathway_scaling-text_6">
+      <!-- $\mathdefault{10^{-11}}$ -->
+      <g style="fill: #5e5d59" transform="translate(21.45 181.443781)">
+       <text>
+        <tspan x="0" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">−</tspan>
+        <tspan x="13.576721" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="17.073218" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-ytick_2">
+     <g id="bias_pathway_scaling-line2d_17">
+      <path d="M 49.33 147.598712
+L 519.59952 147.598712
+" clip-path="url(#bias_pathway_scaling-p56ddc2c539)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="bias_pathway_scaling-line2d_18">
+      <g>
+       <use xlink:href="#bias_pathway_scaling-mc7ce96806f" x="49.33" y="147.598712" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="bias_pathway_scaling-text_7">
+      <!-- $\mathdefault{10^{-9}}$ -->
+      <g style="fill: #5e5d59" transform="translate(24.96 151.180431)">
+       <text>
+        <tspan x="0" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.110938" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">−</tspan>
+        <tspan x="13.576721" y="-4.110938" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">9</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-ytick_3">
+     <g id="bias_pathway_scaling-line2d_19">
+      <path d="M 49.33 117.335361
+L 519.59952 117.335361
+" clip-path="url(#bias_pathway_scaling-p56ddc2c539)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="bias_pathway_scaling-line2d_20">
+      <g>
+       <use xlink:href="#bias_pathway_scaling-mc7ce96806f" x="49.33" y="117.335361" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="bias_pathway_scaling-text_8">
+      <!-- $\mathdefault{10^{-7}}$ -->
+      <g style="fill: #5e5d59" transform="translate(24.96 120.91708)">
+       <text>
+        <tspan x="0" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">−</tspan>
+        <tspan x="13.576721" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">7</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-ytick_4">
+     <g id="bias_pathway_scaling-line2d_21">
+      <path d="M 49.33 87.072011
+L 519.59952 87.072011
+" clip-path="url(#bias_pathway_scaling-p56ddc2c539)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="bias_pathway_scaling-line2d_22">
+      <g>
+       <use xlink:href="#bias_pathway_scaling-mc7ce96806f" x="49.33" y="87.072011" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="bias_pathway_scaling-text_9">
+      <!-- $\mathdefault{10^{-5}}$ -->
+      <g style="fill: #5e5d59" transform="translate(24.96 90.65373)">
+       <text>
+        <tspan x="0" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">−</tspan>
+        <tspan x="13.576721" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">5</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-ytick_5">
+     <g id="bias_pathway_scaling-line2d_23">
+      <path d="M 49.33 56.808661
+L 519.59952 56.808661
+" clip-path="url(#bias_pathway_scaling-p56ddc2c539)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="bias_pathway_scaling-line2d_24">
+      <g>
+       <use xlink:href="#bias_pathway_scaling-mc7ce96806f" x="49.33" y="56.808661" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="bias_pathway_scaling-text_10">
+      <!-- $\mathdefault{10^{-3}}$ -->
+      <g style="fill: #5e5d59" transform="translate(24.96 60.39038)">
+       <text>
+        <tspan x="0" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.501563" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.110938" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">−</tspan>
+        <tspan x="13.576721" y="-4.110938" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">3</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-ytick_6">
+     <g id="bias_pathway_scaling-line2d_25">
+      <path d="M 49.33 26.54531
+L 519.59952 26.54531
+" clip-path="url(#bias_pathway_scaling-p56ddc2c539)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="bias_pathway_scaling-line2d_26">
+      <g>
+       <use xlink:href="#bias_pathway_scaling-mc7ce96806f" x="49.33" y="26.54531" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="bias_pathway_scaling-text_11">
+      <!-- $\mathdefault{10^{-1}}$ -->
+      <g style="fill: #5e5d59" transform="translate(24.96 30.127029)">
+       <text>
+        <tspan x="0" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+        <tspan x="4.994995" y="-0.589063" style="font-size: 9px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">0</tspan>
+        <tspan x="10.080225" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">−</tspan>
+        <tspan x="13.576721" y="-4.198438" style="font-size: 6.3px; font-family: 'Noto Sans CJK SC'; fill: #5e5d59">1</tspan>
+       </text>
+      </g>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-text_12">
+     <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #141413" x="15.159375" y="113.686626" transform="rotate(-90 15.159375 113.686626)">偶通路 / 奇通路的能量比</text>
+    </g>
+   </g>
+   <g id="bias_pathway_scaling-FillBetweenPolyCollection_1">
+    <defs>
+     <path id="bias_pathway_scaling-m7d4893fe1d" d="M 70.705887 -57.902382
+L 70.705887 -45.623952
+L 213.211802 -72.95285
+L 355.717718 -100.276352
+L 498.223633 -127.570882
+L 498.223633 -139.800286
+L 498.223633 -139.800286
+L 355.717718 -112.546727
+L 213.211802 -85.229857
+L 70.705887 -57.902382
+z
+"/>
+    </defs>
+    <g clip-path="url(#bias_pathway_scaling-p56ddc2c539)">
+     <use xlink:href="#bias_pathway_scaling-m7d4893fe1d" x="0" y="238.800098" style="fill: #d97757; fill-opacity: 0.14"/>
+    </g>
+   </g>
+   <g id="bias_pathway_scaling-FillBetweenPolyCollection_2">
+    <defs>
+     <path id="bias_pathway_scaling-m9b4004f517" d="M 70.705887 -177.794183
+L 70.705887 -174.153003
+L 213.211802 -183.249674
+L 355.717718 -192.306182
+L 498.223633 -201.207069
+L 498.223633 -204.602992
+L 498.223633 -204.602992
+L 355.717718 -195.885452
+L 213.211802 -186.878282
+L 70.705887 -177.794183
+z
+"/>
+    </defs>
+    <g clip-path="url(#bias_pathway_scaling-p56ddc2c539)">
+     <use xlink:href="#bias_pathway_scaling-m9b4004f517" x="0" y="238.800098" style="fill: #6a9bcc; fill-opacity: 0.14"/>
+    </g>
+   </g>
+   <g id="bias_pathway_scaling-FillBetweenPolyCollection_3">
+    <defs>
+     <path id="bias_pathway_scaling-mde935e8605" d="M 70.705887 -163.070691
+L 70.705887 -159.424615
+L 213.211802 -168.538174
+L 355.717718 -177.661525
+L 498.223633 -186.819
+L 498.223633 -190.488994
+L 498.223633 -190.488994
+L 355.717718 -181.316619
+L 213.211802 -172.18624
+L 70.705887 -163.070691
+z
+"/>
+    </defs>
+    <g clip-path="url(#bias_pathway_scaling-p56ddc2c539)">
+     <use xlink:href="#bias_pathway_scaling-mde935e8605" x="0" y="238.800098" style="fill: #788c5d; fill-opacity: 0.14"/>
+    </g>
+   </g>
+   <g id="bias_pathway_scaling-line2d_27">
+    <path d="M 70.705887 184.260246
+L 213.211802 156.933132
+L 355.717718 129.6179
+L 498.223633 102.373694
+" clip-path="url(#bias_pathway_scaling-p56ddc2c539)" style="fill: none; stroke: #d97757; stroke-width: 1.8; stroke-linecap: square"/>
+    <defs>
+     <path id="bias_pathway_scaling-m35edb68db8" d="M 0 2
+C 0.530406 2 1.03916 1.789267 1.414214 1.414214
+C 1.789267 1.03916 2 0.530406 2 0
+C 2 -0.530406 1.789267 -1.03916 1.414214 -1.414214
+C 1.03916 -1.789267 0.530406 -2 0 -2
+C -0.530406 -2 -1.03916 -1.789267 -1.414214 -1.414214
+C -1.789267 -1.03916 -2 -0.530406 -2 0
+C -2 0.530406 -1.789267 1.03916 -1.414214 1.414214
+C -1.03916 1.789267 -0.530406 2 0 2
+z
+" style="stroke: #d97757"/>
+    </defs>
+    <g clip-path="url(#bias_pathway_scaling-p56ddc2c539)">
+     <use xlink:href="#bias_pathway_scaling-m35edb68db8" x="70.705887" y="184.260246" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#bias_pathway_scaling-m35edb68db8" x="213.211802" y="156.933132" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#bias_pathway_scaling-m35edb68db8" x="355.717718" y="129.6179" style="fill: #d97757; stroke: #d97757"/>
+     <use xlink:href="#bias_pathway_scaling-m35edb68db8" x="498.223633" y="102.373694" style="fill: #d97757; stroke: #d97757"/>
+    </g>
+   </g>
+   <g id="bias_pathway_scaling-line2d_28">
+    <path d="M 70.705887 62.484018
+L 213.211802 53.395197
+L 355.717718 44.36939
+L 498.223633 35.581179
+" clip-path="url(#bias_pathway_scaling-p56ddc2c539)" style="fill: none; stroke: #6a9bcc; stroke-width: 1.8; stroke-linecap: square"/>
+    <defs>
+     <path id="bias_pathway_scaling-m7e05c15416" d="M -2 2
+L 2 2
+L 2 -2
+L -2 -2
+z
+" style="stroke: #6a9bcc; stroke-linejoin: miter"/>
+    </defs>
+    <g clip-path="url(#bias_pathway_scaling-p56ddc2c539)">
+     <use xlink:href="#bias_pathway_scaling-m7e05c15416" x="70.705887" y="62.484018" style="fill: #6a9bcc; stroke: #6a9bcc; stroke-linejoin: miter"/>
+     <use xlink:href="#bias_pathway_scaling-m7e05c15416" x="213.211802" y="53.395197" style="fill: #6a9bcc; stroke: #6a9bcc; stroke-linejoin: miter"/>
+     <use xlink:href="#bias_pathway_scaling-m7e05c15416" x="355.717718" y="44.36939" style="fill: #6a9bcc; stroke: #6a9bcc; stroke-linejoin: miter"/>
+     <use xlink:href="#bias_pathway_scaling-m7e05c15416" x="498.223633" y="35.581179" style="fill: #6a9bcc; stroke: #6a9bcc; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="bias_pathway_scaling-line2d_29">
+    <path d="M 70.705887 77.209387
+L 213.211802 68.094709
+L 355.717718 58.96748
+L 498.223633 49.80278
+" clip-path="url(#bias_pathway_scaling-p56ddc2c539)" style="fill: none; stroke: #788c5d; stroke-width: 1.8; stroke-linecap: square"/>
+    <defs>
+     <path id="bias_pathway_scaling-mc55a4f176c" d="M 0 -2
+L -2 2
+L 2 2
+z
+" style="stroke: #788c5d; stroke-linejoin: miter"/>
+    </defs>
+    <g clip-path="url(#bias_pathway_scaling-p56ddc2c539)">
+     <use xlink:href="#bias_pathway_scaling-mc55a4f176c" x="70.705887" y="77.209387" style="fill: #788c5d; stroke: #788c5d; stroke-linejoin: miter"/>
+     <use xlink:href="#bias_pathway_scaling-mc55a4f176c" x="213.211802" y="68.094709" style="fill: #788c5d; stroke: #788c5d; stroke-linejoin: miter"/>
+     <use xlink:href="#bias_pathway_scaling-mc55a4f176c" x="355.717718" y="58.96748" style="fill: #788c5d; stroke: #788c5d; stroke-linejoin: miter"/>
+     <use xlink:href="#bias_pathway_scaling-mc55a4f176c" x="498.223633" y="49.80278" style="fill: #788c5d; stroke: #788c5d; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="bias_pathway_scaling-patch_3">
+    <path d="M 49.33 201.125098
+L 49.33 26.248154
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="bias_pathway_scaling-patch_4">
+    <path d="M 49.33 201.125098
+L 519.59952 201.125098
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="bias_pathway_scaling-legend_1">
+    <g id="bias_pathway_scaling-line2d_30">
+     <path d="M 52.93 14.813438
+L 61.93 14.813438
+L 70.93 14.813438
+" style="fill: none; stroke: #d97757; stroke-width: 1.8; stroke-linecap: square"/>
+     <g>
+      <use xlink:href="#bias_pathway_scaling-m35edb68db8" x="61.93" y="14.813438" style="fill: #d97757; stroke: #d97757"/>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-text_13">
+     <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="78.13" y="17.963438" transform="rotate(-0 78.13 17.963438)">bias=2.399357</text>
+    </g>
+    <g id="bias_pathway_scaling-line2d_31">
+     <path d="M 155.906875 14.813438
+L 164.906875 14.813438
+L 173.906875 14.813438
+" style="fill: none; stroke: #6a9bcc; stroke-width: 1.8; stroke-linecap: square"/>
+     <g>
+      <use xlink:href="#bias_pathway_scaling-m7e05c15416" x="164.906875" y="14.813438" style="fill: #6a9bcc; stroke: #6a9bcc; stroke-linejoin: miter"/>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-text_14">
+     <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="181.106875" y="17.963438" transform="rotate(-0 181.106875 17.963438)">bias=0</text>
+    </g>
+    <g id="bias_pathway_scaling-line2d_32">
+     <path d="M 226.412031 14.813438
+L 235.412031 14.813438
+L 244.412031 14.813438
+" style="fill: none; stroke: #788c5d; stroke-width: 1.8; stroke-linecap: square"/>
+     <g>
+      <use xlink:href="#bias_pathway_scaling-mc55a4f176c" x="235.412031" y="14.813438" style="fill: #788c5d; stroke: #788c5d; stroke-linejoin: miter"/>
+     </g>
+    </g>
+    <g id="bias_pathway_scaling-text_15">
+     <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="251.612031" y="17.963438" transform="rotate(-0 251.612031 17.963438)">bias=1</text>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="bias_pathway_scaling-p56ddc2c539">
+   <rect x="49.33" y="26.248154" width="470.26952" height="174.876944"/>
+  </clipPath>
+ </defs>
+</svg></figure><details><summary>Taylor展开给出机制，容差与训练价值仍待测</summary>
+<p>普通偏置下，奇通路从输入一次项开始，去均值后的偶通路从二次项开始。二阶导数为零时，偶通路领先项变为四次项，因此能量比的领先指数从2变为6。</p>
+<p>数据为4维对称Gaussian，128个样本，64宽冻结单层SiLU，偏置固定。实测使用完整精度零点2.3993572805154675。六个seed的增长范围为：偏置0，3.984159–3.991788倍；偏置1，4.002060–4.003272倍；精确零点，63.953437–63.985564倍。图中范围带只表示seed范围。</p>
+<p>原理是已知Taylor展开，实测贡献是有限尺度的预测验证。只测了精确零点，没有测附近容差、非对称输入、多层网络或可学习特征。偶通路能量也不能直接替代目标拟合速度或架构排序。</p></details><h2>其余四个方向也保留了反例与未决机制</h2>
+<ul class="results">
+<li><strong>样本量／噪声方差能做粗略预测，不能严格折叠最低点。</strong>风险最低点（干净评估数据上误差最小的训练步数）的57/60次留出样本量预测落在两倍内，但同一样本量／噪声方差的44次配对中有4个反例。统一标签归一化后，反例仍为62对201步。最低点仍使用干净标签，尚不是只靠训练数据的早停方法。</li>
+<li><strong>LayerNorm改善了条件数，收益机制仍未确定。</strong>条件数（居中隐藏特征内积矩阵的最大与最小特征值之比）在12/12个函数与标签偏移单元达到实验前登记的下降判据，但下降与收益的相关系数为0.421，未达到0.5。初始化已经更好，不能把终点差异解释成训练改善了谱。</li>
+<li><strong>早期特征变化方向在3/4个条件中延续。</strong>训练第32步与第256步的目标相关作用方向一致，但一个8宽的混合正弦网络在3个初始化中全部失败。早期方向尚不能直接预测晚期收益幅度。</li>
+<li><strong>终点泛化差距不能直接判断继续训练是否有害。</strong>固定一份标签噪声，在4/4个函数与宽度条件中扩大了真实网络相对初始线性化网络的干净评估误差差距。但部分真实网络继续训练后，误差仍下降。尚未完成跨噪声抽样检验。</li>
+</ul>
+<h2>24条知识保留了适用条件和4条失败预测</h2>
+<p>知识库KB（带适用条件、测量证据和反例的判断规则）已经记录24条。下面按方向保留每条判断的结论。原始条目、完整条件和来源按需展开。所有结果来自开发条件，尚无预先封存的新条件验证。</p><details id="knowledge"><summary>展开全部知识，按方向或关键词查找</summary><div class="filter"><label>方向 <select id="direction"><option value="all">全部方向</option><option value="D1">动量训练换算</option><option value="D2">风险最低点</option><option value="D3">训练预算的描述量</option><option value="D4">S形曲线拟合</option><option value="D5">LayerNorm的作用</option><option value="D6">特征变化的早期信号</option><option value="D7">拟合与泛化的分歧</option><option value="D8">激活函数的奇偶通路</option></select></label><label>关键词 <input id="query" type="search" placeholder="动量、SiLU、最低点" /></label></div><p class="count" id="count" aria-live="polite">24条知识</p><article class="knowledge" data-direction="D1" data-search="n=d=8固定特征单模态二次型、全批量SGD η=.1、mom0/.9、g0=.003/.01时，q=.9且h=ηλ=.0001/.001的4个配对条件，恒梯度启动换算均准确预测动量62/12步（两个端点、3个坐标seed同值）；对应稳态预测53/6步。 仅development：n=d=8固定特征单模态二次型、float64、全批量SGD、η=.1、mom0/.9、固定谱[.001,.01,.05,.1,.2,.3,.4,.5]、g0=.003/.01、3个坐标seed、T=40000；不适用Adam、mini-batch、混合模态、非线性网络或历史bigram因果分摊。换算输入为实测无动量阈值步数；不证明从零预测或晚期有效。"><h3>动量启动过程能解释早期的步数差异</h3><p>在只沿一种速度方向拟合的线性问题中，loss下降10%时，计入动量启动过程的换算准确预测了62步或12步。假定动量从一开始就稳定，预测只有53步或6步。</p><details class="technical" data-claim="D1-001"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>固定8维线性特征、全批量SGD、学习率0.1，比较动量0与0.9。换算需要先测得无动量步数，只验证了四组较慢条件。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D1" data-search="n=d=8固定特征单模态二次型、全批量SGD η=.1、mom0/.9、g0=.003/.01，q=.01持续至40000步时，启动换算“不比稳态差”的预测在6/10配对条件被推翻；h=.0001/.001/.005的绝对误差分别为启动22/23/18步、稳态13/14/9步，3个坐标seed均复现。 仅development：n=d=8固定特征单模态二次型、float64、全批量SGD、η=.1、mom0/.9、固定谱[.001,.01,.05,.1,.2,.3,.4,.5]、g0=.003/.01、3个坐标seed、T=40000；不适用Adam、mini-batch、混合模态、非线性网络或历史bigram因果分摊。持续只保证到T=40000；6个条件是3模态×2幅度，18个seed配对不算18种科学条件。"><h3>计入启动过程，仍会在晚期预测得更差</h3><p>在loss降至初始值1%的晚期端点，启动换算在10组条件中的6组比稳态换算更差。三个较慢方向的步数误差为18–23步，稳态换算为9–14步。</p><details class="technical" data-claim="D1-002"><summary>原始条目、完整条件与来源 · 预测被推翻</summary><p>与上一条相同的固定线性问题，持续到40000步。三个参数坐标旋转得到相同结果，不能当作独立数据重复。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D1" data-search="n=d=8固定特征单模态二次型、全批量SGD η=.1、mom0/.9、5目标模态及3坐标seed下，仅将初始梯度L2范数从.01改为.003，归一化loss轨迹最大差3.22e-15，q=.9/.1/.01的全部首次与持续阈值步数相同，固定初始梯度进度代理则为0.3倍。 仅development：n=d=8固定特征单模态二次型、float64、全批量SGD、η=.1、mom0/.9、固定谱[.001,.01,.05,.1,.2,.3,.4,.5]、g0=.003/.01、3个坐标seed、T=40000；不适用Adam、mini-batch、混合模态、非线性网络或历史bigram因果分摊。两档幅度初始绝对loss不同；不比较绝对误差，g0统计口径不保证等于主线经验|g|。"><h3>初始梯度的大小不能单独代表相对训练速度</h3><p>只把目标幅度缩小，使初始梯度范数从0.01变为0.003，归一化loss曲线仍重合。达到初始loss的90%、10%和1%所需步数全部相同。</p><details class="technical" data-claim="D1-003"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>固定8维线性特征、五种目标方向、全批量SGD。两组初始绝对loss不同，这条结果只比较相对下降进度。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D4" data-search="n=d=2等loss双模态固定特征平方损失、全批量SGD η=.1/mom0、λslow=.01，固定平台log-time logistic在原150点网格下，谱比1/3/10的3坐标seed全部同时满足RMSE≤.03、maxabs≤.05；各条件误差四舍五入分别为.026792/.047170、.019879/.034032、.021089/.040145。 仅development：n=d=2、float64、固定特征平方损失、全批量SGD η=.1/mom0/nodecay、λslow=.01、两模态初始loss各.5、10000步、平台固定1/0、150点等权整数化log网格0..4997、原六起点最小二乘、3坐标seed。目标参数范数与初始梯度不固定；不外推learned features、动量、mini-batch、自由平台、其他网格、固定目标范数、早期外推或封存OOD。 谱比10是预注册描述条件，没有事后方向预测；seed只检查坐标稳健性。"><h3>快慢方向的特征值相近时，一条S形曲线能达到规定精度</h3><p>两个方向各承担一半初始loss时，快慢方向的特征值比为1、3或10，一条S形曲线都通过误差判据。判据要求整体均方根误差不超过0.03，任一点误差不超过0.05。</p><details class="technical" data-claim="D4-001"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>固定二维线性特征、无动量全批量SGD。S形曲线的横轴是步数的对数，起止平台固定为1和0，按150个采样点拟合。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D4" data-search="n=d=2等loss双模态固定特征平方损失、全批量SGD η=.1/mom0、λslow=.01，谱比30/100的固定平台log-time logistic在原150点网格下，全部3坐标seed同时超过RMSE=.03与maxabs=.05；RMSE分别.040288/.060285、maxabs分别.061662/.085569，原P3 supported。 仅development：n=d=2、float64、固定特征平方损失、全批量SGD η=.1/mom0/nodecay、λslow=.01、两模态初始loss各.5、10000步、平台固定1/0、150点等权整数化log网格0..4997、原六起点最小二乘、3坐标seed。目标参数范数与初始梯度不固定；不外推learned features、动量、mini-batch、自由平台、其他网格、固定目标范数、早期外推或封存OOD。 未扫描10与30之间条件，不能给出连续临界谱比；多起点局部最小二乘不保证全局最优。"><h3>快慢方向的特征值相差30倍或100倍时，单条S形拟合失败</h3><p>两个方向仍各承担一半初始loss，把特征值比改为30或100，两组都超过整体误差0.03和最大误差0.05。三个坐标旋转得到同样判断。</p><details class="technical" data-claim="D4-002"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>沿用上一条的采样和拟合方法。未测特征值比10到30之间的条件，也未证明所选拟合参数达到全局最优。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D4" data-search="n=d=2等loss双模态固定特征平方损失、全批量SGD η=.1/mom0、谱比1、λslow=.01，在原150点网格下，真实半衰期与半高局部斜率生成的固定平台logistic误差为RMSE=.033350、maxabs=.066366，全部3坐标seed未达.03/.05阈值；同cell全曲线拟合则通过。 仅development：n=d=2、float64、固定特征平方损失、全批量SGD η=.1/mom0/nodecay、λslow=.01、两模态初始loss各.5、10000步、平台固定1/0、150点等权整数化log网格0..4997、原六起点最小二乘、3坐标seed。目标参数范数与初始梯度不固定；不外推learned features、动量、mini-batch、自由平台、其他网格、固定目标范数、早期外推或封存OOD。 局部参数公式属已知解析工具；登记的是同cell受控区分。此比较是预注册描述性分析，不将它冒充失败数值预测。"><h3>半衰期和局部斜率，不能代替整条曲线的拟合</h3><p>即使两个方向速度相同，用真实半衰期和曲线中点斜率生成S形曲线，误差仍为0.0334和0.0664，超过两项判据。用全曲线拟合则能通过。</p><details class="technical" data-claim="D4-003"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>同一固定二维线性问题与150点采样。结果只区分这两种参数确定方法，不检验只看前段能否预测后段。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D2" data-search="d4 Gaussian混合目标、冻结ReLU width128、零head、全批量GD η=.3/mom0，n32/64/128×σ².25/.5/1/2/4、4 seed下，相同n/σ²的跨n最低点步数“全部相差不超过两倍”被推翻：40/44配对通过，4个反例比值为2.8125、2.75、.410256、2.35（11个recipe配对组×4重复）。 仅development：d4对称Gaussian、目标x₀+0.5x₀x₁、冻结ReLU width128/scale .03、训练特征居中及总RMS归一化、clean标签train mean/RMS归一化、含bias零初始化head、float64、全批量GD η=.3/mom0/nodecay、n32/64/128×σ².25/.5/1/2/4、seeds411–414、整数步0..16384。跨n重新抽输入并重算标签RMS，非纯样本量因果对照；最低点需要clean train/audit标签。不外推learned hidden、Adam、mini-batch、CE、无限训练、train-only早停或封存OOD。"><h3>相同样本量与噪声方差之比，最低点仍会不同</h3><p>冻结ReLU特征后，相同“样本量÷噪声方差”的44组配对中，40组的最佳步数相差不超过两倍。其余4组超过两倍，推翻了所有条件都能折叠的预测。</p><details class="technical" data-claim="D2-001"><summary>原始条目、完整条件与来源 · 预测被推翻</summary><p>四维对称高斯输入、混合线性与交互目标、宽度128，样本量32、64或128。各样本量重新抽输入，最佳步数使用无噪声标签测量。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D2" data-search="d4 Gaussian混合目标、冻结ReLU width128、零head、全批量GD η=.3/mom0，n32/64/128×σ².25/.5/1/2/4、4 seed下，用另两个n的40 cell拟合log(t*)=a+b log(n/σ²)，留出n的最低点预测57/60在两倍内（各n19/20），达到原48/60判据；15 recipe、seed只作重复。 仅development：d4对称Gaussian、目标x₀+0.5x₀x₁、冻结ReLU width128/scale .03、训练特征居中及总RMS归一化、clean标签train mean/RMS归一化、含bias零初始化head、float64、全批量GD η=.3/mom0/nodecay、n32/64/128×σ².25/.5/1/2/4、seeds411–414、整数步0..16384。跨n重新抽输入并重算标签RMS，非纯样本量因果对照；最低点需要clean train/audit标签。不外推learned hidden、Adam、mini-batch、CE、无限训练、train-only早停或封存OOD。 训练折叠关系使用其他development条件的oracle；通过允许3个失败预测，不保证逐seed精度或普适幂律。"><h3>样本量与噪声强度仍能粗略预测最低点</h3><p>用其中两种样本量的结果拟合步数关系，再预测第三种样本量，60次预测中有57次落在真实最佳步数的两倍以内。每种被留出的样本量都是19/20次通过。</p><details class="technical" data-claim="D2-002"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>沿用冻结ReLU问题。预测关系由其他开发条件的真实最低点拟合，尚不是只用训练loss确定停止时间的方法。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D3" data-search="n=d=9固定特征λ_i=i^(-1)、全批量SGD η=.5/mom0、零初始化时，同谱第三模态与首尾混合目标匹配参数数、trace、有效秩、Rayleigh=1/3与L0=.5，1%损失阈值仍为13/38步；3坐标seed配对均差25步、比2.923077，达到注册≥2.5判据。 谱限定λ_i=i^(-1), i=1..9；目标权重第三模态=1或首尾=.25/.75。仅development：n=d=9固定满秩线性特征、float64、零初始化、全批量SGD η=.5/mom0/nodecay、整数步0..1000、L0=.5、ε=.01。3seed仅参数坐标旋转，不是独立数据重复；无置信区间。只在同p内固定X配对；目标参数范数和实际第一步loss下降未匹配；初始参数梯度范数由相同L0与Rayleigh自动匹配，原合同未固定的措辞已在报告纠正。不外推learned features、width/depth/激活/LN、泛化、空间分辨率、其他优化器或封存OOD；两目标均可最终插值，不是永久表示容量差。"><h3>同谱和同初始梯度，训练预算仍可相差近三倍</h3><p>在同一9维线性特征上，两个目标匹配初始loss与初始梯度范数，达到1%loss仍需13步和38步。参数量、谱总量和有效秩也相同。</p><details class="technical" data-claim="D3-001"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>特征谱随序号倒数下降，零初始化、无动量全批量SGD。目标参数范数与第一步实际下降未匹配，三个重复只旋转参数坐标。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D3" data-search="n=d=9固定特征λ_i=i^(-2)、全批量SGD η=.5/mom0、零初始化时，同谱第三模态与首尾混合目标匹配参数数、trace、有效秩、Rayleigh=1/9与L0=.5，1%损失阈值仍为41/364步；3坐标seed配对均差323步、比8.878049，达到修订后注册≥8判据。 谱限定λ_i=i^(-2), i=1..9；目标权重第三模态=1或首尾=.1/.9。原≥10是零训练时修订的草稿，未作为实验预测评估。仅development：n=d=9固定满秩线性特征、float64、零初始化、全批量SGD η=.5/mom0/nodecay、整数步0..1000、L0=.5、ε=.01。3seed仅参数坐标旋转，不是独立数据重复；无置信区间。只在同p内固定X配对；目标参数范数和实际第一步loss下降未匹配；初始参数梯度范数由相同L0与Rayleigh自动匹配，原合同未固定的措辞已在报告纠正。不外推learned features、width/depth/激活/LN、泛化、空间分辨率、其他优化器或封存OOD；两目标均可最终插值，不是永久表示容量差。"><h3>谱衰减更快时，同类预算差距扩大到近九倍</h3><p>把同谱配对中的谱改为随序号平方倒数下降，两个目标仍匹配初始loss与初始梯度，1%loss端点变为41步和364步，相差8.88倍。</p><details class="technical" data-claim="D3-002"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>固定9维线性特征、零初始化、无动量全批量SGD。第一步实际下降和目标参数范数仍未匹配，这一条是后续更严格对照之前的结果。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D5" data-search="四旧函数d8/d12、width64 GELU、固定head、SGD lr=.001/mom0/decay1e-4、T256的LN010/noLN配对中，终点hidden Gram log10条件数下降达到12/12函数×offset单元各≥3/5 seed（总54/60），通过注册≥8/12。 仅development：四旧函数trigonometric8/quadratic8(d8 uniform)、interaction12/radial12(d12 Gaussian)，train/test各256、data seed48291、width64 GELU输入层加3block、LN010/noLN、head weight/bias固定、hidden/LN affine可训练，SGD lr=.001/mom0/weight_decay1e-4、batch64、T256、offset−3/0/+3、seeds100–104；模型float32、居中hidden Gram float64、floor1e-12。seed只作重复，不外推其他函数/width/优化器或sealed OOD；hidden Gram不是参数Jacobian NTK，无因果中介干预。 LN初始化已有60/60配对条件数更低；仅7/60 LN cell训练后比初始化更低，不能解释为训练改善谱。 720 checkpoint均未命中固定floor1e-12。"><h3>LayerNorm降低了特征条件数，但差异多在初始化时出现</h3><p>四个函数与三种标签平移的12组条件中，每组至少3/5个初始化显示，LayerNorm降低了终点特征条件数。合计54/60次配对下降，但初始化时60/60次已更低。</p><details class="technical" data-claim="D5-001"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>宽度64的GELU网络，输出层固定，训练256步。此处条件数是居中隐藏特征内积矩阵的最大与最小特征值之比，不是参数梯度矩阵的条件数。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D5" data-search="四旧函数d8/d12、width64 GELU、固定head、SGD lr=.001/mom0/decay1e-4、T256中，offset0终点LN−noLN log10κ与三offset LN−noLN chord的20函数×seed配对Pearson r=.420774，未达注册≥.5（P2 refuted）。 仅development：四旧函数trigonometric8/quadratic8(d8 uniform)、interaction12/radial12(d12 Gaussian)，train/test各256、data seed48291、width64 GELU输入层加3block、LN010/noLN、head weight/bias固定、hidden/LN affine可训练，SGD lr=.001/mom0/weight_decay1e-4、batch64、T256、offset−3/0/+3、seeds100–104；模型float32、居中hidden Gram float64、floor1e-12。seed只作重复，不外推其他函数/width/优化器或sealed OOD；hidden Gram不是参数Jacobian NTK，无因果中介干预。 20重复只含4函数；不报告iid显著性，r=.420774不等于无任何关联，阈值失败不排除其他目标相关几何。"><h3>条件数下降，尚不足以解释LayerNorm的收益大小</h3><p>终点条件数改善与标签平移收益的相关系数为0.421，未达到预先规定的0.5。已有几何差异不能据此当作收益的因果解释。</p><details class="technical" data-claim="D5-002"><summary>原始条目、完整条件与来源 · 预测被推翻</summary><p>沿用四个函数、每函数五个初始化。收益指标签平移后，去均值的预测误差变化，不等于所有任务上的通用性能提升。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D6" data-search="d=3/n=32 Gaussian、product/mixed_sine、width8/32、SiLU两hidden layer、full-batch SGD η=.05/mom0/nodecay、固定r0且trace匹配的4个development recipe单元中，step32到step256核漂移方向持续判据通过3/4单元；product×8、product×32、mixed_sine×32各2/3 seed同向，mixed_sine×8为0/3。 仅适用于本轮d3/n32 Gaussian、两个函数、width8/32、SiLU两hidden layer、full-batch SGD η=.05/mom0/nodecay、256步、固定r0/trace匹配和seeds611/629/647；不外推新函数、数据seed、优化器、LN、深度、泛化或sealed OOD。mixed_sine×width8为反例；固定r0方向不等价于移动晚期残差拟合速度。"><h3>早期拟合关系的变化通常延续，但窄网络有反例</h3><p>核是由参数梯度描述样本间拟合关系的矩阵。第32步出现的核变化方向，到第256步在4组函数与宽度条件中的3组达到持续判据，宽度8的混合正弦网络在3个初始化中全部失败。</p><details class="technical" data-claim="D6-001"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>三维高斯输入、32个样本、两层SiLU网络，宽度8或32。比较固定初始残差方向，并匹配核总尺度，不能直接解释晚期残差的拟合速度。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D7" data-search="d5 Gaussian train32/test256、两层hidden SiLU、full-batch SGD eta=.05/mom0/nodecay、512步、data7331/noise733107的sigma0/1配对中，噪声扩大真实网络相对初始切线的终点干净test半MSE差距：4/4函数×width8/32单元mean(D)&gt;=.02且12/12初始化D&gt;0；mixed_sine两宽度mean(D)=.557508/.800986，radial=.301773/.287093，原P1通过。 仅development：d5 Gaussian train32/test256、mixed_sine/radial、含bias两层hidden SiLU、width8/32、PyTorch默认float32初始化再double、init11/29/47、data7331/noise733107、clean目标按train均值/标准差归一化后加sigma0/1、float64、full-batch SGD eta=.05/mom0/nodecay、512步。4个函数×宽度单元，seed只测初始化稳健性；一个data/noise draw，两个width8单元D的95% seed区间跨零。不外推新数据/噪声、optimizer、LN、深度或sealed OOD；不区分核方向与隐式偏置，不量化机制占比。"><h3>固定标签噪声扩大了真实网络与初始线性化模型的差距</h3><p>初始线性化模型用初始化时的参数梯度，近似真实网络。固定一份标签噪声后，4组函数与宽度条件都扩大了真实网络相对该模型的终点干净评估误差差距，12个初始化的差距增量均为正。</p><details class="technical" data-claim="D7-001"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>五维高斯输入、32个训练样本、两层SiLU网络，训练512步。只测一份数据与噪声抽样，两个窄网络条件的初始化区间仍跨零。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D7" data-search="d5 Gaussian train32/test256、两层hidden SiLU、full-batch SGD eta=.05/mom0/nodecay、data7331/noise733107条件中，终点真实减切线test半MSE为正仍可伴随真实模型step128到512 test下降：mixed_sine width32 init11 sigma0为H=.020497、变化=-.001370；radial width32 init29 sigma1为H=.012378、变化=-.029205。 仅development：d5 Gaussian train32/test256、mixed_sine/radial、含bias两层hidden SiLU、width8/32、PyTorch默认float32初始化再double、init11/29/47、data7331/noise733107、clean目标按train均值/标准差归一化后加sigma0/1、float64、full-batch SGD eta=.05/mom0/nodecay、512步。4个函数×宽度单元，seed只测初始化稳健性；一个data/noise draw，两个width8单元D的95% seed区间跨零。不外推新数据/噪声、optimizer、LN、深度或sealed OOD；不区分核方向与隐式偏置，不量化机制占比。 预注册描述诊断，无额外预测成功判据；只是保存结果中的两个分歧样本，不是train-only早停信号。"><h3>终点落后于线性化模型，不等于继续训练会更差</h3><p>保存结果中的两个样本，在终点仍比初始线性化模型误差高，但真实网络从第128步继续到第512步，干净评估误差仍下降。终点差距与继续训练的趋势需要分别判断。</p><details class="technical" data-claim="D7-002"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>沿用上一条的固定数据与噪声。两个样本是描述性反例，不提供只看训练loss的停止规则。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D8" data-search="对称Gaussian d4/n128、width64冻结单层SiLU、固定同单元bias、MSE与全批量GD eta=.8/mom0/nodecay/1024步下，bias=0和1的偶/奇能量比R在scale=.025到.05的六seed配对增长分别为3.984159–3.991788与4.002060–4.003272，均保持a²领先（指数均值1.995464与2.000962）。 仅适用本轮对称Gaussian d4/n128、width64冻结单层SiLU、固定bias、特征居中/RMS、MSE、全批量GD；不外推近根bias、非对称输入、多层、learned hidden、CE、小批量或干预收益。R是偶/奇能量比，不等于目标相关核能量或拟合速度。"><h3>普通偏置下，偶／奇特征能量比随尺度平方增长</h3><p>偶成分指输入取反后不变的部分，奇成分指取反后变号的部分。在偏置0或1的冻结SiLU层中，激活前输入尺度从0.025加倍到0.05，偶／奇能量比增长约4倍。</p><details class="technical" data-claim="D8-001"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>四维对称高斯输入、128个样本、宽度64。六个重复的增长范围为3.984–4.003倍，能量比不等于目标拟合速度。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D8" data-search="同一对称Gaussian d4/n128、width64冻结单层SiLU、固定bias、MSE与全批量GD条件下，SiLU二阶导数零点b*=2.3993572805154675的R在scale=.025到.05的六seed配对增长为63.953437–63.985564，均值63.970738，指数均值5.999340，符合a⁶区间判据[48,80]。 只测二阶导数零点的一个精确bias值与四个scale；不提供近根容差区间，不外推随机bias、非对称输入、多层、learned hidden、CE、小批量、干预收益或最终拟合排序。a⁶为本合同有限尺度测量，解析Taylor阶数本身不单独构成新claim。"><h3>在一个精确偏置上，能量比改为随尺度六次方增长</h3><p>把偏置设在SiLU二阶导数的零点（约2.39935728），激活前输入尺度加倍时，偶／奇能量比增长63.953–63.986倍。有限尺度测量符合六次方增长的预先规定范围。</p><details class="technical" data-claim="D8-002"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>与上一条相同的冻结单层SiLU问题。只测这一精确偏置，未测附近偏置的容差，也未检验多层或可训练特征。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D1" data-search="n=d=2固定特征谱[.001,.5]、全批量SGD eta=.1/mom0与.9、L0=1、T40000、q=.01持续端点下，慢模态初始loss占比alpha=.001/.005/.009的3个配对条件，稳态U换算相对绝对误差为86.9565%–88.6364%，启动为73.9130%–76.2712%，两者均&gt;=50%，P1通过；3坐标seed同值。 仅development：n=d=2固定满秩特征、谱[.001,.5]、float64、全批量SGD eta=.1/mom0或.9、L0=1、零参数/速度初始化、T40000、q=.01持续至T；3seed只旋转参数坐标，不是数据重复，无置信区间。换算输入为实测mom0持续步数，不是从零预测。不同alpha未匹配初始梯度范数、Rayleigh商、参数范数与第一步下降，不能区分其独立作用；不外推其他谱/eta/q/optimizer/learned features/mini-batch或sealed OOD，不作历史bigram因果分摊；启动不保证优于稳态，原r009 P4的6/10失败保留。"><h3>慢方向占比很低时，动量步数换算误差很大</h3><p>两个方向的特征值相差500倍时，慢方向只占初始loss的0.1%、0.5%或0.9%，动量换算的误差达到74%–89%。计入启动过程后，误差仍超过50%。</p><details class="technical" data-claim="D1-004"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>固定二维线性特征、学习率0.1、动量0与0.9，比较持续降至1%loss的步数。换算先使用实测无动量步数，目标的其他初始统计没有匹配。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D1" data-search="n=d=2固定特征谱[.001,.5]、全批量SGD eta=.1/mom0与.9、L0=1、T40000、q=.01持续端点下，慢模态初始loss占比alpha=.02/.1/.5的3个配对条件，稳态U换算相对绝对误差为.1739%–1.6997%，启动为.8499%–.9565%，两者均&lt;=5%，P2通过；3坐标seed同值。 仅development：n=d=2固定满秩特征、谱[.001,.5]、float64、全批量SGD eta=.1/mom0或.9、L0=1、零参数/速度初始化、T40000、q=.01持续至T；3seed只旋转参数坐标，不是数据重复，无置信区间。换算输入为实测mom0持续步数，不是从零预测。不同alpha未匹配初始梯度范数、Rayleigh商、参数范数与第一步下降，不能区分其独立作用；不外推其他谱/eta/q/optimizer/learned features/mini-batch或sealed OOD，不作历史bigram因果分摊；启动不保证优于稳态，原r009 P4的6/10失败保留。 alpha=.01/.011仅描述，不给出临界占比或把alpha&gt;q视为充分条件。"><h3>慢方向占比更高时，同样的换算可以很准确</h3><p>沿用快慢方向的特征值相差500倍的两个方向，把慢方向初始loss占比设为2%、10%或50%，启动与稳态两种换算的误差都不超过5%。</p><details class="technical" data-claim="D1-005"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>只验证这三种占比与固定的1%端点。1%和1.1%占比另有描述性测量，但尚不能确定连续的临界占比。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D4" data-search="n=d=2、固定谱[.01,1]、全批量SGD eta=.1/mom0/nodecay、L0=1、原150点等权log网格与固定平台下，慢能量占比alpha=.01的3坐标seed最小二乘单logistic选解RMSE=.01022359488但maxabs=.06476095049–.06476095218&gt;.05；原P2关于.01/.99均通过的预测被此条件推翻。 仅development：n=d=2固定特征半MSE、float64、全批量SGD eta=.1/mom0/nodecay、谱[.01,1]、L0=1、零参数初始化、T10000；alpha只改慢初始loss占比，目标参数/梯度范数/Rayleigh商/第一步下降未匹配。原150点整数log网格（0至4997）、各点等权、平台1/0、6起点最小二乘取成功SSE最小解；seed0/1/2只旋转参数坐标，不作数据重复/置信区间。拟合不足仅指该选解，不证明所有logistic参数均不可能通过或已获全局最优；不推断连续临界alpha或谱比10到30临界点，不把拟合中点当真实半衰期，不外推自由平台、learned features、其他谱/optimizer/网格、前段预测或sealed OOD。"><h3>慢方向仅占1%时，整体拟合误差小仍会局部失准</h3><p>快慢方向的特征值相差100倍、慢方向占初始loss的1%时，所选S形拟合的整体误差只有0.0102。但最大局部误差为0.0648，超过0.05，推翻了这组条件能通过的预测。</p><details class="technical" data-claim="D4-004"><summary>原始条目、完整条件与来源 · 预测被推翻</summary><p>固定二维线性特征，沿用150点对数步数采样和固定平台。仅评价六起点最小二乘选出的曲线，不证明所有S形参数都无法通过。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D4" data-search="n=d=2、固定谱[.01,1]、全批量SGD eta=.1/mom0/nodecay、L0=1、原150点等权log网格与固定平台下，慢能量占比alpha=.99的3坐标seed最小二乘单logistic选解RMSE=.02914082893、maxabs=.04937290549–.04937290590，同时通过.03/.05两阈值。 仅development：n=d=2固定特征半MSE、float64、全批量SGD eta=.1/mom0/nodecay、谱[.01,1]、L0=1、零参数初始化、T10000；alpha只改慢初始loss占比，目标参数/梯度范数/Rayleigh商/第一步下降未匹配。原150点整数log网格（0至4997）、各点等权、平台1/0、6起点最小二乘取成功SSE最小解；seed0/1/2只旋转参数坐标，不作数据重复/置信区间。拟合不足仅指该选解，不证明所有logistic参数均不可能通过或已获全局最优；不推断连续临界alpha或谱比10到30临界点，不把拟合中点当真实半衰期，不外推自由平台、learned features、其他谱/optimizer/网格、前段预测或sealed OOD。"><h3>慢方向占99%时，所选单条S形曲线通过两项判据</h3><p>在相同的100倍特征值比下，把慢方向初始loss占比设为99%，所选S形拟合的整体误差为0.0291，最大误差为0.0494，均通过判据。</p><details class="technical" data-claim="D4-005"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>与上一条相同的采样和选解方法。未建立连续占比区间，也未证明可用早期曲线外推后段。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D4" data-search="n=d=2、固定谱[.01,1]、全批量SGD eta=.1/mom0/nodecay、L0=1、原150点等权log网格与固定平台下，alpha=.25/.5/.75三个慢能量占比条件的单logistic最小二乘选解均不足，3坐标seed各同判定；RMSE=.04090645242–.06974371360、maxabs=.08556858257–.17433680642，P3通过3/3条件。 仅development：n=d=2固定特征半MSE、float64、全批量SGD eta=.1/mom0/nodecay、谱[.01,1]、L0=1、零参数初始化、T10000；alpha只改慢初始loss占比，目标参数/梯度范数/Rayleigh商/第一步下降未匹配。原150点整数log网格（0至4997）、各点等权、平台1/0、6起点最小二乘取成功SSE最小解；seed0/1/2只旋转参数坐标，不作数据重复/置信区间。拟合不足仅指该选解，不证明所有logistic参数均不可能通过或已获全局最优；不推断连续临界alpha或谱比10到30临界点，不把拟合中点当真实半衰期，不外推自由平台、learned features、其他谱/optimizer/网格、前段预测或sealed OOD。"><h3>快慢方向都占明显份额时，单条S形曲线不足</h3><p>快慢方向的特征值相差100倍、慢方向占初始loss的25%、50%或75%时，三种所选拟合全部失败。整体误差为0.0409–0.0697，最大误差为0.0856–0.1743。</p><details class="technical" data-claim="D4-006"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>与前两条相同的固定二维问题和拟合方法。三个参数坐标旋转得到同样判断，只检验这些离散占比。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D2" data-search="d4 Gaussian混合目标、冻结ReLU width128、含bias零head、全批量GD eta=.3/mom0，n32/σ²=.25与n64/σ²=.5四seed411–414仅将clean标签train mean/RMS改为population 0/√1.25后，seed414最低点由64/180变为62/201步，配对比值从2.8125变为3.241935，反例保留且通过预注册(2,4]；全部四seed新比值范围1.005435–3.241935。 仅development：d4 antithetic Gaussian目标x0+.5x0x1、frozen ReLU width128/scale.03、原train feature mean/RMS、含bias零head、float64、full-batch GD eta.3/mom0/nodecay、整数0..16384、audit2048、n32/64与σ².25/.5、四seed411–414。两recipe为一组配对，seed只测重复；x/W/features/epsilon固定在各n/seed内，跨n原始输入不同。mean/RMS联合干预、噪声固定归一化单位，不识别两者独立作用或谱/输入机制；oracle需要clean标签，不外推train-only早停、learned hidden、Adam、mini-batch、CE、其他recipe、无限训练或sealed OOD。"><h3>统一标签归一化，仍没有消除最佳步数的反例</h3><p>对同一组样本量32与64的配对，只改用总体标签均值和尺度归一化，一个重复的最佳步数由64/180变成62/201。两者仍相差3.24倍，原先超过两倍的反例保留。</p><details class="technical" data-claim="D2-003"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>冻结ReLU宽度128、四维对称高斯输入，噪声方差分别0.25与0.5。各配对内固定输入、特征和噪声，跨样本量输入仍不同，不能独立归因于谱或输入变化。</p><div class="claim-original"></div></details></article><article class="knowledge" data-direction="D3" data-search="n=d=9固定特征λ_i=i^-2、零初始化、全批量SGD η=.5/mom0/nodecay，目标A(w1=1/55,w3=54/55)与B(w2=2048/4235,w9=2187/4235)匹配L0=.5、m1=7/55、m2=1/33、初始梯度范数平方与实际第一步loss下降=.05984848485，1%阈值仍为41/319步；三个同坐标seed均差278步、比7.780488，达到注册≥7判据。 仅n=d=9满秩固定线性特征、float64、λ_i=i^-2(i1..9)、共同m1=7/55/m2=1/33、注册四模态权重、零初始化、SGD eta.5/mom0/nodecay、L0.5、整数0..1000、epsilon.01；两目标条件/一个配对设计，seed0/1/2只参数坐标旋转，不是独立数据重复，无CI。匹配量最大配对差3.053113e-16，实际第一步下降差≤5.551115e-17；目标参数范数平方A=487/55、B=2407/55和高阶矩未匹配，不能独立归因慢模态质量或参数范数。两目标均可最终插值，不是永久表示容量差；不外推learned features、架构轴、泛化、空间分辨率、其他优化器/阈值或sealed OOD，也不证明所有标量均不充分。"><h3>连第一步下降也相同，后续训练仍相差7.78倍</h3><p>在同一9维线性特征上，两个目标匹配初始loss、初始梯度范数及第一步实际loss下降，降至1%仍需41步和319步。前三项初始统计无法概括这组目标的完整训练过程。</p><details class="technical" data-claim="D3-003"><summary>原始条目、完整条件与来源 · 测量支持</summary><p>谱随序号平方倒数下降，零初始化、学习率0.5的无动量SGD。目标参数范数与更高阶谱统计未匹配，两目标最终都能完全拟合。</p><div class="claim-original"></div></details></article></details><h2>已有受控区分，强模型的新增收益仍待验证</h2>
+<p>截至第20次研究尝试，第二版完成12项实际测量，覆盖470个不重复实验单元。研究仍在继续。旧异步知识库实验中，sol使用KB与不使用KB的平均排序得分为70.08%对65.87%，差值4.21±2.37个百分点（题级配对1个标准误）。它来自105道研发排序题的3次重复，本次没有新增解题评测。</p>
+<p>当前进展是排除了几个过强概括，并验证了局部预测。要判断这些知识是否能让强模型涨分，还需在新隔离题池上，固定模型、推理强度和读取预算，比较使用与不使用知识的结果。</p>
+<details id="reports"><summary>八个方向的完整技术报告原文</summary>
+<p class="compact">原文保留公式、失败记录、竞争解释和证据索引。按时间追加的历史段落须结合后面的恢复结果阅读。</p><details data-report="0"><summary>动量训练换算</summary><pre class="report-text"></pre></details><details data-report="1"><summary>风险最低点</summary><pre class="report-text"></pre></details><details data-report="2"><summary>训练预算的描述量</summary><pre class="report-text"></pre></details><details data-report="3"><summary>S形曲线拟合</summary><pre class="report-text"></pre></details><details data-report="4"><summary>LayerNorm的作用</summary><pre class="report-text"></pre></details><details data-report="5"><summary>特征变化的早期信号</summary><pre class="report-text"></pre></details><details data-report="6"><summary>拟合与泛化的分歧</summary><pre class="report-text"></pre></details><details data-report="7"><summary>激活函数的奇偶通路</summary><pre class="report-text"></pre></details></details><details><summary>查看此前实验的具体知识与测量包</summary>
+<p><a href="https://guoshaoyang-pku.github.io/blogs/kb_site/runs/soa_async_v1.html#kb=latest_saved">旧异步实验：完整知识、逐轮修改与报告</a></p>
+<p><a href="https://github.com/guoshaoyang-pku/science-of-ai-kb/releases/tag/v0.2.0">第一版定向研究：公开源码与测量包</a></p>
+</details>
+<footer>来源：第二版研究截至第20次尝试的已保存结果、方向报告与中心知识库 · 2026-10-06</footer></main><script id="technical-data" type="application/json">{"claims": [{"id": "D1-001", "direction": "D1", "round": 9, "text": "n=d=8固定特征单模态二次型、全批量SGD η=.1、mom0/.9、g0=.003/.01时，q=.9且h=ηλ=.0001/.001的4个配对条件，恒梯度启动换算均准确预测动量62/12步（两个端点、3个坐标seed同值）；对应稳态预测53/6步。", "evidence": ["directions/D1_u_effective_time/studies/r001_momentum_startup/summary.json"], "domain": "development", "status": "measured", "boundary": "仅development：n=d=8固定特征单模态二次型、float64、全批量SGD、η=.1、mom0/.9、固定谱[.001,.01,.05,.1,.2,.3,.4,.5]、g0=.003/.01、3个坐标seed、T=40000；不适用Adam、mini-batch、混合模态、非线性网络或历史bigram因果分摊。换算输入为实测无动量阈值步数；不证明从零预测或晚期有效。"}, {"id": "D1-002", "direction": "D1", "round": 9, "text": "n=d=8固定特征单模态二次型、全批量SGD η=.1、mom0/.9、g0=.003/.01，q=.01持续至40000步时，启动换算“不比稳态差”的预测在6/10配对条件被推翻；h=.0001/.001/.005的绝对误差分别为启动22/23/18步、稳态13/14/9步，3个坐标seed均复现。", "evidence": ["directions/D1_u_effective_time/studies/r001_momentum_startup/summary.json"], "domain": "development", "status": "refuted", "boundary": "仅development：n=d=8固定特征单模态二次型、float64、全批量SGD、η=.1、mom0/.9、固定谱[.001,.01,.05,.1,.2,.3,.4,.5]、g0=.003/.01、3个坐标seed、T=40000；不适用Adam、mini-batch、混合模态、非线性网络或历史bigram因果分摊。持续只保证到T=40000；6个条件是3模态×2幅度，18个seed配对不算18种科学条件。"}, {"id": "D1-003", "direction": "D1", "round": 9, "text": "n=d=8固定特征单模态二次型、全批量SGD η=.1、mom0/.9、5目标模态及3坐标seed下，仅将初始梯度L2范数从.01改为.003，归一化loss轨迹最大差3.22e-15，q=.9/.1/.01的全部首次与持续阈值步数相同，固定初始梯度进度代理则为0.3倍。", "evidence": ["directions/D1_u_effective_time/studies/r001_momentum_startup/summary.json"], "domain": "development", "status": "measured", "boundary": "仅development：n=d=8固定特征单模态二次型、float64、全批量SGD、η=.1、mom0/.9、固定谱[.001,.01,.05,.1,.2,.3,.4,.5]、g0=.003/.01、3个坐标seed、T=40000；不适用Adam、mini-batch、混合模态、非线性网络或历史bigram因果分摊。两档幅度初始绝对loss不同；不比较绝对误差，g0统计口径不保证等于主线经验|g|。"}, {"id": "D4-001", "direction": "D4", "round": 10, "text": "n=d=2等loss双模态固定特征平方损失、全批量SGD η=.1/mom0、λslow=.01，固定平台log-time logistic在原150点网格下，谱比1/3/10的3坐标seed全部同时满足RMSE≤.03、maxabs≤.05；各条件误差四舍五入分别为.026792/.047170、.019879/.034032、.021089/.040145。", "evidence": ["directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/summary.json"], "domain": "development", "status": "measured", "boundary": "仅development：n=d=2、float64、固定特征平方损失、全批量SGD η=.1/mom0/nodecay、λslow=.01、两模态初始loss各.5、10000步、平台固定1/0、150点等权整数化log网格0..4997、原六起点最小二乘、3坐标seed。目标参数范数与初始梯度不固定；不外推learned features、动量、mini-batch、自由平台、其他网格、固定目标范数、早期外推或封存OOD。 谱比10是预注册描述条件，没有事后方向预测；seed只检查坐标稳健性。"}, {"id": "D4-002", "direction": "D4", "round": 10, "text": "n=d=2等loss双模态固定特征平方损失、全批量SGD η=.1/mom0、λslow=.01，谱比30/100的固定平台log-time logistic在原150点网格下，全部3坐标seed同时超过RMSE=.03与maxabs=.05；RMSE分别.040288/.060285、maxabs分别.061662/.085569，原P3 supported。", "evidence": ["directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/summary.json"], "domain": "development", "status": "measured", "boundary": "仅development：n=d=2、float64、固定特征平方损失、全批量SGD η=.1/mom0/nodecay、λslow=.01、两模态初始loss各.5、10000步、平台固定1/0、150点等权整数化log网格0..4997、原六起点最小二乘、3坐标seed。目标参数范数与初始梯度不固定；不外推learned features、动量、mini-batch、自由平台、其他网格、固定目标范数、早期外推或封存OOD。 未扫描10与30之间条件，不能给出连续临界谱比；多起点局部最小二乘不保证全局最优。"}, {"id": "D4-003", "direction": "D4", "round": 10, "text": "n=d=2等loss双模态固定特征平方损失、全批量SGD η=.1/mom0、谱比1、λslow=.01，在原150点网格下，真实半衰期与半高局部斜率生成的固定平台logistic误差为RMSE=.033350、maxabs=.066366，全部3坐标seed未达.03/.05阈值；同cell全曲线拟合则通过。", "evidence": ["directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/summary.json"], "domain": "development", "status": "measured", "boundary": "仅development：n=d=2、float64、固定特征平方损失、全批量SGD η=.1/mom0/nodecay、λslow=.01、两模态初始loss各.5、10000步、平台固定1/0、150点等权整数化log网格0..4997、原六起点最小二乘、3坐标seed。目标参数范数与初始梯度不固定；不外推learned features、动量、mini-batch、自由平台、其他网格、固定目标范数、早期外推或封存OOD。 局部参数公式属已知解析工具；登记的是同cell受控区分。此比较是预注册描述性分析，不将它冒充失败数值预测。"}, {"id": "D2-001", "direction": "D2", "round": 11, "text": "d4 Gaussian混合目标、冻结ReLU width128、零head、全批量GD η=.3/mom0，n32/64/128×σ².25/.5/1/2/4、4 seed下，相同n/σ²的跨n最低点步数“全部相差不超过两倍”被推翻：40/44配对通过，4个反例比值为2.8125、2.75、.410256、2.35（11个recipe配对组×4重复）。", "evidence": ["directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/summary.json", "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/saved_evidence_verification.json"], "domain": "development", "status": "refuted", "boundary": "仅development：d4对称Gaussian、目标x₀+0.5x₀x₁、冻结ReLU width128/scale .03、训练特征居中及总RMS归一化、clean标签train mean/RMS归一化、含bias零初始化head、float64、全批量GD η=.3/mom0/nodecay、n32/64/128×σ².25/.5/1/2/4、seeds411–414、整数步0..16384。跨n重新抽输入并重算标签RMS，非纯样本量因果对照；最低点需要clean train/audit标签。不外推learned hidden、Adam、mini-batch、CE、无限训练、train-only早停或封存OOD。"}, {"id": "D2-002", "direction": "D2", "round": 11, "text": "d4 Gaussian混合目标、冻结ReLU width128、零head、全批量GD η=.3/mom0，n32/64/128×σ².25/.5/1/2/4、4 seed下，用另两个n的40 cell拟合log(t*)=a+b log(n/σ²)，留出n的最低点预测57/60在两倍内（各n19/20），达到原48/60判据；15 recipe、seed只作重复。", "evidence": ["directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/summary.json", "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/saved_evidence_verification.json"], "domain": "development", "status": "measured", "boundary": "仅development：d4对称Gaussian、目标x₀+0.5x₀x₁、冻结ReLU width128/scale .03、训练特征居中及总RMS归一化、clean标签train mean/RMS归一化、含bias零初始化head、float64、全批量GD η=.3/mom0/nodecay、n32/64/128×σ².25/.5/1/2/4、seeds411–414、整数步0..16384。跨n重新抽输入并重算标签RMS，非纯样本量因果对照；最低点需要clean train/audit标签。不外推learned hidden、Adam、mini-batch、CE、无限训练、train-only早停或封存OOD。 训练折叠关系使用其他development条件的oracle；通过允许3个失败预测，不保证逐seed精度或普适幂律。"}, {"id": "D3-001", "direction": "D3", "round": 12, "text": "n=d=9固定特征λ_i=i^(-1)、全批量SGD η=.5/mom0、零初始化时，同谱第三模态与首尾混合目标匹配参数数、trace、有效秩、Rayleigh=1/3与L0=.5，1%损失阈值仍为13/38步；3坐标seed配对均差25步、比2.923077，达到注册≥2.5判据。", "evidence": ["directions/D3_capacity_resolution/studies/r012_matched_rayleigh_resume/summary.json", "directions/D3_capacity_resolution/studies/r012_matched_rayleigh_resume/executed/saved_evidence_verification.json"], "domain": "development", "status": "measured", "boundary": "谱限定λ_i=i^(-1), i=1..9；目标权重第三模态=1或首尾=.25/.75。仅development：n=d=9固定满秩线性特征、float64、零初始化、全批量SGD η=.5/mom0/nodecay、整数步0..1000、L0=.5、ε=.01。3seed仅参数坐标旋转，不是独立数据重复；无置信区间。只在同p内固定X配对；目标参数范数和实际第一步loss下降未匹配；初始参数梯度范数由相同L0与Rayleigh自动匹配，原合同未固定的措辞已在报告纠正。不外推learned features、width/depth/激活/LN、泛化、空间分辨率、其他优化器或封存OOD；两目标均可最终插值，不是永久表示容量差。"}, {"id": "D3-002", "direction": "D3", "round": 12, "text": "n=d=9固定特征λ_i=i^(-2)、全批量SGD η=.5/mom0、零初始化时，同谱第三模态与首尾混合目标匹配参数数、trace、有效秩、Rayleigh=1/9与L0=.5，1%损失阈值仍为41/364步；3坐标seed配对均差323步、比8.878049，达到修订后注册≥8判据。", "evidence": ["directions/D3_capacity_resolution/studies/r012_matched_rayleigh_resume/summary.json", "directions/D3_capacity_resolution/studies/r012_matched_rayleigh_resume/executed/saved_evidence_verification.json"], "domain": "development", "status": "measured", "boundary": "谱限定λ_i=i^(-2), i=1..9；目标权重第三模态=1或首尾=.1/.9。原≥10是零训练时修订的草稿，未作为实验预测评估。仅development：n=d=9固定满秩线性特征、float64、零初始化、全批量SGD η=.5/mom0/nodecay、整数步0..1000、L0=.5、ε=.01。3seed仅参数坐标旋转，不是独立数据重复；无置信区间。只在同p内固定X配对；目标参数范数和实际第一步loss下降未匹配；初始参数梯度范数由相同L0与Rayleigh自动匹配，原合同未固定的措辞已在报告纠正。不外推learned features、width/depth/激活/LN、泛化、空间分辨率、其他优化器或封存OOD；两目标均可最终插值，不是永久表示容量差。"}, {"id": "D5-001", "direction": "D5", "round": 13, "text": "四旧函数d8/d12、width64 GELU、固定head、SGD lr=.001/mom0/decay1e-4、T256的LN010/noLN配对中，终点hidden Gram log10条件数下降达到12/12函数×offset单元各≥3/5 seed（总54/60），通过注册≥8/12。", "evidence": ["directions/D5_ln_geometry/studies/r013_gram_condition_review/summary.json", "directions/D5_ln_geometry/studies/r013_gram_condition_review/executed/saved_evidence_verification.json"], "domain": "development", "status": "measured", "boundary": "仅development：四旧函数trigonometric8/quadratic8(d8 uniform)、interaction12/radial12(d12 Gaussian)，train/test各256、data seed48291、width64 GELU输入层加3block、LN010/noLN、head weight/bias固定、hidden/LN affine可训练，SGD lr=.001/mom0/weight_decay1e-4、batch64、T256、offset−3/0/+3、seeds100–104；模型float32、居中hidden Gram float64、floor1e-12。seed只作重复，不外推其他函数/width/优化器或sealed OOD；hidden Gram不是参数Jacobian NTK，无因果中介干预。 LN初始化已有60/60配对条件数更低；仅7/60 LN cell训练后比初始化更低，不能解释为训练改善谱。 720 checkpoint均未命中固定floor1e-12。"}, {"id": "D5-002", "direction": "D5", "round": 13, "text": "四旧函数d8/d12、width64 GELU、固定head、SGD lr=.001/mom0/decay1e-4、T256中，offset0终点LN−noLN log10κ与三offset LN−noLN chord的20函数×seed配对Pearson r=.420774，未达注册≥.5（P2 refuted）。", "evidence": ["directions/D5_ln_geometry/studies/r013_gram_condition_review/summary.json", "directions/D5_ln_geometry/studies/r013_gram_condition_review/executed/saved_evidence_verification.json"], "domain": "development", "status": "refuted", "boundary": "仅development：四旧函数trigonometric8/quadratic8(d8 uniform)、interaction12/radial12(d12 Gaussian)，train/test各256、data seed48291、width64 GELU输入层加3block、LN010/noLN、head weight/bias固定、hidden/LN affine可训练，SGD lr=.001/mom0/weight_decay1e-4、batch64、T256、offset−3/0/+3、seeds100–104；模型float32、居中hidden Gram float64、floor1e-12。seed只作重复，不外推其他函数/width/优化器或sealed OOD；hidden Gram不是参数Jacobian NTK，无因果中介干预。 20重复只含4函数；不报告iid显著性，r=.420774不等于无任何关联，阈值失败不排除其他目标相关几何。"}, {"id": "D6-001", "direction": "D6", "round": 14, "text": "d=3/n=32 Gaussian、product/mixed_sine、width8/32、SiLU两hidden layer、full-batch SGD η=.05/mom0/nodecay、固定r0且trace匹配的4个development recipe单元中，step32到step256核漂移方向持续判据通过3/4单元；product×8、product×32、mixed_sine×32各2/3 seed同向，mixed_sine×8为0/3。", "evidence": ["directions/D6_kernel_drift/studies/r006_early_direction/summary.json"], "domain": "development", "status": "measured", "boundary": "仅适用于本轮d3/n32 Gaussian、两个函数、width8/32、SiLU两hidden layer、full-batch SGD η=.05/mom0/nodecay、256步、固定r0/trace匹配和seeds611/629/647；不外推新函数、数据seed、优化器、LN、深度、泛化或sealed OOD。mixed_sine×width8为反例；固定r0方向不等价于移动晚期残差拟合速度。"}, {"id": "D7-001", "direction": "D7", "round": 15, "text": "d5 Gaussian train32/test256、两层hidden SiLU、full-batch SGD eta=.05/mom0/nodecay、512步、data7331/noise733107的sigma0/1配对中，噪声扩大真实网络相对初始切线的终点干净test半MSE差距：4/4函数×width8/32单元mean(D)>=.02且12/12初始化D>0；mixed_sine两宽度mean(D)=.557508/.800986，radial=.301773/.287093，原P1通过。", "evidence": ["directions/D7_train_gain_test_harm/studies/r015_noise_interaction_resume/summary.json", "directions/D7_train_gain_test_harm/studies/r015_noise_interaction_resume/executed/saved_evidence_verification.json"], "domain": "development", "status": "measured", "boundary": "仅development：d5 Gaussian train32/test256、mixed_sine/radial、含bias两层hidden SiLU、width8/32、PyTorch默认float32初始化再double、init11/29/47、data7331/noise733107、clean目标按train均值/标准差归一化后加sigma0/1、float64、full-batch SGD eta=.05/mom0/nodecay、512步。4个函数×宽度单元，seed只测初始化稳健性；一个data/noise draw，两个width8单元D的95% seed区间跨零。不外推新数据/噪声、optimizer、LN、深度或sealed OOD；不区分核方向与隐式偏置，不量化机制占比。"}, {"id": "D7-002", "direction": "D7", "round": 15, "text": "d5 Gaussian train32/test256、两层hidden SiLU、full-batch SGD eta=.05/mom0/nodecay、data7331/noise733107条件中，终点真实减切线test半MSE为正仍可伴随真实模型step128到512 test下降：mixed_sine width32 init11 sigma0为H=.020497、变化=-.001370；radial width32 init29 sigma1为H=.012378、变化=-.029205。", "evidence": ["directions/D7_train_gain_test_harm/studies/r015_noise_interaction_resume/summary.json", "directions/D7_train_gain_test_harm/studies/r015_noise_interaction_resume/executed/saved_evidence_verification.json"], "domain": "development", "status": "measured", "boundary": "仅development：d5 Gaussian train32/test256、mixed_sine/radial、含bias两层hidden SiLU、width8/32、PyTorch默认float32初始化再double、init11/29/47、data7331/noise733107、clean目标按train均值/标准差归一化后加sigma0/1、float64、full-batch SGD eta=.05/mom0/nodecay、512步。4个函数×宽度单元，seed只测初始化稳健性；一个data/noise draw，两个width8单元D的95% seed区间跨零。不外推新数据/噪声、optimizer、LN、深度或sealed OOD；不区分核方向与隐式偏置，不量化机制占比。 预注册描述诊断，无额外预测成功判据；只是保存结果中的两个分歧样本，不是train-only早停信号。"}, {"id": "D8-001", "direction": "D8", "round": 16, "text": "对称Gaussian d4/n128、width64冻结单层SiLU、固定同单元bias、MSE与全批量GD eta=.8/mom0/nodecay/1024步下，bias=0和1的偶/奇能量比R在scale=.025到.05的六seed配对增长分别为3.984159–3.991788与4.002060–4.003272，均保持a²领先（指数均值1.995464与2.000962）。", "evidence": ["directions/D8_activation_pathway/studies/r008_bias_inflection/summary.json", "directions/D8_activation_pathway/findings/r016_bias_inflection_resume.md"], "domain": "development", "status": "measured", "boundary": "仅适用本轮对称Gaussian d4/n128、width64冻结单层SiLU、固定bias、特征居中/RMS、MSE、全批量GD；不外推近根bias、非对称输入、多层、learned hidden、CE、小批量或干预收益。R是偶/奇能量比，不等于目标相关核能量或拟合速度。"}, {"id": "D8-002", "direction": "D8", "round": 16, "text": "同一对称Gaussian d4/n128、width64冻结单层SiLU、固定bias、MSE与全批量GD条件下，SiLU二阶导数零点b*=2.3993572805154675的R在scale=.025到.05的六seed配对增长为63.953437–63.985564，均值63.970738，指数均值5.999340，符合a⁶区间判据[48,80]。", "evidence": ["directions/D8_activation_pathway/studies/r008_bias_inflection/summary.json", "directions/D8_activation_pathway/findings/r016_bias_inflection_resume.md"], "domain": "development", "status": "measured", "boundary": "只测二阶导数零点的一个精确bias值与四个scale；不提供近根容差区间，不外推随机bias、非对称输入、多层、learned hidden、CE、小批量、干预收益或最终拟合排序。a⁶为本合同有限尺度测量，解析Taylor阶数本身不单独构成新claim。"}, {"id": "D1-004", "direction": "D1", "round": 17, "text": "n=d=2固定特征谱[.001,.5]、全批量SGD eta=.1/mom0与.9、L0=1、T40000、q=.01持续端点下，慢模态初始loss占比alpha=.001/.005/.009的3个配对条件，稳态U换算相对绝对误差为86.9565%–88.6364%，启动为73.9130%–76.2712%，两者均>=50%，P1通过；3坐标seed同值。", "evidence": ["directions/D1_u_effective_time/studies/r017_slow_energy_conversion/summary.json", "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/saved_evidence_verification.json"], "domain": "development", "status": "measured", "boundary": "仅development：n=d=2固定满秩特征、谱[.001,.5]、float64、全批量SGD eta=.1/mom0或.9、L0=1、零参数/速度初始化、T40000、q=.01持续至T；3seed只旋转参数坐标，不是数据重复，无置信区间。换算输入为实测mom0持续步数，不是从零预测。不同alpha未匹配初始梯度范数、Rayleigh商、参数范数与第一步下降，不能区分其独立作用；不外推其他谱/eta/q/optimizer/learned features/mini-batch或sealed OOD，不作历史bigram因果分摊；启动不保证优于稳态，原r009 P4的6/10失败保留。"}, {"id": "D1-005", "direction": "D1", "round": 17, "text": "n=d=2固定特征谱[.001,.5]、全批量SGD eta=.1/mom0与.9、L0=1、T40000、q=.01持续端点下，慢模态初始loss占比alpha=.02/.1/.5的3个配对条件，稳态U换算相对绝对误差为.1739%–1.6997%，启动为.8499%–.9565%，两者均\u003c=5%，P2通过；3坐标seed同值。", "evidence": ["directions/D1_u_effective_time/studies/r017_slow_energy_conversion/summary.json", "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/saved_evidence_verification.json"], "domain": "development", "status": "measured", "boundary": "仅development：n=d=2固定满秩特征、谱[.001,.5]、float64、全批量SGD eta=.1/mom0或.9、L0=1、零参数/速度初始化、T40000、q=.01持续至T；3seed只旋转参数坐标，不是数据重复，无置信区间。换算输入为实测mom0持续步数，不是从零预测。不同alpha未匹配初始梯度范数、Rayleigh商、参数范数与第一步下降，不能区分其独立作用；不外推其他谱/eta/q/optimizer/learned features/mini-batch或sealed OOD，不作历史bigram因果分摊；启动不保证优于稳态，原r009 P4的6/10失败保留。 alpha=.01/.011仅描述，不给出临界占比或把alpha>q视为充分条件。"}, {"id": "D4-004", "direction": "D4", "round": 18, "text": "n=d=2、固定谱[.01,1]、全批量SGD eta=.1/mom0/nodecay、L0=1、原150点等权log网格与固定平台下，慢能量占比alpha=.01的3坐标seed最小二乘单logistic选解RMSE=.01022359488但maxabs=.06476095049–.06476095218>.05；原P2关于.01/.99均通过的预测被此条件推翻。", "evidence": ["directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/summary.json", "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/executed/independent_analysis_verification.json", "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/executed/saved_evidence_verification.json"], "domain": "development", "status": "refuted", "boundary": "仅development：n=d=2固定特征半MSE、float64、全批量SGD eta=.1/mom0/nodecay、谱[.01,1]、L0=1、零参数初始化、T10000；alpha只改慢初始loss占比，目标参数/梯度范数/Rayleigh商/第一步下降未匹配。原150点整数log网格（0至4997）、各点等权、平台1/0、6起点最小二乘取成功SSE最小解；seed0/1/2只旋转参数坐标，不作数据重复/置信区间。拟合不足仅指该选解，不证明所有logistic参数均不可能通过或已获全局最优；不推断连续临界alpha或谱比10到30临界点，不把拟合中点当真实半衰期，不外推自由平台、learned features、其他谱/optimizer/网格、前段预测或sealed OOD。"}, {"id": "D4-005", "direction": "D4", "round": 18, "text": "n=d=2、固定谱[.01,1]、全批量SGD eta=.1/mom0/nodecay、L0=1、原150点等权log网格与固定平台下，慢能量占比alpha=.99的3坐标seed最小二乘单logistic选解RMSE=.02914082893、maxabs=.04937290549–.04937290590，同时通过.03/.05两阈值。", "evidence": ["directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/summary.json", "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/executed/independent_analysis_verification.json", "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/executed/saved_evidence_verification.json"], "domain": "development", "status": "measured", "boundary": "仅development：n=d=2固定特征半MSE、float64、全批量SGD eta=.1/mom0/nodecay、谱[.01,1]、L0=1、零参数初始化、T10000；alpha只改慢初始loss占比，目标参数/梯度范数/Rayleigh商/第一步下降未匹配。原150点整数log网格（0至4997）、各点等权、平台1/0、6起点最小二乘取成功SSE最小解；seed0/1/2只旋转参数坐标，不作数据重复/置信区间。拟合不足仅指该选解，不证明所有logistic参数均不可能通过或已获全局最优；不推断连续临界alpha或谱比10到30临界点，不把拟合中点当真实半衰期，不外推自由平台、learned features、其他谱/optimizer/网格、前段预测或sealed OOD。"}, {"id": "D4-006", "direction": "D4", "round": 18, "text": "n=d=2、固定谱[.01,1]、全批量SGD eta=.1/mom0/nodecay、L0=1、原150点等权log网格与固定平台下，alpha=.25/.5/.75三个慢能量占比条件的单logistic最小二乘选解均不足，3坐标seed各同判定；RMSE=.04090645242–.06974371360、maxabs=.08556858257–.17433680642，P3通过3/3条件。", "evidence": ["directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/summary.json", "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/executed/independent_analysis_verification.json", "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/executed/saved_evidence_verification.json"], "domain": "development", "status": "measured", "boundary": "仅development：n=d=2固定特征半MSE、float64、全批量SGD eta=.1/mom0/nodecay、谱[.01,1]、L0=1、零参数初始化、T10000；alpha只改慢初始loss占比，目标参数/梯度范数/Rayleigh商/第一步下降未匹配。原150点整数log网格（0至4997）、各点等权、平台1/0、6起点最小二乘取成功SSE最小解；seed0/1/2只旋转参数坐标，不作数据重复/置信区间。拟合不足仅指该选解，不证明所有logistic参数均不可能通过或已获全局最优；不推断连续临界alpha或谱比10到30临界点，不把拟合中点当真实半衰期，不外推自由平台、learned features、其他谱/optimizer/网格、前段预测或sealed OOD。"}, {"id": "D2-003", "direction": "D2", "round": 19, "text": "d4 Gaussian混合目标、冻结ReLU width128、含bias零head、全批量GD eta=.3/mom0，n32/σ²=.25与n64/σ²=.5四seed411–414仅将clean标签train mean/RMS改为population 0/√1.25后，seed414最低点由64/180变为62/201步，配对比值从2.8125变为3.241935，反例保留且通过预注册(2,4]；全部四seed新比值范围1.005435–3.241935。", "evidence": ["directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/summary.json", "directions/D2_overfitting_u_curve/studies/r019_population_label_normalization/executed/independent_verification.json"], "domain": "development", "status": "measured", "boundary": "仅development：d4 antithetic Gaussian目标x0+.5x0x1、frozen ReLU width128/scale.03、原train feature mean/RMS、含bias零head、float64、full-batch GD eta.3/mom0/nodecay、整数0..16384、audit2048、n32/64与σ².25/.5、四seed411–414。两recipe为一组配对，seed只测重复；x/W/features/epsilon固定在各n/seed内，跨n原始输入不同。mean/RMS联合干预、噪声固定归一化单位，不识别两者独立作用或谱/输入机制；oracle需要clean标签，不外推train-only早停、learned hidden、Adam、mini-batch、CE、其他recipe、无限训练或sealed OOD。"}, {"id": "D3-003", "direction": "D3", "round": 20, "text": "n=d=9固定特征λ_i=i^-2、零初始化、全批量SGD η=.5/mom0/nodecay，目标A(w1=1/55,w3=54/55)与B(w2=2048/4235,w9=2187/4235)匹配L0=.5、m1=7/55、m2=1/33、初始梯度范数平方与实际第一步loss下降=.05984848485，1%阈值仍为41/319步；三个同坐标seed均差278步、比7.780488，达到注册≥7判据。", "evidence": ["directions/D3_capacity_resolution/studies/r020_matched_two_moments/summary.json", "directions/D3_capacity_resolution/studies/r020_matched_two_moments/executed/independent_verification.json"], "domain": "development", "status": "measured", "boundary": "仅n=d=9满秩固定线性特征、float64、λ_i=i^-2(i1..9)、共同m1=7/55/m2=1/33、注册四模态权重、零初始化、SGD eta.5/mom0/nodecay、L0.5、整数0..1000、epsilon.01；两目标条件/一个配对设计，seed0/1/2只参数坐标旋转，不是独立数据重复，无CI。匹配量最大配对差3.053113e-16，实际第一步下降差≤5.551115e-17；目标参数范数平方A=487/55、B=2407/55和高阶矩未匹配，不能独立归因慢模态质量或参数范数。两目标均可最终插值，不是永久表示容量差；不外推learned features、架构轴、泛化、空间分辨率、其他优化器/阈值或sealed OOD，也不证明所有标量均不充分。"}], "reports": [{"key": "D1_u_effective_time", "label": "动量训练换算", "text": "# D1：等效训练时间 U\n\n程序第17轮完成一个新小问题：固定谱、学习率η和初始损失L0，只改变双模态目标的慢模态初始损失占比α，能否预测q=.01持续端点的U换算误差。预注册及源码commit为0eddd3b，早于全部48个cell；8个配对条件、16个条件/优化器单位，3个seed仅旋转坐标，训练累计13.832434秒。q表示L(t)/L0阈值，持续只保证到固定预算T。\n\n本轮固定n=d=2、谱[.001,.5]、float64、全批量SGD η=.1、mom0/.9、L0=1、零初始化、T40000。以实测mom0持续步数为输入，稳态U预测ceil(t0/10)，恒梯度启动U预测最小整数t使10t−90(1−.9^t)≥t0。α=.001/.005/.009时，两种换算误差分别为86.9565%–88.6364%和73.9130%–76.2712%，均达到注册失效判据≥50%；α=.02/.1/.5时，分别为.1739%–1.6997%和.8499%–.9565%，均达到准确判据≤5%。两个预测各通过3/3目标条件，坐标seed同值。完整配对数字见[r017 finding](findings/r017_slow_energy_conversion.md)和[summary](studies/r017_slow_energy_conversion/summary.json)。\n\n预先只描述的α=.01仍有85%/73.3333%误差，α=.011为35.1351%/22.9730%；不能给出临界占比或把α>q当作充分条件。低占比三条件的动量首次步数7/8/22与持续步数44/46/59不同；高占比三条件首次和持续一致。α=.1/.5时启动比稳态更差，因此保留旧P4失败。改变α同时改变梯度范数、Rayleigh商、参数范数和第一步下降；本轮区分的是能量分配条件，没有排除这些伴随量的解释。\n\n48cell的hash、finite、训练前提交、L0、α及端点复核通过，谱递推loss最大差1.903477e−13，坐标轨迹差5.551115e−15，首2cell恢复后hash不变，见[审计](studies/r017_slow_energy_conversion/executed/saved_evidence_verification.json)。本轮仅development、固定谱与q的配对换算；不外推其他谱、η、q、优化器或非线性网络。下一小问题是只降低快模态曲率，检验低慢能量条件的误差判据是否保留。\n\n## r009：单模态启动边界与幅度对照\n\n程序第9轮（D1第3轮）完成原r001冻结合同的60个cell，得到10个配对条件、20个条件/优化器单位和3条KB claim。训练合计13.78秒。q=.9的弱曲率启动预测通过，q=.01的“启动不比稳态差”扩展被推翻。q表示归一化损失L(t)/L(0)，h=ηλ表示学习率与目标模态曲率的乘积。\n\n条件为n=d=8固定特征二次型、float64、全批量SGD、η=.1、mom0/.9、40000步；目标落在λ=.001/.01/.05/.1/.5，初始梯度L2范数=.003/.01。每个配对固定谱、目标、初始残差和η，仅改动量。3个旋转seed检验坐标稳健性，不增加科学条件数。换算以实测无动量阈值步数为输入，不是从零预测阈值。详细合同见 [预注册](studies/r001_momentum_startup/preregistration.json)，全部数字见 [summary.json](studies/r001_momentum_startup/summary.json)。\n\nq=.9、h=.0001/.001时，动量实测为62/12步；启动修正也为62/12步，稳态预测为53/6步。两档幅度、3个seed和首次/持续端点均一致，配对区间为单点。h=.001的稳态预测低估50%。这支持启动期解释在本合成系统中的作用。\n\nq=.01、持续至T=40000时，启动修正在6/10个配对条件上更差。h=.0001/.001/.005的动量实测为2290/217/37步；稳态预测为2303/231/46步，启动预测为2312/240/55步。早期有效不能外推为晚期总能改善。h=.01/.05时，首次达标21/7步与持续达标46/44步不同，震荡使“达到同一误差”的定义影响结论。完整配对表和原失败预测见 [r009 finding](findings/r009_momentum_startup_resume.md)。\n\n仅改变目标幅度，把初始梯度范数从.01降到.003，归一化轨迹最大差为3.22e-15，全部阈值步数相同；固定梯度代理变为0.3倍。这受控地区分了幅度标定与该系统的归一化进度。目标与曲率对齐仍只覆盖5个单模态，不能解释混合模态。K1019中mom0/.9换算系数的10倍是代数关系；本轮不能证明历史bigram的函数进度相差10倍，也不能作因果分摊。\n\nv1 B01的谱递推和恒梯度启动式属于已知解析起点，不登记为发现。P1核验损失最大差3.78e-13。原矩阵乘法警告经独立逐元素复核，Hessian最大误差5.55e-17；60个数组均有限，恢复hash通过，见 [审计](studies/r001_momentum_startup/executed/saved_evidence_verification.json)。科学结论限本development recipe；未测Adam、mini-batch或非线性网络，无封存OOD。\n\n第1轮未训练的 [失败记录](findings/r001_momentum_startup.md) 保留。supervisor于17:10:50提交原预注册和源码，commit为7da7d8a7acb274cd88a242e2e564c92ddca33aa3；第9轮核验字节匹配后才训练，当轮收尾因Git写权限失败记partial。第17轮核验确认supervisor随后在665d137提交全部旧结果和中心更新，D1的134个文件与该提交一致；旧60cell未重跑或覆盖。中心旧字段中的b05588b指向D6日志，真实收尾指针见[r009收尾审计](studies/r017_slow_energy_conversion/executed/r009_closeout_audit.json)。新实验继续遵守预注册先commit、成功cell不覆盖。\n"}, {"key": "D2_overfitting_u_curve", "label": "风险最低点", "text": "# D2：风险最低点与早停\n\n## 公式区\n\n固定特征、零初始化线性 head、全批量梯度下降与平方损失下，条件期望风险为\n\n\\[\nK=\\Phi\\Phi^\\top/n=V\\operatorname{diag}(\\lambda_j)V^\\top,\\quad q_j=1-2\\eta\\lambda_j,\\quad\nf_j(t)=\\begin{cases}(1-q_j^t)/\\lambda_j,&\\lambda_j\\ne0,\\\\2\\eta t,&\\lambda_j=0,\\end{cases}\n\\]\n\\[\nA_t=\\Phi^\\top V\\operatorname{diag}(f_j(t))V^\\top/n,\\quad\nR(t)=\\|\\Phi_a A_t y-y_a\\|_2^2/m+\\sigma^2\\|\\Phi_a A_t\\|_F^2/m,\\quad\nt_*=\\min\\operatorname*{argmin}_{t\\in\\{0,\\ldots,16384\\}}R(t).\n\\]\n\\[\ny^{\\rm train}=(g-\\mu_n)/s_n,\\quad y^{\\rm pop}=g/\\sqrt{1.25},\\quad\ng(x)=x_0+0.5x_0x_1,\\quad E[g]=0,\\quad E[g^2]=1.25.\n\\]\n\nn 和 m=2048 是训练与风险审计样本数，单位为行；Φ、Φₐ 是含常数 bias 列的固定特征；K、V、λⱼ 是训练 Gram 矩阵及其特征向量、特征值；η=.3 是学习率；qⱼ 是每步收缩因子；fⱼ(t) 是累计响应；Aₜ 把训练标签映射为第 t 步 head 参数；y、yₐ 是 clean 训练与审计标签；σ² 是归一化标签单位下的独立训练噪声方差。R 的单位为标签平方，t、t* 的单位为更新步；标签与特征无量纲，F 下标表示矩阵所有元素平方和的平方根。g 是原始目标，x₀、x₁ 是独立标准 Gaussian 输入坐标，μₙ、sₙ 是原始训练目标的均值与中心化均方根，train/pop 上标表示两种标签归一化，E 表示分布期望。风险递推与 population 矩是已知解析结果，不作为新发现。\n\n经验式 log(t*)=a+b log(n/σ²) 的三个留出样本量拟合为 (a,b)=(-.33541,1.05557),(.09033,.96928),(-.39273,1.09019)；57/60 预测在两倍内，三个失败的倍数误差为 2.286/2.099/2.571。实测边界：d4、冻结 ReLU width128、GD η=.3/mom0、n32/64/128 与 σ²=.25/.5/1/2/4 的 train 归一化下，等 n/σ² 配对仅 40/44 达到 [.5,2]；改用 pop 归一化后，比值 128 的四 seed 配对仍仅 3/4 达标，seed414 为 201/62=3.24194，严格折叠失败。\n\n## 科学现象与解释\n\n共享 population 标签归一化未消除最低点的跨样本量反例。seed414 在 n32/σ²=.25 与 n64/σ²=.5 的最低点从 64/180 步变为 62/201 步，较大 n 除以较小 n 的比值从 2.8125 变为 3.24194。该比值满足事前预测 (2,4]，两端均为内部最低点。样本 clean 标签的 mean/RMS 差异不足以单独解释这个反例；输入抽样、经验谱与目标在特征上的投影仍是竞争解释。\n\n| seed | train 归一化 t*：n32 / n64 | pop 归一化 t*：n32 / n64 | 原比值 | 新比值 |\n|---|---:|---:|---:|---:|\n| 411 | 274 / 137 | 144 / 152 | .50000 | 1.05556 |\n| 412 | 174 / 190 | 184 / 185 | 1.09195 | 1.00543 |\n| 413 | 174 / 120 | 129 / 141 | .68966 | 1.09302 |\n| 414 | 64 / 180 | 62 / 201 | 2.81250 | 3.24194 |\n\n这是一组 recipe 配对、四个 seed 重复。pop 归一化的比值范围为 1.00543–3.24194，log₂ 比值范围为 .0078195–1.6968554；归一化干预对比值的 log₂ 改变量范围为 −.1190926–1.0780025。8 个新 cell 的最低点为 62–201 步，全部满足终点风险比最低点至少高 .05 的 U 型判据。噪声方差固定在归一化标签单位；mean 与 RMS 联合改变，因此未分别识别两者的作用，也没有固定原始标签单位的信噪比。\n\n## 累计证据与竞争解释\n\n原 15 个固定 ReLU recipe、四 seed 共 60 cell 中，相同 n/σ² 的最低点在 40/44 配对中相差不超过两倍，四个反例推翻“全部折叠”。最低点均在 8–555 步内部，全部满足终点风险比最低点至少高 .05。11 个 recipe 配对组各有四次重复，不能当作 44 个独立 recipe。\n\nseed414 在 n32/.25、n64/.5、n128/1 时 t* 为 64、180、176 步；seed412 在 n64/.25 与 n128/.5 时为 390、160 步；seed413 在 n64/2 与 n128/4 时为 20、47 步。前两个反例共享 n32 结果，不是独立重复。跨 n 保持 W seed，但原始输入分别抽取，经验谱与目标投影均可变化。\n\n每次用另两个 n 的 40 cell 拟合幂律，留出 n32/64/128 各通过 19/20，共 57/60，超过至少 48/60 的判据。斜率 b 为 1.05557/.96928/1.09019；三个失败预测的倍数误差为 2.286/2.099/2.571。零反例的严格折叠与容许 20% 失败的粗略预测可以分别失败与通过。幂律使用其他 development 条件的 clean-risk 最低点，不能称为普适标度律或 train-only 早停。\n\n## 测量合同与核验\n\n固定 d4 对称 Gaussian、目标 x₀+0.5x₀x₁、冻结 ReLU width128/scale .03、训练特征居中与总 RMS 归一化、含 bias 零初始化 head、全批量 GD η=.3/mom0/nodecay、float64，逐整数步 0..16384 计算期望 clean-risk。原扫描为 n32/64/128×σ².25/.5/1/2/4、seed411–414。归一化对照只使用 n32/.25 与 n64/.5 的原始输入、W、特征和 epsilon，不重抽数据。v1 的固定特征风险预测同样使用 clean train/audit 标签，作为背景证据。\n\n旧 60 cell 的已保存产物与实际收尾提交一致，未重跑或覆盖。旧执行核验的全步信号风险误差为 6.22e−15，独立终点期望风险误差为 9.59e−14；原 matmul 警告保留，底层原因未定。新执行器用逐项乘积实现相同 GD 与谱运算，8/8 cell 数组有限、六项控制变量逐字节一致，训练与保存累计 10.116 秒，原始 stderr 为空。\n\n新分析的首次落盘因 NumPy 布尔值不能直接写 JSON 而失败。保留固定源码与原错误，仅由单独入口把 NumPy scalar 转为 Python scalar，未改风险公式或预测；完整分析用时 1.412 秒。信号风险同时由实际 head、独立谱统计和旧曲线的仿射关系复算，噪声响应另由最终矩阵直接核验。执行核验不登记为新科学发现。\n\n## 未决问题与适用范围\n\n共享标签归一化后，仍未区分输入抽样、目标投影与经验谱的独立作用。下一小问题可固定共享 pop 归一化及本次全部数据，仅将两 recipe 的噪声方差同时减半至 .125/.25，检验 seed414 的等 n/σ²=256 配对是否仍超过两倍；新数值预测与固定源码必须先提交。\n\n全部条件为 development，没有封存 OOD。oracle 依赖指定解析函数的 clean train/audit 标签；未建立不用 test 标签的早停信号。不外推 learned hidden、Adam、小批量、CE、其他宽度或无限训练最优步数。\n\n## 证据\n\n- [原执行失败 findings](findings/r003_noise_sample_scaling.md)、[原恢复实验 findings](findings/r011_noise_sample_scaling_resume.md)与[原汇总](studies/r003_noise_sample_scaling/summary.json)保留旧预测及反例；原冻结提交 d5fae2c、实际收尾提交 11d6ba8，149 个产物的匹配见[收尾审计](studies/r019_population_label_normalization/executed/r011_closeout_audit.json)。\n- [归一化对照 findings](findings/r019_population_label_normalization.md)、[新冻结合同](studies/r019_population_label_normalization/preregistration.json)、[训练前提交核验](studies/r019_population_label_normalization/executed/pretraining_commit_verification.json)与[新汇总](studies/r019_population_label_normalization/summary.json)。预注册提交 214a8b2 早于所有新训练。\n- [首 cell 序列化错误](studies/r019_population_label_normalization/executed/first_cell_verification.json)、[修复入口后的首 cell 核验](studies/r019_population_label_normalization/executed/first_cell_verification_after_serialization_fix.json)、[全量分析记录](studies/r019_population_label_normalization/executed/full_analysis_run.json)与[独立保存证据核验](studies/r019_population_label_normalization/executed/independent_verification.json)。\n- [完成与状态边界核验](studies/r019_population_label_normalization/executed/round019_completion.json)记录计数未改、旧证据未改及报告链接检查。\n"}, {"key": "D3_capacity_resolution", "label": "训练预算的描述量", "text": "# D3：容量与分辨率的描述量\n\n## 公式区\n\n固定特征平方损失、零初始化、全批量 SGD、无动量和衰减时，已知递推为：\n\n\\[\nL_t=\\frac{\\|X\\theta_t-y\\|^2}{2n},\\quad H=\\frac{XX^\\top}{n},\\quad\nw_i=\\frac{(u_i^\\top y)^2}{\\|y\\|^2},\\quad m_k=\\sum_iw_i\\lambda_i^k,\\quad\n\\mu_y=\\sum_iw_i\\delta_{\\lambda_i}.\n\\]\n\\[\n\\frac{L_t}{L_0}=\\sum_iw_i(1-\\eta\\lambda_i)^{2t},\\qquad\nT_\\varepsilon(\\mu_y,\\eta)=\\min\\{t\\in\\mathbb N_0:L_t/L_0\\le\\varepsilon\\},\\qquad\nL_0-L_1=L_0(2\\eta m_1-\\eta^2m_2),\\quad\\|g_0\\|^2=2L_0m_1.\n\\]\n\nX 是 n×d 的固定特征矩阵（特征单位），θ 是 d 维参数（目标单位/特征单位），y 是 n 维目标（目标单位），n 是样本数，d 是参数数；L 是每样本平方损失（目标单位²），t 与 T 是更新步数，ℕ₀ 是非负整数集合。H 是归一化样本 Gram 矩阵（特征单位²），i 是模态索引，u_i 是 H 的单位特征向量（无量纲），λ_i 是对应特征值（特征单位²），w_i 是非负目标能量比例且总和为 1（无量纲）；δ 表示点质量，μ_y 是目标加权谱。k 是矩的阶数，m_k 是 k 阶谱矩（特征单位^(2k)），m₁ 是目标 Rayleigh 商；η 是学习率（特征单位⁻²），ε 是损失比例阈值（无量纲），g₀ 是初始参数梯度（目标单位×特征单位）。本算例采用无量纲特征和目标。\n\n实测边界：n=d=9、λ_i=i⁻ᵖ、η=.5/mom0/nodecay、L₀=.5、ε=.01 时，p=0 的两目标均 4 步；同谱同 m₁ 的 p=1/2 配对分别为 13/38 与 41/364 步；p=2 进一步匹配 m₁=7/55、m₂=1/33 与第一步损失下降 .05984848485 后仍为 41/319 步（7.780488 倍），该对照谱递推误差≤8.881784e−16。\n\n## 当前基线与竞争解释\n\n第一版描述量为 `Tε(μᵧ,η)`：给定目标加权谱 μᵧ 与学习率 η，达到初始损失比例 ε 所需的整数步。固定特征、全批量 SGD 的已知公式为 `Σwᵢ(1−ηλᵢ)²ᵗ`。公式是预测工具；本轮登记的是保存训练结果验证的受控区分。\n\nRayleigh 商是目标加权的平均特征值。它相同仍允许目标在慢模态上的质量不同。匹配参数数、trace、有效秩、Rayleigh 商和初始损失后，阈值预算仍不同。进一步匹配二阶谱矩、初始梯度范数和实际第一步损失下降后，阈值预算仍分离。完整目标加权谱的预测与各 cell 实测整数步一致；这些注册标量在本对照中不充分。\n\nTε 同时指定目标、阈值和优化器；它不等于永久表示容量。所有注册谱满秩，两个目标均可最终插值。本方向的空间频率或相近结构分辨率仍未定义。\n\n## 同 Rayleigh 商的配对结果\n\nn=d=9，特征值 `λᵢ=i⁻ᵖ`，p=0/1/2；float64、零初始化、全批量 SGD η=.5、无动量、无衰减、1000 步。同 p/seed 固定 X；两目标初始损失 .5、Rayleigh 商 λ₃、参数数 9、trace 与有效秩相同，只改变目标模态权重。\n\n| 谱 p | 第三模态步数范围 | 首尾目标步数范围 | 配对步数差范围 | 配对步数比范围 |\n|---|---:|---:|---:|---:|\n| 0 | 4–4 | 4–4 | 0–0 | 1–1 |\n| 1 | 13–13 | 38–38 | 25–25 | 2.923077–2.923077 |\n| 2 | 41–41 | 364–364 | 323–323 | 8.878049–8.878049 |\n\n每行 3 个同 seed 配对，seed 只是参数坐标旋转的数值检查。共 6 个谱×目标条件、18 cell、9 配对，无置信区间、无删失。P2 的平谱两目标均 4 步与 P3 的 p=1 ≥2.5、p=2 ≥8 均通过。P1 的谱曲线最大误差为 1.665335e−15，配对描述量最大差为 4.440892e−16，也通过。\n\n特征构造时有矩阵乘法警告，根因未确定。保存数组均为有限值，18/18 cell 的标量结构/Gram/损失/终点残差复算通过，最大 Gram 误差 6.661338e−16；未发现保存结果受影响的证据。\n\n## 同前两阶谱矩的配对结果\n\n固定 n=d=9、λᵢ=i⁻² 与上述 SGD recipe，用四个可用模态 1/2/3/9 构造两个非负目标：A 的权重为 w₁=1/55、w₃=54/55；B 为 w₂=2048/4235、w₉=2187/4235。其余权重均为 0。两目标的 m₁=7/55、m₂=1/33，与上一对照的 m₁=1/9 不同。\n\n| 条件 | A：模态 1/3 | B：模态 2/9 |\n|---|---:|---:|\n| 初始损失 | .5 | .5 |\n| 初始梯度范数平方 | 7/55 | 7/55 |\n| 实际第一步损失下降 | .05984848484848487 | .05984848484848482–.05984848484848487 |\n| 1% 阈值步数范围 | 41–41 | 319–319 |\n| 目标参数范数平方（未匹配） | 487/55 ≈ 8.854545 | 2407/55 ≈ 43.763636 |\n\n6/6 cell、3 同 seed 配对均支持预注册≥7倍与41/319整数端点预测；配对差为278–278步、比为7.780488–7.780488。seed仍只检查坐标旋转，不计算置信区间。X在配对内逐字节相同，注册匹配量最大差3.053113e−16；保存参数复算损失一致，独立谱曲线最大误差8.881784e−16，无删失。\n\nB 的慢模态 λ₉ 能量为 .5164108619，A 不含该模态。二阶矩及第一步下降匹配没有消除预算差，但目标参数范数和高阶谱矩也随权重改变，不能把差异独立归因于慢模态质量。新源码使用逐元素构造与 einsum，本次未出现旧矩阵乘法警告；旧警告根因仍未确定。\n\n## 对照边界与下一问题\n\n早期合同称初始梯度范数未固定，措辞不准确：本线性模型中 `||g₀||²=(||y||²/n)×Rayleigh`，初始损失与 Rayleigh 商相同会自动匹配初始参数梯度范数，保存数据复算已确认。单矩配对未匹配实际第一步损失下降；双矩配对已匹配这一量，仍未匹配目标参数范数。跨 p 的 trace 不同，结论只取同 p 内配对。\n\n下一问题是在同 p=2、η=.5、L₀=.5、ε=.01 条件下，用至少五个可用模态构造同时匹配 m₁、m₂ 与 ∑wᵢ/λᵢ（目标参数范数平方）的两个非负目标，检验预算能否仍分离。先解析审查可行权重，写新数值预测/pinned 源码并 commit，再训练。本方向仍未测试架构轴、learned features、封存 OOD、泛化或空间分辨率，不能外推为通用容量定律。\n\n## 证据\n\n[r004 findings](findings/r004_matched_rayleigh.md) 保留原零训练轮次与提交失败证据。程序第 4 轮两次预注册与收尾提交失败；原 ≥10 草稿在纯解析审查后改为 ≥8，未作为实验预测评估。程序第 12 轮沿用修订合同，恢复预注册成功提交 `7fefbda`，逐字节核验后才训练；首 cell hash/谱核验通过后补余 17 cell，累计计算 .089859 秒。\n\n[r012 findings](findings/r012_matched_rayleigh_resume.md)、[summary](studies/r012_matched_rayleigh_resume/summary.json) 与 [analysis.py](studies/r012_matched_rayleigh_resume/analysis.py) 给出执行时序、hash、逐 cell 结果与配对范围。原合同、pinned 源码和成功 NPZ/metadata/receipt 保存在 r004 study；[标量复算证据](studies/r012_matched_rayleigh_resume/executed/saved_evidence_verification.json) 保存额外核验。恢复不覆盖成功 cell。\n\n[r020 findings](findings/r020_matched_two_moments.md)、[summary](studies/r020_matched_two_moments/summary.json) 与[analysis.py](studies/r020_matched_two_moments/analysis.py) 保存双矩匹配的逐 cell/配对结果。[精确可行性审查](studies/r020_matched_two_moments/executed/feasibility.json) 与固定源码在训练前提交 `f6fc2a9`；[训练前记录](studies/r020_matched_two_moments/executed/experiment_start.json) 确认合同字节匹配及0新cell。首cell核验后补余5cell，累计计算.146258333秒。[旧证据核验](studies/r020_matched_two_moments/executed/previous_evidence_audit.json) 确认原18cell与收尾`03525ec`字节一致；[恢复核验](studies/r020_matched_two_moments/executed/resume_audit.json) 确认6个成功cell及receipt未覆盖。\n\n[独立标量核验](studies/r020_matched_two_moments/executed/independent_verification.json) 逐项重算保存数组，6/6通过，损失误差≤8.326673e−17、SGD更新误差≤5.031783e−16。[中心更新审计](studies/r020_matched_two_moments/executed/central_update_audit.json) 确认只改本方向 last_round 和 next_question，round 与 rounds_done 保持不变。\n"}, {"key": "D4_sigmoid_training_curve", "label": "S形曲线拟合", "text": "# D4 — 训练曲线的 sigmoid 描述\n\n第 18 轮新增慢能量占比对照：固定谱[.01,1]、eta=.1/mom0、L0=1 和原网格，alpha=.99 通过、.01 失败，P2 refuted；.25/.5/.75 都不足，P3 supported。仅凭谱比不能决定本操作定义下的判定。\n\n在等初始损失的双模态固定特征系统中，固定平台的 log-time 单 logistic 在本次评价网格下拟合足够的谱比为 1、3、10；谱比 30、100 超过两项预注册误差阈值。程序第 10 轮（D4 第 3 轮）已恢复 r002 的冻结合同并完成 15 个 cell，P2、P3 均 supported。当时收尾 git 写权限受阻，随后 supervisor 在 37ee424 完成收尾；第 18 轮已只读核验，旧失败记录保留。\n\n## 累计证据与固定条件\n\n程序第 2 轮（D4 第 1 轮）因 .git/index.lock 写权限被拒，没有提交成功，也没有训练或拟合。supervisor 随后于 2026-10-06T17:24:51+08:00 将合同与 pinned 源码提交为 91fc940b310612a5b0a157366ffb97168160db8e。第 10 轮先核验该提交与执行 HEAD 的文件 hash，再执行首 cell、核验并续跑。原失败 finding 与 summary 快照保留，不能将旧轮算成完成测量。中心 rounds_done 是会话计数，包含未执行实验的轮次。\n\n条件为 n=d=2、float64、全批量 SGD、η=.1、momentum=0、无 weight decay、固定特征平方损失，λslow=.01，λfast/λslow∈{1,3,10,30,100}。两模态初始损失各 .5，总损失 1；每 cell 10000 步。3 个旋转 seed 只作坐标稳健性核验，科学条件数为 5，cell 数为 15。目标参数、参数范数与初始梯度随谱变化；固定的是模态初始损失。\n\n候选 H(t)=1/[1+(t/t50)^β]，H(0)=1，上下平台固定 1、0。这是对数时间轴上的 logistic。所有条件使用同一 150 点整数化对数网格，含 t=0，终点 4997，各点等权。均方根误差（RMSE）和最大绝对误差以真实动态范围 1 归一化，分别≤.03、≤.05 才称足够。6 个原起点全部成功，15 cell 共 90 个成功解；最佳拟合是多起点局部最小二乘的操作定义，没有全局最优保证。\n\n全部 cell 的合同、请求、源码、NPZ 与 receipt 中的 metadata hash 核验通过。已知精确双指数的执行核验最大误差 1.67e−15，初始 loss 最大误差 3.11e−15，P1 supported，作为执行审计保留而不登记新发现。训练及保存累计 0.476 秒，执行调用累计 0.490 秒。\n\n## 拟合结果与参数含义\n\n| λfast/λslow | 最佳 RMSE，3 seed 范围 | 最大绝对误差，3 seed 范围 | 判定 |\n|---:|---:|---:|---|\n| 1 | .0267919291351284–.0267919291351285 | .047170128759–.047170129351 | 足够，原 P2 supported |\n| 3 | .0198793509520944–.0198793509520945 | .034031538251–.034031538352 | 足够，原 P2 supported |\n| 10 | .0210890207170545–.0210890207170546 | .040145009566–.040145009593 | 足够，原描述条件 |\n| 30 | .0402882974513003–.0402882974513004 | .061662072800–.061662072876 | 不足，原 P3 supported |\n| 100 | .0602851871806205–.0602851871806206 | .085568582571–.085568582652 | 不足，原 P3 supported |\n\n解析对照为 f(t)=.5exp(−a_s t)+.5exp(−a_f t)，a_i=−2log(1−ηλ_i)。连续半衰期满足 f(t50)=.5，半高处局部参数为 βlocal=−4t50f′(t50)。这些公式属于已知谱递推与斜率匹配。本轮新增的实测区分是：局部公式生成的 logistic 只有 ratio=3 同时通过原阈值；ratio=1 的公式 RMSE=.03335、最大误差=.06637，而全曲线拟合通过。\n\n全曲线拟合 t50 相对精确半衰期的偏差按谱比依次为 −8.99%、−6.53%、+3.95%、+21.96%、+72.40%；拟合 β 相对 βlocal 的偏差为 +4.36%、+4.15%、+8.39%、+26.28%、+86.73%。因此不能直接用真实半衰期与局部斜率替代最佳拟合参数，也不能用宽谱的拟合参数直接解读真实局部动力学。完整同 seed 配对差值与参数范围见 summary。\n\n## 竞争解释、边界与下一轮\n\n谱比 3 的误差低于纯指数对照 1；误差在五点设计中不单调。时间尺度分离产生两阶段下降是兼容解释，但还没有单独隔离验证。评价窗口、采样权重和自由平台也可能改变判定。没有扫描 10 与 30 之间的条件，不能报告连续临界点。精确时间尺度比为 1、3.0030、10.0453、30.4440、105.3078，不能把特征值比当作精确时间尺度比。\n\n所有实验均为 development，只适用于上述谱、等模态初始损失、优化器和网格。原始时间轴的正权双指数严格凸是解析性质；本轮不以对数轴拟合推断原始时间轴 S 形。自由平台、级联 sigmoid、前段外推、momentum、mini-batch、learned features、固定目标范数和封存 OOD 都未测量。\n\nr010 收尾提交 37ee424 的旧产物与中心更新已在第 18 轮核验；15 个成功 cell 保留。谱比扫描不能给出 10 到 30 间临界点。\n\n证据：[r010 findings](findings/r010_two_mode_logistic_resume.md)、[可复算 summary](studies/r002_two_mode_logistic/summary.json)、[冻结预注册](studies/r002_two_mode_logistic/preregistration.json)、[全量 hash 与递推核验](studies/r002_two_mode_logistic/executed/saved_evidence_verification.json)。summary 中 round=2 是合同轮次，本次执行轮为 10；旧失败证据见 [r002 findings](findings/r002_two_mode_logistic.md) 与 studies/r002_two_mode_logistic/executed/summary_r002_blocked.json。\n\n## 固定谱后的慢模态能量对照（r018）\n\n第 18 轮新合同与 pinned 源码提交 c07224e 先于 27/27 cell 训练。n=d=2、float64、全批量 SGD、eta=.1/mom0/nodecay、谱[.01,1]、L0=1、T10000 均固定，只有慢初始 loss 占比 alpha 改变；9 条件×3 坐标 seed。拟合、阈值和 150 点整数 log 网格沿用 r010。参数范数、初始梯度和目标 Rayleigh 商随 alpha 改变，不能独立归因这些相关量。\n\n| alpha | RMSE（3 seed 范围） | 最大误差（3 seed 范围） | 判定 / 预测 |\n|---:|---:|---:|---|\n| 0 | 0.01188041–0.01188041 | 0.07462910–0.07462910 | 不足；仅描述 |\n| 0.01 | 0.01022359–0.01022359 | 0.06476095–0.06476095 | 不足；P2 反例 |\n| 0.1 | 0.03199348–0.03199348 | 0.08975413–0.08975414 | 不足；仅描述 |\n| 0.25 | 0.04090645–0.04090645 | 0.17433681–0.17433681 | 不足；P3 通过 |\n| 0.5 | 0.06028519–0.06028519 | 0.08556858–0.08556858 | 不足；P3 通过 |\n| 0.75 | 0.06974371–0.06974371 | 0.11474926–0.11474926 | 不足；P3 通过 |\n| 0.9 | 0.05101250–0.05101250 | 0.07995095–0.07995095 | 不足；仅描述 |\n| 0.99 | 0.02914083–0.02914083 | 0.04937291–0.04937291 | 足够；P2 通过 |\n| 1 | 0.02679193–0.02679193 | 0.04717013–0.04717013 | 足够；仅描述 |\n\n配对误差在两项指标上可以方向相反：alpha=.25 相对 .5 的 RMSE 减少 .01937873，但最大误差增加 .08876822。完整同 seed 差值见 summary，不对坐标 seed 给统计区间。alpha=.5 与 r010 ratio100 的保存曲线、两误差都完全相同；所有 cell hash、有限值、递推和恢复核验通过。P1 最大执行误差 2.11e−15，是已知理论审计，不登记为发现。\n\n纯快模态 alpha=0 已超过最大误差阈值，纯慢模态 alpha=1 通过；seed0 的 alpha=0/.01 最大残差都在 step1。因此本轮失败不能全部归因于两阶段下降。同一绝对 step 网格对快慢衰减的采样位置不同是竞争解释，尚未隔离。这里只判定注册最小二乘选解，未证明所有 logistic 参数都不能同时过阈值；没有全局最优保证。没有连续临界 alpha，也不改变 r010 ratio10 的描述性质。拟合中点仍不能直接当真实半衰期。\n\n下一轮只选一个小问题：用保存的 alpha=0/.01 曲线，在同一网格、平台、阈值下改用最大误差拟合，与原最小二乘选解配对，检查失败是否依赖优化目标；新数值预测、pinned 源码、输入 hash 先 commit。保留本轮 P2 失败，不重跑或覆盖新旧成功 cell。全部 development，不外推 learned features、自由平台、早期外推、其他谱或优化器。\n\n新增证据：[r018 findings](findings/r018_slow_energy_logistic.md)、[summary](studies/r018_slow_energy_logistic/summary.json)、[全量核验](studies/r018_slow_energy_logistic/executed/saved_evidence_verification.json)、[r010 收尾审计](studies/r018_slow_energy_logistic/executed/r010_closeout_audit.json)。\n"}, {"key": "D5_ln_geometry", "label": "LayerNorm的作用", "text": "# D5：LN同宽度收益的机制\n\n## 已知起点\n\nv1 A03在GELU、SGD、三个offset和四函数中显示，同宽度开启中间LN后固定head的centered chord更负；w64/w192的8/8同宽度配对区间不跨零。A04显示固定LN affine仍保留约99–111%收益。这定位了LN条件，未证明Jacobian、Gram谱或梯度方向中介。\n\n## r005：训练前提交失败\n\n程序第5轮预注册hidden Gram问题，因.git/index.lock写权限拒绝，0/120cell、预测未评估。旧草稿与失败记录完整保留；r013训练前审查修正配对分母、相关符号及head干预，不将未执行草稿登记为测量失败。\n\n## r013：条件数方向通过，收益关联未达预测\n\n预注册5144cbd早于全部训练。先核验1cell，再补119cell。\n\n四个旧 development 函数：trigonometric8/quadratic8 为 d8 uniform[-1,1]，interaction12/radial12 为 d12 Gaussian；train/test 各256，数据seed48291，标签按train mean/标准差归一化。width64、GELU输入层及三个hidden block，LN010/noLN；固定head weight/bias，hidden和LN affine可训练。SGD lr=.001、momentum0、weight_decay1e-4、batch64、256步，offset −3/0/+3、seeds100–104。24个函数×recipe×offset条件，五seed仅为重复，120cell计算9.201867秒。\n\nGram为train hidden列居中后的HᵀH/n；模型float32，Gram float64，κ=lambda_max/max(lambda_min,1e-12)。保存step0/1/8/32/128/256的矩阵、谱和预测，step0/256另存hidden。Chord是测试残差去均值后的方差E的[E(−3)+E(+3)]/2−E(0)。两种Δ均为LN−noLN，更负的Δchord代表offset收益更大。\n\nP1 supported：12/12函数×offset单元都达到至少3/5 seed终点Δlog10κ\u003c0，超过注册的至少8/12；总计54/60配对下降。P2 refuted：20函数×seed重复中，offset0终点Δlog10κ与三offset的Δchord的Pearson r=.420774419，低于注册r≥.5。20重复只有四函数，不视为20个独立函数，不报告iid p值。\n\n| 函数 | Δchord 均值 [配对 seed t95 区间] | offset0 Δlog10κ 均值 | 函数内 r |\n|---|---:|---:|---:|\n| trigonometric8 | -0.261939 [-0.308159, -0.215718] | -2.405511 | 0.7737 |\n| quadratic8 | -0.017806 [-0.031305, -0.004307] | -2.389292 | 0.5130 |\n| interaction12 | -0.040574 [-0.057891, -0.023257] | -1.785286 | -0.7628 |\n| radial12 | -0.072184 [-0.102777, -0.041591] | -1.821541 | -0.7625 |\n\n## 竞争解释与未决问题\n\n20/20 Δchord为负，但条件数降低不足以解释收益大小。扣除函数均值后的描述性r=−.097223524。LN初始化已有60/60配对κ更低；训练期间仅7/60 LN cell的κ比初始化更低。offset0四函数平均Δlog10κ从初始化−2.437/−2.387/−1.795/−1.819变为终点−2.406/−2.389/−1.785/−1.822。终点差异主要已存在于架构初始化，不证明训练改善条件数带来收益。以上checkpoint事实只作描述。\n\n独立executed/verify.py只读结果，用einsum(optimize=False)复算；全部120 NPZ/hash、重生成输入、Linear初值、256个batch、固定head、720组谱、240个hidden→Gram矩阵通过。全部数组有限，Gram最大误差0，hidden→head预测最大误差5.461e-7，720 checkpoint均未命中1e-12 floor。冻结analysis.py的spectrum_contrasts里offset的mean键被统计mean覆盖，只影响标签；原summary保留，正确offset见executed/saved_evidence_verification.json。原NumPy matmul警告原样保留在executed/full_analysis.json，根因未定。\n\n最后hidden Gram不是参数Jacobian神经切线核。目标谱投影、梯度对齐、局部曲率、hidden bias仍未区分；没有人工谱干预，也没有新width/函数前瞻复现。下一小问题：同固定head recipe中，初始化hidden参数Jacobian的目标Rayleigh商是否比最后hidden表示Gram的总条件数更能预测同种子Δchord？先明确目标相关算子和跨offset聚合，另写数值预测、pinned源码并commit。\n\n证据：studies/r013_gram_condition_review/summary.json与executed/saved_evidence_verification.json；训练前修订和复算方法见findings/r013_gram_condition_review.md。\n"}, {"key": "D6_kernel_drift", "label": "特征变化的早期信号", "text": "# D6：核漂移与晚期拟合\n\n## 已知证据与问题\n\nv1 B03 把晚期核与初始核调到相同 trace，并从同一个晚期残差启动固定核递推。其 4 个封存函数×宽度单元测得额外拟合收益 .114–.132；目标残差 Rayleigh 比值为 1.82–4.73。这是 v1 的证据，排除了这些条件下仅有整体尺度放大的解释，尚未回答早期信号能否预测晚期。来源为只读 `science_program_v1/studies/B03_kernel_direction/report.md`。\n\n## r006：固定初始残差的方向保留\n\n本轮选定一个问题：前 32 步的核漂移方向是否保留到第 256 步。固定初始残差 `r0=f0-y`，比较 `K_t` 与 `trace(K_t)/trace(K0) × K0` 的 Rayleigh 商；这个商表示核在同一目标相关方向上的作用大小。使用 d3、n32 Gaussian 的 product/mixed_sine，SiLU、width8/32、full-batch SGD η=.05、mom0、无 weight decay，每单元 3 个初始化 seed。\n\n预注册预测要求：32/256 步的同 seed 比值均偏离 1 超过 5% 且方向相同，每单元至少 2/3 seed，至少 3/4 单元通过。checkpoint Jacobian、谱和 B03 核交换 probe 将提供诊断。`git add -A` 因 `.git/index.lock` 写权限失败，未取得预注册 commit，因此 0/12 cell、P1 未评估；当前 D6 没有新 measured claim。证据见 `studies/r006_early_direction/summary.json` 和 `findings/r006_early_direction.md`。\n\n## 竞争解释与适用边界\n\n核的整体放大、核方向改变与残差旋转是不同解释。trace 匹配排除整体尺度差异；固定 r0 避免把残差旋转算作核漂移。但固定 r0 的方向保留不保证晚期 rt 的拟合收益，更不保证 test 改善。固定核递推是已知优化理论；D6 的候选贡献是受控早晚方向检验，当前尚无测量。\n\n## 下一轮执行入口\n\n先恢复本 repo `.git` 写权限，审查并成功 commit `studies/r006_early_direction/preregistration.json` 与 pinned 源码。先运行 `executed/run.py --max-new-cells 1` 并用 `analysis.py` 核验结果，再恢复完整 12 cell；脚本会核验预注册 commit、合同和成功 cell hash。保留原判据，失败也登记。幅度公式和新条件的封存预测留给获得描述性证据后的轮次。\n\n## r014：恢复执行与早晚方向结果\n\n本轮恢复 r006 的冻结合同。训练前核验历史提交 63ccb32 已冻结预注册与 pinned 源码；本轮工作树状态与交接记录随后提交为 9cbad6d。执行脚本保存 12/12 cell。先运行的 product_w8_s611 通过合同、commit、输入和 NPZ hash 核验，再恢复其余 11 个 cell。总训练时间为 1.816648 秒。\n\nP1 通过：4 个 function×width recipe 单元中 3 个达到 step32 与 step256 同向且均超过 5% deadband、至少 2/3 seed 命中的判据。product×width8、product×width32、mixed_sine×width32 分别为 2/3、2/3、2/3 seed；mixed_sine×width8 为 0/3，因此不能说方向对所有 recipe 都保留。按同一 cell 配对，late−early log(rho) 均值（seed 95% t 区间）为：product×8 1.4761（[-0.6805, 3.6328]）、product×32 1.0427（[0.8007, 1.2848]）、mixed_sine×8 1.7725（[-0.6112, 4.1562]）、mixed_sine×32 1.2140（[0.6408, 1.7872]）。这些区间只描述 3 个初始化 seed 的稳健性，不把 seed 当作独立 recipe。\n\n所有保存数组为 finite，独立分析从 Jacobian 复算 K=JJᵀ/n、谱、trace 匹配、Rayleigh 比值、置换比值与 probe recurrence。运行时反复出现 NumPy matmul overflow/invalid 警告，但 finite 检查和复算均通过；警告根因未在本轮判定，不能把 probe 数值当作额外科学 claim。结果仍限于 development、d=3/n=32 Gaussian、product/mixed_sine、width 8/32、SiLU 两 hidden layer、full-batch SGD η=.05/mom0/nodecay、固定 r0 与 trace 匹配；不外推新函数、数据 seed、优化器、LN、深度、泛化或 sealed OOD。下一轮应在保留 mixed_sine×width8 反例的前提下，另写新预测并取得新预注册 commit，不修改或覆盖本轮 12 个 cell。\n"}, {"key": "D7_train_gain_test_harm", "label": "拟合与泛化的分歧", "text": "# D7：train增益与test损害的机制边界\n\n截至程序第15轮（方向第2轮），恢复并执行原r007噪声配对设计，完成24cell与48条轨迹。固定噪声draw下，真实网络相对初始切线的终点干净test差距在4/4函数×宽度单元被扩大，12/12初始化配对D>0，原P1通过。本方向仍没有跨数据验证、封存OOD或核机制与隐式偏置的比例归因。\n\n## 来源证据与历史失败\n\nv1 B02在d5 Gaussian、mixed_sine/radial、width8/32、两层hidden SiLU、train32/test256、full-batch SGD η=.05/mom0或η=.005/mom.9、nodecay、512步下使用确定性clean标签。8/8函数×宽度×optimizer单元均值train增益>.05×初始loss，6/8第512步test真实减切线差距均值为正。来源[审计](studies/r007_noise_interaction/executed/b02_audit.json)属于旧证据复核；seed同号与区间排除零均不是“6/8”的含义。\n\nr007因.git写入限制未训练，两次原始提交失败记录与[finding](findings/r007_noise_interaction.md)保留。supervisor随后在20b2412保存了原合同和源码。本轮.git可写，先以ead3790提交恢复合同，再核验同commit字节、运行1cell及analysis，最后续跑23cell。原成功cell不覆盖；本轮结果由[r015 finding](findings/r015_noise_interaction_resume.md)、[summary](studies/r015_noise_interaction_resume/summary.json)及原r007的results/承接。\n\n## 固定噪声干预结果\n\n本轮只用SGD η=.05/mom0/nodecay，其他模型和数据同上述B02，初始化11/29/47、data7331。训练标签在clean归一化后加sigma0/1的固定N(0,1)向量（noise733107）；test始终clean。半MSE终点差距Hσ=Ltest(真实,σ)−Ltest(初始切线,σ)，D=H1−H0在同seed内计算。\n\n原预测要求至少3/4函数×宽度单元mean(D)≥.02且各至少2/3初始化D>0。表内95% Student-t区间只描述固定data/noise draw的三初始化差异（df=2）。\n\n| 函数×宽度 | clean H均值 | noisy H均值 | D均值 [95% seed区间] | D>0 |\n|---|---:|---:|---:|---:|\n| mixed_sine×8 | .116602 | .674110 | .557508 [−.228023, 1.343039] | 3/3 |\n| mixed_sine×32 | .052857 | .853843 | .800986 [.498462, 1.103510] | 3/3 |\n| radial×8 | .016454 | .318227 | .301773 [−.175092, .778637] | 3/3 |\n| radial×32 | −.231632 | .055460 | .287093 [.106738, .467447] | 3/3 |\n\n## 同模型晚期test变化\n\n第128→512步真实网络test半MSE的clean/noisy均值变化，mixed_sine×8为.098034/.580723，mixed_sine×32为.032336/.780441，radial×8为.012496/.184392，radial×32为−.274327/.017206。完整同seed区间、切线读数与train变化保存在summary的late_units。加噪radial×32只有1/3真实seed的晚期test上升，不能从H1均值转正推断每个seed都继续训练受损。\n\n终点差距和晚期变化有两个具体分歧：mixed_sine×32 seed11 clean，H=.020497而真实晚期test变化=−.001370；radial×32 seed29 noisy，H=.012378而变化=−.029205。这是保存结果的描述诊断；本轮尚未建立train-side早停信号，也没有对最低点作预测。\n\n## 机制边界与下一步\n\n测量支持固定噪声draw使真实网络的test风险变化大于切线。它既能增加原clean劣势，也能缩小原clean优势；不要求所有seed的noisy H>0。真实网络更低的带噪train loss不等于更低的clean train loss。clean损害已排除“添加标签噪声是必要原因”，但有限样本、目标相关方向变化、隐式偏置及学习速度差仍是竞争解释；不能把本轮差值换算成机制占比。\n\n24cell合同、输入、NPZ、同commit源码、finite、配对、半MSE与切线train递推均核验通过。额外重建真实网络初始/终点输出误差0，einsum复算切线所有train/test检查点误差\u003c7e−15，累计训练4.859595秒。原analysis出现matmul divide/overflow/invalid警告，全文保存，根因未定；原源码没有修改。只测一个data/noise draw，初始化区间不能代替跨数据或噪声区间。\n\n下一轮保持本模型、数据、seed和SGD recipe，仅换事先固定的新noise seed，检验至少3/4单元mean(D)≥.02且各至少2/3 seed D>0能否保持。新合同与源码必须先成功commit；本轮24个成功cell不要重跑或覆盖。全部继续标development，D7负责机制归因，D2负责U型曲线与早停。\n"}, {"key": "D8_activation_pathway", "label": "激活函数的奇偶通路", "text": "# D8：激活通路在非零 bias 下的边界\n\nD8 第 1 轮（程序第 8 轮）尚无新测量。r008_bias_inflection 的预注册与收尾提交均被 .git 写权限阻断，未训练，保存 0/72 cell，P1–P3 未评估；中心 KB 新增 0 条 claim。原始失败证据与恢复入口见 [本轮 findings](findings/r008_bias_inflection.md) 和 [summary.json](studies/r008_bias_inflection/summary.json)。\n\n## 当前问题与证据边界\n\nv1 C01 在对称零 bias、冻结单层特征、MSE 条件下，测得 SiLU scale=.05→.2 的偶/奇能量比增长 14.84–15.37 倍，接近 scale² 的 16 倍预测；统一总特征均方根后，小尺度二次目标的核能量为 ReLU 的 .00617–.01090 倍。该证据来自只读 C01/report.md，不能替代本轮 bias 测量。\n\n本轮只问固定加性 bias 是否改变该指数。对输入反射保持 bias 不变并减去训练列均值后，Taylor 展开给出 odd≈f′(b)au、even≈f″(b)a²[u²−mean(u²)]/2。只要 f′、f″ 均非零，R=偶能量/奇能量仍以 a² 为领先阶；非零 bias 本身不充分决定指数变化。\n\nSiLU 的二阶导数在 b*=2.3993572805154675 为零，而一阶与四阶导数非零。此处解析领先阶改为 even∝a⁴、R∝a⁶。本轮预注册比较 bias0、1、b*，预测 scale=.025→.05 时 R 分别约增长 4、4、64 倍。有限尺度判据未测，不登记为新发现。求根与导数核验只用了函数公式，证据见 executed/analytic_design.json。\n\n## 竞争解释与下一轮\n\n普通 bias 的效果可能主要是改变领先系数；在曲率零点附近，二次项与四次项的大小竞争可能造成尺度转折。这两种情况不能合并为“非零 bias 修复或破坏通路”。还需区分总偶能量与目标相关核能量：四次输入特征可与二次目标相关，能量指数不能独自决定拟合速度。当前设计保存两种目标的真实 GD 曲线作为次要证据，没有事后设置性能判据。\n\n下一轮先恢复 .git 写权限并提交当前合同与 pinned 源码，再执行 1 cell 核验与剩余 71 cell；按原阈值评估 P1–P3。所有条件为 development。当前没有封存 OOD 或干预收益测试；不外推至随机 bias、非对称输入、多层、可学习 hidden、CE、小批量、solver 或 bias 零点附近的容差区间。\n\n## r016（程序第 16 轮，D8 第 2 轮）\n\n恢复 `r008_bias_inflection` 后，预注册与 pinned 源码在训练前提交为 `d4c63f8`。72/72 cell 完成，训练总计 3.548238 秒。首 cell 未覆盖；其 JSON/NPZ hash、mtime 和恢复提交收据见 `studies/r008_bias_inflection/executed/r016_resume_commit_receipt.json`，独立 `einsum` 核验见 `executed/r016_first_cell_independent_check.json`。\n\n普通 bias 的 `scale=.025→.05` 偶/奇能量比增长为：`b=0` 六 seed 范围 3.984159–3.991788，`b=1` 范围 4.002060–4.003272；二阶导数零点 `b*=2.3993572805154675` 范围 63.953437–63.985564。P1、P2 均通过原注册区间。18 个最小尺度 cell 的 leading 系数相对误差最大 0.001327，P3 通过。全 cell 谱递推最大误差 1.64091e-13（阈值 1e-8）。\n\n本轮支持的修正是：固定普通 bias 只改变 leading coefficient，`R` 仍按 `a²`；在二阶导数零点，有限尺度测量与 `a⁶` 预测一致。该结果不把偶能量指数当作目标相关核或拟合速度。适用边界仍是对称 Gaussian、冻结单层 SiLU、MSE、全批量 GD；近根容差、非对称输入、多层、learned hidden、CE、小批量和干预收益留待后续问题。\n"}]}</script><script>
+const technical=JSON.parse(document.getElementById('technical-data').textContent);
+const direction=document.getElementById('direction');
+const query=document.getElementById('query');
+function filterKnowledge(){
+ const needle=query.value.trim().toLowerCase();
+ let n=0;
+ for(const article of document.querySelectorAll('.knowledge')){
+  const show=(direction.value==='all'||article.dataset.direction===direction.value)&&(article.textContent+' '+article.dataset.search).toLowerCase().includes(needle);
+  article.hidden=!show; if(show)n++;
+ }
+ document.getElementById('count').textContent=n+'条知识';
+}
+direction.addEventListener('change',filterKnowledge);
+query.addEventListener('input',filterKnowledge);
+for(const details of document.querySelectorAll('[data-claim]')){
+ details.addEventListener('toggle',()=>{
+  if(!details.open||details.dataset.loaded)return;
+  const claim=technical.claims.find(c=>c.id===details.dataset.claim);
+  const holder=details.querySelector('.claim-original');
+  for(const text of [claim.text,claim.boundary]){
+   const p=document.createElement('p');p.textContent=text;holder.append(p);
+  }
+  const id=document.createElement('p');id.textContent='知识编号：'+claim.id;holder.append(id);
+  const list=document.createElement('ul');list.className='evidence-list';
+  for(const evidence of claim.evidence){
+   const item=document.createElement('li');const code=document.createElement('code');code.textContent=evidence;item.append(code);list.append(item);
+  }
+  holder.append(list);details.dataset.loaded='true';
+ });
+}
+for(const details of document.querySelectorAll('[data-report]')){
+ details.addEventListener('toggle',()=>{
+  if(!details.open||details.dataset.loaded)return;
+  details.querySelector('pre').textContent=technical.reports[Number(details.dataset.report)].text;
+  details.dataset.loaded='true';
+ });
+}
+</script></body></html>

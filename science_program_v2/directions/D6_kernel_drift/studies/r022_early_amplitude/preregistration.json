@@ -1,0 +1,172 @@
+{
+  "study": "r022_early_amplitude",
+  "round": 22,
+  "direction_round": 3,
+  "direction": "D6_kernel_drift",
+  "domain": "development",
+  "question": "同d3/n32 Gaussian、SiLU recipe中，step32固定r0的log(rho)加入width或固定y的早期Rayleigh log比值，能否减少step256 log(rho)幅度预测误差？",
+  "created_at": "2026-10-06T22:38:40+08:00",
+  "calibration_study": "directions/D6_kernel_drift/studies/r006_early_direction",
+  "calibration_seeds": [
+    611,
+    629,
+    647
+  ],
+  "seeds": [
+    701,
+    719,
+    737
+  ],
+  "functions": [
+    "product",
+    "mixed_sine"
+  ],
+  "widths": [
+    8,
+    32
+  ],
+  "planned_cells": 12,
+  "planned_recipe_units": 4,
+  "checkpoints": [
+    0,
+    32,
+    256
+  ],
+  "early_step": 32,
+  "late_step": 256,
+  "data_contract": {
+    "input_dim": 3,
+    "train_n": 32,
+    "data_seed": 260606,
+    "distribution": "NumPy default_rng PCG64 standard Gaussian; each function uses the identical x",
+    "product": "tanh(x0*x1)",
+    "mixed_sine": "sin(1.7*x0)+0.4*sin(x1*x2)",
+    "normalization": "仅train target减样本均值再除ddof=0标准差；无噪声，无test数据",
+    "dtype": "float64",
+    "pairing": "同width和seed跨函数的初始化相同；同cell跨checkpoint配对"
+  },
+  "recipe": {
+    "architecture": "Linear(d,w,bias=True)->SiLU->Linear(w,w,bias=True)->SiLU->Linear(w,1,bias=True)",
+    "initialization": "torch.manual_seed(seed); PyTorch Linear default float32 initialization then .double(), matching B03",
+    "depth": 1,
+    "activation": "silu",
+    "layer_norm": false,
+    "residual": false,
+    "optimizer": "SGD",
+    "lr": 0.05,
+    "momentum": 0.0,
+    "weight_decay": 0.0,
+    "batch_size": 32,
+    "steps": 256,
+    "loss": "mean((f-y)^2)/2"
+  },
+  "kernel": "K_t=J_t J_t^T/n；J包括所有weight/bias，未center；a_t=trace(K_t)/trace(K0)",
+  "features": {
+    "E": "log(rho32)，rho_t=(r0^T K_t r0)/(a_t*r0^T K0 r0)，固定r0=f0-y；负值与deadband全部保留",
+    "Q": "log((y^T K32 y)/(a32*y^T K0 y))；固定y，只使用step0/32信息",
+    "L": "响应log(rho256)，不得用于新seed预测或拟合"
+  },
+  "frozen_models": {
+    "E": "Lhat=b0+b1 E",
+    "W": "Lhat=b0+b1 E+b2*I(width=8)",
+    "T": "Lhat=b0+b1 E+b2 Q"
+  },
+  "frozen_coefficients": {
+    "E": [
+      1.4287134148423493,
+      0.4368894639152227
+    ],
+    "W": [
+      0.9864092119425234,
+      2.0329845772244677,
+      0.5876444374759683
+    ],
+    "T": [
+      1.9822389194617747,
+      3.109145082709144,
+      -3.152502125674744
+    ]
+  },
+  "feasibility": {
+    "source": "executed/calibration.json",
+    "type": "旧development结果的显式探索校准，发生于本预注册前；不是新结果验证",
+    "ranks": {
+      "E": 2,
+      "W": 3,
+      "T": 3
+    },
+    "leave_seed_group_out_mae": {
+      "E": 0.7320497311711538,
+      "W": 0.7213677128629907,
+      "T": 0.632144326948911
+    },
+    "conclusion": "三个设计均满列rank；T旧整组CV改善.099905，W改善.010682；仅3初始化组，系数不稳，采用固定新seed检验，非普适公式"
+  },
+  "predictions": [
+    {
+      "id": "P1_target_amplitude",
+      "prediction": "新12cell上，冻结T的MAE<=.70自然log单位，且相对冻结E的配对平均绝对误差减少>=.08。预期MAE约.63、改善约.10。",
+      "criterion": "两条件均满足才supported；任一不满足refuted。只在12/12cell全部核验后判定。"
+    },
+    {
+      "id": "P2_width_insufficient",
+      "prediction": "新12cell上，冻结W相对冻结E的配对MAE减少<.08；预期约.01，width不足以达到P1所要求的改善幅度。",
+      "criterion": "减少<.08为supported，否则refuted；负改善保留；不把width系数解释为width因果效应。"
+    }
+  ],
+  "analysis_plan": {
+    "primary_metric": "MAE = 四recipe等权均值；每recipe的3seed等权，等于12cell绝对误差均值。",
+    "pairing": "同cell比较E/W/T，分别给四recipe三seed误差差值均值及95% t区间；不把12cell视为12recipe，不算iid p值。",
+    "timing": "训练到step32后先逐cell写early.json（只含E/Q/冻结预测与时间），然后续训到step256；分析核验时间早于cell结束及输出一致。",
+    "audit": "核验预注册同commit全部pinned source、旧输入hash、success/early/NPZ hash；从J复算K、trace、固定r0/y比值、loss；独立从首cell保存参数重建全部checkpoint输出/J，无重训练。",
+    "no_adaptation": "无新seed重拟合，无阈值变化，不删负early/失败seed，不选更优事后模型；失败预测保留。"
+  },
+  "execution": {
+    "python": "python3",
+    "device": "cpu",
+    "threads": 1,
+    "max_seconds": 1200,
+    "network": false,
+    "commit_gate": "同一提交逐字匹配预注册及source_sha256；提交失败不得训练。",
+    "resume": "成功cell hash/contract先核验；不覆盖。孤立NPZ或early记录须审计。"
+  },
+  "boundaries": [
+    "development only；新初始化seed但函数/width/data_seed皆旧条件；无sealed OOD",
+    "同seed跨函数共享初始化、跨width不共享参数；width不是匹配因果干预",
+    "固定y与固定r0不同；Q系数描述关联而非核对齐机制",
+    "仅d3/n32 Gaussian、两hidden SiLU、bias、SGD eta.05/mom0/nodecay/T256；不预测rt拟合/test/新函数/data seed/优化器/LN/depth"
+  ],
+  "input_sha256": {
+    "directions/D6_kernel_drift/studies/r006_early_direction/preregistration.json": "42689eb2a2789610e1205605d861cd64c2d4a810a48915e28cbebf65109c1ca0",
+    "directions/D6_kernel_drift/studies/r006_early_direction/summary.json": "1301254789789144d9717910d3ab93de77d8fc8998b65d69a674d92c81894196",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/mixed_sine_w32_s611.json": "e21c7b59bd13157951a2db306de06b2694283992ed832d0bed11dd12925e947d",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/mixed_sine_w32_s611.npz": "2a17325c176cd5b659a3a71f079cc0387ec00ff0c911b757324984776da9930a",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/mixed_sine_w32_s629.json": "a8561d90820b0f78b40eb4c12fce6419292cc803ec634115e9c5fa188091f1da",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/mixed_sine_w32_s629.npz": "b838730ab15423a94dacf3d39514e6968831382266a658401c07b83c4eb23538",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/mixed_sine_w32_s647.json": "b787c4435484ea938164ff2e105b4b4d47d6ff6bdc5835a5a60f2af46bc6cd62",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/mixed_sine_w32_s647.npz": "c975bbc7f2039b86199d478b7a43c2602a5947ad68db267198e2cd773e4c5c53",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/mixed_sine_w8_s611.json": "00e5a6faa81944ae497a42cc1d8438995af4af0d015620a6ceaa335520af3079",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/mixed_sine_w8_s611.npz": "86da8fa534ea4adc73bdb507945ee242b997e27174713e0fed33ddf69820e339",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/mixed_sine_w8_s629.json": "2f3ed8c3e68a92f54958e19bfdca4e18afc08c0ddb6b8dc2dbc87396fbe87d4b",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/mixed_sine_w8_s629.npz": "169e5e5f873b272d9a519a9119c16dc178545c64df68afafa7658a09450840b9",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/mixed_sine_w8_s647.json": "70ad19b62f478d41e82d9a51b29c36399bab48f648c3e1b29a00f6c37e7ecb66",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/mixed_sine_w8_s647.npz": "ee412d13c54d06919bf9af4939e262ac4ca5ff4436ce1f759302b90b6d052d74",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/product_w32_s611.json": "1dcd3b94ad5fb13406600a938754b205cae78fa93772d53f718237fa5b5a0403",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/product_w32_s611.npz": "2b35249720217eb16ee9203fa30eabc99b9f57c8a2b694ba16b251d7b8f91203",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/product_w32_s629.json": "867492c45235cb9b2ef47033a6e5ae96222e82c344e999f4a8723ec71579f080",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/product_w32_s629.npz": "4738022ac9ca05d0d54138560a5a40aa78e39c1c2669e6d2005865b6d70157f2",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/product_w32_s647.json": "9be53a95ba4bebf58620d5bfc60c87eec115fcc70ec39f19fdf86afbd21d0f7f",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/product_w32_s647.npz": "13f3470305c8c5a714e661da1c703eeb0f8345113b340543f9300755d7cfaa19",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/product_w8_s611.json": "14d9c41f482fbcd65ddb228a5e7e864eba230ec5bf69969aa23e46ae1088b144",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/product_w8_s611.npz": "4da31778b594e1027032fcdce4d5ea8445656dcf3767a7fced708473e6e9fbf9",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/product_w8_s629.json": "35125927ec23d61ec84b56adac0dd966145f5b0efbddaccd88187e10875f2eb0",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/product_w8_s629.npz": "6c0cc95269b68c6d1013d088fe16d67beec98545fa474ecad668873c3bdd8b7a",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/product_w8_s647.json": "669e0e27608ac6c2830b80beaf5c9a445b43adb1311ea097496c9911c8b0692a",
+    "directions/D6_kernel_drift/studies/r006_early_direction/results/product_w8_s647.npz": "50f479a14fa8bfb180c69759429eb1e3aee91f70b93c63334d3097380f4a0320"
+  },
+  "source_sha256": {
+    "executed/run.py": "e7314773bfcb3c8ff362d26cf9b3f5fcd58d99d0f463fa94b030e73f460293fa",
+    "analysis.py": "8e65f43eaf4a578cd104221e2c2026a996c9a94faad81caa6e13b575c472ae34",
+    "executed/calibration.json": "21338883a5266b7aa54edc0f93e80c9506aa0521d238bde0328ed97512228500"
+  }
+}

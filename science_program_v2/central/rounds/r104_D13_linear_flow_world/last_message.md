@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 2/2 midpoint-start fits with zero training; maximum relative tau_A difference 1.423115398e-8 supported the 1% prediction, and verified closeout was committed.

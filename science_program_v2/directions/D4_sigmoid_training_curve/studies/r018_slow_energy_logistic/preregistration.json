@@ -1,0 +1,105 @@
+{
+  "study": "r018_slow_energy_logistic",
+  "round": 18,
+  "direction_round": 3,
+  "direction": "D4_sigmoid_training_curve",
+  "created_date": "2026-10-06",
+  "domain": "development",
+  "question": "固定n=d=2、谱[.01,1]、η=.1/mom0与总初始loss=1，仅改变慢模态初始loss占比alpha时，固定平台log-time单logistic的拟合不足是否仍成立？",
+  "data_contract": {
+    "sample_count": 2,
+    "dimension": 2,
+    "dtype": "float64",
+    "loss": "L=||Xθ−y||²/(2n)",
+    "features": "X=diag(sqrt(n*lambda)) R.T；R由default_rng(seed)正态2x2矩阵QR取得",
+    "target": "w=[alpha,1-alpha]；θ*=R@sqrt(2*w/lambda)；y=Xθ*",
+    "initial_parameter": "θ0=0；初始慢/快模态loss分别alpha、1-alpha，总loss=1",
+    "execution_coordinate": "δ=θ−θ*；梯度X.T@(Xδ)/n；在实际二维旋转坐标执行更新，保存θ*、X、y、R和初始δ",
+    "optimizer": "全批量SGD，eta=.1，momentum=0，无weight decay，δ(t+1)=δ(t)−eta*X.T@(Xδ(t))/n",
+    "pairing": "每seed固定R、X、谱[.01,1]、η、步数和L0=1，只改变目标模态权重alpha。参数范数、初始梯度范数、目标Rayleigh商与第一步下降不固定，不能独立归因这些相关量。"
+  },
+  "learning_rate": 0.1,
+  "slow_eigenvalue": 0.01,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "steps": 10000,
+  "cell_count": 27,
+  "counting": "9个alpha条件/recipe单位；3个旋转seed仅作坐标核验，非数据重复，不作置信区间。alpha=0/1为退化单模态对照；alpha=.5是r010谱比100的直接复现。",
+  "analytic_reference": {
+    "normalized_loss": "f(t)=alpha*(1−eta*lambda_slow)^(2t)+(1−alpha)*(1−eta*lambda_fast)^(2t)",
+    "decay_rate": "a_i=−2*log(1−eta*lambda_i)，tau_i=1/a_i；稳定且0<eta*lambda_i<1",
+    "scale_ratio": "tau_slow/tau_fast=a_fast/a_slow，不将λ比误称为精确时间尺度比",
+    "half_time": "t50为连续延拓f(t50)=.5的唯一正根",
+    "local_logistic_slope": "beta_local=4*t50*sum_i(w_i*a_i*exp(−a_i*t50))",
+    "known_theory_only": "正权双指数在原始时间轴严格凸；谱递推、凸性、半高斜率匹配均为已知解析工具，不作为新发现。"
+  },
+  "evaluation_contract": {
+    "grid": "沿用r010网格：a_s=−2log(1−.1*.01)，a_f=−2log(1−.1*1)；np.unique(np.r_[0,np.unique(np.rint(np.geomspace(max(1,1/a_f/100),10/a_s,201)).astype(int))])。全条件同一网格（150点、终点4997）；不得按结果改网格。",
+    "weighting": "去重网格各点等权，t=0也进入误差；拟合log-time logistic时t=0残差固定0。",
+    "primary_candidate": "H(t)=1/[1+(t/t50_fit)^beta_fit]，t>0；H(0)=1。平台固定1和0，仅拟合t50_fit>0、beta_fit>0。这里logistic自变量为log(t)，并非声称原始时间轴有S形。",
+    "fit": "SciPy least_squares，变量log(t50_fit)、log(beta_fit)，bounds=[log(.01),log(.1)]至[log(100000),log(10)]；6个起点为t50_exact乘[.5,1,2]与beta=[1,2]，ftol/xtol/gtol=1e−12，max_nfev=2000；取平方残差和最小的成功解。全部失败则该cell拟合不可评估，保留失败，不增加起点。",
+    "formula_comparison": "在同一网格另评估不作拟合的H(t;t50_exact,beta_local)；报告两参数相对误差及它的RMSE/maxabs，不将局部匹配等同全曲线拟合。",
+    "normalization": "RMSE和maxabs均除以真实初始动态范围L(0)−L∞=1，禁止用逐点相对误差或拟合出的幅度作分母。",
+    "adequacy": "拟合RMSE<=.03且最大绝对误差<=.05同时成立，才称该已注册窗口中单logistic足够。",
+    "pairing_summary": "按alpha报告3seed min/max；保存同seed每alpha相对alpha=.5的RMSE/maxabs差值。不以坐标seed计算置信区间。",
+    "unavailable_fit": "全部起点失败时cell不可评估；有效反例优先refuted，无反例但缺有效cell则not_evaluable；不加起点。"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "known_theory_execution_audit",
+      "prediction": "全部27cell保存的normalized_loss与精确双指数0..10000步最大绝对误差<=1e−10，初始loss误差<=1e−12。",
+      "register_as_new_discovery": false
+    },
+    {
+      "id": "P2",
+      "kind": "controlled_prediction",
+      "prediction": "alpha=.01和.99时，全部3旋转seed最佳固定平台log-time logistic同时RMSE<=.03且maxabs<=.05。",
+      "criterion": "任何已注册alpha/seed拟合有效且违反阈值则refuted；无反例但有不可评估cell则not_evaluable。"
+    },
+    {
+      "id": "P3",
+      "kind": "controlled_prediction",
+      "prediction": "alpha=.25、.5、.75时，全部3旋转seed的最佳固定平台log-time logistic至少一项超过RMSE=.03或maxabs=.05。",
+      "criterion": "任一已注册alpha/seed拟合有效且同时通过两阈值即refuted；保留反例。"
+    }
+  ],
+  "analysis": "从保存NPZ/metadata复算；拟合多起点和局部参数比较沿用r010；新结果同seed相对alpha=.5配对。旧r010 summary只用于预注册复现检查。",
+  "resume_protocol": "预注册commit成功后先运行--max-new-cells 1，再续跑；每个成功cell对prereg/source/request/arrays SHA256及receipt中的metadata SHA256核对；成功cell不得覆盖，缺失或hash不符即停。执行器必须核实本preregistration与源码已在本repo当前HEAD按相同内容commit。 receipt在每次调用结束保存；异常中断若成功cell未获receipt metadata pin，恢复停止，禁止覆盖或自动接纳。",
+  "boundaries": [
+    "仅development：n=d=2固定特征MSE、float64、全批量SGD eta=.1/mom0/nodecay、谱[.01,1]、L0=1、T10000、所列9个alpha。",
+    "仅固定上下平台1/0、log-time logistic、原150点整数网格和等权评价；多起点成功最小平方残差解不保证全局最优。",
+    "alpha改变目标参数范数、初始梯度范数、目标Rayleigh商与第一步下降；这些相关量未独立控制。",
+    "seed只改变参数坐标；不给置信区间，不把27cell当作27个独立科学条件。",
+    "alpha=0/1/.1/.9仅描述，无新方向预测；不推断连续临界alpha或谱比10到30的临界点。",
+    "拟合t50/beta不等于真实半衰期/局部斜率；不外推自由平台、原始线性时间sigmoid、级联、前段预测、momentum、mini-batch、learned features或sealed OOD。"
+  ],
+  "compute_budget": {
+    "maximum_seconds": 1200,
+    "planned_cells": 27,
+    "threads": 1,
+    "device": "CPU",
+    "network": false,
+    "accounting": "执行与拟合合计目标<=1200秒；每cell执行秒级，训练27x10000个二维更新。调用receipt记录CPU耗时，全部单线程。"
+  },
+  "execution_source_sha256": "63f9bf223a4ebd4bcb59e088d53c1356d20cb9bf3c181c2f171d8a90841ef396",
+  "analysis_source_sha256": "a2d5e7af25fc301806b6d0aef7543076cde4251f0d9bd0997465713e6cf980ab",
+  "fast_to_slow_eigenvalue_ratio": 100,
+  "slow_energy_fractions": [
+    0,
+    0.01,
+    0.1,
+    0.25,
+    0.5,
+    0.75,
+    0.9,
+    0.99,
+    1
+  ],
+  "descriptive_conditions": "alpha=0/1是已注册退化单模态对照，alpha=.1/.9是已注册中间描述条件，无方向预测，不补做预测；只给离散条件结果，不报告临界alpha。",
+  "cross_round_audit": "alpha=.5同seed与r010 ratio100配对检查；normalized_loss最大差<=1e−10、RMSE/maxabs差<=1e−8只作复现核验，不登记新发现，不重跑或覆盖旧15cell。",
+  "verification_source_sha256": "e526a268c69cb42efd207f1e56d05797b0253e870112f44d5d788d17a04487e1"
+}

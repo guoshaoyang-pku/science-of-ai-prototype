@@ -1,0 +1,2106 @@
+{
+  "study": "r049_lower_threshold",
+  "round": 49,
+  "direction_round": 5,
+  "direction": "D1_u_effective_time",
+  "domain": "development",
+  "created_at": "2026-10-07T06:42:57.882934+08:00",
+  "question": "仅把双模态谱[.001,.05]的持续loss阈值q从.01降到.001，低慢能量条件的U换算是否进入5%误差内？",
+  "design": "读取r037保存的36训练轨迹，逐cell计算未测q=.001端点；固定所有训练条件，仅改变评价阈值；0新训练、0重新递推。",
+  "data_contract": {
+    "dimension": 2,
+    "sample_count": 2,
+    "dtype": "float64",
+    "loss": "L=||Xtheta-y||^2/(2n)，固定L0=1；theta0=0，v0=0",
+    "features": "X=diag(sqrt(n*lambda)) R.T；R为default_rng(seed)正态2x2矩阵的NumPy QR正交矩阵",
+    "target": "a=[alpha,1-alpha]为各模态初始loss占比；c_i=sqrt(2*L0*a_i/lambda_i)，theta*=R c，y=Xtheta*；c_i均取正",
+    "execution_coordinate": "delta=theta-theta*，梯度X.T X delta/n，用einsum计算；保存参数模态残差和模态loss能量",
+    "optimizer": "CPU NumPy全批量SGD：v(t+1)=mu*v(t)+g(t)，delta(t+1)=delta(t)-eta*v(t+1)；无decay/dampening/Nesterov",
+    "pairing": "同alpha与seed的mom0/.9固定X、y、theta0、L0、eta；与r017配对仅改变lambda_fast",
+    "unmatched": "alpha改变初始梯度范数、目标Rayleigh商、参数范数及第一步loss下降；lambda_fast改变谱动力学；本轮不独立归因",
+    "seeds": "0/1/2仅坐标旋转稳健性，不是数据重复，区间为min/max而非置信区间"
+  },
+  "spectrum": [
+    0.001,
+    0.05
+  ],
+  "learning_rate": 0.1,
+  "initial_loss": 1.0,
+  "momenta": [
+    0.0,
+    0.9
+  ],
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "steps": 40000,
+  "threshold": 0.001,
+  "baseline_threshold": 0.01,
+  "alphas": [
+    0.001,
+    0.005,
+    0.009,
+    0.02,
+    0.1,
+    0.5
+  ],
+  "counting": "6配对条件、12优化器recipe单位、3坐标seed，共36新端点cell，复用36旧训练cell；无独立数据重复，无置信区间。",
+  "source_closeout_commit": "7794b596164022b0f2a6cb79856ff2c88cb65d9d",
+  "source_preregistration_commit": "b4821f9719a14606c301f4b415987facbdb8de91",
+  "source_cells": [
+    {
+      "cell_id": "0f11612651a9b792",
+      "alpha": 0.001,
+      "seed": 0,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/0f11612651a9b792/arrays.npz",
+      "arrays_sha256": "81eeb2a45a3130a44ceeadd466335925bd66a1bb606bf827a90cca2c8e9cdc1e",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/0f11612651a9b792/metadata.json",
+      "metadata_sha256": "1857c2a034301eb5436fb536c38ffd0c598f86d63dbebfc9bd1780e6f0496948"
+    },
+    {
+      "cell_id": "59f323c88c295ca4",
+      "alpha": 0.001,
+      "seed": 0,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/59f323c88c295ca4/arrays.npz",
+      "arrays_sha256": "4fcb402d1f65171959c184c6c2b3d4346e0071110e114334312b73e0c5223edf",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/59f323c88c295ca4/metadata.json",
+      "metadata_sha256": "99eb46682f750bce338335bb15d787712b5d2fb0bfbe6d3eba07d7d5f7168e53"
+    },
+    {
+      "cell_id": "05298572bb62bf1b",
+      "alpha": 0.001,
+      "seed": 1,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/05298572bb62bf1b/arrays.npz",
+      "arrays_sha256": "aedb422fd23a4df96ffaaf52a0e46c7b14c7a6495d659265ddaa87fe9b408243",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/05298572bb62bf1b/metadata.json",
+      "metadata_sha256": "b8b17c96e6f852be205669e09858c011632fa7b18c937506c2b195cafc40e1c9"
+    },
+    {
+      "cell_id": "926d0d82f63ebbac",
+      "alpha": 0.001,
+      "seed": 1,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/926d0d82f63ebbac/arrays.npz",
+      "arrays_sha256": "c62fbbf889286a7767171cca11c3b60fb29a8ce5ea8f457e55ab5b4c6ba8b515",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/926d0d82f63ebbac/metadata.json",
+      "metadata_sha256": "1b0b33dc3eb7a90946de0732239dd013bbd699e02ae2a003a2259763358db692"
+    },
+    {
+      "cell_id": "50f0f48c858dcd4d",
+      "alpha": 0.001,
+      "seed": 2,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/50f0f48c858dcd4d/arrays.npz",
+      "arrays_sha256": "5004531e8703536c0ab2cafe158d48c0b9885328d37dc26cd9d50af24528aa32",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/50f0f48c858dcd4d/metadata.json",
+      "metadata_sha256": "1cd3a40a571fe9c412afa68c178a7dc2c9c542d4d1693350239847b9b6c6e978"
+    },
+    {
+      "cell_id": "eb82ff469e35c84b",
+      "alpha": 0.001,
+      "seed": 2,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/eb82ff469e35c84b/arrays.npz",
+      "arrays_sha256": "918febb2cc449f44cb3d92b7f54a6120743501ccd01bde8b3aa4f8396a1f030d",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/eb82ff469e35c84b/metadata.json",
+      "metadata_sha256": "fb0f5158c0d8a1fb020e1f7dbed30b33e5d61a080aa387f08f9de15b0e3bc631"
+    },
+    {
+      "cell_id": "ba613eb07c7035f2",
+      "alpha": 0.005,
+      "seed": 0,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ba613eb07c7035f2/arrays.npz",
+      "arrays_sha256": "585deeb772606521e49bebf8daf4631d5b7b86df975f6c5c0721bbb48e80ccd3",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ba613eb07c7035f2/metadata.json",
+      "metadata_sha256": "c1c9f493d2590dc17a43c2a07d0f78c7f4ba27a433c87ed0e7c4dd977633db73"
+    },
+    {
+      "cell_id": "99864d4c949f6051",
+      "alpha": 0.005,
+      "seed": 0,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/99864d4c949f6051/arrays.npz",
+      "arrays_sha256": "4e72e005afd807841028993c8661a990bb4e5c2d984990bb64140c6a1978d8d8",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/99864d4c949f6051/metadata.json",
+      "metadata_sha256": "5eeeda974485b6014b48ae925ca40d7b6e8fee4ce2cbded324fc73e59a2c23f8"
+    },
+    {
+      "cell_id": "994346ce92553d10",
+      "alpha": 0.005,
+      "seed": 1,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/994346ce92553d10/arrays.npz",
+      "arrays_sha256": "dec00c2bd191f8ab8d50b5f95007e0e800654d2bccde1c3e4f5523f0b81fb30d",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/994346ce92553d10/metadata.json",
+      "metadata_sha256": "810ebba0da32e18327ccd1f3f8b1530cf469b85c8b9da8f46f3afa4c7995e372"
+    },
+    {
+      "cell_id": "9203014d35d0c7bc",
+      "alpha": 0.005,
+      "seed": 1,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/9203014d35d0c7bc/arrays.npz",
+      "arrays_sha256": "64449c428d63018ff57ab4393d7e403a508fbc2fc3c53f30c37cbcec2f62f3d7",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/9203014d35d0c7bc/metadata.json",
+      "metadata_sha256": "bc483185d8bcf064cc4306fbd1a9b04f8c85beb4536370a2b0cf8247172f3034"
+    },
+    {
+      "cell_id": "4a4942c2c2264e38",
+      "alpha": 0.005,
+      "seed": 2,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/4a4942c2c2264e38/arrays.npz",
+      "arrays_sha256": "be745b63431c72e1db846094473e0e3ebbc76d523734e9067ad1a8148bcd8c59",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/4a4942c2c2264e38/metadata.json",
+      "metadata_sha256": "38e0a4c23789a9e76851e53ceae6856a1bbe7445300707aa22aca5ba735817e5"
+    },
+    {
+      "cell_id": "9c3accf9abd750c0",
+      "alpha": 0.005,
+      "seed": 2,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/9c3accf9abd750c0/arrays.npz",
+      "arrays_sha256": "4c3de538c41eec2766861c535c0480efe5e89e8ac3f0e4a352eb30e79fce9ceb",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/9c3accf9abd750c0/metadata.json",
+      "metadata_sha256": "a32fedf358c5250b77b4af389d66dec8f22126cb7dba1e050e26b0f332f28ca6"
+    },
+    {
+      "cell_id": "3d99cdc735abcaaa",
+      "alpha": 0.009,
+      "seed": 0,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/3d99cdc735abcaaa/arrays.npz",
+      "arrays_sha256": "2cec5bfc93b3b4ffa3135e5ef81d6cc01c43533ad13c705cb29d07119da6cd8a",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/3d99cdc735abcaaa/metadata.json",
+      "metadata_sha256": "a4758712cddc02bab977423042703571bb63eb8c2d99e188a36334f90beadcc5"
+    },
+    {
+      "cell_id": "8e4712cfa93bc6f4",
+      "alpha": 0.009,
+      "seed": 0,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/8e4712cfa93bc6f4/arrays.npz",
+      "arrays_sha256": "e2caecb1afb91aab99b8863ee2ca792eb5a8f7d099e14ac113d06172076d258e",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/8e4712cfa93bc6f4/metadata.json",
+      "metadata_sha256": "3e04997441d6982c4657244f0f398ce35711d986c050773c652be629e67c7403"
+    },
+    {
+      "cell_id": "341ea1b2bedd3bf9",
+      "alpha": 0.009,
+      "seed": 1,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/341ea1b2bedd3bf9/arrays.npz",
+      "arrays_sha256": "c52301a49947aa06c6ef41abfc2954d4edd85a28b70c4ade64074c380273a359",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/341ea1b2bedd3bf9/metadata.json",
+      "metadata_sha256": "4b843411ef6cd1f846080f46d492b7f86d305e1feab9a0308539a76860c15b8d"
+    },
+    {
+      "cell_id": "3b61305c579bed3d",
+      "alpha": 0.009,
+      "seed": 1,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/3b61305c579bed3d/arrays.npz",
+      "arrays_sha256": "dd4bbde1b66518f04314b4611fba7673efd5c645ec2a64531c040b66e40cd284",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/3b61305c579bed3d/metadata.json",
+      "metadata_sha256": "062457e0d7837290f8708fe010dc98773edc8986cf553629ab04081595d806fc"
+    },
+    {
+      "cell_id": "3b3ef506ec7e93bc",
+      "alpha": 0.009,
+      "seed": 2,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/3b3ef506ec7e93bc/arrays.npz",
+      "arrays_sha256": "3d8648cb25a2975ae762a77764f77a0a84195f46f2ffb4c0016ce8f0fd386770",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/3b3ef506ec7e93bc/metadata.json",
+      "metadata_sha256": "04022b697f4661292a58b2c699da7c3a75a2a43c6b4891c5ce647a49f7a2962a"
+    },
+    {
+      "cell_id": "ad267360019d8fab",
+      "alpha": 0.009,
+      "seed": 2,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ad267360019d8fab/arrays.npz",
+      "arrays_sha256": "4f45f6cf49f8e878eb2abefa3c51a77fbc97b7c2a93cfdf7ee7e06a3a9a74547",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ad267360019d8fab/metadata.json",
+      "metadata_sha256": "a368ad1eb72d9bf838cb57681830450bae58a0f7dfcb14b3dd0deaa966531f05"
+    },
+    {
+      "cell_id": "690aed499aa8cf0a",
+      "alpha": 0.02,
+      "seed": 0,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/690aed499aa8cf0a/arrays.npz",
+      "arrays_sha256": "9584819b87241799c4b558f2eb0885ccf6526c776f24a26c221bd145aada0545",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/690aed499aa8cf0a/metadata.json",
+      "metadata_sha256": "b561ab68b9e3cb56d10f8ee5b1c1d80bce3c564c6e784772edc8f7cc0352b83a"
+    },
+    {
+      "cell_id": "1cae8422a307fa9f",
+      "alpha": 0.02,
+      "seed": 0,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/1cae8422a307fa9f/arrays.npz",
+      "arrays_sha256": "6f3ca5e42763ff8bfd100c0a1397ed0b1afe88f3cadbe4dee67eedf92a309aec",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/1cae8422a307fa9f/metadata.json",
+      "metadata_sha256": "72d1161afef2bb3504566442d964c4125e43972bda4c22c5eb8afff8c41ab197"
+    },
+    {
+      "cell_id": "37d027c6d597b58d",
+      "alpha": 0.02,
+      "seed": 1,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/37d027c6d597b58d/arrays.npz",
+      "arrays_sha256": "77539c48ecdf3dd91922bed9f65a156f44e35d7c3fe782dfb506139e0eccb3d8",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/37d027c6d597b58d/metadata.json",
+      "metadata_sha256": "b6559e4e9fa942a7c09c72e3ce14b7ab190efe1a567b699d1874b18f4c78c68f"
+    },
+    {
+      "cell_id": "8bff5d0944d21bda",
+      "alpha": 0.02,
+      "seed": 1,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/8bff5d0944d21bda/arrays.npz",
+      "arrays_sha256": "4d9a3e4b86ecbe390d38610ddf17b62591aebe9c7c47640750ff0e5e03e55005",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/8bff5d0944d21bda/metadata.json",
+      "metadata_sha256": "16194bf04cbd3f74f29e6e19594f18ce851d3eeb24d3055103fba4f8dd1bf534"
+    },
+    {
+      "cell_id": "f6d02796742c4536",
+      "alpha": 0.02,
+      "seed": 2,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/f6d02796742c4536/arrays.npz",
+      "arrays_sha256": "5417d9e0217e75f2ccd17ad2780adc11101fafa4d3c51d365c22ea4bc3c773a3",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/f6d02796742c4536/metadata.json",
+      "metadata_sha256": "e010cabc7c55601af25d42d094745470c833243682925d00e40a5b4e3ec178dc"
+    },
+    {
+      "cell_id": "151199db00071242",
+      "alpha": 0.02,
+      "seed": 2,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/151199db00071242/arrays.npz",
+      "arrays_sha256": "a02fd04b13ba64f671bd76961dd9e4698a096b7a32d5ea87684c93c2828a6ddf",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/151199db00071242/metadata.json",
+      "metadata_sha256": "90d371dfe68f4c17b2a43fd1406b754d05d24227c776ec8f3291b269dee27073"
+    },
+    {
+      "cell_id": "ff6862a46f40a4e0",
+      "alpha": 0.1,
+      "seed": 0,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ff6862a46f40a4e0/arrays.npz",
+      "arrays_sha256": "a6f97e4f9d2ae74b7ef97302064c935daeea8eaa0278da76c197790e1343f5f2",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ff6862a46f40a4e0/metadata.json",
+      "metadata_sha256": "932b3b22d228eca6c7f156d10de6da52fc63de77c9ed56fd5e0f4a7f8c3bff68"
+    },
+    {
+      "cell_id": "ce21e017c9ceb3b2",
+      "alpha": 0.1,
+      "seed": 0,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ce21e017c9ceb3b2/arrays.npz",
+      "arrays_sha256": "0508b8e3da66f5f6baadd814f3200c76fb535bfa16a72bf346ab79b5c7461019",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ce21e017c9ceb3b2/metadata.json",
+      "metadata_sha256": "0ff6c0d567462a46702e2947a525df42cd5ad5d7a5e75cd4a6bfbd2f1e41c98d"
+    },
+    {
+      "cell_id": "e13b5d9bfe3303c2",
+      "alpha": 0.1,
+      "seed": 1,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/e13b5d9bfe3303c2/arrays.npz",
+      "arrays_sha256": "e95d43f71971b62a430ae5c89a17fc79e1866c9742124cc74b7ee98919cbe0e3",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/e13b5d9bfe3303c2/metadata.json",
+      "metadata_sha256": "3d165c5cfe8677779554ea7f49f0b29f899c82f38f997b5cf4b85932a607a5a8"
+    },
+    {
+      "cell_id": "d12819d7f1308002",
+      "alpha": 0.1,
+      "seed": 1,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/d12819d7f1308002/arrays.npz",
+      "arrays_sha256": "a16a391c2e4a016d5181111e6405a491ae8c0bdd4916cd8be143dc872b6adb44",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/d12819d7f1308002/metadata.json",
+      "metadata_sha256": "5f288269eb7b9632c8468d409f729e92b9bbd3416b3209af0445fc308dd746e4"
+    },
+    {
+      "cell_id": "953c4302e9e67a12",
+      "alpha": 0.1,
+      "seed": 2,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/953c4302e9e67a12/arrays.npz",
+      "arrays_sha256": "4afb837c173cfc916ab3462151236ea12f7c625c6a4f5580aa6acd6ad784705f",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/953c4302e9e67a12/metadata.json",
+      "metadata_sha256": "3ce926035850a80835700ff4b31d022693b06795a1dfd141601cfeeba02fbdd4"
+    },
+    {
+      "cell_id": "f4097f02c1a6d901",
+      "alpha": 0.1,
+      "seed": 2,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/f4097f02c1a6d901/arrays.npz",
+      "arrays_sha256": "a717f5279c3836a15ae35e2668a431af8daae424308c43200a8cdb2a9c439b83",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/f4097f02c1a6d901/metadata.json",
+      "metadata_sha256": "2aa3fa0eb7f22bde3deb8bef826ee0c85edda358ca2a8ad2761a306ee70202ad"
+    },
+    {
+      "cell_id": "4002e9d0a0b77b98",
+      "alpha": 0.5,
+      "seed": 0,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/4002e9d0a0b77b98/arrays.npz",
+      "arrays_sha256": "afed2513a265f6fdcbb3d47e00ad478c921363b864d40764da2c4075a135147f",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/4002e9d0a0b77b98/metadata.json",
+      "metadata_sha256": "7e9e863266f64f153508cbdd725cd1539c6a74ec86f6a76eeb632cf9c835be74"
+    },
+    {
+      "cell_id": "846862b50a2ded96",
+      "alpha": 0.5,
+      "seed": 0,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/846862b50a2ded96/arrays.npz",
+      "arrays_sha256": "16069909b6d5ef0becf00f816647a98fe2e291b9218d470f4ae16a7a1271ab6a",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/846862b50a2ded96/metadata.json",
+      "metadata_sha256": "c29bd50116193bd82bab1496ed1cf660315649ed1cbdb26f90e2aa68ff61297a"
+    },
+    {
+      "cell_id": "31e8ddd318618d96",
+      "alpha": 0.5,
+      "seed": 1,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/31e8ddd318618d96/arrays.npz",
+      "arrays_sha256": "d47a24e2588f19460ffcd65990ddc580f645e1ada6acb193e42e1f75123a15b0",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/31e8ddd318618d96/metadata.json",
+      "metadata_sha256": "ce699686b6f1f01ec57602318e669f765250666df555dae1fa2cb55ed5a6f719"
+    },
+    {
+      "cell_id": "b72f9344d853d98e",
+      "alpha": 0.5,
+      "seed": 1,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/b72f9344d853d98e/arrays.npz",
+      "arrays_sha256": "b86123d202d529de2112a8bf8f4add220e60bf647f60637adeb25e436cc02f94",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/b72f9344d853d98e/metadata.json",
+      "metadata_sha256": "1399003b6a81a2a70184cee36e6482c679be4f44fe104f8b6160cb867d947da9"
+    },
+    {
+      "cell_id": "d01a1776748dd9cf",
+      "alpha": 0.5,
+      "seed": 2,
+      "momentum": 0.0,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/d01a1776748dd9cf/arrays.npz",
+      "arrays_sha256": "0a935c200ea2a60771f3ee3055a8ed46c7306017cb27271c4dad706c80d21dcb",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/d01a1776748dd9cf/metadata.json",
+      "metadata_sha256": "ff6da46694fd8d70e2934c14209194378a4891b59f4d4453082ade7e1831ab0f"
+    },
+    {
+      "cell_id": "e2566fd4ac0aaf03",
+      "alpha": 0.5,
+      "seed": 2,
+      "momentum": 0.9,
+      "arrays_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/e2566fd4ac0aaf03/arrays.npz",
+      "arrays_sha256": "4bd0b5fa055feabe10619b30f1d8713dff6120783dd8139a4b406a003491d3c7",
+      "metadata_path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/e2566fd4ac0aaf03/metadata.json",
+      "metadata_sha256": "24b3f4537e9a78699b8e85239a4a37201488e5c103fbb45b0423fbbf79072427"
+    }
+  ],
+  "historical_manifest": [
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/analysis.py",
+      "sha256": "eb2cba4b75ecae5c1599de427c8befd33f110123ba9cd0f87c4fa33a215c8b55",
+      "mtime_ns": 1791277625885275930
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/executed/preregistration_commit_attempt.json",
+      "sha256": "65fc7f948592a577131c8a981a663bcfd48592ad342322ce2cfd7b212983a8c1",
+      "mtime_ns": 1791277842686629250
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/executed/round009_audit.json",
+      "sha256": "83bf489114817adec545b7365ef905e3a75949ad7c530b52c80af4ccf330f542",
+      "mtime_ns": 1791284158637507698
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/executed/run.py",
+      "sha256": "e818264c7b375c8a702ba36998fbbbc1f11d9c6796fd61debb652d93f0f1819c",
+      "mtime_ns": 1791277625868799339
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/executed/run_receipt_001.json",
+      "sha256": "38ea075d425a9b69157ce2ade7d7109eacfdaac996542ea42e0c00890b6ccaa7",
+      "mtime_ns": 1791283734262120987
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/executed/run_receipt_002.json",
+      "sha256": "c216dacac815eb8885afc223b9c33391465d1225ac6c5011bd3fa417cf0ce1c5",
+      "mtime_ns": 1791283770913430222
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/executed/saved_evidence_verification.json",
+      "sha256": "02331ddf8f77621e6f5b8c8cec2c9c5f935fe5042deee04a932c9575ac921a68",
+      "mtime_ns": 1791283914170137280
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/executed/verify_saved.py",
+      "sha256": "4a3e75d059940c3d320ceda4bea241c3e2c946f2e23b7eb2877976b92a721860",
+      "mtime_ns": 1791283907706842043
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/preregistration.json",
+      "sha256": "4d78b8c1d9821e0dffdd6a1a07be9a3d13bee85eebd0d7dd2690cf83377f7350",
+      "mtime_ns": 1791277700033952611
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/015427ab841153a5/arrays.npz",
+      "sha256": "7d32dcfaddbbf697fb26059480acc4a5343a03762a933297553f210c3817654f",
+      "mtime_ns": 1791283767120790034
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/015427ab841153a5/metadata.json",
+      "sha256": "4a7512e3e8372c3e1c80f86274f912351c0b0153f25e7e21f7020f2e8442c73d",
+      "mtime_ns": 1791283767121590130
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/0a33caf778784f84/arrays.npz",
+      "sha256": "d31c0e3c66b6127fc024aa2fa248053f3b9b6f90ae94e3f3d5ad4e214a174959",
+      "mtime_ns": 1791283765774850774
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/0a33caf778784f84/metadata.json",
+      "sha256": "2ab35e27afe1e504726dbe562a70ad0db585943a69e253c28f44537879c66274",
+      "mtime_ns": 1791283765775477576
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/0dc7db4ae425762d/arrays.npz",
+      "sha256": "62afba0862a51b0f60161742b4060b48910f8d6bca2b0f6a49e4fbe84fe0a828",
+      "mtime_ns": 1791283761973915367
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/0dc7db4ae425762d/metadata.json",
+      "sha256": "3b63028b562c4314c3b515eb9b665924c08d3f625f47789ad8949336c29c5c86",
+      "mtime_ns": 1791283761976247113
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/0e4c8232836b7e66/arrays.npz",
+      "sha256": "8d5f960e94d3db738d9a0ff2503014c7683b23b70eb4a86b30b27dbebbd6077d",
+      "mtime_ns": 1791283760651605743
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/0e4c8232836b7e66/metadata.json",
+      "sha256": "2937173f4cb1f63b491fe6d6cdd7c5ba601c3b85ace055c3636a00414de0b9d8",
+      "mtime_ns": 1791283760652234295
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/13a4b0e0c14a221c/arrays.npz",
+      "sha256": "b29953bc3a722677daca45b35851370f36dfbe4258c2e2a92afe5d17dd063ca4",
+      "mtime_ns": 1791283761330892018
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/13a4b0e0c14a221c/metadata.json",
+      "sha256": "3133eeee45309535789660bd62c90b1220cb2fefcb340ba4b6dcfd3aa0033ca6",
+      "mtime_ns": 1791283761331399818
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/1776c5de51f3d519/arrays.npz",
+      "sha256": "a7f6e7385b9bd8d24c3666befbc45dbf4e8d6d0b29f8217e7bb17850cce70570",
+      "mtime_ns": 1791283770262088529
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/1776c5de51f3d519/metadata.json",
+      "sha256": "ee8175643a83a1ad04b07399542ced8bb812029cee54093b276438f9ac42c00c",
+      "mtime_ns": 1791283770262839958
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/186a068189a32745/arrays.npz",
+      "sha256": "9cf1e02e451028180a227798bb10578b94fd94d682f785c65466502d222a0b22",
+      "mtime_ns": 1791283770054812014
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/186a068189a32745/metadata.json",
+      "sha256": "efb29810f9b75e5f83aaa93aaabb330e0858ab2b7f73f4cdd498555d00962fca",
+      "mtime_ns": 1791283770055405857
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/1d3ef5284eb1fceb/arrays.npz",
+      "sha256": "4e9dc7ad3aef31885c8b0f44279f1872aa8aaea72e31bb5a0e59329a5816be19",
+      "mtime_ns": 1791283769113849501
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/1d3ef5284eb1fceb/metadata.json",
+      "sha256": "d72e16a7da59b0f85fffa0960627fa42c16528d59ed90a6a41060c37e12f922c",
+      "mtime_ns": 1791283769114807642
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/1d8f89c2be9445ca/arrays.npz",
+      "sha256": "0eaf0d5e58151152180dee93a2b9ea5e25abaa799ff7f08404b19c93d29735ee",
+      "mtime_ns": 1791283762869220383
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/1d8f89c2be9445ca/metadata.json",
+      "sha256": "7c2551e9662a1bc3234cfc0b3f9ea2cd50d179ffb9be2e92a1c0acffa11f14f7",
+      "mtime_ns": 1791283762869821059
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/1e716e08b4a142b7/arrays.npz",
+      "sha256": "38db2d8394a5d596d25bffb6a108fec94e88e3668fee458b439d9fd02057dd84",
+      "mtime_ns": 1791283759350261462
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/1e716e08b4a142b7/metadata.json",
+      "sha256": "7ecad7f8172e149dacb7fed6c829d544efb8bb08f9f3f99564414bb81cd83147",
+      "mtime_ns": 1791283759351273520
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/1f6a82467492ef91/arrays.npz",
+      "sha256": "96fa94b63bd1dd160d7eb4674dc4bba00ecab79c0294c7130896569cad108f4f",
+      "mtime_ns": 1791283757831699587
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/1f6a82467492ef91/metadata.json",
+      "sha256": "8018611870d400828c634748699919d4c9afe6602e3bdb88a0d3c8764955013b",
+      "mtime_ns": 1791283757832924982
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/224822e6bcb02d67/arrays.npz",
+      "sha256": "cf75eeafad06a3bbde3e5e4ce9425cf441a172fbcafbf484bf4e42cffbc77425",
+      "mtime_ns": 1791283765095585082
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/224822e6bcb02d67/metadata.json",
+      "sha256": "f48ef49995adaeca5f11b9bbbe9bd8fe3ea82e6e5536f11f1c3bc820d3024546",
+      "mtime_ns": 1791283765096164467
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/247f15b0024074c6/arrays.npz",
+      "sha256": "211628b62978b0075a7b067ce7a9e5095a10c446b20154cce1a5834767b7f181",
+      "mtime_ns": 1791283767786431669
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/247f15b0024074c6/metadata.json",
+      "sha256": "34aa2e8ccd23897e4e2fc30eceba034fbc265fb22f12c2ef0ee31a41899a69cb",
+      "mtime_ns": 1791283767788351451
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/2973cc44cf93dda2/arrays.npz",
+      "sha256": "a0cb301544a69eb3dcbfea4d09b8e2ada58da0962cec55c24b8ae9d96b407b96",
+      "mtime_ns": 1791283760435625711
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/2973cc44cf93dda2/metadata.json",
+      "sha256": "b974b5cc12f64c03c45ede5b44d890f9aee5a146c82a87e2fff5f117149cd45b",
+      "mtime_ns": 1791283760436264305
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/2ca0414171a0aa6d/arrays.npz",
+      "sha256": "f1250a38e8fe94090f6a9e7fd5d6175bb03174dfa962b77eb8a7e267049f1a06",
+      "mtime_ns": 1791283759111612476
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/2ca0414171a0aa6d/metadata.json",
+      "sha256": "dda52df8e1f2f56aff5b1c1d921fc13e43cfa99d214fe46ce1d13b4fe3e492e7",
+      "mtime_ns": 1791283759112338571
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/3028d9b89e5cf7db/arrays.npz",
+      "sha256": "af90e6ae9689134b126ebacf0d43030c10e999c9a24e743ec2240936f9dc6af6",
+      "mtime_ns": 1791283769846658360
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/3028d9b89e5cf7db/metadata.json",
+      "sha256": "6d45592f3278aa2f9f7f95ebdb9b2661887c534d628d75902a4e489455001ae8",
+      "mtime_ns": 1791283769847217786
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/373638578311b2ea/arrays.npz",
+      "sha256": "719b15d379335ef2de323ab3d4d2230206937ffecca804af9bf6493c0093cb71",
+      "mtime_ns": 1791283767565351970
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/373638578311b2ea/metadata.json",
+      "sha256": "d2f4054288dca8d1dab8b7cdf8be994f0d6d2a6f2e1d7bf7ca3a60108741d364",
+      "mtime_ns": 1791283767566108358
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/3bb29c6091cfbbee/arrays.npz",
+      "sha256": "47954614b8e32a8483163bc43d408ca3239b52fd5f17a411c21c772318c1c162",
+      "mtime_ns": 1791283765541396748
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/3bb29c6091cfbbee/metadata.json",
+      "sha256": "55ca920ec4b554684e351a4bfc05cc64bd72c35e3ef4a678df4d4a006ff35b83",
+      "mtime_ns": 1791283765541913506
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/3ec415f9261893ff/arrays.npz",
+      "sha256": "e99f8e04df4fda918499230aec37aa6a0bf741f1a2d586908368043f7838479f",
+      "mtime_ns": 1791283759791716098
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/3ec415f9261893ff/metadata.json",
+      "sha256": "26ff786175ff6df4d1b9f06cb2befd87928c3fe378c8b6a671ecce1b792b0310",
+      "mtime_ns": 1791283759792388317
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/42aafeae343b15bf/arrays.npz",
+      "sha256": "3cba500bb4fff42a4e9df7d564f6ce4f95791a4cb17e3323b81dce9d1cd40d09",
+      "mtime_ns": 1791283734260746839
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/42aafeae343b15bf/metadata.json",
+      "sha256": "323b026d8e5e9d79b8777c60275801ce4e91b0be53f69b371d33282927fb224a",
+      "mtime_ns": 1791283734261611978
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/47bfc002d2d3d872/arrays.npz",
+      "sha256": "a7ff62c57403df9df1c269b76fbfd8cbc1c8feadf3a130ae6b7dd2ff39f80d97",
+      "mtime_ns": 1791283766459892018
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/47bfc002d2d3d872/metadata.json",
+      "sha256": "b5a49b82b1bee47cb2f74c3dc895ff72308bf60f2369cdbbef40ea059afe399c",
+      "mtime_ns": 1791283766460521195
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/4aa1009737932ff6/arrays.npz",
+      "sha256": "0667878a677567b02f4683e370415b75b204f32095afd69b58ffc84824a60048",
+      "mtime_ns": 1791283763854674790
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/4aa1009737932ff6/metadata.json",
+      "sha256": "ed043d68fa76eb860bc62c17388fd4b29084b82d186deb9d9267e97860cad9e1",
+      "mtime_ns": 1791283763855280341
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/505ae1ee9d3613ed/arrays.npz",
+      "sha256": "bc578453847a3e0b324bbc3154f3ae6b454ee9c691386c2f08cf4f666febd455",
+      "mtime_ns": 1791283763619805324
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/505ae1ee9d3613ed/metadata.json",
+      "sha256": "a6bbcb1d0435a447db753ce694b994e3bcec0a624ccdf5e05b75da9391024fd3",
+      "mtime_ns": 1791283763620332749
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/5217ea802abcacd5/arrays.npz",
+      "sha256": "34395bbd2b7807f465ab623b2aebe85bd0a6b4db0de5271d7444c3ab6f88ec2a",
+      "mtime_ns": 1791283768669125687
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/5217ea802abcacd5/metadata.json",
+      "sha256": "4470e0c1bfafa839cb1d4b73bd8a7e143d9db358246644fbbf4b02a21f0acce2",
+      "mtime_ns": 1791283768670127787
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/5ae7d6ceb5a33306/arrays.npz",
+      "sha256": "b95c9d1270b3aeceb6437b1cf3eedcf2c57385a90fd9968593dff2570d4b6cd4",
+      "mtime_ns": 1791283769375207484
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/5ae7d6ceb5a33306/metadata.json",
+      "sha256": "971b09fc1f803ec0c4741f21ce09ce0c893c58825e9d76507a7343765908a4c9",
+      "mtime_ns": 1791283769376193417
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/651e2bc7c2b7b103/arrays.npz",
+      "sha256": "f51bd0cb476b17975a60e37b6dbe480f3d08cbc9324af82c353a5e1eacbc6a99",
+      "mtime_ns": 1791283764105356181
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/651e2bc7c2b7b103/metadata.json",
+      "sha256": "10f544ab8c5c34a114f995d1e830499fa0c8ab70126c0219fba8ce7b001a5173",
+      "mtime_ns": 1791283764106272279
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/68d3e0c4cf540df2/arrays.npz",
+      "sha256": "199fef541abd24939bc5e7a495a66492d7496ab13e96d964e8de7317baa23f2b",
+      "mtime_ns": 1791283762194768812
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/68d3e0c4cf540df2/metadata.json",
+      "sha256": "3d64f8ce4fdbea0db8877636bddc074249f82743c26816ba84ffe13dea48536c",
+      "mtime_ns": 1791283762195308112
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/691af9eace613429/arrays.npz",
+      "sha256": "235ca1d1cff1efdba6552df64385ea61046a493c4981b83b5316ede6eb14af93",
+      "mtime_ns": 1791283763086902109
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/691af9eace613429/metadata.json",
+      "sha256": "36c5e05c046ce6a6b0c75e9ca93a7a2bb8c625a4eb3241d92f58766c842ec79a",
+      "mtime_ns": 1791283763087597412
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/6d8332696b9836bd/arrays.npz",
+      "sha256": "14b7254b0d40b276f6a684353377c4c4fae112a79e90a0eb42b46762b56c2400",
+      "mtime_ns": 1791283768004023602
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/6d8332696b9836bd/metadata.json",
+      "sha256": "a92dce74633b0bfa56a195eec48615f8ed5cd5affb8e5b0a3927fe85dfbdcd08",
+      "mtime_ns": 1791283768004877116
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/7b394efa017689cd/arrays.npz",
+      "sha256": "71eb1188944ffe282d024bdbeb0be999525be92628ba6c76e3a48a6ea719ec15",
+      "mtime_ns": 1791283770471293575
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/7b394efa017689cd/metadata.json",
+      "sha256": "c7d3ff16a28a1ae3329955fbfa872693529777828d346d4f90d0dbbeb0ea8106",
+      "mtime_ns": 1791283770472099963
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/7e92886d3c5b1873/arrays.npz",
+      "sha256": "c71f1cc37b55566269c4f1d331a9a61aa3c7af5bf12f0c4cf410911d31d61277",
+      "mtime_ns": 1791283768227130709
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/7e92886d3c5b1873/metadata.json",
+      "sha256": "050d7a8283c7c0d82d986f5e2c3baeba63efe018cb3698f6183bc6c297630cf9",
+      "mtime_ns": 1791283768227658343
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/84123db48469756e/arrays.npz",
+      "sha256": "d5ab49f3b206602119254880e427ca8b5baf31e4a35c3d45864b6a1f17fb3395",
+      "mtime_ns": 1791283734038068698
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/84123db48469756e/metadata.json",
+      "sha256": "9e670d51fa87a84e9ef8d8c88a4da1435499cbb14942b801deae5023cb450752",
+      "mtime_ns": 1791283734038977755
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/89517b64a1f93726/arrays.npz",
+      "sha256": "725e15cb5691ef0d3075459fa763c9373e34640cc7fc92e76e2355e4db9893c7",
+      "mtime_ns": 1791283766242934595
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/89517b64a1f93726/metadata.json",
+      "sha256": "7ec7ee979f041d6e636910eb67c8ad0e1ec606b686361ef9024d189dd3eee0b7",
+      "mtime_ns": 1791283766243572564
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/8ac5b5e2da929d1d/arrays.npz",
+      "sha256": "891f41c7e2bc879cb435096a5f4697c1a1010229722eb1a076591a7fdde7a0f4",
+      "mtime_ns": 1791283766905505138
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/8ac5b5e2da929d1d/metadata.json",
+      "sha256": "a6e69f5c0ecced8ebdebf0c272016972c9b283e688407917bcc9677bc313345d",
+      "mtime_ns": 1791283766905998688
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/96d5523c62490b31/arrays.npz",
+      "sha256": "800bee1a88e882c3978f561ff93b191ce5aeaf718cd6029ed5f1e1e151dea35c",
+      "mtime_ns": 1791283759574756341
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/96d5523c62490b31/metadata.json",
+      "sha256": "4f5b350ae0f499d110b8e7d383f100ac9e0d387e5c7cd7d0d98c4942e1d75e93",
+      "mtime_ns": 1791283759575539812
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/98b77705883c177a/arrays.npz",
+      "sha256": "854a50940302a23f47cedcb206ce809a4b45d8b7ccc152d79113e06ab01ae1ee",
+      "mtime_ns": 1791283762425138871
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/98b77705883c177a/metadata.json",
+      "sha256": "ac523acf46ee846866c111f3096a8c8186cda5d513eeb26ab9868d6dd15d55c1",
+      "mtime_ns": 1791283762426572769
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/9d5bf92e81ae0de3/arrays.npz",
+      "sha256": "84766b9e24879551e521404f0308a79c8cf664fb8f791472c64444088022b7c2",
+      "mtime_ns": 1791283764881197410
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/9d5bf92e81ae0de3/metadata.json",
+      "sha256": "63cc22847c6336c56cc93b1a091628f89bad03a221b22719e262e657fad08e72",
+      "mtime_ns": 1791283764882030465
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/a7761a967f53277d/arrays.npz",
+      "sha256": "09447741e0e4142e2f5942abbfde4a7a9d808566d1506aaf8274ebcc6334774b",
+      "mtime_ns": 1791283766685259495
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/a7761a967f53277d/metadata.json",
+      "sha256": "c1c6c99aa847acb0fc16a236e016d377b7a5909352a1aac6d2bb17ed468c2b67",
+      "mtime_ns": 1791283766685986049
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/a9cef175d9099d1c/arrays.npz",
+      "sha256": "4041120323e3b1571d54926d58629c899f2dacd3df2e76b36a6fc143c8c17cee",
+      "mtime_ns": 1791283762652343128
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/a9cef175d9099d1c/metadata.json",
+      "sha256": "62a4579c4f1d016584facb8b56e81200de8a74ad364d5fac4c1bfba77039ae53",
+      "mtime_ns": 1791283762652880970
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b10023635bcfaa70/arrays.npz",
+      "sha256": "9af99c93f783f3f13a138a373b135951783b8ed54d94ef57f21384056dacc5dd",
+      "mtime_ns": 1791283761097225363
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b10023635bcfaa70/metadata.json",
+      "sha256": "a3d7c0c292118b4a05f116630da506223a47413a2daa063d16290fadddb4a15d",
+      "mtime_ns": 1791283761098037502
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b303dc87a918096f/arrays.npz",
+      "sha256": "dccc84048f2a6fce61e3b1677b51d2db2385109c27f9c18b62ca0dc75718c128",
+      "mtime_ns": 1791283760008833273
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b303dc87a918096f/metadata.json",
+      "sha256": "0c0534a604e865f761fa9e0f885374ac733aa574ab69873a2e9a6cdaace671ba",
+      "mtime_ns": 1791283760009462283
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b3ded0a3a9adb1d2/arrays.npz",
+      "sha256": "1390458a2e91b8d16969ce936d323745a49550779456728d1ea23b9bd8e4ffa2",
+      "mtime_ns": 1791283767351684060
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b3ded0a3a9adb1d2/metadata.json",
+      "sha256": "cba3fe6cf1a07466c5cdcfc503b4b6583bf815f2017122fbcbeac43ef12d21bc",
+      "mtime_ns": 1791283767352386113
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b5eb478f932ee0da/arrays.npz",
+      "sha256": "8f3d401bf813d6965d2cd231defb2acfb111c77f121a9265c072c9e8cbf51b10",
+      "mtime_ns": 1791283760864546142
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b5eb478f932ee0da/metadata.json",
+      "sha256": "f74191ac39d05a1ca65a7f35c6c5b4aa253ec831de0eac2d98fdda545ed84e68",
+      "mtime_ns": 1791283760865298029
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b671f89f4efbfe9d/arrays.npz",
+      "sha256": "1b0a96bdd79c13ec589aed6b8ec5bf587bbadf8b6e23f82312387363b6678d72",
+      "mtime_ns": 1791283768444775435
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b671f89f4efbfe9d/metadata.json",
+      "sha256": "8e6f0c74313f0e8aae8b167f745ef12f473e03ee04085b2ef20e1ddd86677598",
+      "mtime_ns": 1791283768445406570
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b74ad80ad7f4e182/arrays.npz",
+      "sha256": "d12b81f5d8c9ca9dd9a8da59fbf14c928a83009de31464133a7e4f05f1b1173e",
+      "mtime_ns": 1791283769631582384
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b74ad80ad7f4e182/metadata.json",
+      "sha256": "e082c0a43519718d10a1a4867953fd345b1b4a7402c0317abb38a086f7381fc8",
+      "mtime_ns": 1791283769632290521
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b9ae65231c3d7a02/arrays.npz",
+      "sha256": "251612d1847f4c886775ddccb1d4dad490bd0584161a0a21067641f8bbceae95",
+      "mtime_ns": 1791283763372027938
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/b9ae65231c3d7a02/metadata.json",
+      "sha256": "1c0bb5bff827d4c81996a9be5e72f9bbc14efeaa69c81762c9dc4829b5451617",
+      "mtime_ns": 1791283763372649532
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/c1fee7d4e65f311a/arrays.npz",
+      "sha256": "11b4f8dcc362aa8de047d5d9d8ae20a0cf366e9d2830ff0ce354bba66ae3a596",
+      "mtime_ns": 1791283761549225713
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/c1fee7d4e65f311a/metadata.json",
+      "sha256": "0b79bbbd28bed76c1040945ebd70b64f0143aafe1557271816fac42fa07c529e",
+      "mtime_ns": 1791283761550055393
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/cceada320e12730c/arrays.npz",
+      "sha256": "7489ade57165d8ee53d4f9b1cb5c330d03e59765bab09d2106a77109a035de78",
+      "mtime_ns": 1791283765311803493
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/cceada320e12730c/metadata.json",
+      "sha256": "bb2e5afd1da10ecb7657415db102277b401d492a210c35ec3a1324239a0e53d3",
+      "mtime_ns": 1791283765312330960
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/d2626c5e41dfa3b8/arrays.npz",
+      "sha256": "199621adce4d4f579f31c78453e5e0355f880fc4f2982947de58b9fc0c3a7d89",
+      "mtime_ns": 1791283758117206464
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/d2626c5e41dfa3b8/metadata.json",
+      "sha256": "05f9e9b76658870e893da566e47511ce45e3d562d67e0465876955ff471e9d99",
+      "mtime_ns": 1791283758120360599
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/d3416ed64ed5e8cb/arrays.npz",
+      "sha256": "41036e084fc0f43363ade209fb967e62f901a465371bc2b92db404cb0c2283e5",
+      "mtime_ns": 1791283760225829613
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/d3416ed64ed5e8cb/metadata.json",
+      "sha256": "f8dad3a0a2b42b8c7918f5b0cce4ae47912740ce5c86f5d35a86074d7d9e7273",
+      "mtime_ns": 1791283760226631877
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/d9f476ab1701b046/arrays.npz",
+      "sha256": "c1c43681a95932393cd05c6a444ca495daaec97958bef64b764cec379b903559",
+      "mtime_ns": 1791283764642209251
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/d9f476ab1701b046/metadata.json",
+      "sha256": "4925f01d2fb141eeb155e144b23b4550d49b262b23c9981893d36f0db23e1f29",
+      "mtime_ns": 1791283764643065849
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/e5d82f778bb9e4a5/arrays.npz",
+      "sha256": "071ff94b6fce04cde5c53a64a685e42ac60542849348537da611c64529a74ab3",
+      "mtime_ns": 1791283764414519695
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/e5d82f778bb9e4a5/metadata.json",
+      "sha256": "e16e27f10f673f695118336701ec51fea3f3b373802590f2d21ba5f1c1909edf",
+      "mtime_ns": 1791283764415214456
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/e8478c3d1c5877c8/arrays.npz",
+      "sha256": "18a205d81a5ac11c71c6080d0531eb0699bef529976725a4c4a73a2bce9be391",
+      "mtime_ns": 1791283766013062003
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/e8478c3d1c5877c8/metadata.json",
+      "sha256": "5bc2387136f6bbe03adacd0142b412cd72c50741d1d90d3f4718d211a9940a50",
+      "mtime_ns": 1791283766014002935
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/ea3596f0c94f08f0/arrays.npz",
+      "sha256": "9b0a82d198d68536ff21e31b042d59820ee990451de9297c49fa031dd89cc651",
+      "mtime_ns": 1791283758889482177
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/ea3596f0c94f08f0/metadata.json",
+      "sha256": "cb3143c09d98a5375a09d1ce16eacd4194c5ed346c43e3ecabe08c20a56a408e",
+      "mtime_ns": 1791283758890127979
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/ec43617f415cfcc4/arrays.npz",
+      "sha256": "df29bc3af8078169adfd27748379f7bc766704c5ef351cdc409313f181509ebe",
+      "mtime_ns": 1791283770911825904
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/ec43617f415cfcc4/metadata.json",
+      "sha256": "946b6f5a59331023c8562e127d69018f24a91b2b1d57df2fec853e0ce94f4b52",
+      "mtime_ns": 1791283770912655917
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/ed22e1b2dd573288/arrays.npz",
+      "sha256": "44ee8b1249fde78a75393c1f255f4ac3e44bd81ad9b59efeda1f66415a494d6b",
+      "mtime_ns": 1791283758670034213
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/ed22e1b2dd573288/metadata.json",
+      "sha256": "f1c2d2eb619cdf49026026eb9930ac4f7cffdb4a326f7c4f3c2847ae712e0ca2",
+      "mtime_ns": 1791283758670688182
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/f6d58ab0ca746800/arrays.npz",
+      "sha256": "634ee7f04417b0d736a4a001dd45c08f7aec08feb20c3eeacb6da45b04fe2206",
+      "mtime_ns": 1791283761758017044
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/f6d58ab0ca746800/metadata.json",
+      "sha256": "a0ca65750fa758d3d76cc9f0c230eb97936178f503db1c2991e66f449d174d11",
+      "mtime_ns": 1791283761758729764
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/f7e669a3aa7d242d/arrays.npz",
+      "sha256": "31e78429ea91c394c91356d16620290e7cce63c83f1108d450d7018c6e80e22a",
+      "mtime_ns": 1791283770692282980
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/f7e669a3aa7d242d/metadata.json",
+      "sha256": "68556cc1cb11506bedf69c63ad6d768243098351133809b70dbd470f81a16b06",
+      "mtime_ns": 1791283770693113994
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/fa8383db4b102bce/arrays.npz",
+      "sha256": "a31d47d11a4b9f77d5e746809608e99b1a84a49e1146f361190bec4f935ba60f",
+      "mtime_ns": 1791283768890577850
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/fa8383db4b102bce/metadata.json",
+      "sha256": "489490716c6b04472568f90d2e555b93800f8f0564ce53ece1356d8f542b469d",
+      "mtime_ns": 1791283768891104234
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/fdef609f4967c7ad/arrays.npz",
+      "sha256": "c76369258aa25f0fa1c91d5d7f9633bb6fc8973d86fb9c9555634ed006b8746e",
+      "mtime_ns": 1791283758386879124
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/results/fdef609f4967c7ad/metadata.json",
+      "sha256": "efa2ada3c3f0e1354be67e4a5bf57e960be4a89797ce275cd5756479923a2822",
+      "mtime_ns": 1791283758387976851
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r001_momentum_startup/summary.json",
+      "sha256": "7825154e9bb0d4190a64c87d012eb7ea9dd0aeda5952b23a47b784e0ab02db11",
+      "mtime_ns": 1791283779509119954
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/analysis.py",
+      "sha256": "5cf2d192e33b547d7445d84c723f31064fba5c3de078c662b219cacf88804573",
+      "mtime_ns": 1791292110765646134
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/center_update_verification.json",
+      "sha256": "259d59ed4ea70d8b7645880152cf9a5ef6081a4f5fb220386d284de3fb8582d4",
+      "mtime_ns": 1791292625093791308
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/final_commit_receipt.json",
+      "sha256": "28fb8f3e61c7edc3f2b2bef8cde285e5453c747d417ea66e7ac20dbb257b1a85",
+      "mtime_ns": 1791292728526378469
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/first_pair_verification.json",
+      "sha256": "91b0772a0782aceb6f65b3b8633fead4ae1f4da8f8cbe2bea408859f323d61ca",
+      "mtime_ns": 1791292278455975321
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/preregistration_commit_receipt.json",
+      "sha256": "1b101111716d055611f5624bce369fbce10a62c6ee7eeceb8075d4be820d5340",
+      "mtime_ns": 1791292243854467342
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/r009_closeout_audit.json",
+      "sha256": "a50c927cc7a830979fdb2ee35c6db3529b1addb87feeff5d1065f7aaabec724e",
+      "mtime_ns": 1791292194521212705
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/run.py",
+      "sha256": "54243e51e545ee313893002efba110c8e5c6a4ef2590d02fb5722d007e2e3a06",
+      "mtime_ns": 1791292110748942042
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/run_receipt_001.json",
+      "sha256": "86e366b74f19c154d9495722b866272ad220ce63a19ca357ad351602fd4c4d95",
+      "mtime_ns": 1791292255683027309
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/run_receipt_002.json",
+      "sha256": "b40840ec40596ddc398480acd20fd6def9e5bebceb6bf09e608b149b481ebbed",
+      "mtime_ns": 1791292298168687433
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/saved_evidence_verification.json",
+      "sha256": "4ac449c7a5d382bbbba9554109ed614e21b04a3be006199512fc2a0fe6e011cd",
+      "mtime_ns": 1791292423081512735
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/executed/verify_saved.py",
+      "sha256": "35d7166ebfdaea9f3573fc3d3af1b1d2956aaa2e3be4536b7aa7f6657a8b28e3",
+      "mtime_ns": 1791292414314039631
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/preregistration.json",
+      "sha256": "332249c5585b9572c674f9d11ebae25444712759999f294b81bd4901673b7f00",
+      "mtime_ns": 1791292192730941161
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/00aa5d64d770d524/arrays.npz",
+      "sha256": "4d552f7b78b786d3fe25c1f669db7751541979ef508873e0929e151d6936d0ef",
+      "mtime_ns": 1791292290819734656
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/00aa5d64d770d524/metadata.json",
+      "sha256": "faeb56045622c0dbbd2fb150ecf338af05d6f1efb80eb39a6f955cbf07ae4658",
+      "mtime_ns": 1791292290821218270
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/012885aa642ff889/arrays.npz",
+      "sha256": "259538168a29bdcaad773935d62c7616b907597e4360fa512a88457925f3701b",
+      "mtime_ns": 1791292292281486273
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/012885aa642ff889/metadata.json",
+      "sha256": "c2ab3d1ecf9c4ed0513ac3fb85fad5db21fdc0579d6b96a7a2f1324a28212705",
+      "mtime_ns": 1791292292282792633
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/040009d912345618/arrays.npz",
+      "sha256": "4e865a9db16fb739ee87cf245990738c1ca4fbeba8587996b813911b45ad43db",
+      "mtime_ns": 1791292291983306088
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/040009d912345618/metadata.json",
+      "sha256": "3685c2d8ffd9dce03b00cc22bda558d0079fbffa39ae095b745d34410c3f804e",
+      "mtime_ns": 1791292291984830203
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/0e1eed2da64c23be/arrays.npz",
+      "sha256": "b346e0ac9ef15cc2ffffdbc3e66dab6e28dfea7e4bf5bfe4446ab2e58ae3f98a",
+      "mtime_ns": 1791292290527506052
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/0e1eed2da64c23be/metadata.json",
+      "sha256": "fe4db84e44b8567ef0d3926bcf543fbcafc3de987fff1f75d65a486826975094",
+      "mtime_ns": 1791292290528871539
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/0e4ac9f05a561581/arrays.npz",
+      "sha256": "4a6d0179dcaaf3ff3a1f5d82092556412c2c373fa9b82a6f3f7410e72dd657e4",
+      "mtime_ns": 1791292287701782156
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/0e4ac9f05a561581/metadata.json",
+      "sha256": "206d95f2c6f0500b99afd5d7ea9aae09149f2910277c263531e7223cc5250c6f",
+      "mtime_ns": 1791292287703247311
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/0e62e978a333a0a4/arrays.npz",
+      "sha256": "9bf22eb043f0a1d87459a5dbdbc775a168ded64ec01404fef36f2e38d59607c4",
+      "mtime_ns": 1791292292857246386
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/0e62e978a333a0a4/metadata.json",
+      "sha256": "5bec87e88673068aaee17a615c6a0c8831f6f6947ae1cc031dc5b57d7db00da0",
+      "mtime_ns": 1791292292858502870
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/0e6592af0f425971/arrays.npz",
+      "sha256": "5b30f1688477da708ebe05a8f2e9f998c5545a4d80655eb5c44f5dfdc8a5ba59",
+      "mtime_ns": 1791292255377059007
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/0e6592af0f425971/metadata.json",
+      "sha256": "f3c1034a38b98aa8f2eef07e7a01d38fd221a2dda0d4fa2f80dbf904375dd26d",
+      "mtime_ns": 1791292255378314408
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/131fc7e4ab75db88/arrays.npz",
+      "sha256": "5309513d565dea0c5ec67f70cfe45bcdc1717aab9960a56a1302defaf2f66afa",
+      "mtime_ns": 1791292289092229479
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/131fc7e4ab75db88/metadata.json",
+      "sha256": "5373902134f771518905f4c40a484eac02a6bed0953f59e989f8559cf5c20fd3",
+      "mtime_ns": 1791292289093555506
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/22cca6363bd1705f/arrays.npz",
+      "sha256": "11078b1263a16a309e96de7fe6c56e5c70b8962ff07e6de2460628221d197f98",
+      "mtime_ns": 1791292255681200855
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/22cca6363bd1705f/metadata.json",
+      "sha256": "b2a61d79a419357b7de86d95234fdb896b88b364f26fa08ab6dd48b65b740bf3",
+      "mtime_ns": 1791292255682633093
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/280d38eadc7fbefb/arrays.npz",
+      "sha256": "b4b538b2fbee324a7951194c55439369e7f5de2c6f16a1fff2c72a23b9cabbe6",
+      "mtime_ns": 1791292291693421824
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/280d38eadc7fbefb/metadata.json",
+      "sha256": "d3dae94cd45fa25047690fb44af0b9ec75ede2ccfe1000bde2883d0b01bbfd7e",
+      "mtime_ns": 1791292291694892104
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/29a555e3b24636ce/arrays.npz",
+      "sha256": "792a5ce6c16a77af412a2add7c22f8e112183952ea2374eddf37efba711a27ab",
+      "mtime_ns": 1791292286577219897
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/29a555e3b24636ce/metadata.json",
+      "sha256": "eeaa2122d3516600c6da5d5352a757c93a695697a87aa4ae903cb92888e6654b",
+      "mtime_ns": 1791292286578529507
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/2ca45822306d94ca/arrays.npz",
+      "sha256": "99ebf57b5bfb5287472f7d59e9fba8dddaf3f939cb8262831212ba3d30db665d",
+      "mtime_ns": 1791292295804051552
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/2ca45822306d94ca/metadata.json",
+      "sha256": "94d60747abc211705ebbb051fc25474854ffa6a2bda59f8f7f41fe84f6ac95c6",
+      "mtime_ns": 1791292295805400413
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/35f8669814e858fd/arrays.npz",
+      "sha256": "139a8e4c1e0669e66afc1e0cf23a26931c6683b0dac0507983b53d0643aba26a",
+      "mtime_ns": 1791292288252385171
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/35f8669814e858fd/metadata.json",
+      "sha256": "518f4186d9509ac2b78feb7e9e7570771e983ae857c37da7c83bade0ac535b59",
+      "mtime_ns": 1791292288253773157
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/3fa22a6bd69c2554/arrays.npz",
+      "sha256": "5aacbb6ccbe9057a2cd1f1ed9b3f2b23282c09d0db2549ac6b2e5be94b8c25e8",
+      "mtime_ns": 1791292286303100455
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/3fa22a6bd69c2554/metadata.json",
+      "sha256": "1311b493c82301f41839889d8a347ff7ea30d0e827de9e8c7a236e5f202f7dfb",
+      "mtime_ns": 1791292286304403690
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/40b589430fe40389/arrays.npz",
+      "sha256": "e5f36f6e4bc409e1f59b7133a2741b314f2781dffbfc0f1e6c8f112c61725b1e",
+      "mtime_ns": 1791292287425558171
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/40b589430fe40389/metadata.json",
+      "sha256": "3ff5cbcc6bfc1631881366dc1cde31fc526d022bc47efa798fcd7280e9c94485",
+      "mtime_ns": 1791292287426923907
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/57c9325387aa65c0/arrays.npz",
+      "sha256": "06f03627ed63014dac9b7ea2bc82355e2c4545a9df3f7af3821118bccc0aa535",
+      "mtime_ns": 1791292289384685629
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/57c9325387aa65c0/metadata.json",
+      "sha256": "893181f463580ff5a0b15f7fe4d464f512a96eddac0e58674f1069896d4c5bb7",
+      "mtime_ns": 1791292289386063574
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/5e88f51dce0609da/arrays.npz",
+      "sha256": "c9e35d525097e938ce4a2bcd6f82c54818f46ef248023435d5e00896e0bb65f8",
+      "mtime_ns": 1791292296411282643
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/5e88f51dce0609da/metadata.json",
+      "sha256": "9c4a9326c82251e3d134a2b8e5148c581f21140d4df2ab7ce5fbc0b890035c80",
+      "mtime_ns": 1791292296412628671
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/673f5a06ef2d2747/arrays.npz",
+      "sha256": "0b052c771659b948563c133b4cf85baf7d8494c640f631efb9e2e839061a4a7c",
+      "mtime_ns": 1791292288528854869
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/673f5a06ef2d2747/metadata.json",
+      "sha256": "3e08c1c2bbb0f079ce44acc6934551f0ec08796312ff9ec395eea612f7860f27",
+      "mtime_ns": 1791292288530189563
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/6ce91be5051870ee/arrays.npz",
+      "sha256": "db33f4b4300ceeed09c91122cec9294744d032841af636ae6c286229b8e1751f",
+      "mtime_ns": 1791292294898880824
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/6ce91be5051870ee/metadata.json",
+      "sha256": "eb7e1855762bb4a6e48ed44eee2be08bd3aa615c3703f0b1065719a2c7904f24",
+      "mtime_ns": 1791292294900054223
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/74b43232a5b86a83/arrays.npz",
+      "sha256": "56726df7fee7c38ea2d73040b55c763aad143ad4fd64c514c1fadf36b41f9b38",
+      "mtime_ns": 1791292287977121289
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/74b43232a5b86a83/metadata.json",
+      "sha256": "1e770bd658bf116ced4da07ca95378d69237dc9ebd4aa14eab9df551aa53d3af",
+      "mtime_ns": 1791292287978187894
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/79cd9df8cc06c190/arrays.npz",
+      "sha256": "3210d5bafd8a9eee67b4ae45b89776ea42197d374be694e9160b92c780896a2c",
+      "mtime_ns": 1791292292568315308
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/79cd9df8cc06c190/metadata.json",
+      "sha256": "f5a0717afbce5f11ae597375ac832ebfbf2dc89e19903385f00d9a75e5641dd0",
+      "mtime_ns": 1791292292571982841
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/80d5bd30638fcc77/arrays.npz",
+      "sha256": "2ae51e08bbc67f22fb2e8a197581084d841da16a23945d982e09ec14a34af7d7",
+      "mtime_ns": 1791292288809327316
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/80d5bd30638fcc77/metadata.json",
+      "sha256": "4868228d46e42dc1515bad5fc06b99375fba7d3032142015a0e91afb1e625ced",
+      "mtime_ns": 1791292288810689968
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/88a3b7e5ff26063f/arrays.npz",
+      "sha256": "35c3c82df5de0d4f5748f127f7277f0743cd97010c6052aa78c9df5f6a6a7465",
+      "mtime_ns": 1791292297593841380
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/88a3b7e5ff26063f/metadata.json",
+      "sha256": "e4445614999dc79ad0f10805f43c3adfca451823c071f03b01ddd5ff726847fa",
+      "mtime_ns": 1791292297595457497
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/8daf713718cad3c5/arrays.npz",
+      "sha256": "cafcb2a50af04b2df0a09b68cec3042e86bf1b0267d519cbee42b7c18f23daf9",
+      "mtime_ns": 1791292294603946290
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/8daf713718cad3c5/metadata.json",
+      "sha256": "d442c454c27b6f7d34fba31d3a442bfca9708d8b3b5e46449c4909e31c6ea8e1",
+      "mtime_ns": 1791292294605383819
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/8e7419a6ec7d206d/arrays.npz",
+      "sha256": "2ab77c096e11afb96701a2a966ca066921e4bba4d094d6d6df7cae08cf10a757",
+      "mtime_ns": 1791292293144786060
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/8e7419a6ec7d206d/metadata.json",
+      "sha256": "b2580e5fd455fd3605ab644f9d538dace0d89989382472edfeca920e393f7d81",
+      "mtime_ns": 1791292293146172672
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/910df8d691bc334a/arrays.npz",
+      "sha256": "f4bdca559a72ed59e00d4c828c7f9d6aa47543fa22d78f7c2236b9b55069e5f0",
+      "mtime_ns": 1791292285176605908
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/910df8d691bc334a/metadata.json",
+      "sha256": "f552c2d399be8bc225ee4e387cbad9d73d1d0a726fb77a469b6ecd0796a96937",
+      "mtime_ns": 1791292285177978936
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/992ce614425bbbb4/arrays.npz",
+      "sha256": "f8822b8087f50ff280a89113ae25bc9dbfb56168b31b63a9c72035bc364edfff",
+      "mtime_ns": 1791292293722874888
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/992ce614425bbbb4/metadata.json",
+      "sha256": "4bf361768db1f378fbfab2f86d3cedd1f62407a9d1bb8cc9ed71fc26ab0cf2f3",
+      "mtime_ns": 1791292293724214207
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/a437b608ac2cd1cd/arrays.npz",
+      "sha256": "274b7220bdd31c14b744112a9e68de684aed6fcaebf6f4d7fdf26753d4e4a39b",
+      "mtime_ns": 1791292297003422759
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/a437b608ac2cd1cd/metadata.json",
+      "sha256": "bc4c8b343dd15b77108869d1c304d4755a6bd3b66053c050f2c4366d0da97a42",
+      "mtime_ns": 1791292297004713326
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/a510b3ced894e016/arrays.npz",
+      "sha256": "e04590c86fa7d901994129bac0612e20bda43f4459af02ed84f082bb57b43d77",
+      "mtime_ns": 1791292295500250128
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/a510b3ced894e016/metadata.json",
+      "sha256": "c2411e880e782d3637e21be4781999a7c6109f4c59a53b030442826d8d5537cb",
+      "mtime_ns": 1791292295501353068
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/a884669b4238857a/arrays.npz",
+      "sha256": "48017f14f12cd10ca361d3eb3a9952f52f2efe33c959ced2092feb00974cd1fd",
+      "mtime_ns": 1791292289961515097
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/a884669b4238857a/metadata.json",
+      "sha256": "f50b9348b92e68972c9cce5877cd1d0659a7d665e5d2994df107c93786c2f3d2",
+      "mtime_ns": 1791292289962885875
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/ad56a4033b2f9d28/arrays.npz",
+      "sha256": "ad35effe1d9be267465ddb46960b8fb46e36d1f9ad04a953393b32baf081fa34",
+      "mtime_ns": 1791292285451538783
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/ad56a4033b2f9d28/metadata.json",
+      "sha256": "86e3d10a1c9b591795b6e9899151a9038539974de8eca602a60b7243cae155bd",
+      "mtime_ns": 1791292285453030397
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/afaf1192550968de/arrays.npz",
+      "sha256": "ec0bbbc01e21076ecd735260ec47877ff7d79fd2080fc1f46ab2e59c7f74dc25",
+      "mtime_ns": 1791292294312664288
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/afaf1192550968de/metadata.json",
+      "sha256": "1d87d46ff31fc33ceb8bb2d16e5ac77bd456b298b285c3012df1dd60928232cb",
+      "mtime_ns": 1791292294313828604
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/b231c28ef3c475be/arrays.npz",
+      "sha256": "4f0d967a4980771e49d9631d744cd253e4bf2fd21e418e2970422d165361230e",
+      "mtime_ns": 1791292289674350264
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/b231c28ef3c475be/metadata.json",
+      "sha256": "83907b3b21ffd927d7c178c01cb968c831b6f1d3d5d6e5e0085bf1f6598b2703",
+      "mtime_ns": 1791292289675680791
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/b2ac1d3c212720da/arrays.npz",
+      "sha256": "b883ce9a58ac86f6fc8e6b45556f59dfa6e8710bec59307a41668137fa18f545",
+      "mtime_ns": 1791292296106127900
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/b2ac1d3c212720da/metadata.json",
+      "sha256": "d0ffda350e1f1da6fc22b6334ae4911a6f2255a6d1b81eb33093c08fbd75c5e0",
+      "mtime_ns": 1791292296107270548
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/b6b6cc3a4dff12eb/arrays.npz",
+      "sha256": "9abf659c3ec4833563324fca35f92deac55c919460d060be94643868961fa8de",
+      "mtime_ns": 1791292285730941291
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/b6b6cc3a4dff12eb/metadata.json",
+      "sha256": "ac866a6cdff5ca6f0a903ee94ac80acc8d87d10bda07a06882e4f42fd18bc1f5",
+      "mtime_ns": 1791292285732320403
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/b92d967e6c471eec/arrays.npz",
+      "sha256": "6600d452db11e6bd0bc412104f9ecdb5f8290e7ae4758709bf00ed1e682c5dc6",
+      "mtime_ns": 1791292297294151957
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/b92d967e6c471eec/metadata.json",
+      "sha256": "6df26a8106c0062013fd0f95d3fa18dc90d67d6d3f27a311b21e21df7fa5c2f5",
+      "mtime_ns": 1791292297295453859
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/bb48416a601c2a58/arrays.npz",
+      "sha256": "93cdddc33ab992f06f9346ca2b3a10daaed18e58ebd3e0303497f59c2c00697c",
+      "mtime_ns": 1791292287127172108
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/bb48416a601c2a58/metadata.json",
+      "sha256": "ee8028bb5a19bccf264a5c3d3dc5b0bb6b2f0de97a410639d7f435a5dce609f4",
+      "mtime_ns": 1791292287128484884
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/c39069287e43d555/arrays.npz",
+      "sha256": "4852c85ca662b9e48edb4bcef311449c9eb4e6c646448993607f32305ba65d7d",
+      "mtime_ns": 1791292291403125634
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/c39069287e43d555/metadata.json",
+      "sha256": "fcd92c0418da1bdd2dd4b52e9754e5f42b394f55817c66264c45178974005ce6",
+      "mtime_ns": 1791292291404507329
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/c9ad612e0baa3177/arrays.npz",
+      "sha256": "cb13c048a74601cd84819ea38a3b74776a4935d82f4731f46385bef71cc344b0",
+      "mtime_ns": 1791292286020044205
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/c9ad612e0baa3177/metadata.json",
+      "sha256": "1a2fbf2c3060a993a9ec164cdbaadc0b0a5da6ed758795242b1cff21cde2ded6",
+      "mtime_ns": 1791292286021198062
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/ca244b4a6b12bcfb/arrays.npz",
+      "sha256": "da2adf18313327e3b1cde138e96d3b93d8db1097780591b98eeb83e2fed3eea5",
+      "mtime_ns": 1791292290243862124
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/ca244b4a6b12bcfb/metadata.json",
+      "sha256": "9ca8ebb3f55d50486df1c8500780873d40e240726f91711da5cf97c27d7e7727",
+      "mtime_ns": 1791292290245234027
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/e17de84dcea84ae9/arrays.npz",
+      "sha256": "ca7a830fc58865d184dc3d2574915407f4e14c0385321a537c4224d0a59cab13",
+      "mtime_ns": 1791292294028680561
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/e17de84dcea84ae9/metadata.json",
+      "sha256": "923beafe8eff8ea3cb67006edb966da27e3a9ac744e78e6e06ded792bb3f0e10",
+      "mtime_ns": 1791292294029951421
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/e1fc5b5e298e8b60/arrays.npz",
+      "sha256": "f2e8016cc16a39558342b058251f61b7bcf3502ea69e77b5f5b16aaaab81c632",
+      "mtime_ns": 1791292298166989314
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/e1fc5b5e298e8b60/metadata.json",
+      "sha256": "38c66c2dc3e69994a48aa74f63e0d4da18085cd15ba6db818af4c678ddf6ac48",
+      "mtime_ns": 1791292298168301591
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/e4dbd0d21d263360/arrays.npz",
+      "sha256": "f2b229734a2d2def686c09d9ae0246d7b6757238a177d2639fec867ef71102ef",
+      "mtime_ns": 1791292291111343956
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/e4dbd0d21d263360/metadata.json",
+      "sha256": "2218ccb08697dd291940e00a8cc7bd12231c43b31d0b88150081a4dd099938b2",
+      "mtime_ns": 1791292291112689900
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/ed11efc8708bfd90/arrays.npz",
+      "sha256": "24d4a5374759a66e2912d7486afac9c243e8c78c521b78aed0707b357d0caab1",
+      "mtime_ns": 1791292297878702875
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/ed11efc8708bfd90/metadata.json",
+      "sha256": "f623f144f15f933c1cb9874a37832622f2a909cd042d4a2ad8a8f5b099bbbe9d",
+      "mtime_ns": 1791292297880101279
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/f1d14b5d2baca9de/arrays.npz",
+      "sha256": "e2efe316b9bd2bb4e5e29a77e4b05e1b0f0d3416dfbb53d8b8b0689dd21c7c9b",
+      "mtime_ns": 1791292293430489739
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/f1d14b5d2baca9de/metadata.json",
+      "sha256": "cd3ae50ff3e7bb64056bff3cdaddc020903cf0d4819f1250750e39f458ea6ae7",
+      "mtime_ns": 1791292293431935435
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/fccc1a3cb427d659/arrays.npz",
+      "sha256": "98217e1681cd5ff39a0226c016f17e7e698df2cf98cf50d09ba38fbf7c421792",
+      "mtime_ns": 1791292286851714638
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/fccc1a3cb427d659/metadata.json",
+      "sha256": "1bdf8b233c990e90efedcc6366287d8f8eba8341d60235a98fa927d0806a7eb1",
+      "mtime_ns": 1791292286852992790
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/fcec08df32e3bc09/arrays.npz",
+      "sha256": "c1bccd41baa492891b3171be4949dfbc2bcf9c45fbd2cddc1ba67dd7db475b68",
+      "mtime_ns": 1791292295199838398
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/fcec08df32e3bc09/metadata.json",
+      "sha256": "b315f2b6f221a77994261691f5ba4a49726bf487f6d06e2d3ebf5bc1dacdefa7",
+      "mtime_ns": 1791292295201150217
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/ff304cd78290b92d/arrays.npz",
+      "sha256": "601b0ecb5965aa92b70980cf690fe3178c2ae294e089a63c9b48c9e4c5625060",
+      "mtime_ns": 1791292296709369867
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/results/ff304cd78290b92d/metadata.json",
+      "sha256": "9293985d027a086b7bfa150ba33575e41ecb4fb1778618cc8496bfebfb2b6343",
+      "mtime_ns": 1791292296710816980
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r017_slow_energy_conversion/summary.json",
+      "sha256": "02ced46a2fde226f05e1eacaed93bbb93605a4b95d83a8d12cf089282e446198",
+      "mtime_ns": 1791292312370601043
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/analysis.py",
+      "sha256": "e6f59c5c6b1d82e90fe5ba8154d8927d3f465cba060c81afca4398b348443bc6",
+      "mtime_ns": 1791316578250419072
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/executed/central_state_before.json",
+      "sha256": "3a328c9043ae9a43310b4b585ba23a4d39a0eb2f2cc46d7694a5cbebbe35b4b9",
+      "mtime_ns": 1791316437181290314
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/executed/final_commit_verification.json",
+      "sha256": "c0aee3c9c3aa4939534ac285e257970826acbc68ac792de45b6c19600458c2eb",
+      "mtime_ns": 1791317037501897078
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/executed/first_pair_verification.json",
+      "sha256": "3b819e523634cfd3a27934bdfb47d5edf17646b7dd3bee169eb1c08496011708",
+      "mtime_ns": 1791316680441033025
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/executed/paired_control_verification.json",
+      "sha256": "f4bd45a224affdc3831ea1d13b0b1da0658d87f09f3173d4a4b242309bf28b92",
+      "mtime_ns": 1791316739650497451
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/executed/preregistration_commit_receipt.json",
+      "sha256": "99f0b2766c8ed550caad57ac53038ea51b1cee9cc94885bbc273da148804ae1b",
+      "mtime_ns": 1791316680493119110
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/executed/previous_closeout_audit.json",
+      "sha256": "7fb901e5041c2a4cfd9230cb70a90671179f195d5a15c165e2d72618e4eb085c",
+      "mtime_ns": 1791316437180821848
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/executed/report_before.md",
+      "sha256": "40ab77dd15e3caed3ef76aa04f44ec9a9d824d88d580c6a2e1167aabecd79263",
+      "mtime_ns": 1791316437191488231
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/executed/run.py",
+      "sha256": "cb9b344502c6309b2c7be3dbd01cdda1a74594017d78ffa44a07abb83f16f068",
+      "mtime_ns": 1791316578250285740
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/executed/run_receipt_001.json",
+      "sha256": "0301f1da9c68721ce01235b515bf898fc44c0cff86f4def3e5b330c5ad3865b8",
+      "mtime_ns": 1791316616162127318
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/executed/run_receipt_002.json",
+      "sha256": "02469170fe8b68d92be69e853ea000f8e3d6472b88aeaa4f13a532a4546108b1",
+      "mtime_ns": 1791316633133344308
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/executed/saved_evidence_verification.json",
+      "sha256": "544f55ecba7365039b855b54e96b488a62f36ccd42f90701e73b86aa2280943b",
+      "mtime_ns": 1791316686411090788
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/executed/verify_saved.py",
+      "sha256": "fdc1a5e55c3fd9de0b10d8d83d28fd1cc22959473e738c2b5b6bff715ab99d03",
+      "mtime_ns": 1791316578250540237
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/preregistration.json",
+      "sha256": "608cb2d686d28ce230c91c4447a1fd51bf3a94114ed355c541be60353db5e660",
+      "mtime_ns": 1791316578254013528
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/05298572bb62bf1b/arrays.npz",
+      "sha256": "aedb422fd23a4df96ffaaf52a0e46c7b14c7a6495d659265ddaa87fe9b408243",
+      "mtime_ns": 1791316624290515590
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/05298572bb62bf1b/metadata.json",
+      "sha256": "b8b17c96e6f852be205669e09858c011632fa7b18c937506c2b195cafc40e1c9",
+      "mtime_ns": 1791316624291712992
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/0f11612651a9b792/arrays.npz",
+      "sha256": "81eeb2a45a3130a44ceeadd466335925bd66a1bb606bf827a90cca2c8e9cdc1e",
+      "mtime_ns": 1791316615890423944
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/0f11612651a9b792/metadata.json",
+      "sha256": "1857c2a034301eb5436fb536c38ffd0c598f86d63dbebfc9bd1780e6f0496948",
+      "mtime_ns": 1791316615891487223
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/151199db00071242/arrays.npz",
+      "sha256": "a02fd04b13ba64f671bd76961dd9e4698a096b7a32d5ea87684c93c2828a6ddf",
+      "mtime_ns": 1791316629967592868
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/151199db00071242/metadata.json",
+      "sha256": "90d371dfe68f4c17b2a43fd1406b754d05d24227c776ec8f3291b269dee27073",
+      "mtime_ns": 1791316629968874686
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/1cae8422a307fa9f/arrays.npz",
+      "sha256": "6f3ca5e42763ff8bfd100c0a1397ed0b1afe88f3cadbe4dee67eedf92a309aec",
+      "mtime_ns": 1791316628916823142
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/1cae8422a307fa9f/metadata.json",
+      "sha256": "72d1161afef2bb3504566442d964c4125e43972bda4c22c5eb8afff8c41ab197",
+      "mtime_ns": 1791316628918048919
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/31e8ddd318618d96/arrays.npz",
+      "sha256": "d47a24e2588f19460ffcd65990ddc580f645e1ada6acb193e42e1f75123a15b0",
+      "mtime_ns": 1791316632340083001
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/31e8ddd318618d96/metadata.json",
+      "sha256": "ce699686b6f1f01ec57602318e669f765250666df555dae1fa2cb55ed5a6f719",
+      "mtime_ns": 1791316632341338111
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/341ea1b2bedd3bf9/arrays.npz",
+      "sha256": "c52301a49947aa06c6ef41abfc2954d4edd85a28b70c4ade64074c380273a359",
+      "mtime_ns": 1791316627517809121
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/341ea1b2bedd3bf9/metadata.json",
+      "sha256": "4b843411ef6cd1f846080f46d492b7f86d305e1feab9a0308539a76860c15b8d",
+      "mtime_ns": 1791316627519111022
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/37d027c6d597b58d/arrays.npz",
+      "sha256": "77539c48ecdf3dd91922bed9f65a156f44e35d7c3fe782dfb506139e0eccb3d8",
+      "mtime_ns": 1791316629178671552
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/37d027c6d597b58d/metadata.json",
+      "sha256": "b6559e4e9fa942a7c09c72e3ce14b7ab190efe1a567b699d1874b18f4c78c68f",
+      "mtime_ns": 1791316629179921996
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/3b3ef506ec7e93bc/arrays.npz",
+      "sha256": "3d8648cb25a2975ae762a77764f77a0a84195f46f2ffb4c0016ce8f0fd386770",
+      "mtime_ns": 1791316628063699176
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/3b3ef506ec7e93bc/metadata.json",
+      "sha256": "04022b697f4661292a58b2c699da7c3a75a2a43c6b4891c5ce647a49f7a2962a",
+      "mtime_ns": 1791316628064946745
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/3b61305c579bed3d/arrays.npz",
+      "sha256": "dd4bbde1b66518f04314b4611fba7673efd5c645ec2a64531c040b66e40cd284",
+      "mtime_ns": 1791316627788618591
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/3b61305c579bed3d/metadata.json",
+      "sha256": "062457e0d7837290f8708fe010dc98773edc8986cf553629ab04081595d806fc",
+      "mtime_ns": 1791316627789881076
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/3d99cdc735abcaaa/arrays.npz",
+      "sha256": "2cec5bfc93b3b4ffa3135e5ef81d6cc01c43533ad13c705cb29d07119da6cd8a",
+      "mtime_ns": 1791316626978532903
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/3d99cdc735abcaaa/metadata.json",
+      "sha256": "a4758712cddc02bab977423042703571bb63eb8c2d99e188a36334f90beadcc5",
+      "mtime_ns": 1791316626979788263
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/4002e9d0a0b77b98/arrays.npz",
+      "sha256": "afed2513a265f6fdcbb3d47e00ad478c921363b864d40764da2c4075a135147f",
+      "mtime_ns": 1791316631810618082
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/4002e9d0a0b77b98/metadata.json",
+      "sha256": "7e9e863266f64f153508cbdd725cd1539c6a74ec86f6a76eeb632cf9c835be74",
+      "mtime_ns": 1791316631811914525
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/4a4942c2c2264e38/arrays.npz",
+      "sha256": "be745b63431c72e1db846094473e0e3ebbc76d523734e9067ad1a8148bcd8c59",
+      "mtime_ns": 1791316626443334928
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/4a4942c2c2264e38/metadata.json",
+      "sha256": "38e0a4c23789a9e76851e53ceae6856a1bbe7445300707aa22aca5ba735817e5",
+      "mtime_ns": 1791316626444666120
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/50f0f48c858dcd4d/arrays.npz",
+      "sha256": "5004531e8703536c0ab2cafe158d48c0b9885328d37dc26cd9d50af24528aa32",
+      "mtime_ns": 1791316624831642618
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/50f0f48c858dcd4d/metadata.json",
+      "sha256": "1cd3a40a571fe9c412afa68c178a7dc2c9c542d4d1693350239847b9b6c6e978",
+      "mtime_ns": 1791316624832908520
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/59f323c88c295ca4/arrays.npz",
+      "sha256": "4fcb402d1f65171959c184c6c2b3d4346e0071110e114334312b73e0c5223edf",
+      "mtime_ns": 1791316616160474338
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/59f323c88c295ca4/metadata.json",
+      "sha256": "99eb46682f750bce338335bb15d787712b5d2fb0bfbe6d3eba07d7d5f7168e53",
+      "mtime_ns": 1791316616161738406
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/690aed499aa8cf0a/arrays.npz",
+      "sha256": "9584819b87241799c4b558f2eb0885ccf6526c776f24a26c221bd145aada0545",
+      "mtime_ns": 1791316628655426976
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/690aed499aa8cf0a/metadata.json",
+      "sha256": "b561ab68b9e3cb56d10f8ee5b1c1d80bce3c564c6e784772edc8f7cc0352b83a",
+      "mtime_ns": 1791316628656921875
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/846862b50a2ded96/arrays.npz",
+      "sha256": "16069909b6d5ef0becf00f816647a98fe2e291b9218d470f4ae16a7a1271ab6a",
+      "mtime_ns": 1791316632074931588
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/846862b50a2ded96/metadata.json",
+      "sha256": "c29bd50116193bd82bab1496ed1cf660315649ed1cbdb26f90e2aa68ff61297a",
+      "mtime_ns": 1791316632076245697
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/8bff5d0944d21bda/arrays.npz",
+      "sha256": "4d9a3e4b86ecbe390d38610ddf17b62591aebe9c7c47640750ff0e5e03e55005",
+      "mtime_ns": 1791316629442459315
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/8bff5d0944d21bda/metadata.json",
+      "sha256": "16194bf04cbd3f74f29e6e19594f18ce851d3eeb24d3055103fba4f8dd1bf534",
+      "mtime_ns": 1791316629443774966
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/8e4712cfa93bc6f4/arrays.npz",
+      "sha256": "e2caecb1afb91aab99b8863ee2ca792eb5a8f7d099e14ac113d06172076d258e",
+      "mtime_ns": 1791316627248669630
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/8e4712cfa93bc6f4/metadata.json",
+      "sha256": "3e04997441d6982c4657244f0f398ce35711d986c050773c652be629e67c7403",
+      "mtime_ns": 1791316627249961365
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/9203014d35d0c7bc/arrays.npz",
+      "sha256": "64449c428d63018ff57ab4393d7e403a508fbc2fc3c53f30c37cbcec2f62f3d7",
+      "mtime_ns": 1791316626172957078
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/9203014d35d0c7bc/metadata.json",
+      "sha256": "bc483185d8bcf064cc4306fbd1a9b04f8c85beb4536370a2b0cf8247172f3034",
+      "mtime_ns": 1791316626174252104
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/926d0d82f63ebbac/arrays.npz",
+      "sha256": "c62fbbf889286a7767171cca11c3b60fb29a8ce5ea8f457e55ab5b4c6ba8b515",
+      "mtime_ns": 1791316624558633300
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/926d0d82f63ebbac/metadata.json",
+      "sha256": "1b0b33dc3eb7a90946de0732239dd013bbd699e02ae2a003a2259763358db692",
+      "mtime_ns": 1791316624559955618
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/953c4302e9e67a12/arrays.npz",
+      "sha256": "4afb837c173cfc916ab3462151236ea12f7c625c6a4f5580aa6acd6ad784705f",
+      "mtime_ns": 1791316631285080116
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/953c4302e9e67a12/metadata.json",
+      "sha256": "3ce926035850a80835700ff4b31d022693b06795a1dfd141601cfeeba02fbdd4",
+      "mtime_ns": 1791316631286395975
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/994346ce92553d10/arrays.npz",
+      "sha256": "dec00c2bd191f8ab8d50b5f95007e0e800654d2bccde1c3e4f5523f0b81fb30d",
+      "mtime_ns": 1791316625903775089
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/994346ce92553d10/metadata.json",
+      "sha256": "810ebba0da32e18327ccd1f3f8b1530cf469b85c8b9da8f46f3afa4c7995e372",
+      "mtime_ns": 1791316625905054449
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/99864d4c949f6051/arrays.npz",
+      "sha256": "4e72e005afd807841028993c8661a990bb4e5c2d984990bb64140c6a1978d8d8",
+      "mtime_ns": 1791316625632687123
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/99864d4c949f6051/metadata.json",
+      "sha256": "5eeeda974485b6014b48ae925ca40d7b6e8fee4ce2cbded324fc73e59a2c23f8",
+      "mtime_ns": 1791316625633978899
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/9c3accf9abd750c0/arrays.npz",
+      "sha256": "4c3de538c41eec2766861c535c0480efe5e89e8ac3f0e4a352eb30e79fce9ceb",
+      "mtime_ns": 1791316626709997781
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/9c3accf9abd750c0/metadata.json",
+      "sha256": "a32fedf358c5250b77b4af389d66dec8f22126cb7dba1e050e26b0f332f28ca6",
+      "mtime_ns": 1791316626711259599
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ad267360019d8fab/arrays.npz",
+      "sha256": "4f45f6cf49f8e878eb2abefa3c51a77fbc97b7c2a93cfdf7ee7e06a3a9a74547",
+      "mtime_ns": 1791316628336065504
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ad267360019d8fab/metadata.json",
+      "sha256": "a368ad1eb72d9bf838cb57681830450bae58a0f7dfcb14b3dd0deaa966531f05",
+      "mtime_ns": 1791316628337411696
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/b72f9344d853d98e/arrays.npz",
+      "sha256": "b86123d202d529de2112a8bf8f4add220e60bf647f60637adeb25e436cc02f94",
+      "mtime_ns": 1791316632602725985
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/b72f9344d853d98e/metadata.json",
+      "sha256": "1399003b6a81a2a70184cee36e6482c679be4f44fe104f8b6160cb867d947da9",
+      "mtime_ns": 1791316632604006845
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ba613eb07c7035f2/arrays.npz",
+      "sha256": "585deeb772606521e49bebf8daf4631d5b7b86df975f6c5c0721bbb48e80ccd3",
+      "mtime_ns": 1791316625366352599
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ba613eb07c7035f2/metadata.json",
+      "sha256": "c1c9f493d2590dc17a43c2a07d0f78c7f4ba27a433c87ed0e7c4dd977633db73",
+      "mtime_ns": 1791316625367603793
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ce21e017c9ceb3b2/arrays.npz",
+      "sha256": "0508b8e3da66f5f6baadd814f3200c76fb535bfa16a72bf346ab79b5c7461019",
+      "mtime_ns": 1791316630494227072
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ce21e017c9ceb3b2/metadata.json",
+      "sha256": "0ff6c0d567462a46702e2947a525df42cd5ad5d7a5e75cd4a6bfbd2f1e41c98d",
+      "mtime_ns": 1791316630495548514
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/d01a1776748dd9cf/arrays.npz",
+      "sha256": "0a935c200ea2a60771f3ee3055a8ed46c7306017cb27271c4dad706c80d21dcb",
+      "mtime_ns": 1791316632866665496
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/d01a1776748dd9cf/metadata.json",
+      "sha256": "ff6da46694fd8d70e2934c14209194378a4891b59f4d4453082ade7e1831ab0f",
+      "mtime_ns": 1791316632867932189
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/d12819d7f1308002/arrays.npz",
+      "sha256": "a16a391c2e4a016d5181111e6405a491ae8c0bdd4916cd8be143dc872b6adb44",
+      "mtime_ns": 1791316631021236937
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/d12819d7f1308002/metadata.json",
+      "sha256": "5f288269eb7b9632c8468d409f729e92b9bbd3416b3209af0445fc308dd746e4",
+      "mtime_ns": 1791316631022534421
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/e13b5d9bfe3303c2/arrays.npz",
+      "sha256": "e95d43f71971b62a430ae5c89a17fc79e1866c9742124cc74b7ee98919cbe0e3",
+      "mtime_ns": 1791316630756782724
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/e13b5d9bfe3303c2/metadata.json",
+      "sha256": "3d165c5cfe8677779554ea7f49f0b29f899c82f38f997b5cf4b85932a607a5a8",
+      "mtime_ns": 1791316630758025751
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/e2566fd4ac0aaf03/arrays.npz",
+      "sha256": "4bd0b5fa055feabe10619b30f1d8713dff6120783dd8139a4b406a003491d3c7",
+      "mtime_ns": 1791316633131690536
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/e2566fd4ac0aaf03/metadata.json",
+      "sha256": "24b3f4537e9a78699b8e85239a4a37201488e5c103fbb45b0423fbbf79072427",
+      "mtime_ns": 1791316633132960645
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/eb82ff469e35c84b/arrays.npz",
+      "sha256": "918febb2cc449f44cb3d92b7f54a6120743501ccd01bde8b3aa4f8396a1f030d",
+      "mtime_ns": 1791316625099262418
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/eb82ff469e35c84b/metadata.json",
+      "sha256": "fb0f5158c0d8a1fb020e1f7dbed30b33e5d61a080aa387f08f9de15b0e3bc631",
+      "mtime_ns": 1791316625100532319
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/f4097f02c1a6d901/arrays.npz",
+      "sha256": "a717f5279c3836a15ae35e2668a431af8daae424308c43200a8cdb2a9c439b83",
+      "mtime_ns": 1791316631550143947
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/f4097f02c1a6d901/metadata.json",
+      "sha256": "2aa3fa0eb7f22bde3deb8bef826ee0c85edda358ca2a8ad2761a306ee70202ad",
+      "mtime_ns": 1791316631551457014
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/f6d02796742c4536/arrays.npz",
+      "sha256": "5417d9e0217e75f2ccd17ad2780adc11101fafa4d3c51d365c22ea4bc3c773a3",
+      "mtime_ns": 1791316629703622150
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/f6d02796742c4536/metadata.json",
+      "sha256": "e010cabc7c55601af25d42d094745470c833243682925d00e40a5b4e3ec178dc",
+      "mtime_ns": 1791316629704863718
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ff6862a46f40a4e0/arrays.npz",
+      "sha256": "a6f97e4f9d2ae74b7ef97302064c935daeea8eaa0278da76c197790e1343f5f2",
+      "mtime_ns": 1791316630231244341
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/results/ff6862a46f40a4e0/metadata.json",
+      "sha256": "932b3b22d228eca6c7f156d10de6da52fc63de77c9ed56fd5e0f4a7f8c3bff68",
+      "mtime_ns": 1791316630232496368
+    },
+    {
+      "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/summary.json",
+      "sha256": "f1c7c2b35633382bc4e53ac950b0891b9c37961f63d8c05e7564d068e243ed81",
+      "mtime_ns": 1791316646664695740
+    }
+  ],
+  "baseline_summary": {
+    "path": "directions/D1_u_effective_time/studies/r037_lower_fast_curvature/summary.json",
+    "sha256": "f1c7c2b35633382bc4e53ac950b0891b9c37961f63d8c05e7564d068e243ed81"
+  },
+  "endpoints": {
+    "primary": "min整数t使全部k=t..40000的L(k)/L0<=.001；最后一次超阈值的下一步",
+    "secondary": "首次L(t)/L0<=.001，仅描述；不预注册额外科学问题",
+    "censoring": "预算内无持续端点则null，不延长预算；预测记不可评估"
+  },
+  "proxy_definitions": {
+    "steady_prediction": "ceil(t_plain/10)",
+    "startup_prediction": "min整数t使10t-90(1-.9**t)>=t_plain",
+    "relative_abs_error": "abs(t_prediction-t_momentum)/t_momentum",
+    "conversion_input": "同alpha/seed/q实测mom0端点；不是从零预测训练曲线",
+    "signed_error": "t_prediction-t_momentum"
+  },
+  "predictions": [
+    {
+      "id": "P1_alpha_above_q",
+      "prediction": "alpha=.005/.009/.02/.1/.5的稳态和启动相对绝对误差均<=.05；尤其原低alpha=.005/.009从q=.01的33.3333%/47.6190%及56.4103%/69.0476%降至<=5%。",
+      "criterion": "5配对条件的每个坐标seed都满足两种误差<=.05才supported；任一违反即refuted，不从15个seed计15条件。"
+    },
+    {
+      "id": "P2_alpha_equals_q",
+      "prediction": "alpha=.001=q的稳态相对绝对误差<=.05；启动误差>.05且<=.25，预测启动残差仍使其达不到5%。",
+      "criterion": "该1配对条件的3坐标seed均满足稳态<=.05和.05<启动<=.25才supported；任一违反即refuted。"
+    }
+  ],
+  "prediction_rationale": "q降低后alpha>.001的端点预计由慢模态主导，旧q=.01高alpha条件误差<=5%；对alpha=q仍保留快模态尾部与有限动量启动的竞争。P2刻意检验等号处是否保留启动误差；不把alpha>=q视为充分条件。",
+  "forecast_derivation": "数值区间来自旧development结果和慢模态主导的定性近似；注册前仅读旧q=.01数字及NPZ结构，未计算新q=.001端点、未运行标量递推。全部输入轨迹已经公开保存，不是sealed OOD或盲新训练验证。解析式与审计不登记为新发现。",
+  "analysis": "从保存端点复算mom0/.9配对误差、同轨迹q改变的差、3坐标seed min/max；不拟合临界q，不作iid显著性。",
+  "resume_protocol": "先--max-new-cells 2，再核验并恢复其余34；成功目录只读核对request、source hash和新端点hash，不覆盖。",
+  "compute_budget": {
+    "maximum_seconds": 1200,
+    "planned_new_training_cells": 0,
+    "planned_endpoint_cells": 36,
+    "threads": 1,
+    "device": "CPU",
+    "network": false
+  },
+  "boundaries": [
+    "仅development：n=d=2固定满秩特征、float64、谱[.001,.05]、全批量SGD eta=.1/mom0或.9、L0=1、零参数/速度、T40000、6alpha、3坐标seed。",
+    "只改变保存轨迹的q=.01到.001；q=.001不改训练，不外推其他q或连续临界。",
+    "alpha改变梯度尺度、Rayleigh、参数范数和第一步下降；不独立归因，不外推Adam/mini-batch/learned features或历史bigram。",
+    "持续端点只保证至T40000；坐标seed不是数据seed，报告min/max，无置信区间。",
+    "旧r009启动不比稳态差的6/10失败、旧r017与r037预测结果均保留，不追溯重判。",
+    "复用公开保存development曲线的新阈值描述，不称盲验证；没有sealed OOD。"
+  ],
+  "pinned_files": [
+    "preregistration.json",
+    "executed/run.py",
+    "analysis.py",
+    "executed/verify_saved.py",
+    "executed/previous_closeout_audit.json",
+    "executed/central_state_before.json",
+    "executed/report_before.md"
+  ],
+  "execution_source_sha256": "14af010547c719b1f07a73f8f87d0077685b9818bf4c21cdda34163b0d18ee45",
+  "analysis_source_sha256": "25c6745801f9e8ece41b092f28401000ac4956d22d9cadb4b704794ae92b08d4",
+  "verification_source_sha256": "efbd870621415880e8f57dfcd780b8f3f200d9b514632c7031ea189c1f9815d2"
+}

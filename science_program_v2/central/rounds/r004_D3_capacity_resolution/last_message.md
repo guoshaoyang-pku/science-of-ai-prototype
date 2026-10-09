@@ -1,0 +1,1 @@
+ROUND_RESULT: failed | Read-only .git blocked preregistration and final commits; 0 cells ran, and D3 scripts, failure evidence, reports, and handoff updates are saved.

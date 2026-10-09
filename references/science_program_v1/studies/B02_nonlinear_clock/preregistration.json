@@ -1,0 +1,97 @@
+{
+  "study": "B02_nonlinear_clock",
+  "created_at": 1791223939.649142,
+  "run_source_sha256": "880eae2e2ddd7a30062ead5895f9e6369558c829c02420bcc6f7febae0577627",
+  "model_source_sha256": "323fbcf46f384d21c72435290f11c67ac06e7c042fba5f006e9a8285f05114c6",
+  "loss": "half MSE, full batch, no decay, float64",
+  "model": "Linear(d,w)-SiLU-Linear(w,w)-SiLU-Linear(w,1); no LN/residual",
+  "steps": 512,
+  "widths": [
+    8,
+    32
+  ],
+  "seeds": [
+    11,
+    29,
+    47
+  ],
+  "recipes": [
+    {
+      "name": "sgd_plain",
+      "optimizer": "SGD",
+      "lr": 0.05,
+      "momentum": 0.0
+    },
+    {
+      "name": "sgd_momentum",
+      "optimizer": "SGD",
+      "lr": 0.005,
+      "momentum": 0.9
+    },
+    {
+      "name": "adam",
+      "optimizer": "Adam",
+      "lr": 0.01,
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "eps": 1e-08
+    }
+  ],
+  "development_conditions": [
+    {
+      "train_samples": 32,
+      "test_samples": 256,
+      "input_dim": 3,
+      "data_seed": 3101,
+      "name": "smooth_sum_d3",
+      "function": "smooth_sum"
+    },
+    {
+      "train_samples": 32,
+      "test_samples": 256,
+      "input_dim": 3,
+      "data_seed": 3101,
+      "name": "product_d3",
+      "function": "product"
+    }
+  ],
+  "ood_conditions": [
+    {
+      "train_samples": 32,
+      "test_samples": 256,
+      "input_dim": 5,
+      "data_seed": 7331,
+      "name": "mixed_sine_d5",
+      "function": "mixed_sine"
+    },
+    {
+      "train_samples": 32,
+      "test_samples": 256,
+      "input_dim": 5,
+      "data_seed": 7331,
+      "name": "radial_d5",
+      "function": "radial"
+    }
+  ],
+  "predictions": [
+    {
+      "id": "B02_P1",
+      "statement": "SGD tangent model train-loss trajectory is predicted by initial kernel recurrence with absolute max error <1e-9, all dev/OOD recipes"
+    },
+    {
+      "id": "B02_P2",
+      "statement": "For SGD, first-step true-vs-tangent train-loss absolute error <= .001*initial train loss in at least 90% dev/OOD cells; later accuracy is not assumed"
+    },
+    {
+      "id": "B02_P3",
+      "statement": "Fixed initial Jacobian is not a complete nonlinear time coordinate: at t512 at least one function/width/recipe has paired-seed average train-loss difference >.05*initial loss between true/tangent"
+    }
+  ],
+  "ood_prediction_policy": "All OOD conditions frozen now; after development, save numerical and directional predictions from the current explanation before any OOD result.",
+  "statistics_unit": "function/width/recipe;3 initialization seeds within unit",
+  "linearized_baseline": "same initial outputs and full parameter Jacobian, optimizer matched to original recipe; fullbatch eliminates sample stream mismatch",
+  "capacity_comparison": "width8 versus32 changes initial kernel and nonlinear capacity together; not an isolated parameter-only intervention",
+  "first_step_sampling": "No minibatches; compare actual parameter update with tangent update under identical initial gradients"
+}

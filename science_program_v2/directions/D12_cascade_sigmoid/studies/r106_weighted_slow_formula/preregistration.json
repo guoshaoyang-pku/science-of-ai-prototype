@@ -1,0 +1,348 @@
+{
+  "study": "r106_weighted_slow_formula",
+  "round": 106,
+  "direction_round": 7,
+  "direction": "D12_cascade_sigmoid",
+  "created_at": "2026-10-07T23:29:35.890741+08:00",
+  "domain": "development",
+  "question": "仅改变保存的初始慢损失权重为alpha=.75，固定h/b的加权双段公式在r100是否同时通过原.03/.05阈值，误差是否落入新注册区间？",
+  "data_contract": {
+    "sample_count": 2,
+    "dimension": 2,
+    "dtype": "float64",
+    "source": "仅读D4 r018的r100 alpha=.75三条成功保存曲线；QR坐标seed0/1/2仅数值稳健性，非独立数据重复。",
+    "loss": "L=||Xtheta-y||²/(2n)，L0=1，theta0=0，模态初始慢/快损失.75/.25；只从NPZ mode_weights取幅度，不拟合权重。",
+    "optimizer": "固定特征，全批量SGD eta=.1/momentum0/nodecay，lambda=[.01,1]，10000步。",
+    "paired_control": "同seed保存D4 r018原最小二乘单logistic best_errors仅描述性对照；段数与参数取得方式同时改变，不独立归因。"
+  },
+  "learning_rate": 0.1,
+  "cells": [
+    {
+      "cell_id": "alpha_0750_seed_0",
+      "ratio": 100,
+      "alpha": 0.75,
+      "seed": 0,
+      "arrays_path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/results/alpha_0750_seed_0/arrays.npz",
+      "metadata_path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/results/alpha_0750_seed_0/metadata.json"
+    },
+    {
+      "cell_id": "alpha_0750_seed_1",
+      "ratio": 100,
+      "alpha": 0.75,
+      "seed": 1,
+      "arrays_path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/results/alpha_0750_seed_1/arrays.npz",
+      "metadata_path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/results/alpha_0750_seed_1/metadata.json"
+    },
+    {
+      "cell_id": "alpha_0750_seed_2",
+      "ratio": 100,
+      "alpha": 0.75,
+      "seed": 2,
+      "arrays_path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/results/alpha_0750_seed_2/arrays.npz",
+      "metadata_path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/results/alpha_0750_seed_2/metadata.json"
+    }
+  ],
+  "formula": {
+    "curve": "C(t)=alpha H_s(t)+(1-alpha)H_f(t)，H_i=1/[1+(t/h_i)^b]，H_i(0)=1。",
+    "h": "h_i=log(2)/[-2log(1-eta lambda_i)]，单位步。",
+    "b": "两模态b=2log(2)，无量纲，禁止校准。",
+    "alpha": "NPZ mode_weights[0]，无量纲初始慢损失占比；不是参数、特征或梯度能量占比。",
+    "derivation": "谱递推与局部半值/对log(t)斜率匹配是已知解析工具，不登记为新发现。"
+  },
+  "evaluation": {
+    "grid": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      27,
+      28,
+      29,
+      30,
+      31,
+      33,
+      34,
+      36,
+      37,
+      39,
+      41,
+      42,
+      44,
+      46,
+      48,
+      50,
+      52,
+      55,
+      57,
+      60,
+      62,
+      65,
+      68,
+      71,
+      74,
+      77,
+      80,
+      84,
+      87,
+      91,
+      95,
+      99,
+      104,
+      108,
+      113,
+      118,
+      123,
+      128,
+      134,
+      140,
+      146,
+      152,
+      159,
+      166,
+      173,
+      180,
+      188,
+      196,
+      205,
+      214,
+      223,
+      233,
+      243,
+      254,
+      265,
+      276,
+      288,
+      301,
+      314,
+      327,
+      342,
+      357,
+      372,
+      388,
+      405,
+      423,
+      441,
+      460,
+      480,
+      501,
+      523,
+      546,
+      570,
+      594,
+      620,
+      647,
+      675,
+      705,
+      735,
+      767,
+      801,
+      836,
+      872,
+      910,
+      950,
+      991,
+      1034,
+      1079,
+      1126,
+      1175,
+      1226,
+      1279,
+      1335,
+      1393,
+      1454,
+      1517,
+      1583,
+      1652,
+      1723,
+      1798,
+      1877,
+      1958,
+      2044,
+      2132,
+      2225,
+      2322,
+      2423,
+      2528,
+      2638,
+      2753,
+      2873,
+      2998,
+      3128,
+      3264,
+      3407,
+      3555,
+      3709,
+      3871,
+      4039,
+      4215,
+      4398,
+      4589,
+      4789,
+      4997
+    ],
+    "origin": "直接沿用D4 r018原150点等权网格0..4997；逐点与D12 r076相同。",
+    "platforms": [
+      1,
+      0
+    ],
+    "amplitudes_slow_fast": [
+      0.75,
+      0.25
+    ],
+    "adequacy": {
+      "rmse_maximum": 0.03,
+      "maxabs_maximum": 0.05,
+      "logic": "两项同时<=才通过"
+    },
+    "aggregation": "1个recipe×3个坐标seed；保存每cell及指标min/max、最大残差步、同seed原LS对照差，不计算统计CI。"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "controlled_numerical_prediction",
+      "prediction": "3/3坐标seed均RMSE<=.03但maxabs>.05，因此加权候选不同时通过原描述阈值。",
+      "criterion": "任一cell RMSE>.03或maxabs<=.05即refuted；保持原候选和失败记录。",
+      "basis": "既有等权r100通过；单模态局部近似最大误差存在失败背景。已有alpha=.25反例RMSE=.022740946/maxabs=.053989623；改由慢模态占多数仍可能保留局部近似尾部误差，未计算本轮候选误差，非OOD或盲发现。"
+    },
+    {
+      "id": "P2",
+      "kind": "controlled_numerical_interval_prediction",
+      "prediction": "3/3坐标seed RMSE在[.025,.035]，maxabs在[.050,.060]。",
+      "intervals": {
+        "rmse": [
+          0.025,
+          0.035
+        ],
+        "maxabs": [
+          0.05,
+          0.06
+        ]
+      },
+      "criterion": "闭区间，任一cell任一指标在区间外即refuted，保留原区间与反例。",
+      "basis": "按已有等权r100与alpha=.25、旧单模态局部公式的development误差量级给出更宽的新数值范围；未校准区间，不是置信区间，也不保证P1。"
+    }
+  ],
+  "previous_summary": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/summary.json",
+  "input_manifest": [
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/preregistration.json",
+      "sha256": "f43aa7a344dcc8c8e49038ddc1fd31b2afbe0cbbc753cfea2ab8ff064c92b9b1"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/summary.json",
+      "sha256": "61ebbf59efb05adaea7785b7964984ff35036156eed3611ba10ab01f57ba6e47"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/analysis.py",
+      "sha256": "a2d5e7af25fc301806b6d0aef7543076cde4251f0d9bd0997465713e6cf980ab"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/executed/run.py",
+      "sha256": "63f9bf223a4ebd4bcb59e088d53c1356d20cb9bf3c181c2f171d8a90841ef396"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/results/alpha_0750_seed_0/arrays.npz",
+      "sha256": "114698c88b8e3d995c8ac5f5a0b8c10a2bc83127b93885c26f911f91637c51cf"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/results/alpha_0750_seed_0/metadata.json",
+      "sha256": "a3233e9dae8938b6454d48c32c07418a9c677355397d29b486a3d510e033fd8f"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/results/alpha_0750_seed_1/arrays.npz",
+      "sha256": "517a59eab833b6f0231cc0db95ef1a37a1d173421f2c504378b1e44138a3b424"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/results/alpha_0750_seed_1/metadata.json",
+      "sha256": "1a2ce3868c47833a2f9f472ac3a39b48bcfd4a3bf12ebd57ab283ef5af8b8997"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/results/alpha_0750_seed_2/arrays.npz",
+      "sha256": "b92863854f3a0ba522eafb8471a4fd92dba541924628da58addd984ee02fcdc5"
+    },
+    {
+      "path": "directions/D4_sigmoid_training_curve/studies/r018_slow_energy_logistic/results/alpha_0750_seed_2/metadata.json",
+      "sha256": "d8fb7e1a31689cf2e38a6c499d720528354ef2992c9f9b35b85840bbb638bef4"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r028_gap_cascade/executed/final_commit_verification.json",
+      "sha256": "7519561bda67dd0110b8233608f0dddc14ace8ce36d6488b8c35bae3fc23179c"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r032_modal_formula/executed/final_commit_verification.json",
+      "sha256": "b5f8a9bf96f304cba95b97bf6a1b7fe69e6bf6277be5b62112dba58cab5c98ec"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r036_large_ratio_formula/executed/final_commit_verification.json",
+      "sha256": "af9e4f1c0b809b82a1d557eeffbbbda400475e2beae0e46419ed6ec37f383e05"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r044_low_ratio_formula/executed/final_commit_verification.json",
+      "sha256": "e6b3792684127b4ea7e093d3170afa7e4ee3816bdb3a1d28c7178344491615ad"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r076_lower_ratio_formula/executed/final_commit_verification.json",
+      "sha256": "fad90123cc8211e584053ae95a74277d094425855b607be11cbfdf92518791ac"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r088_weighted_formula/executed/final_commit_verification.json",
+      "sha256": "da884ae2fae311192c4d65bddbfeda5e5c93b2a90bf8dae415ea6ef1818e5003"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r088_weighted_formula/summary.json",
+      "sha256": "c69e1c9215f34a8438587967c27147930882ef7e0a7c62d6d383ed54debf159b"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r088_weighted_formula/preregistration.json",
+      "sha256": "ca6d330e5b2cba72267a1973fe9d69443df65752cdda0f78d6dceac1e037800f"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r088_weighted_formula/executed/run.py",
+      "sha256": "89aeea075837a044347138841fc6d98d08a5fb27c1cd28237a460c9302eeff37"
+    },
+    {
+      "path": "directions/D12_cascade_sigmoid/studies/r106_weighted_slow_formula/executed/previous_closeout_audit.json",
+      "sha256": "d3181c73a72260944620d005c86e77e30148ba25529b7d8922f64c03202bca27"
+    }
+  ],
+  "source_hashes": {
+    "directions/D12_cascade_sigmoid/studies/r106_weighted_slow_formula/executed/run.py": "73e614c9c9059dd71036f379ec77542df51cbdb8e0770c091de89627cd285089",
+    "directions/D12_cascade_sigmoid/studies/r106_weighted_slow_formula/analysis.py": "fc4d1ccd29c9684f9166c79e6a417659e2c0d64459f8bc89cb6b0e765bc1480e",
+    "directions/D12_cascade_sigmoid/studies/r106_weighted_slow_formula/executed/verify_saved.py": "ed62dd1fecc314fcbdabaeae176c809098308f71781360a30cd2be4b22d167ab",
+    "directions/D12_cascade_sigmoid/studies/r106_weighted_slow_formula/executed/prepare.py": "dd4cc1ac9b55b4cb9385dffd8f93a9652015d76132719c5d6911e34329946f04",
+    "directions/D12_cascade_sigmoid/studies/r106_weighted_slow_formula/executed/resume.py": "488b12683d9a40aab620f4e3e7e304dd9f1b598d3bfbdfe8d394cdb64e31407f"
+  },
+  "resume_protocol": "唯一完整预注册commit必须是HEAD祖先；当前JSON和全部pinned源码等于该commit blob，全部输入与历史hash/mtime通过才评价。全局先扫描所有receipt/结果：混合commit、冲突pin、额外cell/文件、孤立或不完整结果均拒绝。成功cell仅读取；新cell独占创建，绝不覆盖。",
+  "compute_budget_seconds": 1200,
+  "execution_environment": "python3，本机CPU单线程；0训练/拟合，无网络/GPU/solver/模型API。",
+  "boundaries": [
+    "仅development，n=d=2固定特征half-MSE，float64，全批量SGD eta=.1/mom0/nodecay，lambda_s=.01，r100，L0=1，alpha=.75。",
+    "仅原150点等权网格0..4997，平台1/0；除保存幅度外h/b及判据全部固定；不校准幅度。",
+    "8个等权通过格点不代表连续临界；不独立检验误差重叠机制、参数可辨认、物理merging或grokking。",
+    "alpha=.25新反例与八个等权离散通过格点保留；旧r1局部公式、D4纯快与alpha=.01原LS失败保留且不重算/改判；不重评任何旧成功cell。",
+    "原单段LS为描述性对照，不把差异归因于段数；不外推MLP、learned features、momentum、mini-batch、test或OOD。"
+  ],
+  "pre_evaluation_note": "已按序读必要文件并执行inbox；六节全文重排且全部数字逐项保全，独立commit 2605e7b。冻结前工具JS SyntaxError及重排Python字符串SyntaxError均未写文件或科学评价；修正后只做重排与静态审计。准备只核验hash/mtime/合同、复制原grid和注册源码，未运行alpha=.75候选误差；非盲或封存OOD。"
+}

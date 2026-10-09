@@ -1,0 +1,193 @@
+{
+  "role": "development motivation, not frozen-feature result evidence",
+  "kb_sha256": "94b6bb60a7efb6c316d842cc86ecbe09afa31b03128d6418e970df6064956581",
+  "claims": [
+    {
+      "id": "K1056",
+      "text": "Tabular CE,1024rows,shared optimizer/lr/T,Delta>=.1: GELU/SiLU is an empirical tendency,NOT proof of learned boundary or a fixed switch. Old smooth23/25 lab(~11sets,CEratio.80),corpus16/16;activation-only19/28. Piecewise q_9e5a60 at RMSprop.0001,T1024/b16,Delta.1024 favors plain d4w96 ReLU/terminal1LN over residual d3w128 SiLU/terminal1LN: one ordinal mean-CE comparison,no margin,not BELOW.1. At.01-.1 old44/74(.87),below.01 8/19(1.00),not an LN-first command. Sparse normalized-smooth controls:K1122;identical low-band bundles reverse by dataset:K1146. Depth,width,LN,residual/data/budget remain conditions;no universal activation rank.",
+      "support_count": 17.5,
+      "failure_count": 14.5,
+      "credibility": 0.5441176470588235,
+      "created_epoch": 0,
+      "sources": [],
+      "merged_from": [],
+      "origin": "c000003",
+      "regime": {
+        "family": [
+          "synthetic_tabular_classification"
+        ],
+        "model_type": [
+          "mlp"
+        ],
+        "optimizer": [
+          "Adam",
+          "AdamW",
+          "RMSprop",
+          "Adagrad",
+          "SGD"
+        ],
+        "steps": [
+          256,
+          2048
+        ],
+        "delta": [
+          0.1,
+          3
+        ],
+        "activation": [
+          "gelu",
+          "silu",
+          "relu",
+          "leaky_relu"
+        ],
+        "note": "delta = core-rule displacement (Adam/RMSprop lr*T, Adagrad 2lr*sqrt(T), SGD calibrated)"
+      },
+      "phase": "smooth-vs-rectifier win rate by shared Δ: <0.01: 8/19 (ratio 1.00); 0.01-0.1: 44/74 (0.87); 0.1-0.3: 16/18 (0.84); >=0.3: 7/7 (0.72).",
+      "refines": "K1009",
+      "last_evaluated_epoch": 15,
+      "report_ids": [
+        "R760974e919",
+        "R7f9c1cf9f2",
+        "Rd2f1faba9e"
+      ],
+      "mechanism": "Endpoint activation/bundle preferences are empirical,not proof of learned boundaries or fixed progress thresholds. q9e5a60 changes activation/depth/width/residual together. Sparse SiLU-vs-Leaky controls have normalization interactions(K1122); no smoothness/LN additive mechanism established."
+    },
+    {
+      "id": "K1073",
+      "text": "Tabular CE,1024rows,SAME network/data: Delta optima are recipe/batch-specific,not universal epoch thresholds. E32:K1116's8feature d1ReLU+LN Adam,bs16 best TESTED Delta.6144;.0614 worse. Rc5401dd3c0:d2w192 residualReLU/LN01 AdamW,bs32 Delta1.024 beats.03072 on smooth/sparse2/2datasets(ratios.759/.725);d4w256 plainGELU/LN1010 Adagrad,bs64 lr.003 beats.0001 on piecewise/smooth2/2datasets. Old smooth E4~.25,E16~.08,E32~.05-.15 are local. Batch,architecture,data confound pooled optima. q_a57013 rates change decay;no blanket low-rate reversal. No optimum settles cross-architecture rankings(q_7a5eba).",
+      "support_count": 9.75,
+      "failure_count": 6.25,
+      "credibility": 0.5972222222222222,
+      "created_epoch": 0,
+      "sources": [],
+      "merged_from": [
+        "K1021",
+        "K1032"
+      ],
+      "origin": "c000031",
+      "mechanism": "Controlled endpoint losses establish recipe-local rate preferences,not overconfidence or a universal exposure threshold. Batch,model,target and optimizer state still distinguish competing explanations.",
+      "regime": {
+        "family": [
+          "synthetic_tabular_classification"
+        ],
+        "model_type": [
+          "mlp"
+        ],
+        "loss": [
+          "cross_entropy"
+        ],
+        "data": [
+          "1024rows",
+          "smooth_additive",
+          "sparse_interaction",
+          "piecewise_boundary"
+        ],
+        "budget": [
+          4096,
+          32768
+        ],
+        "note": "Same network/data per comparison;E32 controlled recipes differ in width/depth/LN/batch/optimizer. Rc540/K1082 retain exact datasets,configs,10seedmeans."
+      },
+      "phase": "Rc540 E32:AdamW d2w192resReLU LN01,wd1e-5,beta2.999,bs32 high/low .75932smooth/.72491sparse,2sets. Adagrad d4w256plainGELU LN1010,wd.001,bs64 high/low .51349piecewise/.96214smooth,2sets. K1082 Adamd1w256ReLU+LN,bs16 besttestedDelta.6144. Old optima remain recipe-local.",
+      "last_evaluated_epoch": 14,
+      "report_ids": [
+        "R3d79831b53",
+        "R760974e919",
+        "R7dd7d943d3",
+        "Rc093b78e4e",
+        "Rc5401dd3c0"
+      ]
+    },
+    {
+      "id": "K1122",
+      "text": "On sparse8 stabcls_0db74c/17011f,default plain d3w64,AdamW(.9,.999),wd1e-5,T256/b64,Delta.0768,activation-only matched controls interact with LN: zero-LN SiLU CE .335357/.350689 loses to leaky(.01) .210671/.201826; early-only LN SiLU .142096/.140599 beats leaky .176435/.181445; all-LN SiLU .146352/.140685 beats leaky .218640/.227849. Early-LN plain leaky beats zero/all-LN on both instances; residual leaky benefits from all-LN versus zero-LN. Ten seeds/cell,cache anchors reused. No universal smoothness/more-LN score,depth transfer or confidence mechanism follows.",
+      "support_count": 3.25,
+      "failure_count": 2.75,
+      "credibility": 0.53125,
+      "created_epoch": 6,
+      "sources": [],
+      "merged_from": [],
+      "origin": "Jfac834ef8be1:c000276",
+      "origin_epoch": 5,
+      "last_evaluated_epoch": 14,
+      "report_ids": [
+        "R7f9c1cf9f2",
+        "R879d9cf2c7",
+        "Rded2e0261a"
+      ]
+    },
+    {
+      "id": "K1197",
+      "text": "Smooth-additive16 CE,default residual d2w192 ReLU/zeroLN,T1024/b32: exact Adagrad.001/wd1e-4 < Adam.003/(.9,.95)/wd.001 < AdamW.003/(.9,.999)/wd1e-5 on345f07/41478f/462152. CE triplets=(.368741,.563314,.709594),(.356454,.407636,.543076),(.338283,.393329,.513786). n10/cell,9cells/90runs,fail0;all9 paired95%CIs exclude0;Adagrad/Adam seedwins10/8/9,other pairs10/10 each. Same90runs in both old claims,NOT replication. Gaussian1024/2048rows;T256 both adaptives beat Adagrad on462152. Test CE degrades after an early adaptive lead;trainCE/confidence cause unmeasured. Full recipes,not algorithm-only;B/C untested. q_ca760b ordinal A<E<D;R3d79831b53.",
+      "created_epoch": 16,
+      "sources": [
+        "q_ca760b"
+      ],
+      "merged_from": [
+        "K1190",
+        "K1192"
+      ],
+      "origin": "Jaa93dcd0fef1:c000896",
+      "mechanism": "Measured test-CE trajectories show early adaptive lead then degradation. TrainCE,logitconfidence/generalization mediation unmeasured;family,rate,beta,decay change together. No AdamW penalty or coupled-Adam mechanism identified.",
+      "phase": "R3d79831b53:3fixed rules/splits,9uncached cells/90finite seeds/fail0;all9 paired95%CIs exclude0. Adagrad-Adam advantages=.194573/.051182/.055045nat;Adagrad-AdamW=.340853/.186622/.175503. AtT256 on462152 both adaptive recipes beatAdagrad;T1024 order reverses. Same runs duplicated in K1190/K1192;no extra replication.",
+      "regime": {
+        "family": [
+          "synthetic_tabular_classification"
+        ],
+        "model_type": [
+          "mlp"
+        ],
+        "data": [
+          "smooth_additive16",
+          "Gaussian1024/2048rows"
+        ],
+        "depth": [
+          2,
+          2
+        ],
+        "width": [
+          192,
+          192
+        ],
+        "residual": true,
+        "activation": [
+          "relu"
+        ],
+        "n_ln": [
+          0,
+          0
+        ],
+        "steps": [
+          1024,
+          1024
+        ],
+        "budget": [
+          32768,
+          32768
+        ],
+        "note": "Defaultinit,b32,fullrecipes;3rules/splits,not9independent tests;R3d79831b53,origin14."
+      },
+      "refines": "K1073",
+      "support_count": 0.0,
+      "failure_count": 0.0,
+      "credibility": 0.5,
+      "origin_epoch": 15
+    }
+  ],
+  "reports": [
+    {
+      "report_id": "R760974e919",
+      "kb_ref_commit": "9642ada41063c751f267dc92ec1fe8036270ae18",
+      "sha256": "e7df8a6ad3c75debf63eba108b81130134358484981da0efdb4955c284fcbae1",
+      "bytes": 15496,
+      "observed_source": "original development report selected via frozen sources/kb_live.json report ref"
+    },
+    {
+      "report_id": "R3d79831b53",
+      "kb_ref_commit": "21b9250104a4705fe5d6842e09102350b9671563",
+      "sha256": "a00e494fe0303f2105b606eb4f401cc07d9957e5f782712a73d302ad570d9898",
+      "bytes": 8723,
+      "observed_source": "original development report selected via frozen sources/kb_live.json report ref"
+    }
+  ]
+}

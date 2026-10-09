@@ -1,0 +1,123 @@
+{
+  "study": "r013_gram_condition_review",
+  "round": 13,
+  "direction_round": 2,
+  "direction": "D5_ln_geometry",
+  "domain": "development",
+  "status": "partial",
+  "saved_cells": 1,
+  "planned_cells": 120,
+  "condition_units": 24,
+  "same_seed_LN_pairs": 0,
+  "experiment_seconds": 0.4326770839979872,
+  "receipt": {
+    "preregistration_commit": "5144cbdf818c7ac3dca76d21fbb85bb5a3a4d036",
+    "preregistration_sha256": "937cbc8471253e5daa279ef7387e2f1245a8ec0c5e13d28ac0ed5acf252ada8d",
+    "source_sha256": {
+      "executed/run.py": "786db4490138fabbba82ebe19bb7d35c9a38b53a149eac0edb321236f75dc0d2",
+      "analysis.py": "74d8f2ff36cf87ac80f7d221149519c949ba7819ba6c68bd4ae233ba3b00fc89"
+    },
+    "execution_head": "5144cbdf818c7ac3dca76d21fbb85bb5a3a4d036",
+    "commit_epoch": 1791287966,
+    "gate_passed_at_epoch": 1791287981.53088,
+    "python": "python3",
+    "torch": "2.13.0",
+    "numpy": "2.2.6",
+    "device": "cpu",
+    "threads": 1
+  },
+  "verification": {
+    "status": "passed",
+    "verified_cells": 1,
+    "initial_linear_and_batch_comparisons": 0,
+    "maximum_hidden_gram_abs_error": 0.0,
+    "maximum_eigenvalue_abs_error": 0.0,
+    "maximum_hidden_head_prediction_abs_error": 4.246517963935048e-07,
+    "floor_hit_checkpoint_count": 0,
+    "complete_grid": false
+  },
+  "predictions": {
+    "P1": {
+      "status": "not_evaluated",
+      "passing_function_offset_units": 0,
+      "total_units": 12,
+      "rule": "至少8/12单元，每单元至少3/5 seed的终点LN−noLN log10κ<0"
+    },
+    "P2": {
+      "status": "not_evaluated",
+      "pearson_r": null,
+      "paired_repeats": 0,
+      "rule": "20函数×seed配对，offset0终点Δlog10κ与Δchord的Pearson r≥.5；无方差记失败"
+    }
+  },
+  "spectrum_contrasts": [],
+  "descriptive_within_function_centered_pearson_r": null,
+  "chord_contrasts": [],
+  "function_summary": [],
+  "rows": [
+    {
+      "function": "trigonometric8",
+      "label": "LN010_w64",
+      "mean": -3,
+      "seed": 100,
+      "log10_condition": {
+        "0": 4.0671751642998935,
+        "1": 4.065308162491728,
+        "8": 4.058720411049952,
+        "32": 4.097524578380787,
+        "128": 5.661471719223222,
+        "256": 6.073774190510456
+      },
+      "spectrum_audit": {
+        "0": {
+          "lambda_max": 0.08702515909056102,
+          "lambda_min": 7.455377893467184e-06,
+          "floor_hits": 0
+        },
+        "1": {
+          "lambda_max": 0.08660655785291041,
+          "lambda_min": 7.451481294377574e-06,
+          "floor_hits": 0
+        },
+        "8": {
+          "lambda_max": 0.08455115029663907,
+          "lambda_min": 7.385826635015637e-06,
+          "floor_hits": 0
+        },
+        "32": {
+          "lambda_max": 0.08745608926578857,
+          "lambda_min": 6.986593490659024e-06,
+          "floor_hits": 0
+        },
+        "128": {
+          "lambda_max": 0.48881298155901753,
+          "lambda_min": 1.0657884558851915e-06,
+          "floor_hits": 0
+        },
+        "256": {
+          "lambda_max": 1.2850134412059284,
+          "lambda_min": 1.0842601088617077e-06,
+          "floor_hits": 0
+        }
+      },
+      "centered_error": {
+        "0": 1.0256287920518172,
+        "1": 1.0248020584876536,
+        "8": 1.0191907068697788,
+        "32": 1.001797085127513,
+        "128": 0.9173272319555947,
+        "256": 0.6492277465696408
+      },
+      "seconds": 0.4326770839979872,
+      "started_at_epoch": 1791287981.5656672
+    }
+  ],
+  "boundaries": [
+    "development：4旧函数，d8 uniform/d12 Gaussian，ntrain=ntest=256，data seed48291，width64、GELU输入层加3 block、LN010/noLN、head weight/bias固定，SGD lr=.001/mom0/weight_decay1e-4、batch64、T256；LN affine及hidden可训练。",
+    "只测最后hidden表示Gram，不是参数Jacobian NTK；没有目标投影、梯度对齐、曲率测量或人工谱干预。",
+    "条件数用固定1e-12 floor；模型float32，Gram float64；floor命中或极小谱尾限制解释。",
+    "相关为观察关联，不证明因果中介；20函数seed重复只含4函数，含函数间混杂；r无iid显著性声明。",
+    "本轮无sealed OOD；checkpoint曲线不构成预注册时间先行结论。",
+    "r005原草稿0cell失败记录不覆盖，旧P2符号和P3分母问题只作设计审查，不登记refuted测量。"
+  ]
+}

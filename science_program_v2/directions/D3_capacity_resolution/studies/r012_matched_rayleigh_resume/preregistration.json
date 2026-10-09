@@ -1,0 +1,138 @@
+{
+  "study": "r012_matched_rayleigh_resume",
+  "round": 12,
+  "direction_round": 2,
+  "direction": "D3_capacity_resolution",
+  "created_at": "2026-10-06T19:36:43.855854+08:00",
+  "domain": "development",
+  "question": "固定特征、相同谱和相同目标Rayleigh商时，只改变目标模态权重，拟合到初始损失1%的步数能否显著不同？",
+  "data_contract": {
+    "sample_count": 9,
+    "dimension": 9,
+    "dtype": "float64",
+    "eigenvalues": "lambda_i=i^(-p), i=1..9；各p均lambda_max=1；不跨p固定trace",
+    "rotation": "R为default_rng(seed).normal(9,9)的QR正交矩阵；同seed固定R；只是参数坐标旋转，不是独立数据重复",
+    "features": "X=sqrt(n)*diag(sqrt(lambda))@R.T；样本核K=X@X.T/n=diag(lambda)",
+    "target": "y=sqrt(n)*sqrt(w)，逐分量非负；w_middle=e_3；p>0时w_endpoints[1]=(lambda_3-lambda_9)/(lambda_1-lambda_9), w[9]=1-w[1]；p=0时首尾各.5",
+    "initial_parameter": "theta0=0；所有目标||y||²/n=1，L0=.5",
+    "loss": "L=||Xtheta-y||²/(2n)",
+    "pairing": "同p/seed固定X、谱、参数数9、优化器、初始loss、目标Rayleigh=lambda_3，只改变目标模态权重；目标参数范数和初始梯度范数并未固定。"
+  },
+  "optimizer": {
+    "name": "full_batch_SGD",
+    "eta": 0.5,
+    "momentum": 0,
+    "weight_decay": 0,
+    "steps": 1000,
+    "update": "theta-=eta*X.T@(Xtheta-y)/n"
+  },
+  "spectral_exponents": [
+    0,
+    1,
+    2
+  ],
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "targets": [
+    "middle",
+    "endpoints"
+  ],
+  "threshold": 0.01,
+  "minimum_step_ratios": {
+    "1": 2.5,
+    "2": 8
+  },
+  "counts": {
+    "spectrum_recipes": 3,
+    "targets_per_recipe": 2,
+    "condition_units": 6,
+    "coordinate_seeds": 3,
+    "planned_cells": 18,
+    "planned_same_seed_pairs": 9
+  },
+  "counting": "6个p×目标条件，9个同seed配对；seed只是旋转数值稳健性，不作独立实验或置信区间。",
+  "descriptors": {
+    "parameter_count": "9",
+    "trace": "sum(lambda)",
+    "effective_rank": "exp(-sum(q_i*log(q_i))), q=lambda/sum(lambda)",
+    "target_rayleigh": "y.T@K@y/(y.T@y)=sum(w_i*lambda_i)",
+    "budget_descriptor_v1": "T_epsilon(mu_y,eta)=min整数t>=0:sum(w_i*(1-eta*lambda_i)^(2t))<=epsilon；mu_y=sum(w_i delta_lambda_i)，不是单一容量标量",
+    "resolution_scope": "本轮只定义指定目标在预算内可拟合的操作量，不测试空间高频/窄峰/接近结构，不称通用分辨率。"
+  },
+  "analytic_reference": {
+    "normalized_loss": "f(t)=sum(w_i*(1-.5*lambda_i)^(2t))",
+    "p0": "两目标均f(t)=.25^t，T_.01=4",
+    "p1_pair": "middle: (5/6)^(2t)；endpoints: .25*(1/2)^(2t)+.75*(17/18)^(2t)",
+    "p2_pair": "middle: (17/18)^(2t)；endpoints: .1*(1/2)^(2t)+.9*(161/162)^(2t)",
+    "theory_status": "固定谱递推为已知解析工具；不把公式、解析算例或静态审查登记为新测量。"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "known_theory_execution_audit",
+      "prediction": "18 cell实际loss与从保存X/y重新eigh所得目标加权谱参考的maxabs<=1e-10；实际T_.01等于注册谱预测且<=1000；9配对所有描述量差<=1e-12。",
+      "register_as_new_discovery": false
+    },
+    {
+      "id": "P2",
+      "kind": "negative_control",
+      "prediction": "p=0所有3旋转seed两目标T_.01相同且均为4；任一违反即refuted。"
+    },
+    {
+      "id": "P3",
+      "kind": "controlled_prediction",
+      "prediction": "p=1三个同seed配对endpoints/middle步数比全部>=2.5，p=2全部>=8；任一违反或1000步内未达阈值即refuted。未执行数值训练时不评估。"
+    }
+  ],
+  "evaluation_contract": {
+    "primary_endpoint": "首次保存整数步L(t)/L0<=.01，t含0至1000，不插值、不改epsilon",
+    "censoring": "1000步未达阈值记null/censored，保留该cell，不加预算，P1及P3均失败；不以1000作真实步数",
+    "pairing": "按p/seed保存步数差、比及descriptor差；按p报告3seed min/max，不计算置信区间",
+    "counterexample_scope": "仅比较注册标量描述量，不能证明所有标量都不可能预测，也不能从配对Rayleigh相同推断初始单步loss下降相同（后者含二阶项）。",
+    "new_claim_rule": "只有保存训练结果验证的受控配对才能登记；失败P2/P3保留并按refuted登记。P1的已知理论核验不是新发现。"
+  },
+  "resume_protocol": "执行前git show HEAD中的prereg/run/analysis必须与当前字节相同且source hash匹配。先--max-new-cells 1，再全量续跑；续跑先检查全部已存cell的metadata/npz/receipt/request/source hash，成功结果不覆盖；不完整或hash不符即停止。",
+  "analysis": "只读取已存结果、receipt及commit失败记录；从保存X/y独立eigh复算谱和权重，复算阈值、配对差/比及所有预测；无数据时只输出0 cell与not_evaluated，不调用measure或更新参数。",
+  "boundaries": [
+    "development：n=d=9、float64、零初始化、全批量SGD eta=.5、momentum=0、无weight decay，lambda_max=1和注册三种谱。",
+    "同谱配对只改变目标分布；没有控制目标参数范数、初始梯度范数或单步实际loss下降。",
+    "跨p谱比较不是只改变目标，trace随p改变；反例只从各p内配对判断。",
+    "T_.01是优化器/阈值/目标条件化拟合预算，不是模型的永久表示容量；所有谱满秩，可最终插值。",
+    "无learned features、架构width/depth/激活/LN扫描、noise/generalization、空间分辨率或封存OOD。",
+    "只有3谱×2目标条件；3旋转seed只作坐标稳健性，不算独立recipe。"
+  ],
+  "compute_budget": {
+    "maximum_seconds": 1200,
+    "device": "CPU",
+    "threads": 1,
+    "network": false,
+    "planned_updates": 18000,
+    "accounting": "receipt累计执行wall time；每cell前检查，预计秒级但未测量，不启动常驻进程。"
+  },
+  "execution_source_sha256": "2f09989328f00f3fb5ae517fb28f1077982030bc7c5d28dd21cdd0116ff6daea",
+  "analysis_source_sha256": "5e108e2183a105705a8747f445724494a9790a35bfb1287fc52cea858de47b06",
+  "pre_execution_revision": {
+    "reason": "首次commit失败后，纯解析审查发现p2的>=10阈值过强：中间目标使用17/18，首尾目标慢分量使用161/162；阈值预算比由对数式约为9，改为>=8。尚无训练或数据查看。",
+    "previous_attempt_sha256": "a6a3a15d700447ec6e7e4a4a529487b8418c1330879957d00a70271716311cf1",
+    "original_draft_saved_in": "executed/preregistration_commit_attempt.json:attempted_preregistration_snapshot",
+    "numerical_training_started": false,
+    "additional_static_fixes": "P2要求两目标均为4；强制BLAS线程为1。未执行训练，source hashes重新pin。"
+  },
+  "resume_analysis_source_sha256": "2aa3f70553ae41ccafd919c9a1523e9b5d2d2bd09c6949ea9eb5436a3a152420",
+  "resume_execution": {
+    "original_study_path": "directions/D3_capacity_resolution/studies/r004_matched_rayleigh",
+    "original_preregistration_sha256": "6e11c2c49afb23151030d1b772d4bfe23aed1a5272b1b7f1cc18e11585673428",
+    "original_design_round": 4,
+    "original_direction_round": 1,
+    "original_frozen_commit": "ebf42082f27f29acc8794f0ba13ebab13c7b7655",
+    "original_results_saved_before_resume": 0,
+    "contract_changes": "条件、seed、P1–P3、阈值、预算及原pinned源码全部不变；只登记程序第12轮/方向第2轮的恢复时序与复算入口。",
+    "results_path": "directions/D3_capacity_resolution/studies/r004_matched_rayleigh/results",
+    "execution_command": "python3 -B directions/D3_capacity_resolution/studies/r004_matched_rayleigh/executed/run.py",
+    "gate": "本轮新合同、原合同、两份原pinned源码及恢复analysis.py成功commit且逐字节核验后，才允许首cell训练。首cell须通过hash和保存X/y谱核验；原results成功cell不覆盖，恢复先校验全部hash，再补余17 cell。",
+    "round_result_rule": "只有18/18 cell、保存结果复算、方向及中心更新和收尾commit均完成才记ok；Git预注册commit拒绝则不训练并记failed。"
+  }
+}

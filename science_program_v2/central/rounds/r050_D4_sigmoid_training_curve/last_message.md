@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 3/3 fits with zero new training; alpha=.25 minimum maxabs=.08338322420>.05 supported both predictions, and all evidence, reports, handoff, and verified closeout commits are saved.

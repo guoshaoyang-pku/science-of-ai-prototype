@@ -1,0 +1,144 @@
+{
+  "study": "r019_population_label_normalization",
+  "round": 19,
+  "direction_round": 3,
+  "direction": "D2_overfitting_u_curve",
+  "created_at": "2026-10-06T21:46:26.462794+08:00",
+  "domain": "development",
+  "question": "仅将clean标签从train mean/RMS改为population mean=0/RMS=sqrt(1.25)，等n/sigma²=128的seed414跨n最低点反例是否保留？",
+  "recipes": [
+    {
+      "n": 32,
+      "noise_variance": 0.25
+    },
+    {
+      "n": 64,
+      "noise_variance": 0.5
+    }
+  ],
+  "seeds": [
+    411,
+    412,
+    413,
+    414
+  ],
+  "architecture": {
+    "input_dim": 4,
+    "hidden": "frozen ReLU",
+    "width": 128,
+    "scale": 0.03,
+    "feature_centering": "original training mean",
+    "feature_normalization": "original total RMS / sqrt(width)",
+    "head_bias": true,
+    "head_initialization": "zero",
+    "dtype": "float64"
+  },
+  "data_contract": {
+    "source": "saved r003 data, byte-identical train/audit x, W, features and epsilon; no RNG redraw",
+    "audit_rows": 2048,
+    "raw_target": "x0+0.5*x0*x1",
+    "old_normalization": "(raw-train_mean)/train_RMS",
+    "new_normalization": "raw/sqrt(1.25)",
+    "analytic_population_mean": 0,
+    "analytic_population_variance": 1.25,
+    "analytic_basis": "x0,x1 iid standard Gaussian; E[x0]=0, E[x0*x1]=0, E[raw²]=1+.25; antithetic dependence does not change each-row marginal",
+    "noise": "keep sigma² and the exact epsilon in normalized label units; do not rescale noise",
+    "invariants": [
+      "train_x",
+      "audit_x",
+      "hidden_weight",
+      "train_features",
+      "audit_features",
+      "epsilon"
+    ],
+    "cross_n_boundary": "same W seed but different original input draws; controlled normalization effect is within each n/seed only"
+  },
+  "optimizer": {
+    "type": "full_batch_GD",
+    "lr": 0.3,
+    "momentum": 0,
+    "weight_decay": 0,
+    "loss": "mean squared error",
+    "steps": 16384,
+    "threads": 1,
+    "device": "CPU"
+  },
+  "measurements": {
+    "grid": "every integer step 0..16384",
+    "oracle": "first global minimum of conditional clean audit risk over iid Gaussian train noise",
+    "risk": "actual clean GD audit MSE + sigma²*variance_unit, known fixed-feature spectral noise response",
+    "u_shape": "0<t_star<16384 and final risk - minimum >=.05, descriptive only",
+    "stored": "self-contained source, pinned old input manifest, new data NPZ+array hashes, per-cell metadata/NPZ, cumulative receipt",
+    "paired": "report all four seed tstars, old/new n64-to-n32 ratios, log2 ratios and min/max; no iid CI"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "execution_audit",
+      "claim": "8/8 finite; identical six invariant arrays; max train increase<=1e-10; saved/spectral/direct final risk errors<=1e-9; old/new variance error<=1e-9; affine clean signal reconstruction error<=1e-9",
+      "register_as_new_discovery": false
+    },
+    {
+      "id": "P2",
+      "kind": "controlled_prediction",
+      "claim": "seed414 population-normalized tstar(n64,.5)/tstar(n32,.25) is in (2,4], with both minima interior; the old ratio2.8125 counterexample remains",
+      "criterion": "supported iff 2<ratio<=4 and both integer minima are strictly interior; otherwise refuted. Remaining three seeds are complete descriptive pairs, not additional predictions.",
+      "rationale": "old train RMS at seed414 is 1.092899857/1.194169982; shared RMS1.118033989 changes signal scale moderately but removes cross-n train normalization. Prediction is prospective, not computed from new risk."
+    }
+  ],
+  "analysis_contract": {
+    "no_exclusions": true,
+    "retain_failed_prediction": true,
+    "report_mean_and_RMS_changed_together": true,
+    "affine_diagnostic": "a=old_RMS/sqrt1.25, b=old_mean/sqrt1.25; centered features and bias imply residual_pop(t)=a*residual_old(t)-b*(1-2eta)^t. This known linearity is an audit, not a new discovery."
+  },
+  "resume_protocol": "HEAD must contain byte-identical prereg/run/analysis and source pins; verify all pinned old inputs before training; first --max-new-cells 1 then audit and resume; no overwrite of successful cells",
+  "compute_budget_seconds": 1200,
+  "input_sha256": {
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/preregistration.json": "fdb393b27054d523a475d1fb390bb24c8b2b2cb83bf68e3a96095ddd11909b76",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/run.py": "15c95cb013ca76fbbca1b5b3f11ed9caf0a058dc865de006148f69977547cbad",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/analysis.py": "28629c916d9b3d8a73f0ac964ff8c82c1c6e8a36f1392b5456c849785d1b3728",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/summary.json": "d97afab5bc29776a2dc2028ceee8f8c92b2b36a6322c736e550b11a8e60bf180",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/receipt.json": "dcb30e9bcdd7020f685043fa02274befb037193d64716f9f25d4314b6101f7bf",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed411.npz": "09c330d7e3a7c3c5070eb130ed0cf64905fffe8e2c482eebdb80e3f8a0dd50e8",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed411.json": "b9cd0ac53f76a22d1026f83d8b66d16bab93c444416f2fe758a67cd23d0d30f0",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed411_var0.25.json": "f2a82926109e3e067ed8b9adbb3dd49a8486fe48598b3508a85e761587a4c89f",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed411_var0.25.npz": "c003527c4bf66839560ba238289df7a197d4cddc9683ee3b4506e0afc69b2632",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed412.npz": "50a3919f4f4f59152c3f1a400c2a8f26b7ed39d24c42467ab0382dfe3de8d666",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed412.json": "f27982ed684437cbbf53c9bd71a0e33e947929042a2e843464082f70c7ecf38f",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed412_var0.25.json": "3758f7ee5678c101cabd87df2833a49fecdffb325cb45101c0203da48cd0b255",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed412_var0.25.npz": "77b7c91faf3cd8b01020252ff9ac50bf2f0ada1e2c08ca70e00cb9bd4403fb57",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed413.npz": "674158eb9c084d49c89fbfca97d6d7c7e7a9f1d653b4803f958c5374eff2f690",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed413.json": "f39637de89d17e82e5ff17707787b3634f1abf434af8cf30420a6e6a96f8b907",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed413_var0.25.json": "1f2911f82357d7764d9a6418d09795dc3dbb9d25ee85f8979e1bc882853ee81f",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed413_var0.25.npz": "56cb688d5af151e4c05c4f1b9e41a675412572e1efdf372c7ee5b29cf6fc3773",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed414.npz": "520e140dccbbfc2d841d5615c6c5828b6c5f3deb3ee9525be3b1d2bc390ba17b",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n32_seed414.json": "575c4f2e8336e2d8798c501746aa01b5a525fe6d47aba0b093916fb40e333bc1",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed414_var0.25.json": "a5768b5434c774d0c4b2bc37e931926e7f15a657dcdee2ff3a7bc54ab8542f43",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n32_seed414_var0.25.npz": "7877ade02cb0ff11ba9204093984df9b8306d6ffc8b9d7fde59ef3bcb9329d29",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed411.npz": "fb8397ea38970429c4c81a7eb7aae6e92da3952b817283fcafb848bbacb97992",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed411.json": "04902a5f4b744d25aec57954792af1c04bc9eaef1a3c8a2a42c420469293d044",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed411_var0.5.json": "7347420c5de7b42fbbf406f3db9d670a8a0575c50c3b488e5688023b698d8bc9",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed411_var0.5.npz": "06190d36ccfab1d6bb68f411747888b55aeb7028d5ddd8f6130a25d8e65eed8c",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed412.npz": "9be7a247f0532d43d22ab807d67da344c839cc644ba2c44043b1f79bcfbc1ddf",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed412.json": "ea82a86707b3bd3536bc4dcf104c7fdbfb7e0d8a7a8c884f824d158f9570e582",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed412_var0.5.json": "fbe8b7c7ee68d8b5455b2536fb50e5c010c47f79399049e097cb397bcd0a1209",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed412_var0.5.npz": "21a19804d433248660d225873204481a715a0aed909db90fe1f74081e2c71657",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed413.npz": "ed7b7b3612d9f0121c14478702fc2c2ca96a6bf6506f6a26429cb5daccda79f1",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed413.json": "ec8e47bb854cf272fb877d329e110da4304135f48ef82b566dc18e78d7f0f90b",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed413_var0.5.json": "c4017b1cbb30a326ea0c7ce6ce82efb250c44613afaf3417efe35498dab82656",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed413_var0.5.npz": "a6333c08c806dc1a732815c89d3bcc7cac9fec3a1c0777bbec9fe2da4f7a3da6",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed414.npz": "14ce32862ba9e73da81b27cda96acdfd94e68b691f8797ae3d4a0aa7f5103a92",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed414.json": "6922be3453b484f7a85f82f3d96b933b6c65673d7d94bce1953e2cf810413c69",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed414_var0.5.json": "7ea8b6e858b71ed76b7592079d6cb1a4b13e3bcc75552740839285161e8680a9",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/results/n64_seed414_var0.5.npz": "689b392e87415a429defe7f128a6a7f4e2de93c815cfa36a93e97633579d1dd9"
+  },
+  "execution_source_sha256": "474ab07bb9b221694b8b1f2ad50172715d49f52764cf4ec85355324077717556",
+  "analysis_source_sha256": "6274ccf564d8c8a2d24576c12736942666e6116f0d03e981ccd9922b415c8fee",
+  "boundaries": [
+    "仅development、d4 Gaussian mixed target、frozen ReLU width128、两个recipe与四seed411–414、eta.3/mom0/nodecay、float64、0..16384步。",
+    "仅识别train vs population标签mean/RMS联合归一化干预，不拆分mean/RMS独立作用；噪声固定在归一化单位，不固定raw单位SNR。",
+    "跨n原始输入与经验谱不同；反例存活不能单独证明谱机制、输入机制或n的因果效应。",
+    "oracle依赖clean train/audit标签；不外推train-only早停、learned hidden、Adam、mini-batch、CE、无限步数或sealed OOD。"
+  ]
+}

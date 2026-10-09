@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 24/24 cells; data7339 supported P1 in 4/4 units with 12/12 D>0, counterexamples and uncertainty were retained, and scientific closeout plus verification receipt were committed.

@@ -1,0 +1,127 @@
+{
+  "round": 42,
+  "direction_round": 4,
+  "direction": "D10_depth_propagation",
+  "domain": "development",
+  "question": "固定width32、输入/标签、初始参数与规则、depth1/2/4/6、T4096及full-batch SGD，仅将eta=.005升至.02；全核12/12两倍内是否保留？",
+  "created_at": "2026-10-07T05:16:45.406498+08:00",
+  "recipe": {
+    "n": 32,
+    "input_dim": 3,
+    "width": 32,
+    "hidden_depths": [
+      1,
+      2,
+      4,
+      6
+    ],
+    "init_seeds": [
+      1103,
+      1129,
+      1151
+    ],
+    "data_seed": 260071,
+    "input": "NumPy default_rng(data_seed).normal((32,3)), float64",
+    "target": "raw=x0+0.5*x0*x1; y=(raw-mean)/RMS; same x/y for all cells",
+    "architecture": "depth hidden Linear+SiLU then scalar Linear head; all Linear no bias, no LN, no residual",
+    "initialization": "hidden layer l seed=init_seed+10000*l, normal*sqrt(2/fan_in); head seed=init_seed+900000, normal/sqrt(width); exactly same width32 initial weights as r034, common prefixes and head across depths",
+    "optimizer": "full-batch SGD, momentum=0, weight_decay=0",
+    "loss": "mean((f-y)^2)/2; update uses eta",
+    "eta": 0.02,
+    "steps": 4096,
+    "checkpoints": [
+      0,
+      1,
+      8,
+      32,
+      128,
+      512,
+      2048,
+      4096
+    ],
+    "dtype": "torch/numpy float64, CPU, one thread"
+  },
+  "definitions": {
+    "J_l": "output Jacobian w.r.t. parameter group l",
+    "K_l": "J_l J_l^T/n; K_sum=sum_l K_l",
+    "frozen_t50": "first integer t with sum_i energy_i*(1-eta*lambda_i)^(2t)<=0.5, exact eigenspectrum search up to 2^60; null energy >=0.5 means unreachable",
+    "t_slow": "max_l frozen_t50(K_l), infinite if any group unreachable",
+    "t_actual": "first integer t=1..4096 with loss(t)<=loss(0)/2; otherwise right-censored >4096",
+    "ratio": "candidate t50/t_actual; pass iff 0.5<=ratio<=2",
+    "parameter_groups": "one weight matrix per hidden layer plus head; head is included in both candidates",
+    "eigenvalue_rule": "lambda <= 1e-12*max(lambda_max,1e-30) treated as zero; negative lambda < -1e-10*max(lambda_max,1e-30) invalid; eta*lambda_max>=2 unstable",
+    "r_t": "f_t(x)-y; a common output residual, no separate hidden-layer loss",
+    "q_l": "r_t^T K_l r_t/(r_t^T r_t), a local residual direction rate",
+    "layer_residual_energy": "(V_l^T r_t)^2 in layer output-space eigenbasis; not layer loss"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "text": "eta=.02、width32下最慢参数组12/12为有限候选且候选/实际T50>2。",
+      "criterion": "12/12 complete cell with finite candidate, finite actual and ratio>2; unstable/unreachable/diverged/censored do not support finite overestimation."
+    },
+    {
+      "id": "P2",
+      "text": "eta从.005升至.02后，全核保留12/12在两倍内：四个深度各3/3满足.5<=t_sum/t_actual<=2。",
+      "criterion": "All 12 cells complete with finite actual and candidate; sum_comparison pass count exactly 12, four depths 3/3."
+    }
+  ],
+  "decision_rules": {
+    "units": "4 depth recipes x 3 init seeds = 12 training cells; seeds are repeats",
+    "censoring": "Twofold comparison: unreachable candidate with finite actual fails; actual>4096 and finite candidate<=2048 fails, other censored cases unresolved. P1/P2 require complete finite cells. Any complete unstable/unreachable slowest, or finite slowest ratio<=2, refutes P1; any resolved twofold fail refutes P2; unresolved cells prevent support. Per-depth P2 requires 3/3 passes and is refuted by any fail.",
+    "scope": "development only; 4 depth recipes x 3 init repeats; only eta .005 -> .02 changes; same width32 x/y, parameters, initial functions and initial Jacobians/kernels. No depth monotonicity/causal/width mechanism/unseen-depth/OOD claims.",
+    "limits": "K=sum K_l and fixed-kernel recursion are known identities; spectra depend on parameterization; kernel drift and residual-direction changes are not intervened",
+    "statistics": "all seed ratios and same-seed adjacent-depth differences; within-depth t95 intervals only all finite; initialization uncertainty only, no pooled iid p value",
+    "failure": "diverged training or invalid_psd/search_limit candidates unresolved; preserve errors, no success overwrite. unstable candidates fail the twofold criterion and cannot support the finite ratio>2 prediction.",
+    "eta_branch": "eta*lambda_max>=2: candidate unstable, twofold fail, cannot support P1; slowest retains unstable if any group unstable. Known old development maximum multiplied by four predicts .7713375275328759<2; this is pre-registration arithmetic, not blind discovery or training stability proof."
+  },
+  "saved_evidence": [
+    "normalized input/target",
+    "initial/final parameters",
+    "loss every integer step",
+    "checkpoint predictions/residuals/J/K/eigenspectra/residual energies/hidden RMS",
+    "source and contract hashes"
+  ],
+  "execution": {
+    "python": "python3",
+    "source_pinning": "manifest pins run.py, analysis.py, verify.py; all must match one ancestor commit before training",
+    "resume": "existing JSON and NPZ contract/hash must match; orphan NPZ is error",
+    "budget": "CPU small tensors, under 20 minutes; no network/GPU/API/outside writes; expected seconds per cell"
+  },
+  "baseline": {
+    "study": "r034_width32",
+    "summary_sha256": "3f50b11fb6a7c7a6d682621ccaac8ced86fafded6ce117a8346240dce1673dcd",
+    "results_sha256": {
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth1_seed1103.json": "134cc4f3c5bf59b4fd7688d9ebe694fe86038e32cf6c650885b183b71815684a",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth1_seed1103.npz": "2426d8b035963a0622035d7e38f379677cda6e5644abd284d14e16fcab300631",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth1_seed1129.json": "9fd1857b5a87fa08bdd4330231096889d7869286d50b6781f43f45ff9d7b3c1d",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth1_seed1129.npz": "1593912959a13dcaac966d361d6dc3af3d758a19ac924d48d590e3e8c8d75efb",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth1_seed1151.json": "c6c984fa63ce8c1c2fda6a76512b84c45d39bec4360a4e3dd654f6cc540204cf",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth1_seed1151.npz": "597b5253f479ad726807dc68a132eec6ea2ef5e64d3120d293d48dd0e3ea3287",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth2_seed1103.json": "c677ee06a449a00681dd7abfa9df00384a0874a095ece4de83941579c22d4a6b",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth2_seed1103.npz": "ec12802a54db5ae48412ef2882e8956f3698f557c642d80700d2593d5dc3a902",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth2_seed1129.json": "0bbe461b8d03594eaafb07602f8c76dc21dd31f133fcf563af025dd881a66854",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth2_seed1129.npz": "28e206bb26414f1ec37de8560434403546d834c8f0d10ed415420988bd39d7e9",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth2_seed1151.json": "77b3a92f5b7ba2d63f9e1e70245d69f740350b11e5586259b6c2b176799e1f3d",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth2_seed1151.npz": "c601cc08642fb75f5cb776d8da7535653bfcbd1204b315239de7fd06821f39cd",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth4_seed1103.json": "772d2529b385d665aefb9dbcbf23e02bc66dba15597295ed4166c0fddfd1a560",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth4_seed1103.npz": "6be89592d14ac862d9bd455d4719bfc22feffad4542fb93fb0e7874127b26d98",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth4_seed1129.json": "228f5cfb706faa9f9d3b1f17cf378bf82214bb9922e3b1ce0117db6d68b1bab9",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth4_seed1129.npz": "3a19d592df0ac13ab205e6d129f67174c5f44e049a5d08fc43d2c1272fb223b2",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth4_seed1151.json": "ad5f5fc127976b4361f6cb10ec8ac75fdfc81235aca60295956efbd6acb8faab",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth4_seed1151.npz": "8b7f749c6fac2504a6e8c81a7bb7a887739aca12431e9e3066f7d3a46a657886",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth6_seed1103.json": "aea1efd8c268a6ea93d288d0eef03fe48eaad5dac81946a656acc32fe6e9f79e",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth6_seed1103.npz": "d9272a93f282f1b1558b61c381fb83fbee6901b47a1693c239586bed8b143b4c",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth6_seed1129.json": "2b65cfd38e4b823590ec9ebf060e63bf9995fb0c25baf1ae488bba2c8c1ffd7d",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth6_seed1129.npz": "df9ad4b371cf9ca7a55a0d9a58b2b501711b25d7a4173cec1a5f33aa6f86a180",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth6_seed1151.json": "4219c76d1dcccb004ee811a9c19e82044860c8e9de84544dc0a25d27682e54e8",
+      "directions/D10_depth_propagation/studies/r034_width32/results/depth6_seed1151.npz": "e7a44ea3b04c1ab4a64b1b79b64b33674100d06583c2597b58e8c5f389ce4dcf"
+    },
+    "old_evidence_snapshot_sha256": "d9b05808314857986bb68c25ef612a08f6499fb78634d699929f4395c2703a6a",
+    "comparison": "same cell eta .005 vs .02; x/y, target mean/RMS, shapes, parameters and all checkpoint0 arrays bitwise match; old r026/r030/r034 successful cells never overwritten"
+  },
+  "prediction_basis": {
+    "observed_prior": "r034 width32 eta=.005 all 12 sum ratios .666667..1.052632 and all 12 slowest ratios >2; extrapolation to eta=.02 is prospective development prediction",
+    "known_arithmetic": "Maximum initial eta*lambda_max under new eta is old .19283438188321898*4=.7713375275328759; no new kernel measurement before commit."
+  }
+}

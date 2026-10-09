@@ -1,0 +1,1 @@
+ROUND_RESULT: failed | Read-only .git blocked preregistration and final commits; 0/12 cells ran, the prediction remains unevaluated, and D6 scripts, failure evidence, and handoff files are saved.

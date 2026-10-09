@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 4/4 new-start fits with zero training; maximum relative tau_A difference was 6.375948e-8, supporting the 1% prediction, with verification and closeout committed.

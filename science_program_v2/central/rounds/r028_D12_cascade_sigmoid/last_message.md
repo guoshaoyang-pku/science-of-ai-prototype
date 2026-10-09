@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed and committed 12/12 cells; single logistic passed spectral ratios 12/15 and failed 20/25, while equal-weight double logistic passed all four under the registered error thresholds.

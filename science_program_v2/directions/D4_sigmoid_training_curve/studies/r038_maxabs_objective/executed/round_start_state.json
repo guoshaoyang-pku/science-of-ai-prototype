@@ -1,0 +1,487 @@
+{
+  "program": "science_program_v2",
+  "status": "running",
+  "round": 38,
+  "started_at": "2026-10-06T16:58:09+08:00",
+  "supervisor_pid": 2512,
+  "directions": {
+    "D1_u_effective_time": {
+      "rounds_done": 4,
+      "status": "active",
+      "last_round": {
+        "round": 37,
+        "direction": "D1_u_effective_time",
+        "result": "ok",
+        "summary": "完成36/36 cell；λ_fast=.05使低α稳态误差降至23.6842%–47.6190%，启动误差47.3684%–69.0476%，高α仍≤5%，全部证据与收尾提交已保存。",
+        "elapsed_sec": 1094.6
+      },
+      "next_question": "r037已完成36/36cell；先核验收尾commit，不重跑/覆盖r009 60cell、r017 48cell或r037成功cell。新谱[.001,.05]下低alpha稳态23.6842%–47.6190%、启动47.3684%–69.0476%，原两种>=50%判据0/3且启动仅alpha=.005/.009达标；高alpha仍<=5%。下一轮仅development：改变一个未测谱或q因素，先写数值预测/pinned源码并commit；不把注册前已知标量递推算出的预测当盲新发现，不独立归因Rayleigh/梯度尺度，不外推其他q或Adam。",
+      "last_round_status": "experiment_complete_final_commit_blocked",
+      "last_study": "directions/D1_u_effective_time/studies/r001_momentum_startup/summary.json",
+      "last_round_result": {
+        "round": 9,
+        "direction_round": 3,
+        "result": "partial",
+        "summary": "60/60 cell完成，P2/P3通过，P4在6/10配对条件被推翻；冻结预注册commit 7da7d8a早于全部训练；收尾Git写权限被拒。",
+        "preregistration_commit": "7da7d8a7acb274cd88a242e2e564c92ddca33aa3",
+        "saved_cells": 60,
+        "final_commit": "b05588b"
+      }
+    },
+    "D2_overfitting_u_curve": {
+      "rounds_done": 3,
+      "status": "active",
+      "last_round": {
+        "round": 19,
+        "direction": "D2_overfitting_u_curve",
+        "result": "ok",
+        "summary": "Completed 8/8 cells; population label normalization retained the seed414 counterexample (201/62=3.24194), P2 passed, and evidence plus central updates were committed in a680b3e with verified receipt be76228.",
+        "elapsed_sec": 1198.8
+      },
+      "next_question": "r019完成8/8 cell，冻结214a8b2早于训练；先核验本轮收尾a680b3e及final_commit_verification.json，不重跑或覆盖旧r003的60cell及新r019的8cell。新P2 supported：仅改clean标签为population mean0/RMS√1.25后seed414为62/201步，比值3.241935仍>2，四seed新比值1.005435–3.241935。mean/RMS为联合干预，噪声固定归一化单位；不能归因谱/输入机制或train-only早停。原P2 refuted40/44、P3 supported57/60保留；r011真实收尾11d6ba8见新r011_closeout_audit。下一小问题建议：保留本轮所有输入/W/features/epsilon与pop归一化、eta.3/mom0、T16384、四seed，仅把σ².25/.5同时减半到.125/.25，检验等n/σ²=256的seed414反例是否仍>2；先写新数值预测与pinned源码并commit，未取得匹配提交不训练。全部development。analysis.py原NumPy bool序列化错误保留，run_analysis.py仅转scalar类型，不修改科学计算。",
+      "last_round_status": "experiment_complete_final_commit_blocked",
+      "last_study": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/summary.json",
+      "last_round_result": {
+        "round": 11,
+        "direction_round": 3,
+        "result": "partial",
+        "summary": "60/60 cell完成；P2 refuted 40/44，P3 supported 57/60；冻结提交d5fae2c早于训练，hash与独立风险核验通过；收尾Git写权限受阻。",
+        "preregistration_commit": "d5fae2cdbf2eaf66f598e74f001684a4be98ba4d",
+        "execution_head": "37ee424dc87f206e0226f5c3b56a0a048cebdae2",
+        "saved_cells": 60,
+        "final_commit": null,
+        "rounds_done_before": 2,
+        "rounds_done_after": 3
+      }
+    },
+    "D3_capacity_resolution": {
+      "rounds_done": 3,
+      "status": "active",
+      "last_round": {
+        "round": 20,
+        "direction": "D3_capacity_resolution",
+        "result": "ok",
+        "summary": "Completed 6/6 cells; matching both spectral moments and first-step loss drop still yielded 41/319 steps (7.78049×); reports, KB, and handoff saved, closeout commit 4b9f87e verified.",
+        "elapsed_sec": 1141.2
+      },
+      "next_question": "r020已完成6/6cell，先核验收尾commit；预注册f6fc2a9早于训练，原r004/r01218cell和新r0206cell不要覆盖或重跑。A(w1=1/55,w3=54/55)与B(w2=2048/4235,w9=2187/4235)共同m1=7/55,m2=1/33、L0=.5与实际第一步下降=.05984848485，T1%=41/319，比7.780488，P1/P2/P3 supported；保存参数、eigh与标量复算通过。旧matmul警告根因未定保留，本轮einsum无该警告。下一小问题：保持n=d=9、p2谱lambda_i=i^-2、eta=.5/mom0/nodecay、L0=.5、epsilon=.01，采用至少五个可用模态，先解析审查两个非负目标同时匹配m1、m2与sum(w/lambda)=theta_star范数平方的可行性，再写新数值预测和pinned源码并commit，取得匹配提交后再训练。目标参数范数本轮仍不同(487/55 vs2407/55)，高阶矩与慢能量共同变化，不能独立归因。全部development，不外推learned features或永久表示容量；旧r004失败措辞纠正保留。",
+      "last_round_status": "failed_before_training",
+      "last_study": "directions/D3_capacity_resolution/studies/r004_matched_rayleigh/summary.json"
+    },
+    "D4_sigmoid_training_curve": {
+      "rounds_done": 3,
+      "status": "active",
+      "last_round": {
+        "round": 18,
+        "direction": "D4_sigmoid_training_curve",
+        "result": "ok",
+        "summary": "Completed 27/27 cells; P2 refuted at alpha=.01 and P3 supported; evidence, reports, and handoff committed in 8f96d00 with verified receipt bbfc9c5.",
+        "elapsed_sec": 1063.6
+      },
+      "next_question": "r018已完成27/27cell，先核验收尾commit；新预注册c07224e先于训练，r010真实收尾37ee424已审计，旧15cell与新27cell都不得重跑或覆盖。原P2 refuted：alpha=.01 maxabs=.06476095>.05，alpha=.99通过；P3 supported：.25/.5/.75全部不足。纯快alpha=0同样不足，不能全归因双阶段；0/1/.1/.9仅描述。下一小问题建议：仅从本轮保存alpha=0/.01曲线读取，保留n=d=2、谱[.01,1]、eta=.1/mom0/L0=1、平台1/0、原150点log网格与.03/.05阈值，改用最大绝对误差选解，与原最小二乘配对检验不足是否依赖拟合目标。先写新数值预测、pinned源码、输入NPZ/summary hash并commit，取得匹配提交后才拟合；不新增训练，不改原结果，不报告连续临界alpha/谱比，不把拟合中点当真实半衰期。全部development；不外推自由平台、learned features或sealed OOD。",
+      "last_round_status": "experiment_complete_final_commit_blocked",
+      "last_study": "directions/D4_sigmoid_training_curve/studies/r002_two_mode_logistic/summary.json",
+      "last_round_result": {
+        "round": 10,
+        "direction_round": 3,
+        "result": "partial",
+        "summary": "15/15 cell完成；谱比1/3/10拟合足够，30/100不足，P2/P3 supported；已有冻结commit先于训练，收尾Git写权限被拒。",
+        "preregistration_commit": "91fc940b310612a5b0a157366ffb97168160db8e",
+        "execution_head": "665d1373be8aac653800f00e8a9416d018895223",
+        "saved_cells": 15,
+        "final_commit": null,
+        "rounds_done_before": 2,
+        "rounds_done_after": 3
+      }
+    },
+    "D5_ln_geometry": {
+      "rounds_done": 3,
+      "status": "active",
+      "last_round": {
+        "round": 21,
+        "direction": "D5_ln_geometry",
+        "result": "ok",
+        "summary": "Completed 40/40 measurements with no new training; both Rayleigh association predictions were refuted, evidence and handoff saved, closeout bf6070c verified and receipt committed in ffb9e1b.",
+        "elapsed_sec": 1193.9
+      },
+      "next_question": "r021已完成40/40初始化测量，0新训练，复用r013120cell；先核验本轮收尾commit及executed/final_commit_verification.json，勿重跑或覆盖旧120训练及新40成功cell。冻结3091e60早于测量；q为共享input/hidden Linear weight/bias Jacobian沿居中clean-target的Rayleigh商，排除head/LN affine；LN在20/20提高83.831–368.100倍，但P1总体r=.394664832/Gram=.282604295、优势.112060538未达.5/.15，P2函数去均值r=-.076836549未达.3，均refuted须保留。新Gram是三offset均值，旧offset0 r=.420774419反例不改；初始化60/60条件数更低、训练仅7/60 LN下降事实保留。下一小问题：同固定head recipe与共享Linear核，初始化mean-to-centered coupling ell=||P K 1||²/n的LN/noLN log比是否比目标Rayleigh更关联同seed B=-Δchord；先明确尺度、参数集合/float32边界和数值预测，pinned源码及旧输入hash先commit，未取得匹配提交不测量。优先仍复用120训练cell，无因果干预/sealed OOD；解析PK1只解释fixed-kernel局部耦合，不能直接归因nonlinear/minibatch/weight-decay/test终点；原matmul警告根因未定，旧代码不改。",
+      "last_round_status": "failed_before_training",
+      "last_study": "directions/D5_ln_geometry/studies/r005_gram_condition/summary.json"
+    },
+    "D6_kernel_drift": {
+      "rounds_done": 3,
+      "status": "active",
+      "last_round": {
+        "round": 22,
+        "direction": "D6_kernel_drift",
+        "result": "ok",
+        "summary": "Completed 12/12 cells; both predictions passed, the target readout reduced MAE from 0.550 to 0.441, counterexamples were retained, and evidence plus handoff files were committed and verified.",
+        "elapsed_sec": 1514.6
+      },
+      "next_question": "r022已完成12/12cell，预注册f6dce72早于训练；先核验本轮收尾commit和final_commit_verification.json，勿覆盖旧r00612cell与新r02212cell。E/W/T冻结新seed MAE=.550345073/.498007947/.441188817，T改善.109156256达.70/.08，W改善.052337126<.08，P1/P2 supported；但T仅7/12seed更好、4recipe改善CI皆跨零、mixed_sine×width32均值变差.014469959、product×8×701绝对误差1.229845961须保留。旧方向反例mixed_sine×8为0/3不可改；旧真正科学收尾3dd7adf，03a3741只日志。下一小问题建议：同4recipe与seed701/719/737、d3/n32、归一化/架构/SGDeta.05/mom0/nodecay/T256和全部三公式，只换预先指定的新data_seed，检验冻结T MAE<=.70且比E改善>=.08能否保持；先写新development数值预测和pinned源码commit，匹配提交后训练。不重拟合系数，不当OOD/因果/rt拟合/test外推。26旧输入hash不变，新einsum无旧matmul警告，旧根因未定。源码review提醒孤立early恢复当前可重复未成功轨迹，必须审计后再恢复；成功cell不可覆盖。",
+      "last_round_status": "experiment_complete",
+      "last_study": "directions/D6_kernel_drift/studies/r006_early_direction/summary.json",
+      "last_round_result": {
+        "round": 14,
+        "direction_round": 2,
+        "result": "ok",
+        "summary": "12/12 cell；P1 3/4单元通过，mixed_sine×width8 0/3；历史冻结提交63ccb32早于训练，独立hash/finite/递推核验通过。",
+        "preregistration_commit": "63ccb32",
+        "saved_cells": 12,
+        "final_commit": "03a3741"
+      }
+    },
+    "D7_train_gain_test_harm": {
+      "rounds_done": 3,
+      "status": "active",
+      "last_round": {
+        "round": 23,
+        "direction": "D7_train_gain_test_harm",
+        "result": "ok",
+        "summary": "Completed 12 new noisy cells with 12 saved clean controls; P1 passed 4/4 units, three initialization intervals crossed zero, and reports, KB, handoff, and verified closeout were committed.",
+        "elapsed_sec": 1260.4
+      },
+      "next_question": "r023完成12/12新sigma1 cell、复用12旧sigma0；06da355同提交预注册/pinned源码先于训练。先核验本轮科学收尾与final_commit_verification.json，不重跑/覆盖旧r00724cell及新r02312cell；全部旧hash不变。新noise733123下P1 supported4/4、12/12 D>0，四meanD=.432276/.466452/.263984/.127211，但3个95%初始化CI跨零；新4均值均低，radial×8 init11反增.353716，不能写成全seed下降。radial×32新noisy3/3 H1<0且真实C128→512<0，D>0不等于终点/晚期损害；两旧分歧与旧matmul警告根因未定保留，旧复算<7e-15、新旧合计7.147061e-15分开。旧真正科学收尾8fa680d、0c64176仅收据。下一小问题：固定noise733123、d5 Gaussian train32/test256、mixed_sine/radial×width8/32、init11/29/47、sigma0/1、SGD eta=.05/mom0/nodecay/T512，只换预先指定新data seed（建议7339），检验至少3/4 meanD>=.02且各>=2/3 init D>0；新seed、数值预测与pinned源码/旧引用hash先commit，无同commit匹配不训练。换data同时改输入/clean目标/train归一化，不拆单机制。全部development，不作机制比例、跨噪声概率或train-only早停外推。",
+      "last_round_status": "failed_before_training",
+      "last_study": "directions/D7_train_gain_test_harm/studies/r007_noise_interaction/summary.json",
+      "last_round_result": {
+        "result": "failed",
+        "summary": "预注册与收尾git add均因.git/index.lock写权限失败；未训练，0/24 cell、P1未评估。B02旧证据复核确认确定性clean标签，8/8 train增益与6/8均值test差距为正，无新科学claim。"
+      }
+    },
+    "D8_activation_pathway": {
+      "rounds_done": 3,
+      "status": "active",
+      "last_round": {
+        "round": 24,
+        "direction": "D8_activation_pathway",
+        "result": "ok",
+        "summary": "Completed and committed 216 near-root activation measurements with zero training; all three predictions passed, the mixed-law error was ≤0.1193%, and prior evidence was preserved.",
+        "elapsed_sec": 1551.7
+      },
+      "next_question": "r024完成216/216初始化测量、0新训练；完整合同/pinned源码22ebe0c早于全部测量（406cfe1初注册）。先核验科学收尾与executed/final_commit_verification.json；不重跑/覆盖旧r01672成功cell和新216cell，150旧文件hash/mtime不变、delta0的18cell逐位一致。保留b0/1 a²与精确b* a⁶；近根固定δ=0/±1e−5/±1e−4/±1e−3/±1e−2、a=.0125/.025/.05/.1的P1–P3全部supported，主混合误差≤.001192850；近64窗口0/±1e−5通过、±1e−4全越出只作网格括号。+.001增长48.047861–155.318944、−.001为19.911618–31.026926，正侧5/6>100，seed104仅48.047861；抵消可使有限指数超6或低2，不能写单调混合/连续临界。a_eq是分项等能量，κ1.088258–2.154200；不等于目标核或训练性能。原pinned分析首cell输出TypeError与pooled误差CI问题保留，run_analysis.py仅处理打印/删无采样解释CI，科学计算不改。下一轮只选一个development小问题：保持旧input/W，预固定λ=δ/a²（建议−2/−1/0/1/2）与a=.0125/.025/.05，检验R/a⁶同seed跨scale折叠的数值误差；先写明确新预测和pinned源码/输入hash并commit，未匹配提交不测量，无新训练/test/OOD。",
+      "last_round_status": "experiment_complete",
+      "last_study": "directions/D8_activation_pathway/studies/r008_bias_inflection/summary.json",
+      "last_round_result": {
+        "round": 16,
+        "direction_round": 2,
+        "result": "ok",
+        "summary": "72/72 cell；b=0增长3.984159–3.991788，b=1增长4.002060–4.003272，inflection增长63.953437–63.985564；P1/P2/P3通过；独立首cell与全量证据复核通过。",
+        "preregistration_commit": "d4c63f8",
+        "saved_cells": 72,
+        "final_commit": null
+      }
+    },
+    "D9_minibatch_noise": {
+      "rounds_done": 3,
+      "status": "active",
+      "last_round": {
+        "round": 33,
+        "direction": "D9_minibatch_noise",
+        "result": "ok",
+        "summary": "Both M64 ratios entered [0.5,2] at 1.163265 and 0.767974; bootstrap widths shrank to 11.20% and 27.80% of M8, old failures were retained, and all evidence and handoff updates were committed.",
+        "elapsed_sec": 1018.6
+      },
+      "next_question": "r033完成两个M64补足cell、112新轨迹+16保留、0新full；冻结b046352早于训练。seed411/412同标签57/49=1.163265、235/306=.767974，CI[.938776,1.489796]/[.660131,1.415033]，宽度旧值.112033/.277978，P1/P2/P3 supported。先核验本轮收尾和final_commit_verification，不覆盖旧8/64轨迹及241个旧文件；旧真实科学收尾ea1a3e8已审计、原final回执缺失。下一小问题：固定原data/epsilon、eta=.1/B8/σ²1、seed411/412、T2304与同标签full分母49/306，先预注册独立64条batch流块r64..127，预测各点仍在[.5,2]且95%条件bootstrap上界<2，再pinned源码commit后训练；与当前r0..63独立块配对描述，不替换/合并追溯改判旧结果。仅development，不改变窗口/epsilon，不外推精确batch期望或连续eta；保留r025/r029 P1/P2失败、期望分母混杂及matmul警告根因未定。"
+    },
+    "D10_depth_propagation": {
+      "rounds_done": 3,
+      "status": "active",
+      "last_round": {
+        "round": 34,
+        "direction": "D10_depth_propagation",
+        "result": "ok",
+        "summary": "width32 eta=.005 完成12/12 cell，最慢组12/12超过两倍，全核12/12在两倍内，证据与交接已提交。",
+        "elapsed_sec": 1017.7
+      },
+      "next_question": "r034完成12/12 width32 eta=.005 cell，训练7.105134秒；冻结15be488早于训练，P1/P2 supported，全核12/12 [.5,2]，最慢组12/12>2。先核验收尾及final_commit_verification，不覆盖旧width16两学习率与新width32成功cell。宽度配对实际比值.079277–12，depth2_seed1151与depth4_seed1151变慢；参数形状/量与初始函数共同改变。下一小问题：固定width32、输入/标签、初始化seed与规则、depth1/2/4/6、T4096及full-batch SGD，只将eta从.005升至.02；先写明确新数值预测与pinned源码并commit，匹配提交后训练，检验全核12/12两倍内是否保留。保留旧全核反例、不稳定分支历史差异与matmul警告，不作宽度独立机制、深度单调、因果或OOD外推。"
+    },
+    "D11_width_scaling": {
+      "rounds_done": 3,
+      "status": "active",
+      "last_round": {
+        "round": 35,
+        "direction": "D11_width_scaling",
+        "result": "unknown",
+        "summary": "",
+        "elapsed_sec": 57.0
+      },
+      "next_question": "r031完成66/66新cell、复用66旧cell；预注册cc2f552早于训练，先核验收尾与final_commit_verification，不重跑/覆盖成功cell。固定n8192、sqrt(n)缩放前d非零X/y且余sample0，在d8..8192网格p1/两目标/seed/eta.5mom0nodecay/L0.5/epsilon.01下预算全与旧n=d一致，配对差[0,0]步、曲线maxabs4.440892e−16，P1/P2 supported；幂律与Rayleigh反例保留。旧r027真正科学收尾37d1ea6，旧无final_commit_verification，本轮审计补核145文件。非零样本仍d，不能写增加独立样本无效或learned width/lazy边界。下一小问题建议保持本轮n8192、d网格、目标权重/seed/优化器，仅将lambda_i=i^-1/h_d（h_d=sum1/i），固定trace=1；检验T/(d h_d)是否在两目标渐近系数log100/2、log100的预注册误差内，并对照原d幂律偏差；先明确逐d整数或范围预测、pinned源码和旧输入hash并commit，无匹配提交不训练。全部development，不作随机特征或OOD外推。"
+    },
+    "D12_cascade_sigmoid": {
+      "rounds_done": 3,
+      "status": "active",
+      "last_round": {
+        "round": 36,
+        "direction": "D12_cascade_sigmoid",
+        "result": "ok",
+        "summary": "All 6 saved r30/r100 curve evaluations passed the unchanged formula thresholds with no training or fitting; reports, KB, handoff, and verified closeout committed.",
+        "elapsed_sec": 803.9
+      },
+      "next_question": "r036完成6/6公式评估、0新训练/拟合，预注册2e3bc3c早于全部评估；先核验本轮科学收尾与executed/final_commit_verification，不重跑/覆盖r02812、r0326、r0366成功cell。h_i=log2/[-2log(1−ηλ_i)]、b=2log2、平台1/0、幅度.5/.5、原150点等权网格0..4997下r30/100分别RMSE .027332780/.023997468、maxabs .048985027/.041835390，P1 supported；同曲线原单段拟合仍失败，对照同时改变段数/参数取得方式，不独立归因。前轮29/59回执hash已审计，130历史与12新结果文件hash/mtime不变。下一小问题：仅读r028已保存r12/15曲线，保持同一公式/原网格/平台/幅度/阈值，用旧单模态局部公式失败写明确新数值预测、输入hash与pinned源码并commit，匹配提交后才评估；不调h/b、不训练、不拟合。全部development，不作连续临界/参数可辨认/物理merging/grokking/MLP/test/OOD外推，旧D4纯快和alpha.01失败保留。"
+    }
+  },
+  "history": [
+    {
+      "round": 1,
+      "direction": "D1_u_effective_time",
+      "result": "failed",
+      "summary": "Read-only .git permissions blocked both commits; no training ran, and the preregistration, scripts, failure evidence, and handoff updates are saved.",
+      "elapsed_sec": 760.6
+    },
+    {
+      "round": 2,
+      "direction": "D4_sigmoid_training_curve",
+      "result": "failed",
+      "summary": "Read-only .git permissions blocked preregistration and final commits; no training or fitting ran, and the scripts, failure evidence, reports, and handoff updates are saved.",
+      "elapsed_sec": 811.4
+    },
+    {
+      "round": 3,
+      "direction": "D2_overfitting_u_curve",
+      "result": "failed",
+      "summary": "Read-only .git blocked both commits; no training ran, and the preregistration, scripts, failure evidence, and D2 handoff files are saved.",
+      "elapsed_sec": 811.9
+    },
+    {
+      "round": 4,
+      "direction": "D3_capacity_resolution",
+      "result": "failed",
+      "summary": "Read-only .git blocked preregistration and final commits; 0 cells ran, and D3 scripts, failure evidence, reports, and handoff updates are saved.",
+      "elapsed_sec": 824.5
+    },
+    {
+      "round": 5,
+      "direction": "D5_ln_geometry",
+      "result": "failed",
+      "summary": "预注册与收尾 commit 均因 `.git/index.lock` 写权限被拒，未启动训练，保存 0/120 cell，Gram 条件数与 chord 预测未评估。",
+      "elapsed_sec": 645.0
+    },
+    {
+      "round": 6,
+      "direction": "D6_kernel_drift",
+      "result": "failed",
+      "summary": "Read-only .git blocked preregistration and final commits; 0/12 cells ran, the prediction remains unevaluated, and D6 scripts, failure evidence, and handoff files are saved.",
+      "elapsed_sec": 751.0
+    },
+    {
+      "round": 7,
+      "direction": "D7_train_gain_test_harm",
+      "result": "failed",
+      "summary": "Read-only .git blocked both commits; no training ran (0/24 cells), and the B02 audit, preregistration, scripts, reports, and handoff updates are saved.",
+      "elapsed_sec": 732.7
+    },
+    {
+      "round": 8,
+      "direction": "D8_activation_pathway",
+      "result": "failed",
+      "summary": "Read-only .git blocked both commits; no training ran (0/72 cells), and the preregistration, scripts, failure evidence, reports, and D8 handoff are saved.",
+      "elapsed_sec": 807.0
+    },
+    {
+      "round": 9,
+      "direction": "D1_u_effective_time",
+      "result": "partial",
+      "summary": "Completed 60 cells: startup correction passed early tests but failed in 6/10 late conditions; reports, KB, and state saved, final commit blocked by read-only .git.",
+      "elapsed_sec": 693.4
+    },
+    {
+      "round": 10,
+      "direction": "D4_sigmoid_training_curve",
+      "result": "partial",
+      "summary": "Completed 15/15 cells under verified preregistration commit 91fc940: ratios 1/3/10 passed and 30/100 failed the fit thresholds; reports, KB, and state saved, but read-only .git blocked the final commit.",
+      "elapsed_sec": 860.0
+    },
+    {
+      "round": 11,
+      "direction": "D2_overfitting_u_curve",
+      "result": "unknown",
+      "summary": "",
+      "elapsed_sec": 852.8
+    },
+    {
+      "round": 12,
+      "direction": "D3_capacity_resolution",
+      "result": "ok",
+      "summary": "Completed 18/18 cells after preregistration commit 7fefbda; step ratios were 2.923 and 8.878, P1–P3 passed, two KB claims and handoff saved, final commit 03525ec.",
+      "elapsed_sec": 992.0
+    },
+    {
+      "round": 13,
+      "direction": "D5_ln_geometry",
+      "result": "ok",
+      "summary": "Completed 120/120 cells; condition-number prediction passed 12/12 units, chord-correlation prediction failed (r=0.420774<0.5); reports and KB saved, final commit b4eaaab.",
+      "elapsed_sec": 1391.8
+    },
+    {
+      "round": 14,
+      "direction": "D6_kernel_drift",
+      "result": "ok",
+      "summary": "r014 完成12/12 cell；P1在3/4单元通过并保留mixed_sine×width8反例，合同、hash、分析、KB、状态与报告均已提交。",
+      "elapsed_sec": 1113.1
+    },
+    {
+      "round": 15,
+      "direction": "D7_train_gain_test_harm",
+      "result": "ok",
+      "summary": "Completed 24/24 cells; P1 passed 4/4 units, endpoint gaps and late test changes were distinguished, evidence and handoff verified, final commit 0c64176.",
+      "elapsed_sec": 1062.0
+    },
+    {
+      "round": 16,
+      "direction": "D8_activation_pathway",
+      "result": "ok",
+      "summary": "r016 D8 已完成预注册提交、72/72 cell 实验与独立核验；P1–P3 全部通过，结果与报告、KB、状态及收尾提交已保存。",
+      "elapsed_sec": 691.0
+    },
+    {
+      "round": 17,
+      "direction": "D1_u_effective_time",
+      "result": "ok",
+      "summary": "Completed 48/48 cells after preregistration commit 0eddd3b; both slow-energy predictions passed, original P4 failures retained, reports and central updates committed in 3f2fcaa with receipt 64020fe.",
+      "elapsed_sec": 1071.1
+    },
+    {
+      "round": 18,
+      "direction": "D4_sigmoid_training_curve",
+      "result": "ok",
+      "summary": "Completed 27/27 cells; P2 refuted at alpha=.01 and P3 supported; evidence, reports, and handoff committed in 8f96d00 with verified receipt bbfc9c5.",
+      "elapsed_sec": 1063.6
+    },
+    {
+      "round": 19,
+      "direction": "D2_overfitting_u_curve",
+      "result": "ok",
+      "summary": "Completed 8/8 cells; population label normalization retained the seed414 counterexample (201/62=3.24194), P2 passed, and evidence plus central updates were committed in a680b3e with verified receipt be76228.",
+      "elapsed_sec": 1198.8
+    },
+    {
+      "round": 20,
+      "direction": "D3_capacity_resolution",
+      "result": "ok",
+      "summary": "Completed 6/6 cells; matching both spectral moments and first-step loss drop still yielded 41/319 steps (7.78049×); reports, KB, and handoff saved, closeout commit 4b9f87e verified.",
+      "elapsed_sec": 1141.2
+    },
+    {
+      "round": 21,
+      "direction": "D5_ln_geometry",
+      "result": "ok",
+      "summary": "Completed 40/40 measurements with no new training; both Rayleigh association predictions were refuted, evidence and handoff saved, closeout bf6070c verified and receipt committed in ffb9e1b.",
+      "elapsed_sec": 1193.9
+    },
+    {
+      "round": 22,
+      "direction": "D6_kernel_drift",
+      "result": "ok",
+      "summary": "Completed 12/12 cells; both predictions passed, the target readout reduced MAE from 0.550 to 0.441, counterexamples were retained, and evidence plus handoff files were committed and verified.",
+      "elapsed_sec": 1514.6
+    },
+    {
+      "round": 23,
+      "direction": "D7_train_gain_test_harm",
+      "result": "ok",
+      "summary": "Completed 12 new noisy cells with 12 saved clean controls; P1 passed 4/4 units, three initialization intervals crossed zero, and reports, KB, handoff, and verified closeout were committed.",
+      "elapsed_sec": 1260.4
+    },
+    {
+      "round": 24,
+      "direction": "D8_activation_pathway",
+      "result": "ok",
+      "summary": "Completed and committed 216 near-root activation measurements with zero training; all three predictions passed, the mixed-law error was ≤0.1193%, and prior evidence was preserved.",
+      "elapsed_sec": 1551.7
+    },
+    {
+      "round": 25,
+      "direction": "D9_minibatch_noise",
+      "result": "ok",
+      "summary": "D9 完成 24/24 小批量 cell；B=32 与 B=8 的 t* 比值分别为 0.206–3.010 和 0.705–3.637，统一有效学习率重标度预测均被推翻。",
+      "elapsed_sec": 1736.3
+    },
+    {
+      "round": 26,
+      "direction": "D10_depth_propagation",
+      "result": "ok",
+      "summary": "Completed and committed 12/12 cells; slowest-layer predictions failed all cells, while summed-kernel predictions passed 10/12, with counterexamples preserved and independent verification passed.",
+      "elapsed_sec": 1789.5
+    },
+    {
+      "round": 27,
+      "direction": "D11_width_scaling",
+      "result": "ok",
+      "summary": "完成66/66固定特征cell；n=d 8–8192预算指数1.003161/1.005095且拟合误差≤2.528432%，同Rayleigh预算仍相差1.944444–2倍，P1–P3及独立复核通过。",
+      "elapsed_sec": 1703.0
+    },
+    {
+      "round": 28,
+      "direction": "D12_cascade_sigmoid",
+      "result": "ok",
+      "summary": "Completed and committed 12/12 cells; single logistic passed spectral ratios 12/15 and failed 20/25, while equal-weight double logistic passed all four under the registered error thresholds.",
+      "elapsed_sec": 802.2
+    },
+    {
+      "round": 29,
+      "direction": "D9_minibatch_noise",
+      "result": "ok",
+      "summary": "η=.1 下完成48/48 cell；同标签风险口径 t*/t*_full 22/24 落入[0.5,2]并保留B=8、σ²=1的两个反例，报告、KB、状态和核验已提交。",
+      "elapsed_sec": 1381.2
+    },
+    {
+      "round": 30,
+      "direction": "D10_depth_propagation",
+      "result": "ok",
+      "summary": "Completed and committed 12/12 eta=.005 cells; slowest-group estimates exceeded actual times by more than 2× in all cells, summed-kernel estimates passed in 10/12, and counterexamples were preserved.",
+      "elapsed_sec": 1439.9
+    },
+    {
+      "round": 31,
+      "direction": "D11_width_scaling",
+      "result": "ok",
+      "summary": "Completed 66/66 fixed-n=8192 cells; all budgets exactly matched n=d controls, both predictions passed, and evidence, reports, KB, handoff, and verified closeout were committed.",
+      "elapsed_sec": 1284.4
+    },
+    {
+      "round": 32,
+      "direction": "D12_cascade_sigmoid",
+      "result": "ok",
+      "summary": "All 6 saved-curve evaluations passed RMSE≤.03 and maxabs≤.05 without training or fitting; reports, KB, handoff, and verified closeout were committed.",
+      "elapsed_sec": 710.4
+    },
+    {
+      "round": 33,
+      "direction": "D9_minibatch_noise",
+      "result": "ok",
+      "summary": "Both M64 ratios entered [0.5,2] at 1.163265 and 0.767974; bootstrap widths shrank to 11.20% and 27.80% of M8, old failures were retained, and all evidence and handoff updates were committed.",
+      "elapsed_sec": 1018.6
+    },
+    {
+      "round": 34,
+      "direction": "D10_depth_propagation",
+      "result": "ok",
+      "summary": "width32 eta=.005 完成12/12 cell，最慢组12/12超过两倍，全核12/12在两倍内，证据与交接已提交。",
+      "elapsed_sec": 1017.7
+    },
+    {
+      "round": 35,
+      "direction": "D11_width_scaling",
+      "result": "unknown",
+      "summary": "",
+      "elapsed_sec": 57.0
+    },
+    {
+      "round": 36,
+      "direction": "D12_cascade_sigmoid",
+      "result": "ok",
+      "summary": "All 6 saved r30/r100 curve evaluations passed the unchanged formula thresholds with no training or fitting; reports, KB, handoff, and verified closeout committed.",
+      "elapsed_sec": 803.9
+    },
+    {
+      "round": 37,
+      "direction": "D1_u_effective_time",
+      "result": "ok",
+      "summary": "完成36/36 cell；λ_fast=.05使低α稳态误差降至23.6842%–47.6190%，启动误差47.3684%–69.0476%，高α仍≤5%，全部证据与收尾提交已保存。",
+      "elapsed_sec": 1094.6
+    }
+  ],
+  "updated_at": "2026-10-07T04:05:48+08:00",
+  "repair_note": "2026-10-06 19:3x repaired: rounds_done/history rebuilt from log.jsonl (fixes double counting); .git sandbox write fix applied to supervisor"
+}

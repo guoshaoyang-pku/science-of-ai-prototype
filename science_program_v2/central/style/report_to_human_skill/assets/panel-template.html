@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>结论式标题：用平实的话写结论</title>
+<!--
+  report-to-human panel template v2
+  Palette and type: Anthropic brand-guidelines (github.com/anthropics/skills, skills/brand-guidelines).
+  Rules: keep only what the reader needs. No subtitle, no KPI cards, no section numbers, no status banners.
+  Every term is explained in plain words where it first appears.
+-->
+<style>
+  :root {
+    --dark: #141413;   /* primary text */
+    --light: #faf9f5;  /* page background */
+    --mid: #b0aea5;    /* borders, axes */
+    --soft: #e8e6dc;   /* subtle fills */
+    --muted: #5e5d59;  /* secondary text (darker than --mid for contrast) */
+    --orange: #d97757; /* primary accent: the main result */
+    --blue: #6a9bcc;   /* secondary accent */
+    --green: #788c5d;  /* tertiary accent */
+    --head: "Poppins", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", Arial, sans-serif;
+    --body: "Lora", "Noto Serif CJK SC", "Songti SC", Georgia, serif;
+    --mono: "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--light); color: var(--dark); font: 17px/1.8 var(--body); }
+  main { max-width: 760px; margin: 0 auto; padding: 72px 24px 96px; }
+  h1, h2, h3 { font-family: var(--head); font-weight: 600; line-height: 1.35; letter-spacing: -0.01em; }
+  h1 { font-size: 32px; margin: 0 0 16px; }
+  h2 { font-size: 22px; margin: 64px 0 12px; }
+  p { margin: 0 0 16px; }
+  .lede { font-size: 19px; }
+  a { color: inherit; text-decoration: underline; text-decoration-color: var(--orange); text-underline-offset: 3px; }
+  code, .id { font-family: var(--mono); font-size: 0.86em; background: var(--soft); padding: 1px 5px; border-radius: 4px; }
+
+  /* L2 settings row: monochrome line icons + label, never color emoji */
+  .settings { display: flex; flex-wrap: wrap; gap: 8px 20px; list-style: none; padding: 0; margin: 24px 0 0;
+              font: 14px/1.6 var(--head); color: var(--muted); }
+  .settings li { display: inline-flex; align-items: center; gap: 6px; }
+  .settings svg { width: 15px; height: 15px; stroke: var(--dark); fill: none; stroke-width: 1.6;
+                  stroke-linecap: round; stroke-linejoin: round; }
+  .settings b { color: var(--dark); font-weight: 500; }
+
+  figure { margin: 28px 0; padding: 20px; background: #fff; border: 1px solid var(--soft); border-radius: 10px; }
+  figure img, figure svg.chart { display: block; width: 100%; height: auto; }
+  figcaption { margin-top: 12px; font: 14px/1.6 var(--head); color: var(--muted); }
+  .legend { display: flex; gap: 18px; font: 13px var(--head); color: var(--muted); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin-right: 6px; }
+
+  .warn { border-left: 3px solid var(--orange); padding: 4px 0 4px 16px; margin: 24px 0; }
+  .warn strong { font-family: var(--head); }
+
+  /* sample browser: compare outputs side by side */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--soft); margin-bottom: 12px; }
+  .tabs button { font: 14px var(--head); background: none; border: 0; padding: 8px 12px; cursor: pointer;
+                 color: var(--muted); border-bottom: 2px solid transparent; }
+  .tabs button[aria-selected="true"] { color: var(--dark); border-bottom-color: var(--orange); }
+  .sample { display: none; white-space: pre-wrap; font: 14px/1.7 var(--mono); }
+  .sample.on { display: block; }
+
+  details { margin: 16px 0; }
+  summary { cursor: pointer; font: 15px var(--head); color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font: 14px/1.6 var(--head); margin: 16px 0; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--soft); }
+  th { font-weight: 500; color: var(--muted); }
+  footer { margin-top: 80px; font: 13px var(--head); color: var(--mid); }
+</style>
+</head>
+<body>
+<main>
+
+<!-- First screen = title + one-sentence conclusion + settings row. Nothing else. -->
+<h1>缩短思考后，模型答得更快，准确率没有下降</h1>
+<p class="lede">训练 300 步后，回答长度从约 8000 token 降到约 400 token。独立测试题上的准确率保持在 46% 左右。</p>
+<ul class="settings">
+  <li><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></svg>模型 <b>Qwen3-0.8B</b></li>
+  <li><svg viewBox="0 0 24 24"><path d="M4 19l5-7 4 4 7-10"/></svg>算法 <b>GSPO</b></li>
+  <li><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/></svg>数据 <b>2134 道选择题</b></li>
+  <li><svg viewBox="0 0 24 24"><path d="M6 3v18M18 3v18M6 12h12"/></svg>长度上限 <b>8k token</b></li>
+  <li><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><b>2026-10-06</b></li>
+</ul>
+
+<!-- Each h2 is a finding stated as a sentence, not a topic label. -->
+<h2>回答长度在第 120 步附近快速下降</h2>
+<p>训练对超过长度上限的回答扣分。模型在前 100 步几乎每次都写满上限。第 120 步之后，回答长度在 40 步内降到原来的约二十分之一。</p>
+<figure>
+  <div class="legend"><span><i style="background:var(--orange)"></i>回答长度中位数</span><span><i style="background:var(--mid)"></i>长度上限</span></div>
+  <svg class="chart" viewBox="0 0 640 220" role="img" aria-label="回答长度随训练步数变化">
+    <g stroke="var(--soft)"><line x1="48" y1="20" x2="624" y2="20"/><line x1="48" y1="100" x2="624" y2="100"/><line x1="48" y1="180" x2="624" y2="180"/></g>
+    <line x1="48" y1="28" x2="624" y2="28" stroke="var(--mid)" stroke-dasharray="4 4"/>
+    <polyline fill="none" stroke="var(--orange)" stroke-width="2.2" points="48,32 120,30 190,34 260,40 300,90 330,150 380,166 450,170 520,168 624,169"/>
+    <g fill="var(--muted)" font-size="12" font-family="Poppins, PingFang SC, sans-serif">
+      <text x="40" y="24" text-anchor="end">8k</text><text x="40" y="184" text-anchor="end">0</text>
+      <text x="48" y="204">0</text><text x="300" y="204" text-anchor="middle">120</text><text x="624" y="204" text-anchor="end">300 step</text>
+    </g>
+  </svg>
+  <figcaption>每个点是该步全部回答长度的中位数。</figcaption>
+</figure>
+
+<div class="warn"><strong>注意：</strong>长度下降不能证明模型内部的计算变少了。它只说明输出的文字变短了。</div>
+
+<h2>中期样本里，长回答多是重复的套话</h2>
+<p>第 150 步的长回答大多没有引用题目内容。短回答直接给出选项和一句理由。</p>
+<div class="browser">
+<div class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-t="s1">长回答 · 第 150 步</button>
+  <button role="tab" aria-selected="false" data-t="s2">短回答 · 第 150 步</button>
+</div>
+<div class="sample on" id="s1">（在这里放完整样本。≤1000 字全文放出，更长的保留头、中、尾各约 500 字。）</div>
+<div class="sample" id="s2">（在这里放完整样本。）</div>
+</div>
+
+<details>
+  <summary>逐项数字</summary>
+  <table>
+    <tr><th>训练步数</th><th>回答长度中位数</th><th>独立测试准确率</th></tr>
+    <tr><td>0</td><td>7980</td><td>45.8%</td></tr>
+    <tr><td>300</td><td>412</td><td>46.1%</td></tr>
+  </table>
+</details>
+
+<footer>来源：<code>runs/my_trial/log_history.json</code> · 2026-10-06</footer>
+</main>
+<script>
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  const box = b.closest('.browser');
+  box.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+  box.querySelectorAll('.sample').forEach(s => s.classList.toggle('on', s.id === b.dataset.t));
+});
+</script>
+</body>
+</html>

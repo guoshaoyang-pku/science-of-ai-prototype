@@ -1,0 +1,90 @@
+{
+  "round": 26,
+  "direction_round": 1,
+  "direction": "D10_depth_propagation",
+  "domain": "development",
+  "question": "同宽度SiLU网络增加隐藏深度时，初始化最慢参数层的冻结切线半衰时间能否在两倍内描述真实全层SGD的半损失时间；全层核相加的预测作为同cell对照。",
+  "created_at": "2026-10-07T00:21:54+08:00",
+  "recipe": {
+    "n": 32,
+    "input_dim": 3,
+    "width": 16,
+    "hidden_depths": [
+      1,
+      2,
+      4,
+      6
+    ],
+    "init_seeds": [
+      1103,
+      1129,
+      1151
+    ],
+    "data_seed": 260071,
+    "input": "NumPy default_rng(data_seed).normal((32,3)), float64",
+    "target": "raw=x0+0.5*x0*x1; y=(raw-mean)/RMS; same x/y for all cells",
+    "architecture": "depth hidden Linear+SiLU then scalar Linear head; all Linear no bias, no LN, no residual",
+    "initialization": "hidden layer l seed=init_seed+10000*l, normal*sqrt(2/fan_in); head seed=init_seed+900000, normal/sqrt(width); common prefixes and head shared across depths",
+    "optimizer": "full-batch SGD, momentum=0, weight_decay=0",
+    "loss": "mean((f-y)^2)/2; update uses eta",
+    "eta": 0.02,
+    "steps": 4096,
+    "checkpoints": [
+      0,
+      1,
+      8,
+      32,
+      128,
+      512,
+      2048,
+      4096
+    ],
+    "dtype": "torch/numpy float64, CPU, one thread"
+  },
+  "definitions": {
+    "J_l": "output Jacobian w.r.t. parameter group l",
+    "K_l": "J_l J_l^T/n; K_sum=sum_l K_l",
+    "frozen_t50": "first integer t with sum_i energy_i*(1-eta*lambda_i)^(2t)<=0.5, exact eigenspectrum search up to 2^60; null energy >=0.5 means unreachable",
+    "t_slow": "max_l frozen_t50(K_l), infinite if any group unreachable",
+    "t_actual": "first integer t=1..4096 with loss(t)<=loss(0)/2; otherwise right-censored >4096",
+    "ratio": "candidate t50/t_actual; pass iff 0.5<=ratio<=2",
+    "parameter_groups": "one weight matrix per hidden layer plus head; head is included in both candidates",
+    "eigenvalue_rule": "lambda <= 1e-12*max(lambda_max,1e-30) treated as zero; negative lambda < -1e-10*max(lambda_max,1e-30) invalid; eta*lambda_max>=2 unstable",
+    "r_t": "f_t(x)-y; a common output residual, no separate hidden-layer loss",
+    "q_l": "r_t^T K_l r_t/(r_t^T r_t), a local residual direction rate",
+    "layer_residual_energy": "(V_l^T r_t)^2 in layer output-space eigenbasis; not layer loss"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "text": "最慢参数层冻结时间在全部4个隐藏深度都能两倍内描述真实半损失时间。",
+      "criterion": "每个深度至少2/3配对seed满足0.5<=t_slow/t_actual<=2"
+    },
+    {
+      "id": "P2",
+      "text": "相加全核冻结时间在全部4个隐藏深度都能两倍内描述真实半损失时间。",
+      "criterion": "每个深度至少2/3配对seed满足0.5<=t_sum/t_actual<=2"
+    }
+  ],
+  "decision_rules": {
+    "units": "4 depth recipes x 3 init seeds = 12 training cells; seeds are repeats",
+    "censoring": "candidate unreachable with finite actual is fail; actual>4096 and candidate<=2048 is fail; other censored pairs unresolved; >=2 failures refutes depth, otherwise >=2 passes supports depth",
+    "scope": "development only; no coefficient fit or unseen-depth validation; depth changes parameter count and initial function",
+    "limits": "K=sum K_l and fixed-kernel recursion are known identities; spectra depend on parameterization; kernel drift and residual-direction changes are not intervened",
+    "statistics": "all seed ratios and same-seed adjacent-depth differences; within-depth t95 intervals only all finite; initialization uncertainty only, no pooled iid p value",
+    "failure": "diverged or invalid spectrum unresolved, preserve errors, no success overwrite"
+  },
+  "saved_evidence": [
+    "normalized input/target",
+    "initial/final parameters",
+    "loss every integer step",
+    "checkpoint predictions/residuals/J/K/eigenspectra/residual energies/hidden RMS",
+    "source and contract hashes"
+  ],
+  "execution": {
+    "python": "python3",
+    "source_pinning": "manifest pins run.py and analysis.py; all must match one ancestor commit before training",
+    "resume": "existing JSON and NPZ contract/hash must match; orphan NPZ is error",
+    "budget": "CPU small tensors, under 20 minutes; no network/GPU/API/outside writes"
+  }
+}

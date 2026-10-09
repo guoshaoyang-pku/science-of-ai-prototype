@@ -1,0 +1,52 @@
+{
+  "round": 11,
+  "direction_round": 3,
+  "study_contract_round": 3,
+  "study": "r003_noise_sample_scaling",
+  "completed_at": "2026-10-06T19:24:58.090368+08:00",
+  "experiment_status": "analyzed",
+  "round_result": "partial",
+  "planned_cells": 60,
+  "saved_cells": 60,
+  "scientific_conditions": 15,
+  "predictions": {
+    "P1": {
+      "status": "supported"
+    },
+    "P2": {
+      "status": "refuted",
+      "passed": 40,
+      "total": 44
+    },
+    "P3": {
+      "status": "supported",
+      "passed": 57,
+      "total": 60
+    }
+  },
+  "preregistration_commit": "d5fae2cdbf2eaf66f598e74f001684a4be98ba4d",
+  "execution_commits": [
+    "37ee424dc87f206e0226f5c3b56a0a048cebdae2"
+  ],
+  "summary_sha256": "d97afab5bc29776a2dc2028ceee8f8c92b2b36a6322c736e550b11a8e60bf180",
+  "pinned_source_modified": false,
+  "prior_failure_summary": "executed/summary_r003_blocked.json",
+  "training_and_save_seconds": 21.27680866800074,
+  "successful_execution_call_seconds": 22.57312066598388,
+  "analysis_seconds": 6.544424416992115,
+  "analysis_interruption": "executed/analysis_interrupted.json",
+  "analysis_adaptation": "仅新增读盘缓存入口run_analysis.py，pinned分析源码与公式不变。",
+  "summary_metadata_boundary": "summary.round=3和next_action/commit_status为冻结合同的旧元数据；本轮执行、评估和交接状态以此completion和r011 findings为准。summary.round_result=ok只指完整实验，本轮总体partial因收尾Git失败。",
+  "independent_read_only_review": "另agent只读独立复算60个保存cell、等比配对与留出n预测：P2 40/44、P3 57/60；无训练或文件修改。",
+  "kb_ids": [
+    "D2-001",
+    "D2-002"
+  ],
+  "state_rounds_done_before": 2,
+  "state_rounds_done_after": 3,
+  "state_last_round": "11",
+  "accounting_boundary": "按用户要求本轮将D2 rounds_done从2设为3，last_round=\"11\"；supervisor现有收尾可能无条件再+1，未修改supervisor代码。",
+  "final_commit": null,
+  "permission_boundary": "常规文件权限已可写但沙箱将.git设为只读；不绕过权限。",
+  "next_question": "先核验r011产物与中心更新的收尾commit（沙箱拒写.git；冻结合同d5fae2c早于训练，60/60 cell成功，不重跑或覆盖）。原P2已refuted（40/44等比配对通过），P3 supported（57/60留出预测通过），均development、非train-only早停。下一小问题建议：仅改变clean标签归一化，保留r003 n32/.25与n64/.5四seed的原始输入、W、特征，将train mean/RMS改为共享解析population mean=0/RMS=√1.25，检查比值128配对反例是否保留；先写新数值预测与pinned源码并commit，取得匹配提交后再训练。"
+}

@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "study": "C02_parity_ood",
+  "phase": "OOD_sealed_before_measurement",
+  "development_report_sha256": "09cc9ea188fbd5215ee8ebfa9b324fa38deb138d2cdf50c610097bbede806657",
+  "question": "Does label-free even-channel balancing rescue the weak small-SiLU channel under new dimension, distributions and target structure?",
+  "ood_axes": [
+    "dimension4_to8",
+    "Gaussian_to_uniform_or_Laplace",
+    "x0_or_x0square_to_linear_sum_or_product",
+    "width64_to128",
+    "scale0.03_not_development0.05"
+  ],
+  "architecture": {
+    "input_dim": 8,
+    "width": 128,
+    "hidden": "frozen",
+    "zero_bias": true,
+    "head_initialization": "zero",
+    "feature_centering": "training_mean",
+    "normalization": "global_training_feature_rms"
+  },
+  "data": {
+    "distributions": [
+      "uniform",
+      "laplace"
+    ],
+    "train_rows": 256,
+    "test_rows": 2048,
+    "dataset_seeds": {
+      "uniform": 32011,
+      "laplace": 32017
+    },
+    "targets": [
+      "linear_sum",
+      "interaction"
+    ],
+    "target_center_scale": "training_mean_and_rms",
+    "noise_sd": 0
+  },
+  "seeds": [
+    211,
+    212,
+    213,
+    214
+  ],
+  "scales": [
+    0.03,
+    0.1,
+    0.4
+  ],
+  "activations": [
+    "relu",
+    "silu"
+  ],
+  "interventions": [
+    "plain",
+    "parity_balanced"
+  ],
+  "parity_balance": "multiply centered even channels to match paired ReLU even/odd energy ratio on training inputs; never uses labels; preserve odd channel",
+  "optimizer": {
+    "type": "full_batch_GD",
+    "lr": 0.8,
+    "momentum": 0,
+    "decay": 0,
+    "steps": 2048
+  },
+  "checkpoints": [
+    0,
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024,
+    2048
+  ],
+  "predictions": [
+    {
+      "id": "O1",
+      "claim": "At scale0.03 plain SiLU interaction initial kernel energy remains less than0.1 ReLU while linear_sum energy remains greater than0.5 ReLU.",
+      "criterion": "all paired seeds, both new distributions",
+      "type": "cross_distribution_and_target_transfer"
+    },
+    {
+      "id": "O2",
+      "claim": "Label-free parity balance rescues SiLU interaction energy at scale0.03 by at least20fold and to at least0.5 ReLU; linear_sum energy changes only through the prescribed odd/total normalization.",
+      "criterion": "all paired seeds, both distributions",
+      "type": "mechanism_intervention"
+    },
+    {
+      "id": "O3",
+      "claim": "Parity-balanced scale0.03 SiLU has lower2048-step interaction test MSE than plain SiLU, in at least3/4seeds in each distribution.",
+      "criterion": "seed wins and dataset-level mean sign, no posthoc early stopping",
+      "type": "prospective_generalization"
+    },
+    {
+      "id": "O4",
+      "claim": "With matched even/odd ratio, SiLU scale0.03 and0.1 linear_sum kernel energies match within1e-8; interaction energies within10percent.",
+      "criterion": "all paired seeds; exact odd part and near-quadratic even part",
+      "type": "time_model_boundary"
+    },
+    {
+      "id": "O5",
+      "claim": "Observed training curves remain predicted by their measured fixed-feature spectra to1e-8.",
+      "criterion": "all192cells",
+      "type": "executor_and_model_audit"
+    }
+  ],
+  "analysis": {
+    "research_units": "two input distributions × two target functions, seeds condition repeats",
+    "solver_evaluation": "not_run",
+    "holdout_protocol": "full specification and previous report bytes frozen before first OOD tensor generation; OOD seen after this phase becomes development for future iterations",
+    "all_results_retained": true
+  },
+  "status": "sealed_before_measurement",
+  "sealed_at": 1791223745.850555
+}

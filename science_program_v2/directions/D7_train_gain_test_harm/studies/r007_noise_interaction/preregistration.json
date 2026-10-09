@@ -1,0 +1,127 @@
+{
+  "study": "r007_noise_interaction",
+  "round": 7,
+  "direction_round": 1,
+  "direction": "D7_train_gain_test_harm",
+  "domain": "development",
+  "created_at": "2026-10-06T18:25:48.902433+08:00",
+  "question": "固定样本、初始化和SGD recipe后，添加训练标签噪声是否扩大真实MLP相对初始切线的干净test损失差距？",
+  "basis": "D7 task首轮建议；B02确定性clean target已有6/8 SGD单位均值test gap>0，噪声并非该现象必要原因。复用已见条件，全部development。",
+  "functions": [
+    "mixed_sine",
+    "radial"
+  ],
+  "widths": [
+    8,
+    32
+  ],
+  "seeds": [
+    11,
+    29,
+    47
+  ],
+  "noise_sigmas": [
+    0.0,
+    1.0
+  ],
+  "data_contract": {
+    "input_dim": 5,
+    "train_n": 32,
+    "test_n": 256,
+    "data_seed": 7331,
+    "noise_seed": 733107,
+    "distribution": "PCG64 NumPy default_rng，先生成train再生成test的standard Gaussian；两函数共用x",
+    "mixed_sine": "sin(1.7*x0)+0.4*sin(x1*x2)",
+    "radial": "exp(-sum(x*x)/5)",
+    "normalization": "clean train target减均值除ddof=0标准差；test用相同center/scale；加噪之后不重新标准化",
+    "label_noise": "train_y=clean_train_y+sigma*epsilon；epsilon来自独立固定noise_seed的N(0,1)，不center不rescale；跨函数/宽度/init相同epsilon；test始终clean",
+    "dtype": "float64",
+    "pairing": "每seed同函数/宽度四条轨迹仅切换sigma与真实/切线；相同初始参数、初始输出、完整Jacobian、fullbatch样本与optimizer"
+  },
+  "recipe": {
+    "architecture": "Linear(d,w,bias=True)->SiLU->Linear(w,w,bias=True)->SiLU->Linear(w,1,bias=True)",
+    "initialization": "torch.manual_seed(seed); PyTorch Linear default float32 initialization then .double(), matching B02",
+    "optimizer": "SGD",
+    "lr": 0.05,
+    "momentum": 0.0,
+    "weight_decay": 0.0,
+    "batch_size": 32,
+    "steps": 512,
+    "loss": "mean((f-train_y)^2)/2",
+    "tangent": "f_lin(x)=f0(x)+J0(x)delta; delta从0开始，包含全部weight/bias Jacobian，与真实网络共享初始输出和optimizer"
+  },
+  "checkpoints": [
+    0,
+    1,
+    8,
+    32,
+    128,
+    256,
+    512
+  ],
+  "primary": {
+    "endpoint": 512,
+    "test_gap": "H_sigma=L_test(real,sigma)-L_test(tangent,sigma)，均为干净test半MSE",
+    "noise_amplification": "D=H_1-H_0；每seed内difference-in-differences，不跨seed减均值",
+    "minimum_mean_amplification": 0.02,
+    "minimum_positive_seeds": 2,
+    "minimum_passing_units": 3,
+    "criterion": "4个function×width单元中至少3个单元满足mean(D)>=.02且至少2/3个同初始化seed的D>0；全部24 cell核验后才判定；缺cell=not_evaluated"
+  },
+  "predictions": [
+    {
+      "id": "P1_noise_amplification",
+      "prediction": "噪声扩大真实网络相对切线的test差距，至少3/4单元mean(D)>=.02且各至少2/3 seed D>0。",
+      "rationale": "测试噪声拟合是否作为额外机制增强相对损害；并不预测clean损害必须消失。",
+      "failure_rule": "不调整阈值、不排除seed、无论positive/negative D都保留；失败按refuted登记"
+    }
+  ],
+  "secondary": {
+    "late_start_step": 128,
+    "readouts": [
+      "各sigma的train gain=L_train(tangent)-L_train(real)",
+      "两模型对clean_train目标的风险",
+      "H0/H1及两个模型各自noise-minus-clean test变化",
+      "128到512同模型test变化与train变化分开报告；正终点gap不写成继续训练损害"
+    ],
+    "role": "描述诊断；没有额外成功判据，不能凭方向选择宣称机制比例"
+  },
+  "analysis_plan": {
+    "unit": "4个function×width recipe；3初始化seed仅测稳健性，2x2每seed不算四个独立条件",
+    "paired_interval": "逐unit D以及H0/H1/train gain报告同seed均值和95% Student-t区间；df=2，仅描述初始化差异，不含新data/noise seed不确定性",
+    "audit": "核验预注册同commit源码、input/contract/NPZ hashes；重生成数据，初始参数/Jacobian逐noise配对，输出复算halfMSE、切线谱递推复核",
+    "interpretation": "D支持的是本recipe/固定噪声draw的噪声敏感度差，不能自动分摊核方向过拟合与隐式偏置比例"
+  },
+  "planned_cells": 24,
+  "planned_optimization_trajectories": 48,
+  "planned_recipe_units": 4,
+  "execution": {
+    "python": "python3",
+    "device": "cpu",
+    "threads": 1,
+    "max_seconds": 1200,
+    "network": false,
+    "commit_gate": "当前preregistration.json与全部source_sha256源代码必须在本repo同一commit逐字匹配；无匹配禁止训练",
+    "resume": "恢复先核验同commit、request/contract、inputs与NPZ hash；成功cell不覆盖；先1 cell+analysis再跑剩余"
+  },
+  "boundaries": [
+    "development only；已见B02条件不再标sealed OOD",
+    "仅d5/SiLU/两层hidden/固定train32与test256/SGDplain；不推广其他optimizer、LN、data seed、噪声强度",
+    "clean标签无添加噪声仍有有限样本效应；不能宣称无任何统计噪声",
+    "加噪引发的所有路径变化是干预总效应，不等于单独核机制",
+    "相对切线终点test劣势与继续训练test上升是不同事件，分别报告"
+  ],
+  "source_sha256": {
+    "executed/run.py": "9e2c2029036c6c2affb60801cd29a1706b423a870797d15b9c45c305eeeb8994",
+    "analysis.py": "9854e90acd2ebc5c3933a73dc3e829c295215d85a501375f279fdf64f970aba2"
+  },
+  "reference_sha256": {
+    "run.py": "880eae2e2ddd7a30062ead5895f9e6369558c829c02420bcc6f7febae0577627",
+    "executed/experiment.py": "323fbcf46f384d21c72435290f11c67ac06e7c042fba5f006e9a8285f05114c6",
+    "preregistration.json": "57b24f25d3d34e81c009067dc6e186d0ac7f3c4d980580e4687539f81d19f1f6",
+    "ood_cells.csv": "ba5c76643d7cfa0f359081b0fb396dc5d77445862f63fb45c1a829d09ce3df24",
+    "ood_analysis.json": "06688828668cc12e11a8fc9485d5f729d828ef207c79f06bbb1917d7faac10fc",
+    "report.md": "779fc0bacca587204d324bcb775e96426f1968fd52f969c792a971201a266126"
+  },
+  "reference_audit": "executed/b02_audit.json"
+}

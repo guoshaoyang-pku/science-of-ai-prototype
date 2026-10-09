@@ -1,0 +1,163 @@
+from pathlib import Path
+from datetime import datetime, timezone, timedelta
+import copy
+import hashlib
+import json
+import re
+
+STUDY = Path(__file__).resolve().parents[1]
+REPO = STUDY.parents[3]
+DIRECTION = STUDY.parents[1]
+
+
+def save(path, value):
+    path.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + chr(10))
+
+
+def bounds(metric):
+    lo, hi = metric['seed_95pct_t_interval']
+    return f"{metric['mean']:.6f} [{lo:.6f}, {hi:.6f}]"
+
+
+summary = json.loads((STUDY / 'summary.json').read_text())
+verification = json.loads((STUDY / 'executed/independent_verification.json').read_text())
+assert summary['prediction']['status'] == 'refuted' and summary['prediction']['passing_units'] == 3
+assert summary['saved_new_cells'] == 12 and verification['status'] == 'passed'
+units = summary['units']
+late = [u for u in summary['late_units'] if u['draw'] == 'new']
+rows = [r for r in summary['rows'] if r['draw'] == 'new']
+assert len(rows) == 12 and all(r['train_gain'] > 0 for r in rows)
+table = '| 单元 | mean D(.5) [95% 初始化区间] | D>0 | 原正向判据 | 新−noise733131 mean D [95% 配对初始化区间] |
+|---|---:|---:|---|---:|
+'
+for u in units:
+    table += f"| {u['function']}×{u['width']} | {bounds(u['metrics']['noise_amplification'])} | {u['positive_amplification_seeds']}/3 | {'通过' if u['pass'] else '不通过'} | {bounds(u['metrics']['new_minus_previous_half_D'])} |
+"
+means = '/'.join(f"{u['metrics']['noise_amplification']['mean']:.6f}" for u in units)
+gains = '/'.join(f"{u['metrics']['half_train_gain']['mean']:.6f}" for u in units)
+changes = '/'.join(f"{u['metrics']['real']['late_test_change']['mean']:.6f}" for u in late)
+next_question = '下一小问题仅development保持data7339/sigma=.5/全部四recipe/init/SGD/T512，换预指定noise733147，检验原正向判据是否至少3/4单元meanD>=.01且各至少2/3 init D>0。先注册明确方向、来源hash与pinned源码单一commit，再生成新噪声/训练；不能先算后称盲预测。'
+conclusion = f'“不足3/4单元通过会再现”的预测被推翻。固定data7339、sigma=.5与同一训练条件，仅把noise733131换为预指定733139，原正向判据有3/4单元通过。mixed_sine×8/32与radial×32各3/3初始化D>0；radial×8为0/3。四均值D依次为{means}。三个半强度噪声向量的通过数为3/4、1/4、3/4，固定强度与训练条件仍不能决定判据是否通过。这个序列只描述已测向量，不能估计跨噪声概率。'
+method = f'noise733139实验新增12个sigma=.5 cell、24条轨迹，复用12旧clean和12个noise733131 half cell。新训练累计{summary["training_seconds"]:.6f}秒。四单元train gain均值为{gains}，12/12为正。真实128→512 test变化均值为{changes}，上升初始化数为3/3、3/3、2/3、0/3。新旧36cell的切线检查点最大误差4.996004e−15；初始参数/J与真实初末输出重建误差0。独立标量风险误差1.665335e−16，df2区间差4.117789e−12，分别在事前1e−12与1e−10容差内。293旧文件与24新成功文件hash/mtime不变，恢复新增0训练、复用12成功cell。'
+failure = 'noise733139推翻的是本次“通过数不足3”的预测；它不撤销noise733131的1/4结果。radial×8的三初始化D均负，mean D=−.037836，但真实晚期test仍有2/3上升；相对噪声效应不能代替同模型继续训练受损。radial×32三初始化D均正，H(.5)却均负（−.094623至−.048229），真实C也均负（−.121112至−.073147）。终点优势与晚期下降仍可伴随正D。'
+boundary = '全部为development。三初始化区间只描述固定data/noise下初始化差异；三个半强度draw不能估计跨draw概率。三个通过单元的D区间排除零，radial×8区间跨零；四个新−noise733131配对区间全部跨零。原判据不以区间排除零为成功要求。没有拆分噪声拟合、核方向变化或隐式偏置比例，不建立train-only早停、连续sigma阈值、线性/二次缩放或其他optimizer/LN/深度/样本量规律。'
+paired = '| 单元 | init | 新 D(.5) | noise733131 D(.5) | 新−旧 D(.5) |
+|---|---:|---:|---:|---:|
+'
+for p in summary['paired_seed_results']:
+    paired += f"| {p['function']}×{p['width']} | {p['seed']} | {p['noise_amplification']:.6f} | {p['previous_half_noise_amplification']:.6f} | {p['new_minus_previous_half_D']:.6f} |
+"
+links = '
+'.join([
+    '- [预注册](../studies/r109_noise_draw_recurrence/preregistration.json)',
+    '- [逐cell配对汇总](../studies/r109_noise_draw_recurrence/summary.json)',
+    '- [保存数据与递推核验](../studies/r109_noise_draw_recurrence/executed/saved_evidence_verification.json)',
+    '- [独立标量风险和恢复核验](../studies/r109_noise_draw_recurrence/executed/independent_verification.json)',
+    '- [上一轮科学收尾审查](../studies/r109_noise_draw_recurrence/executed/prior_closeout_audit.json)',
+    '- [L4语言补审](report_style_audit.md)',
+])
+finding = f'''# r109：新噪声向量未再现半强度判据失败
+
+{conclusion}
+
+## 条件与唯一预测
+
+程序第109轮、D7第7轮只检验一个小问题。d5 Gaussian train32/test256、mixed_sine/radial、含bias两hidden SiLU、width8/32、init11/29/47、data7339；默认float32 Linear初始化后double，CPU float64 full-batch halfMSE SGD eta=.05/mom0/nodecay/T512。clean目标按train均值与ddof0标准差归一化后加入sigma=.5独立PCG64 Gaussian噪声，test始终clean。不center、不rescale、不再次归一化；同噪声跨函数/宽度/init共用。
+
+Hσ=第512步真实减初始切线的clean test halfMSE；同init D(.5)=H(.5)−H(0)。原unit判据保持mean D>=.01且至少2/3 init D>0；本轮唯一P1预测通过unit不足3/4（至多2/4）。全部结果及引用核验后，3/4使P1 refuted；不排除seed、不调整阈值。三init不算三种独立recipe。区间为95% Student-t初始化区间，df=2。
+
+## 结果
+
+{table}
+{boundary}
+
+{paired}
+## 终点与晚期诊断
+
+{method}
+
+{failure}
+
+## 流程核验与边界
+
+按inbox六节保持累计报告并补做L4语言审查，旧791个数值token全部保留，44行表格和三行公式不变。补审独立提交3ce87bb，元数据修正b33536e；inbox追加指定处理标记。第一次补审元数据更新脚本出现SyntaxError，原报告与实验未受影响，错误已保存，修正后再开始研究。
+
+先只读审查r091科学收尾9c231f8的56对象，唯一预注册及239旧/24新hashmtime通过；不运行旧runner，不改84旧成功cell。唯一新预注册831cc9e同时冻结合同、三源码和293旧输入/证据文件hash；提交比首cell开始早{verification['preregistration_before_first_cell_seconds']:.6f}秒。新noise733139在提交前未生成、训练或查看。实际新输入hash逐cell保存。先1 cell核验，再11 cell，首cell两文件hashmtime未变；所有新cell绑定同一提交。新旧x/clean目标/test目标/归一化/参数/J精确相同。clean控制保留原noise733123，sigma0输出不依赖它；旧half保留noise733131，只更换新half噪声。不伪改旧合同。
+
+全部训练/分析/独立核验stderr为空。旧matmul警告及根因未定、半强度radial×8旧反例、sigma1三条件4/4与所有旧终点/晚期分歧均保留。该方向未建立机制占比或前瞻早停信号。
+
+{next_question}
+
+## 证据
+
+{links}
+'''
+(DIRECTION / 'findings/r109_noise_draw_recurrence.md').write_text(finding)
+report_path = DIRECTION / 'report.md'
+report = report_path.read_text()
+original = report
+opening = report.index('
+
+人工标签噪声')
+report = report[:opening] + '
+
+' + conclusion + report[opening:]
+report = report.replace('## 成立程度
+', '## 成立程度
+
+### data7339、sigma=.5：noise733139
+
+' + table + '
+' + boundary + '
+', 1)
+report = report.replace('### 失败与反例
+', method + '
+
+### 失败与反例
+
+' + failure + '
+', 1)
+a = report.index('## 未决问题
+'); b = report.index('## 证据
+')
+report = report[:a] + '## 未决问题
+
+' + next_question + ' 机制比例和train-only早停仍未建立；D7管损害机制边界，D2管U型曲线与早停。
+
+' + report[b:]
+report += '
+- [noise733139失败再现预测与结果](findings/r109_noise_draw_recurrence.md)
+- [noise733139预注册](studies/r109_noise_draw_recurrence/preregistration.json)
+- [noise733139完整汇总](studies/r109_noise_draw_recurrence/summary.json)
+- [noise733139独立核验](studies/r109_noise_draw_recurrence/executed/independent_verification.json)
+- [本次语言补审](findings/report_style_audit.md)；语言补审3ce87bb、元数据修正b33536e、唯一新预注册831cc9e。
+'
+report_path.write_text(report)
+assert re.findall(r'^## .*$', report, re.M) == ['## 结论', '## Formulation', '## 成立程度', '## 方法与条件', '## 未决问题', '## 证据']
+for section in ['结论', '成立程度']:
+    body = report.split('## ' + section + '
+', 1)[1].split('
+## ', 1)[0]
+    assert '](' not in body and 'studies/' not in body and '831cc9e' not in body
+save(STUDY / 'executed/report_style_check.json', {'status': 'passed', 'sections': 'latest inbox six sections', 'conclusion_directly_answers_task': True, 'old_tables_preserved': all(line in report for line in original.splitlines() if line.startswith('|')), 'old_scientific_claims_retained': True, 'paths_commits_only_evidence': True, 'new_claims_source': 'summary.json', 'next_seed': 733147})
+state_path = REPO / 'central/state.json'
+state = json.loads(state_path.read_text()); before = copy.deepcopy(state)
+save(STUDY / 'executed/state_before_handoff.json', before)
+state['directions']['D7_train_gain_test_harm']['last_round'] = {'round': 109, 'direction': 'D7_train_gain_test_harm', 'result': 'ok', 'summary': '12/12 noise733139新cell完成；不足3/4通过的预测被推翻，实际3/4，独立核验与恢复通过。'}
+state['directions']['D7_train_gain_test_harm']['next_question'] = f'r109完成12/12新cell/24轨迹；先核验科学收尾与executed/final_commit_verification及独立审查。不得重跑/覆盖84旧成功cell与本轮12新cell。报告L4补审3ce87bb、元数据b33536e，inbox标记已写。唯一冻结831cc9e早于首cell10.440547秒。固定data7339/sigma.5仅noise733131→733139，P1不足3/4 refuted，实际3/4；四meanD=.206576951730/.175631562664/−.037835898096/.054909165822，正init3/3、3/3、0/3、3/3；通过三unit的D区间排除零，radial8跨零，四新−旧配对CI均跨零。train gain12/12正、均值.370399408/.338374781/.392122166/.259217497；真实C均值.115243741/.310645449/.009012310/−.098852348，正init3/3、3/3、2/3、0/3。radial32三D>0却三H<0、C<0，radial8三D<0却2/3 C>0。独立fsum误差1.665335e−16/df2区间差4.117789e−12，全36cell切线检查点4.996004e−15、初末real/J误差0；293旧/24新hashmtime、恢复new0/reused12通过。{next_question} 保留全部旧radial8反例、sigma1三条件4/4及终点/晚期分歧和matmul根因未定；不外推跨draw概率/机制比例/连续sigma阈值/缩放/train-only早停。'
+expected = copy.deepcopy(before)
+for key in ['last_round', 'next_question']:
+    expected['directions']['D7_train_gain_test_harm'][key] = state['directions']['D7_train_gain_test_harm'][key]
+assert expected == state and state['round'] == before['round']
+save(state_path, state)
+save(STUDY / 'executed/central_update_audit.json', {'status': 'passed', 'only_changed': ['directions.D7_train_gain_test_harm.last_round', 'directions.D7_train_gain_test_harm.next_question'], 'round_unchanged': True, 'all_rounds_done_unchanged': True, 'other_directions_unchanged': True})
+kb_path = REPO / 'central/kb.json'; kb = json.loads(kb_path.read_text())
+assert not any(c['id'] == 'D7-010' for c in kb['claims'])
+kb['claims'].append({'id': 'D7-010', 'direction': 'D7', 'round': 109, 'text': f'd5 Gaussian train32/test256、data7339、sigma=.5、mixed_sine/radial×width8/32、含bias两hidden SiLU、默认float32初始化后double、init11/29/47、CPU float64 full-batch SGD eta=.05/mom0/nodecay/T512，仅noise733131→733139后，“原正向判据不足3/4单元通过再现”的预测被推翻，实际3/4；原unit阈值meanD>=.01且>=2/3 init D>0，四meanD={means}，正init3/3、3/3、0/3、3/3。', 'evidence': [str((STUDY / 'summary.json').relative_to(REPO)), str((STUDY / 'executed/independent_verification.json').relative_to(REPO))], 'domain': 'development', 'status': 'refuted', 'boundary': boundary})
+save(kb_path, kb)
+progress = REPO / 'reports/PROGRESS.md'
+with progress.open('a') as f:
+    f.write(f'
+2026-10-08 · r109 · D7（方向第7轮）：同data7339/sigma=.5仅换noise733139，12/12新cell、24轨迹；失败再现P1 refuted，实际3/4原正向判据通过，四meanD={means}，radial×8三init均负。新训练{summary["training_seconds"]:.6f}秒；293旧/24新hashmtime、独立递推和恢复0新训练通过。证据：directions/D7_train_gain_test_harm/findings/r109_noise_draw_recurrence.md、studies/r109_noise_draw_recurrence/summary.json。
+')
+print(json.dumps({'status': 'written', 'prediction': summary['prediction'], 'state_change_scope': 'D7 last_round and next_question only', 'kb_added': 'D7-010'}, ensure_ascii=False))

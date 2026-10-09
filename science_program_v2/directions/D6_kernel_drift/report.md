@@ -1,0 +1,207 @@
+# D6：核漂移与晚期预测
+
+## 结论
+
+核心问题的答案是：在固定四个 recipe、三初始化和三条冻结早期公式下，data_seed260610 仍得到 Δ=MAE_E−MAE_T<0（−0.029842999），所以“加入标签早期读数不会改善晚期预测”这一符号判据再次成立；但点预期 −0.20 未实现，四个 recipe 的区间均跨零，不能把它当作稳定的逐 recipe 收益。
+
+已测范围是 3 维、32 个样本的高斯输入，product/mixed_sine 两种目标函数，隐藏层宽度（width）8/32，以及两层 SiLU（平滑激活函数）网络。训练使用全批量 SGD（每步用全部训练样本计算梯度并更新参数），学习率为 0.05，动量和权重衰减均为 0。下文把函数×宽度组合称为 recipe，把一次初始化下的训练称为 cell；seed 是生成数据或初始化参数的随机种子，draw 是一次数据抽样。
+
+固定初始残差 r0（初始输出减标签）并匹配 trace（核矩阵对角元素之和）后，早期核漂移方向在 3/4 recipe 达到持续判据。这里的核漂移方向，是排除整体核尺度变化后，核在固定残差方向上的作用增强或减弱。product×width8、product×width32、mixed_sine×width32 各有 2/3 seed 在第 32 步与第 256 步保留同一非零方向；mixed_sine×width8 为 0/3，是反例。
+
+固定标签 y 的早期核读数只在原输入 draw 的新初始化中降低了预测误差。E 模型只用早期残差读数；W 和 T 分别在 E 的读数上加宽度、标签读数。冻结表示校准后不再拟合系数。data_seed260606 下，T 的 MAE（平均绝对误差）为 0.441188817，相对 E 改善 0.109156256，通过事前 ≤0.70/≥0.08 判据；W 改善 0.052337126。T 的收益没有在随后三个指定输入 draw 保持。
+
+仅把 data_seed 换为 260607 后，T 的 MAE 增加 0.824127577，比 E 大 0.383048543，原联合收益预测失败。W 相对 E 改善 0.092122584，原先“改善小于 0.08”的预测也失败。
+
+data_seed260608 推翻了联合“MAE>0.70 且改善<0.08”的失效再现预测。T 的绝对误差回到 0.70 内，但添加标签读数仍增加基线误差。与 260607 相比，T MAE 降低 0.678844326；与 260606 相比增加 0.145283250。
+
+data_seed260609 下，冻结 T 的 MAE 为 0.485002856，相对 E 的 MAE 0.439959438 改善 −0.045043418，支持事前“改善<0”预测。W MAE 为 0.477914375，改善 −0.037954936。T 的负相对收益在三个指定新 draw 出现，幅度分别为 −0.383048543、−0.152998507、−0.045043418。这是指定条件的测量，不估计跨 draw 概率。
+
+data_seed260610 下，冻结 T 的 MAE 为 0.535851321，相对 E 的 MAE 0.506008323 改善 −0.029842999，继续支持预先注册的“改善<0”符号预测。点预期 −0.20 与实测相差 +0.170157001；T 仅 5/12 cell 更好，四个 recipe 的三初始化区间均跨零，因此不称点幅度实现或逐 recipe 稳定收益。
+
+这些测量给出冻结早期公式对输入 draw 敏感的受控反例。trace 匹配排除了读数中的整体核尺度差异；固定 r0 排除了读数中的残差旋转。换 data_seed 同时改变输入、clean 目标（无噪声目标）和样本居中/RMS 尺度（减均值后按均方根缩放），不能将失效独立归因于其中一项。标签读数 Q 的负系数描述关联，不证明目标对齐越高越坏。固定 r0 的方向持续不保证晚期残差 rt（当时输出减标签）的拟合收益或 test（测试集）改善。
+
+## Formulation
+
+早期公式预测的是固定 r0 下的晚期核读数，不是移动 rt 的拟合速度。三个经验模型的系数由旧 12 个 development cell（已用于开发的条件）校准后冻结。
+
+```text
+K_t = J_t J_tᵀ / n
+a_t = trace(K_t) / trace(K_0)
+R(v,K) = (vᵀKv) / (vᵀv)
+r0 = f0 − y
+rho_t = R(r0,K_t) / R(r0,a_t K_0)
+s_t = sign(log(rho_t))  当 |log(rho_t)| > log(1.05)
+    = 0                 其余
+
+E = log(rho_32)
+Q = log((yᵀK_32 y) / (a_32 yᵀK_0 y))
+L = log(rho_256)
+Lhat_E = 1.428713415 + 0.436889464 E
+Lhat_W = 0.986409212 + 2.032984577 E + 0.587644437 I(w=8)
+Lhat_T = 1.982238919 + 3.109145083 E − 3.152502126 Q
+MAE_M = (1/4) sum_recipe (1/3) sum_seed |Lhat_M − L|
+Delta_T = MAE_E − MAE_T
+```
+
+- t 是全批量 SGD 更新步数，单位为步；n=32 是训练样本数；w 是每层隐藏层宽度，单位为单元。f_0、y、r_0 分别是初始输出、训练标签和初始残差，单位为标准化标签单位。v 是代入 R 的方向向量。
+- J_t 是 Jacobian（输出对全部权重 weight 和偏置 bias 参数的导数矩阵）。K_t 是未居中的参数 Jacobian 核，数值单位为输出平方/参数平方。上标 ᵀ 表示转置，trace 表示矩阵对角元素之和。
+- R 是 Rayleigh 商（核在给定方向上的作用大小），单位同核。a_t 是 trace 匹配的尺度因子；rho_t 是固定 r0 下、相对同尺度初始核的比值。两者均无量纲。
+- s_t 是方向读数，sign 取正、负或零。仅当 |log(rho_t)|>log(1.05) 时记录非零方向，其余记为 0。这里的 5% deadband（不计作非零方向的阈值区）用于方向检验。
+- E/Q 分别是早期残差/标签幅度，L 是晚期幅度，Lhat_M 是模型 M 的预测。它们均无量纲；log 为自然对数。I(w=8)，即宽度8指示量 1(w=8)，在宽度为 8 时取 1，其余取 0。
+- M 取 E/W/T 三模型。MAE_M 是四 recipe 和三初始化等权的平均绝对误差。Delta_T 是 T 相对 E 的误差改善，正值表示 T 误差更小；下文也记作 Δ。MAE 与改善的单位均为自然 log 单位。
+
+## 成立程度
+
+方向持续判据在 3/4 recipe 通过。每个 recipe 要有至少 2/3 seed 在第 32 步和第 256 步同向，且均超过 5% deadband。mixed_sine×width8 为 0/3，不能称四 recipe 都持续。
+
+冻结 T 的绝对误差和相对收益判据只在 data_seed260606 同时通过。实测边界为 d3/n32 Gaussian、product/mixed_sine×width8/32、两隐藏层 SiLU、full-batch SGD η=0.05/mom0/nodecay、step32→256。各 draw 的结果如下。
+
+| data_seed | E MAE | W MAE | T MAE | T 相对 E 改善 | T 逐 cell 绝对误差范围 | T 误差更小的 cell |
+|---|---:|---:|---:|---:|---:|---:|
+| 260606 | 0.550345073 | 0.498007947 | 0.441188817 | 0.109156256 | 0.034352882–1.229845961 | 7/12 |
+| 260607 | 0.882267851 | 0.790145266 | 1.265316394 | −0.383048543 | 0.187467119–2.263445083 | 2/12 |
+| 260608 | 0.433473560 | 0.524427395 | 0.586472067 | −0.152998507 | 0.152497957–1.332692609 | 4/12 |
+| 260609 | 0.439959438 | 0.477914375 | 0.485002856 | −0.045043418 | 0.079158190–0.907918090 | 5/12 |
+| 260610 | 0.506008323 | 0.842219210 | 0.535851321 | −0.029842999 | 0.030577240–0.999907087 | 5/12 |
+
+原收益判据要求 T MAE≤0.70 且相对 E 改善≥0.08。260606 两项通过；260607 两项失败；260608 仅绝对误差项通过，相对收益仍失败。失效再现预测的判据则是 MAE>0.70 且改善<0.08，两种联合判据不混用。
+
+260609 的 12/12 cell 完整，唯一注册判据 Δ=MAE_E−MAE_T<0 成立。点预期 −0.25 与实测相差 +0.204956582；符号支持不等于点预期幅度实现，也不另判旧 0.70/0.08 联合再现。四 recipe 中两个平均改善、两个变差，四个初始化 95% t 区间均跨零。t 区间是按三个初始化计算的均值区间，只描述指定条件的波动。
+
+260610 的 12/12 cell 完整，唯一注册判据 Δ<0 成立。点预期 −0.20 与实测相差 +0.170157001；四 recipe 中两个平均改善、两个变差，三初始化 95% t 区间分别为 [−1.530861524,1.475262549]、[−.475478929,.313948362]、[−.759560449,1.170744637]、[−.866375070,.433576436]，全部跨零。
+
+全部测量属于 development，仅限上述四个 draw、函数、宽度和 seed。新 draw 验证不等于 sealed OOD（未用于开发、事先封存的分布外条件验证）。不外推新函数、其他优化器、LN（层归一化）、深度、rt 拟合或泛化。固定 r0 的方向持续也不保证晚期 rt 拟合或 test 改善。
+
+## 方法与条件
+
+输入和标签合同在各批中保持相同，仅按计划更换 seed。输入为 d=3、n=32 的 Gaussian draw；product=tanh(x0*x1)，mixed_sine=sin(1.7*x0)+0.4*sin(x1*x2)。x0/x1/x2 是输入的三个坐标。两函数使用相同输入。标签仅在 train（训练集）减样本均值并除 ddof=0 标准差（方差分母用样本数），无噪声、无 test。方向测量用 data_seed260606、init611/629/647；冻结幅度验证用同 draw、init701/719/737。新 draw 为 data_seed260607/260608/260609/260610，初始化 seed 不变。
+
+网络有两个隐藏层。架构为 Linear(3,w,bias)→SiLU→Linear(w,w,bias)→SiLU→Linear(w,1,bias)，w=8/32。Linear 是含偏置的线性层，SiLU 是层间激活函数。PyTorch float32 默认 Linear 初始化后转 float64。训练用 full-batch halfMSE（均方误差的一半）、SGD η=0.05/momentum0/weight_decay0，共 256 步，checkpoint0/32/256（保存参数的步数）。新旧 cell 初始参数逐位相同；width 之间不是参数匹配的因果干预。旧合同 depth=1 是 legacy 元数据，实际架构有两个 hidden 层。
+
+校准使用旧 12 cell，按初始化 seed 整组留出。E/W/T MAE 为 0.732049731/0.721367713/0.632144327；三个设计满列 rank（设计矩阵的各列线性独立），但跨组系数不稳。冻结后，原 draw 的 E/W/T MAE 为 0.550345073/0.498007947/0.441188817，W/T 相对 E 改善 0.052337126/0.109156256，两项预测通过。固定 y 的早期核读数在原 draw 的新初始化中补充了固定 r0 的预测信息；这一收益没有在另一输入 draw 保持。
+
+比较以 recipe 为条件，cell 内配对。四个 function×width recipe 各有三个初始化 seed；MAE 对四 recipe 等权，对 recipe 内三 seed 等权。三公式在同 cell 配对，报告绝对误差差值均值及 95% t 区间。不把 12 cell 当 12 个独立 recipe，不算 iid p 值（假设 cell 独立同分布的检验概率）。step32 保存 E/Q/三预测后才继续训练；12/12 cell 全部核验后判断联合 0.70/0.08 门槛。所有负早期读数和失败 cell 保留，系数与门槛不重拟合。
+
+配对 late−early log(rho)（晚期减早期读数）的均值及 seed 95% t 区间如下。
+
+| recipe | late−early 均值 | seed 95% t 区间 |
+|---|---:|---:|
+| product×8 | 1.4761 | [−0.6805, 3.6328] |
+| product×32 | 1.0427 | [0.8007, 1.2848] |
+| mixed_sine×8 | 1.7725 | [−0.6112, 4.1562] |
+| mixed_sine×32 | 1.2140 | [0.6408, 1.7872] |
+
+各 recipe 的冻结模型误差与配对改善列于下表。区间均按三个初始化计算。
+
+data_seed260606：
+
+| recipe | E MAE | W MAE | T MAE | T 相对 E 改善 [seed 95% t 区间] |
+|---|---:|---:|---:|---:|
+| product×width8 | 0.689108873 | 0.541057069 | 0.677781454 | 0.011327420 [-1.306143395, 1.328798235] |
+| product×width32 | 0.353222750 | 0.333551589 | 0.202855763 | 0.150366987 [-0.532222901, 0.832956874] |
+| mixed_sine×width8 | 0.903600011 | 0.805660105 | 0.614199435 | 0.289400576 [-0.112959917, 0.691761069] |
+| mixed_sine×width32 | 0.255448658 | 0.311763026 | 0.269918617 | -0.014469959 [-0.410333884, 0.381393965] |
+
+data_seed260607：
+
+| recipe | E MAE | W MAE | T MAE | T 相对 E 改善 [seed 95% t 区间] |
+|---|---:|---:|---:|---:|
+| product×width8 | 0.896237229 | 0.746317453 | 1.119423672 | -0.223186443 [-1.870694819, 1.424321933] |
+| product×width32 | 0.273858499 | 0.368165311 | 0.364690936 | -0.090832437 [-1.440104703, 1.258439828] |
+| mixed_sine×width8 | 1.227636082 | 1.355985181 | 1.907532437 | -0.679896355 [-1.463134625, 0.103341914] |
+| mixed_sine×width32 | 1.131339593 | 0.690113120 | 1.669618530 | -0.538278936 [-0.951519879, -0.125037993] |
+
+data_seed260608：
+
+| recipe | E MAE | W MAE | T MAE | T 相对 E 改善 [seed 95% t 区间] |
+|---|---:|---:|---:|---:|
+| product×width8 | 0.900820617 | 0.981808086 | 0.906613866 | -0.005793248 [-0.485006348, 0.473419851] |
+| product×width32 | 0.208168069 | 0.357236000 | 0.291868498 | -0.083700428 [-0.632785028, 0.465384172] |
+| mixed_sine×width8 | 0.384832322 | 0.467043462 | 0.699104615 | -0.314272293 [-1.367503087, 0.738958501] |
+| mixed_sine×width32 | 0.240073233 | 0.291622034 | 0.448301292 | -0.208228058 [-0.820915505, 0.404459389] |
+
+data_seed260609：
+
+| recipe | E MAE | W MAE | T MAE | T相对E改善 [三初始化95% t区间] |
+|---|---:|---:|---:|---:|
+| product×width8 | .377713590 | .419613387 | .373101226 | .004612365 [−.831187598, .840412327] |
+| product×width32 | .382049020 | .195931963 | .595459884 | −.213410864 [−.903691388, .476869659] |
+| mixed_sine×width8 | .368957735 | .432849148 | .171729424 | .197228311 [−.294856875, .689313497] |
+| mixed_sine×width32 | .631117409 | .863263002 | .799720891 | −.168603482 [−.534469269, .197262305] |
+
+既有 v1 核交换结果与这里的预测向量和条件不同。在四个封存函数×宽度单元，同 trace、同晚期残差的核交换给出 0.114–0.132 额外拟合收益和 1.82–4.73 目标残差 Rayleigh 比值。它不能替代固定 r0 的早期幅度检验。固定核递推属于已知优化理论。
+
+## 失败与反例
+
+方向持续不是四 recipe 的共同规律。mixed_sine×width8 的 0/3 方向反例保留。
+
+原 draw 的平均收益不保证逐 seed 改善。T 仅在 7/12 seed 降低误差，四 recipe 改善区间均跨零；mixed_sine×width32 平均误差上升 0.014469959。product×width8×seed701 的预测为 1.435308868，实测为 2.665154829，绝对误差为 1.229845961。
+
+260607 推翻了两项收益预测。T MAE≤0.70 且改善≥0.08 的联合预测两项均失败；W 改善<0.08 的预测失败。T 仅 2/12 cell 更好，四 recipe 的 T 平均改善均为负。mixed_sine×width32 的区间 [−0.951519879, −0.125037993] 完全低于零，其余三个跨零。mixed_sine×width8×seed737 的 T 预测为 2.276896410，实测为 0.013451327，绝对误差 2.263445083 是本批最大值。W 在 mixed_sine×width8 的改善区间 [−0.152803281, −0.103894919] 低于零，在 width32 为 [0.406196940, 0.476256006]。
+
+260607 相对 260606 的同 seed 配对 T 绝对误差变化如下。每项给出均值及 95% t 区间，只描述三个初始化的条件波动，不作新数据 draw 的概率推断。
+
+- product×8：0.441642218 [−3.128054945, 4.011339382]。
+- product×32：0.161835173 [−0.895298345, 1.218968692]。
+- mixed_sine×8：1.293333002 [−0.966552951, 3.553218955]。
+- mixed_sine×32：1.399699913 [0.850734023, 1.948665803]。
+
+260608 的联合失效再现预测在 MAE 项失败，改善项成立。T 仅 4/12 cell 更好，四 recipe 平均改善均负、四区间均跨零；不能称逐 seed 失效，也不能称相对 E 的预测收益恢复。product×width8×seed701 预测为 1.619191152，实测为 2.951883761，误差 1.332692609 为本批最大值。W 在 mixed_sine×width8 的改善区间 [−0.149328203, −0.015094079] 低于零，其余三个跨零。
+
+260608 相对 260607 的 T 误差变化如下，区间按同 seed 的三初始化计算。两个 mixed_sine 区间低于零，两个 product 区间跨零；相对 260606 的四区间均跨零。这仍是三个指定 draw 的条件比较，不估计跨 draw 失效概率。
+
+- product×8：−0.212809806 [−3.679293654, 3.253674041]。
+- product×32：−0.072822439 [−0.487221843, 0.341576966]。
+- mixed_sine×8：−1.208427822 [−1.943295012, −0.473560632]。
+- mixed_sine×32：−1.221317238 [−2.323247728, −0.119386748]。
+
+260609 是“全 recipe 均失败”的反例：两个 recipe 均值改善。T 最大误差 0.907918090 来自 mixed_sine×width32×seed737，预测为 1.950490378，实测为 1.042572288；最小误差为 0.079158190。负平均收益仍不证明逐 seed 失效、Q 因果机制、移动 rt 拟合速度或 test 损害。
+
+260610 的符号预测支持但点预期幅度未实现；T 仅 5/12 cell 更好，四 recipe 区间均跨零。T 绝对误差最大为 0.999907087；本轮不追加旧 0.70/0.08 联合判据。
+
+260609 相对 260608 的 T MAE 降低 0.101469211。product×width32 误差增加 0.303591386，95% t 区间 [0.125638581, 0.481544191] 高于零，其余三个跨零。相对 260606，T MAE 增加 0.043814039。mixed_sine×width32 误差增加 0.529802274，区间 [0.182393616, 0.877210933] 高于零，其余三个跨零。这些是三个初始化的条件比较；data 同时改变输入、clean 目标和归一化，不能独立归因。
+
+260610 相对 260609 的 T MAE 增加 0.050848465；product×width32 的 T 误差变化均值为 +0.347354694，区间 [−0.135000674,0.829710062]，其余三个 recipe 区间均跨零。相对 260606，T MAE 增加 0.094662504；这些只是指定 draw 的配对描述。
+
+旧 NumPy matmul（矩阵乘法）overflow/invalid（溢出/无效运算）警告的根因未定。旧保存数组和复算通过，原 probe（核交换诊断）不登记额外科学 claim。新 einsum 核计算无同类警告。最初 Git 写权限阻断时未训练、0/12 cell、P1 未评估；它属于流程失败，不是科学反例。
+
+## 未决问题
+
+下一候选问题是：在不改变四 recipe、三初始化、三冻结公式与训练合同的前提下，预先指定 data_seed260611 是否仍给出 Δ<0。应先注册新点预期、来源 hash 与 pinned 源码，再训练；不作跨 draw 概率外推。
+
+后续研究须先用唯一提交冻结新合同与 pinned 源码（按 hash 固定的源码），再训练。不得生成新 draw 后补预测，不改四个已测 draw 的旧判定。全局扫描继续拒绝孤立、额外或缺失结果。不作输入/目标/归一化独立归因或跨 draw 概率推断。
+
+## 证据
+
+以下执行与恢复记录来自既有保存证据。hash 是内容摘要，mtime 是文件修改时间；checkpoint 是保存参数的训练步。
+
+旧方向与原幅度批均完成 12/12 cell，累计训练分别为 1.816648/1.752172 秒。原幅度的旧 26 份输入证据 hash 未变。
+
+260607 完成 12/12 cell，累计训练 1.352800 秒；预注册提交至少早于首 cell 12.340233 秒。全部 36 checkpoint 由保存参数重建，初始化差为 0、输出最大差为 8.881784197e−16、Jacobian 最大差为 1.110223025e−15。旧 79 文件与新 36 成功文件的 hash/mtime 在恢复检查中保持不变，源码与数据合同核验通过。训练前拒绝孤立 early/NPZ/failure/tmp（早期读数、数组、失败记录或临时文件），审计后才允许另行恢复。
+
+260608 完成 12/12 cell，累计 cell 时间 1.250168 秒；预注册至少早于首 cell 13.592260 秒。36 checkpoint 参数/J 重建通过，初始化差为 0，输出/J 最大差为 8.881784197e−16/1.110223025e−15。恢复跳过 12 成功 cell，36 结果文件 hash/mtime 不变，136 份历史输入 hash 保持不变。训练前全局扫描全部 cell，成功 cell 出现额外 failure/tmp 或缺失文件亦拒绝；旧孤立文件的审计要求保留。
+
+260609 仅改变 data_seed，其余训练合同与冻结三公式不变。预注册与五份 pinned 源码同提交，早于首 cell 21.032902 秒；12 cell 计算累计 1.233600 秒。36 checkpoint 独立参数/J 重建通过，初始化差为 0、输出/J 最大差均为 8.881784197e−16。每次 runner（执行脚本）先审计旧 48 cell 与本批全 cell，显式绑定唯一完整引入 commit，拒绝孤立、未知、额外或缺失结果。恢复为 0 新 cell/跳过 12 cell；200 旧 input hash、151 旧文件及 36 本批成功文件 hash/mtime 不变。
+
+- [早期方向预注册](studies/r006_early_direction/preregistration.json)、[原始结果与复算](studies/r006_early_direction/summary.json)。
+- [首次提交受阻记录](findings/r006_early_direction.md)、[恢复执行记录](findings/r014_early_direction_resume.md)。
+- v1 只读来源：science_program_v1/studies/B03_kernel_direction/report.md。
+- [新幅度预注册与冻结公式](studies/r022_early_amplitude/preregistration.json)、[显式探索校准](studies/r022_early_amplitude/executed/calibration.json)、[新结果复算](studies/r022_early_amplitude/summary.json)。
+- [成功 cell 与恢复核验](studies/r022_early_amplitude/executed/saved_evidence_verification.json)、[新幅度检验记录](findings/r022_early_amplitude.md)。
+
+- [36 checkpoint 参数/J 独立重建](studies/r022_early_amplitude/executed/independent_verification.json)。
+- [新 draw 预注册与源码合同](studies/r046_data_seed_transfer/preregistration.json)、[新 draw 结果复算](studies/r046_data_seed_transfer/summary.json)、[本次 findings](findings/r046_data_seed_transfer.md)。
+- [历史收尾/79文件审计](studies/r046_data_seed_transfer/executed/historical_evidence_verification.json)、[全部参数/J独立核验](studies/r046_data_seed_transfer/executed/independent_verification.json)、[旧新配对区间及成功恢复核验](studies/r046_data_seed_transfer/executed/saved_evidence_verification.json)。
+- 新预注册提交 cb76a737365ef6135d8d9c323ef1e092fc257469；原幅度科学收尾 c0adba197c4c56a27a97e69f6af574eb68657ef8，旧方向科学收尾 3dd7adf，03a3741 只提交日志；[本次收尾回执](studies/r046_data_seed_transfer/executed/final_commit_verification.json)。
+
+- [第二个新draw预注册](studies/r078_data_seed_recheck/preregistration.json)、[结果复算](studies/r078_data_seed_recheck/summary.json)、[本批记录](findings/r078_data_seed_recheck.md)。
+- [历史61blob/115文件审计](studies/r078_data_seed_recheck/executed/historical_input_audit.json)、[36checkpoint参数/J重建](studies/r078_data_seed_recheck/executed/independent_verification.json)、[260606配对与恢复](studies/r078_data_seed_recheck/executed/saved_evidence_verification.json)、[260607配对复算](studies/r078_data_seed_recheck/executed/previous_draw_verification.json)。
+- 预注册提交67f05e1d7ccb5d43f86fa294566adc7d054eb6d3；[科学收尾回执](studies/r078_data_seed_recheck/executed/final_commit_verification.json)。
+
+- [第四个draw预注册](studies/r090_negative_transfer/preregistration.json)、[结果复算](studies/r090_negative_transfer/summary.json)、[本批记录](findings/r090_negative_transfer.md)。
+- [历史67blob/151文件审计](studies/r090_negative_transfer/executed/historical_input_audit.json)、[36checkpoint参数/J重建](studies/r090_negative_transfer/executed/independent_verification.json)、[260606配对与恢复](studies/r090_negative_transfer/executed/saved_evidence_verification.json)、[260608配对核验](studies/r090_negative_transfer/executed/previous_draw_verification.json)。
+- 报告重排提交da36810；预注册提交eff188dbc2b9c6c39aeec697ae06a51243128f90；[科学收尾回执](studies/r090_negative_transfer/executed/final_commit_verification.json)。
+
+- [本批只读独立审查](studies/r090_negative_transfer/executed/independent_review.json)。
+
+- [data260610预注册](studies/r108_data_seed_transfer/preregistration.json)、[结果复算](studies/r108_data_seed_transfer/summary.json)、[独立重建](studies/r108_data_seed_transfer/executed/independent_verification.json)、[恢复核验](studies/r108_data_seed_transfer/executed/saved_evidence_verification.json)、[本轮finding](findings/r108_data_seed_transfer.md)。

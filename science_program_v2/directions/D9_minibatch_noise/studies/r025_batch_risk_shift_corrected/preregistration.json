@@ -1,0 +1,62 @@
+{
+  "study": "r025_batch_risk_shift_corrected",
+  "round": 25,
+  "direction_round": 1,
+  "direction": "D9_minibatch_noise",
+  "date": "2026-10-07",
+  "domain": "development",
+  "question": "在D2固定ReLU特征合同中，仅将全批量GD改为无放回B=32/8小批量，固定n=64、eta=.3与标签噪声，风险最低点t*是否系统性移动？；更新因子修正为D2实际2eta",
+  "data_files": {
+    "411": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed411.npz",
+    "412": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed412.npz",
+    "413": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed413.npz",
+    "414": "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed414.npz"
+  },
+  "input_sha256": {
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed411.npz": "fb8397ea38970429c4c81a7eb7aae6e92da3952b817283fcafb848bbacb97992",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed412.npz": "9be7a247f0532d43d22ab807d67da344c839cc644ba2c44043b1f79bcfbc1ddf",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed413.npz": "ed7b7b3612d9f0121c14478702fc2c2ca96a6bf6506f6a26429cb5daccda79f1",
+    "directions/D2_overfitting_u_curve/studies/r003_noise_sample_scaling/executed/data_n64_seed414.npz": "14ce32862ba9e73da81b27cda96acdfd94e68b691f8797ae3d4a0aa7f5103a92"
+  },
+  "seeds": [
+    411,
+    412,
+    413,
+    414
+  ],
+  "batches": [
+    32,
+    8
+  ],
+  "variances": [
+    0.25,
+    0.5,
+    1.0
+  ],
+  "lr": 0.3,
+  "steps": 768,
+  "replicates": 8,
+  "batch_seed_base": 250700,
+  "compute_budget_seconds": 1200,
+  "optimizer": "SGD no momentum/no decay; each update samples a uniform subset without replacement; step counts parameter updates; audit risk evaluated on 2048-row fixed audit set.",
+  "predictions": {
+    "P1": "For each variance, at least 3/4 B=32 seed cells have 0.8 <= t*_B32/t*_full <= 1.2.",
+    "P2": "For at least 2/3 variance values, at least 3/4 B=8 seed cells have t*_B8/t*_full <= 0.9.",
+    "P3": "All 24 cells have finite mean risk and an interior t* in steps 1..767."
+  },
+  "counts": {
+    "recipe_units": "batch×noise_variance (2×3); seeds are paired stability repeats",
+    "planned_cells": 24,
+    "trajectories_per_cell": 8
+  },
+  "source_sha256": {
+    "executed/run.py": "e165b0bb0449e4cc98c88e9e1085a659a134b633550310ce07c893d0402e239e",
+    "analysis.py": "b0bbac4facdfa367294968dbdb81e3d5e3378f065be19e48c58e1d920b454ff5",
+    "executed/verify.py": "bb287a7c0bd51767c05689fedb3cb0b3af842038f820484bdd8f63ecc462911f"
+  },
+  "boundaries": [
+    "仅D2固定ReLU width128/zero-head/MSE、n=64、eta=.3、float64数据；不外推其他n、eta、Adam、动量、learned hidden或test早停。",
+    "mini-batch轨迹使用固定训练数据与epsilon，replicate仅改变batch抽样；不把8条轨迹当独立recipe。"
+  ],
+  "analysis_contract": "每cell保存8条audit MSE轨迹、均值、标准误；t*为均值曲线首个全局argmin；与D2全批量同seed/variance配对。"
+}

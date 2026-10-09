@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 1/1 seed11 refinement cell; reference tau_A changed 2.372498%, supporting the 5% criterion, with evidence, reports, handoff, and verified closeout committed.

@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | Completed 27/27 cells; P2 refuted at alpha=.01 and P3 supported; evidence, reports, and handoff committed in 8f96d00 with verified receipt bbfc9c5.

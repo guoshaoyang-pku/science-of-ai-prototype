@@ -1,0 +1,1 @@
+ROUND_RESULT: ok | All 6 saved r12/r15 curve evaluations passed the fixed formula thresholds with no training or fitting; evidence, reports, KB, handoff, and verified closeout were committed.

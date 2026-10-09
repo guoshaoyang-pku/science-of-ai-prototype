@@ -1,0 +1,167 @@
+{
+  "study": "r001_momentum_startup",
+  "round": 1,
+  "direction": "D1_u_effective_time",
+  "domain": "development",
+  "question": "同学习率、同固定谱、同目标和初始残差下，mom=0 与 mom=.9 达到相同归一化函数误差的步数比，何时可由稳态 U 或恒梯度启动修正预测？",
+  "created_date": "2026-10-06",
+  "data_contract": {
+    "dimension": 8,
+    "sample_count": 8,
+    "dtype": "float64",
+    "loss": "L=||Xθ−y||²/(2n)",
+    "features": "X=diag(sqrt(n*lambda)) R.T; R由每个seed的NumPy default_rng正态矩阵QR生成",
+    "target": "θ*=R[:,k]*g0/lambda_k; y=Xθ*",
+    "initial_parameter": "θ0=0",
+    "execution_coordinate": "存储δ=θ−θ*，梯度X.T@(Xδ)/n；该重参数化避免收敛后减法消去，数学上与θ更新相同",
+    "optimizer": "全批量 SGD; v(t+1)=mu*v(t)+g(t), δ(t+1)=δ(t)−eta*v(t+1); v0=0; no decay/dampening/Nesterov; CPU NumPy",
+    "pairing": "每个condition、seed固定X/y/θ0/eta；只比较momentum=0和.9",
+    "amplitude_control": "同谱、同目标模态和坐标，仅改变θ*幅度使||g0||2=.003或.01；比较L(t)/L(0)",
+    "gradient_scale_definition": "||g0||2；与主线经验|g|的统计口径不保证相同"
+  },
+  "spectrum": [
+    0.001,
+    0.01,
+    0.05,
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5
+  ],
+  "target_indices": [
+    0,
+    1,
+    2,
+    3,
+    7
+  ],
+  "learning_rate": 0.1,
+  "momenta": [
+    0.0,
+    0.9
+  ],
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "steps": 40000,
+  "conditions": [
+    {
+      "id": "lambda_0_g003",
+      "target_index": 0,
+      "initial_gradient_norm": 0.003
+    },
+    {
+      "id": "lambda_0_g010",
+      "target_index": 0,
+      "initial_gradient_norm": 0.01
+    },
+    {
+      "id": "lambda_1_g003",
+      "target_index": 1,
+      "initial_gradient_norm": 0.003
+    },
+    {
+      "id": "lambda_1_g010",
+      "target_index": 1,
+      "initial_gradient_norm": 0.01
+    },
+    {
+      "id": "lambda_2_g003",
+      "target_index": 2,
+      "initial_gradient_norm": 0.003
+    },
+    {
+      "id": "lambda_2_g010",
+      "target_index": 2,
+      "initial_gradient_norm": 0.01
+    },
+    {
+      "id": "lambda_3_g003",
+      "target_index": 3,
+      "initial_gradient_norm": 0.003
+    },
+    {
+      "id": "lambda_3_g010",
+      "target_index": 3,
+      "initial_gradient_norm": 0.01
+    },
+    {
+      "id": "lambda_7_g003",
+      "target_index": 7,
+      "initial_gradient_norm": 0.003
+    },
+    {
+      "id": "lambda_7_g010",
+      "target_index": 7,
+      "initial_gradient_norm": 0.01
+    }
+  ],
+  "cell_count": 60,
+  "counting": "10 paired condition units = 5 alignments x 2 amplitudes; 20 condition/recipe units; 3 coordinate seeds only test robustness, not independent scientific conditions",
+  "endpoints": {
+    "primary": "q=.9; first and sustained_to_T; L(t)/L(0)<=q",
+    "secondary": "q=.1,.01; first and sustained_to_T",
+    "sustained_to_T": "最后一次L/L0>q之后的第一步；只保证到T=40000，非无限期保证",
+    "censoring": "T内没有达到则null；不延长预算，登记删失并判涉及该条件的预测不可评估"
+  },
+  "thresholds": [
+    0.9,
+    0.1,
+    0.01
+  ],
+  "proxy_definitions": {
+    "nominal_U": "eta*t/(1−mu)",
+    "startup_U": "eta*[t/(1−mu)−mu*(1−mu**t)/(1−mu)**2]；恒梯度累计位移的解析式，用于变化梯度仅是近似",
+    "legacy_proxy": "g0*nominal_U；仅作幅度对照，不称Adam等价",
+    "paired_prediction": "给定实测plain SGD的对应阈值步数t0，预测momentum最小整数t使U_mu(t)>=eta*t0；因此是配对换算检验，不是从零预测t0",
+    "nominal_speedup": "连续稳态换算为10；整数步数预测为ceil(t0/10)",
+    "exact_audit": "e0=-1,e1=−(1−eta*lambda); e(t+1)=(1+mu−eta*lambda)e(t)−mu*e(t−1); normalized loss=e**2"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "kind": "known_theory_execution_audit",
+      "prediction": "全部cell的归一化loss与独立标量谱递推最大绝对误差<=1e−10，阈值步数完全一致",
+      "register_as_new_discovery": false
+    },
+    {
+      "id": "P2",
+      "kind": "controlled_prediction",
+      "prediction": "q=.9且h=eta*lambda<=.001时，启动修正对每个配对端点误差<=1步；h=.001时稳态换算对mom=.9步数至少低估20%",
+      "criterion": "全部2档幅度×3seed×2端点满足；按condition范围报告，不按seed夸大n"
+    },
+    {
+      "id": "P3",
+      "kind": "amplitude_negative_control",
+      "prediction": "同模态/seed/momentum，g0=.003与.01的归一化轨迹最大绝对差<=1e−10且所有阈值步数相同；legacy初始梯度代理则为0.3倍",
+      "criterion": "全部5模态×3seed×2mom满足；是该合成系统控制，不解释历史bigram梯度来源"
+    },
+    {
+      "id": "P4",
+      "kind": "deliberately_tested_extension",
+      "prediction": "q=.01 sustained_to_T 时，启动修正在全部5模态×2幅度的步数绝对误差不大于稳态换算",
+      "criterion": "任一配对违反即refuted；保留全部反例，不改预测"
+    }
+  ],
+  "analysis": "从保存NPZ复算成对端点、整数步数、相对误差；seed报告min/max；独立解析递推仅核验执行器，不作为新claim。首次过阈值与持续过阈值均报告以揭示动量震荡。",
+  "resume_protocol": "先执行--max-new-cells 2再续跑。每个成功cell核对request/source/prereg/arrays SHA256，成功metadata与arrays不得覆盖；receipt保存metadata SHA256；分析核对恢复hash。",
+  "boundaries": [
+    "仅development、n=d=8固定特征单模态目标、float64、全批量SGD、eta=.1、mu0/.9、该固定谱和两档梯度幅度。",
+    "同eta比较不检验同eta/(1−mu)下的momentum bonus；不测Adam、不测mini-batch或非线性网络。",
+    "g0在legacy代理中是固定初始L2梯度，不是沿途梯度平均；两档幅度初始loss不同，因此只比较归一化误差，不比较绝对误差。",
+    "对历史K1019的10倍只核对代数来源，不给其bigram现象作因果分摊。",
+    "恒梯度启动项是已知理论；新登记仅为特定配对预测的验证/反例。"
+  ],
+  "compute_budget": {
+    "maximum_seconds": 1200,
+    "planned_cells": 60,
+    "threads": 1,
+    "device": "CPU",
+    "network": false
+  },
+  "execution_source_sha256": "e818264c7b375c8a702ba36998fbbbc1f11d9c6796fd61debb652d93f0f1819c",
+  "analysis_source_sha256": "eb2cba4b75ecae5c1599de427c8befd33f110123ba9cd0f87c4fa33a215c8b55"
+}
