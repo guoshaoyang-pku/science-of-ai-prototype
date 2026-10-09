@@ -36,6 +36,7 @@ gh release download handoff-20261009 --repo guoshaoyang-pku/science-of-ai-protot
 | references/science_program_v1/ | v2 引用的 v1 代码、报告与轻量证据 |
 | evidence/manifests/、evidence/history/ | 每文件 source/export hash、归档 hash、历史 commit 索引 |
 | external/ArchitectureIQ/ | 来自 AIQ main 的固定 commit submodule；题目与 benchmark runtime 的外部来源 |
+| benchmark_compat/ | 旧 KB lab 的 process/target-transform 已有补丁，可应用到外部副本 |
 
 题库来源是 [renrua52/ArchitectureIQ](https://github.com/renrua52/ArchitectureIQ) 的 main，当前固定 6eafe8c1e11c5dc6ad28254caf2669be2ee4da8c。新实验还需明确 release、暴露记录和 group/seed/variant 隔离；换 seed 不产生新题。题库正文与最终 benchmark test 没有复制进本库。
 

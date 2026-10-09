@@ -14,3 +14,5 @@
 旧发布器没有实际运行，新 D2 publisher 在新机器尚未完成端到端站点发布验证。历史 v1/v2 所有训练脚本未全量重跑；交接验证以保存文件 hash、既有 runtime suite 和 D2 数值复核为准。
 
 脱敏扫描：Git 文本 2619 份、归档文本 5209 份，凭据/私钥/token/个人目录模式零命中。独立结构审查已修复四项；secret 模式复核由主 agent 执行（独立 sanitizer 的任务传递失败），不称其为独立凭据审计。
+
+额外依赖核对：公开 AIQ main 缺少旧 lab 的 process/target-transform 扩展；已交付 11 文件 code-only 补丁，在外部固定 main 副本成功应用且逐文件 hash 一致，所有对应 import 和 v1.5 profile 加载通过。未启动 lab 训练。

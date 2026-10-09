@@ -13,6 +13,8 @@ PYTHONPATH=src .venv/bin/python -m pytest -q
 
 submodule 在 external/ArchitectureIQ，固定 main 的 6eafe8c1…，不增加 aiq_bench_repo 子目录。upstream.lock.json 登记真实依赖。升级需手动核对 commit，不能静默浮动实验合同。
 
+公开 main 没有旧 lab 的 process/target-transform 扩展。需要这些功能时运行 .venv/bin/python tools/prepare_benchmark.py，将打印路径设为 AIQ_BENCH_ROOT；工具在外部目录创建固定 main + 已有兼容补丁副本，核对 11 个源 hash，不修改 submodule。补丁说明见 benchmark_compat/README.md。
+
 ## 下载与复核数据
 
 ~~~bash

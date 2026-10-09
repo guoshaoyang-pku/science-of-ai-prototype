@@ -1,0 +1,1262 @@
+--- a/src/architecture_iq/candidates/generator.py
++++ b/src/architecture_iq/candidates/generator.py
+@@ -1,6 +1,7 @@
+ from __future__ import annotations
+ 
+ import json
++import math
+ import random
+ from pathlib import Path
+ from typing import Any
+@@ -359,6 +360,346 @@
+         "step_metrics": step_metrics,
+     }
+ '''
++
++
++PROCESS_RECORDER_VERSION = "adam_ce_v1"
++PROCESS_MAX_STEPS = 16
++PROCESS_MAX_EVAL = 4096
++
++
++def validate_process_request(request: dict[str, Any], spec: dict[str, Any]) -> dict[str, Any]:
++    ensure_registries()
++    if get_dataset_family(spec["family"]).train_loop_kind == "regression":
++        return _validate_regression_process(request, spec)
++    if not isinstance(request, dict) or set(request) - {"steps", "max_eval_samples", "version"}:
++        raise ValueError("process request accepts only steps, max_eval_samples and version")
++    if request.get("version", PROCESS_RECORDER_VERSION) != PROCESS_RECORDER_VERSION:
++        raise ValueError("unsupported process recorder version")
++    ensure_registries()
++    if get_dataset_family(spec["family"]).train_loop_kind != "classification":
++        raise ValueError("process recording supports classification only")
++    if set(spec.get("execution", {})) - {"device"}:
++        raise ValueError("unsupported process execution control")
++    if spec.get("execution", {}).get("device", "cpu") != "cpu" or spec["model"].get("type") != "mlp":
++        raise ValueError("process recording supports CPU MLP only")
++    if spec["loss"] != {"loss_id": "cross_entropy"}:
++        raise ValueError("process recording requires plain cross_entropy without extra controls")
++    optimizer = spec["optimizer"]
++    if optimizer.get("type") != "Adam" or set(optimizer) - {"type", "lr", "weight_decay", "betas"}:
++        raise ValueError("process recording supports coupled Adam with type/lr/weight_decay/betas only")
++    betas = optimizer.get("betas", [0.9, 0.999])
++    if not isinstance(betas, (list, tuple)) or len(betas) != 2 or any(
++        isinstance(b, bool) or not isinstance(b, (int, float)) or not math.isfinite(b) or not 0 <= b < 1 for b in betas
++    ):
++        raise ValueError("process Adam betas must be two finite values in [0,1)")
++    for key, default, positive in (("lr", None, True), ("weight_decay", 0.0, False)):
++        value = optimizer.get(key, default)
++        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0 or (positive and value == 0):
++            raise ValueError(f"process Adam {key} is invalid")
++    model = spec["model"]
++    known_model = {"type", "depth", "width", "input_dim", "output_dim", "activation", "activations",
++                   "layer_norm", "residual", "leaky_relu_slope"}
++    if set(model) - known_model:
++        raise ValueError("unsupported process model control")
++    if "activation" in model and "activations" in model:
++        raise ValueError("process model must use one activation representation")
++    for key in ("depth", "width", "input_dim"):
++        if isinstance(model.get(key), bool) or not isinstance(model.get(key), int) or model[key] < 1:
++            raise ValueError(f"process model {key} must be a positive integer")
++    if not isinstance(model.get("residual"), bool) or not isinstance(model.get("layer_norm"), list) or len(model["layer_norm"]) != model["depth"] or any(not isinstance(v, bool) for v in model["layer_norm"]):
++        raise ValueError("process MLP residual and depth-matched layer_norm must be boolean")
++    if "leaky_relu_slope" in model:
++        value = model["leaky_relu_slope"]
++        if model.get("activation") != "leaky_relu" or isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
++            raise ValueError("unsupported process leaky_relu_slope")
++    classes = model.get("output_dim", 1)
++    if isinstance(classes, bool) or not isinstance(classes, int) or not 2 <= classes <= 256:
++        raise ValueError("process output_dim must be an integer from 2 to 256")
++    horizon = spec["budget"]["training_steps"]
++    if set(spec["budget"]) - {"training_steps", "batch_size", "total_samples_seen"}:
++        raise ValueError("unsupported process budget control")
++    batch = spec["budget"].get("batch_size")
++    if isinstance(batch, bool) or not isinstance(batch, int) or batch < 1:
++        raise ValueError("process batch_size must be a positive integer")
++    steps = request.get("steps")
++    if isinstance(horizon, bool) or not isinstance(horizon, int) or horizon < 1:
++        raise ValueError("process training_steps must be a positive integer")
++    if "total_samples_seen" in spec["budget"] and spec["budget"]["total_samples_seen"] != horizon * batch:
++        raise ValueError("process budget sample count mismatch")
++    if not isinstance(steps, list) or not 1 <= len(steps) <= PROCESS_MAX_STEPS or any(
++        isinstance(s, bool) or not isinstance(s, int) or not 1 <= s <= horizon for s in steps
++    ) or len(set(steps)) != len(steps):
++        raise ValueError("process steps must contain 1 to 16 distinct integers inside the training horizon")
++    maximum = request.get("max_eval_samples", PROCESS_MAX_EVAL)
++    if isinstance(maximum, bool) or not isinstance(maximum, int) or not 1 <= maximum <= PROCESS_MAX_EVAL:
++        raise ValueError("process max_eval_samples must be an integer from 1 to 4096")
++    return {"version": PROCESS_RECORDER_VERSION, "steps": sorted(steps), "max_eval_samples": maximum}
++
++
++def _validate_regression_process(request, spec):
++    version = "regression_mse_v1"
++    if not isinstance(request, dict) or set(request) - {"steps", "max_eval_samples", "version"} or request.get("version", version) != version:
++        raise ValueError("unsupported regression process request")
++    if spec.get("execution", {"device": "cpu"}) != {"device": "cpu"} or spec["model"].get("type") != "mlp" or spec["loss"] != {"loss_id": "mse"}:
++        raise ValueError("regression process requires CPU MLP and plain MSE")
++    model = spec["model"]
++    known = {"type", "depth", "width", "input_dim", "output_dim", "activation", "activations",
++             "layer_norm", "residual", "leaky_relu_slope"}
++    if set(model) - known or ("activation" in model and "activations" in model):
++        raise ValueError("unsupported regression process model control")
++    if any(isinstance(model.get(key), bool) or not isinstance(model.get(key), int) or model[key] < 1 for key in ("depth", "width", "input_dim")) or model.get("output_dim", 1) != 1:
++        raise ValueError("regression process requires positive model sizes and scalar output")
++    if not isinstance(model.get("residual"), bool) or not isinstance(model.get("layer_norm"), list) or len(model["layer_norm"]) != model["depth"] or any(not isinstance(v, bool) for v in model["layer_norm"]):
++        raise ValueError("regression process requires boolean residual and depth-matched LN")
++    opt = spec["optimizer"]
++    allowed = {"type", "lr", "weight_decay", "betas"} if opt.get("type") == "Adam" else {"type", "lr", "weight_decay", "momentum"}
++    if opt.get("type") not in {"Adam", "SGD"} or set(opt) - allowed:
++        raise ValueError("regression process supports canonical Adam or SGD")
++    for key, default in (("lr", None), ("weight_decay", 0.0)):
++        value = opt.get(key, default)
++        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0 or (key == "lr" and value == 0):
++            raise ValueError("invalid regression process optimizer value")
++    values = opt.get("betas", [.9, .999]) if opt["type"] == "Adam" else [opt.get("momentum", 0.0)]
++    if not isinstance(values, (list, tuple)) or len(values) != (2 if opt["type"] == "Adam" else 1) or any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not 0 <= v < 1 for v in values):
++        raise ValueError("invalid regression process momentum")
++    budget = spec["budget"]
++    if set(budget) - {"training_steps", "batch_size", "total_samples_seen"} or any(isinstance(budget.get(key), bool) or not isinstance(budget.get(key), int) or budget[key] < 1 for key in ("training_steps", "batch_size")):
++        raise ValueError("invalid regression process budget")
++    if "total_samples_seen" in budget and budget["total_samples_seen"] != budget["training_steps"] * budget["batch_size"]:
++        raise ValueError("regression process sample count mismatch")
++    steps, maximum = request.get("steps"), request.get("max_eval_samples", PROCESS_MAX_EVAL)
++    if not isinstance(steps, list) or not 1 <= len(steps) <= PROCESS_MAX_STEPS or any(isinstance(s, bool) or not isinstance(s, int) or not 1 <= s <= budget["training_steps"] for s in steps) or len(set(steps)) != len(steps):
++        raise ValueError("invalid regression observation steps")
++    if isinstance(maximum, bool) or not isinstance(maximum, int) or not 1 <= maximum <= PROCESS_MAX_EVAL:
++        raise ValueError("invalid regression evaluation bound")
++    return {"version": version, "steps": sorted(steps), "max_eval_samples": maximum}
++
++
++PROCESS_HELPERS = r'''
++def _tensor_pin(tensor):
++    value = tensor.detach().cpu().contiguous()
++    return {"shape": list(value.shape), "dtype": str(value.dtype),
++            "sha256": hashlib.sha256(value.numpy().tobytes()).hexdigest()}
++
++
++def _norm(value):
++    return float(torch.linalg.vector_norm(value.detach().double()).item())
++
++
++def _ratio(numerator, denominator):
++    if denominator == 0:
++        return {"value": None, "reason": "zero denominator"}
++    return {"value": numerator / denominator, "reason": None}
++
++
++def _cosine(left, right):
++    denominator = _norm(left) * _norm(right)
++    if denominator == 0:
++        return {"value": None, "reason": "zero vector"}
++    return {"value": float(torch.sum(left.double() * right.double()).item()) / denominator, "reason": None}
++
++
++class _ProcessRecorder:
++    def __init__(self, model, optimizer, request, seed, tensors):
++        if request is None or request.get("version") != "adam_ce_v1":
++            raise ValueError("recording requires a normalized adam_ce_v1 request")
++        if type(optimizer) is not torch.optim.Adam or len(optimizer.param_groups) != 1:
++            raise ValueError("recording requires canonical single-group coupled Adam")
++        self.group = optimizer.param_groups[0]
++        if any(self.group.get(k, False) for k in ("amsgrad", "maximize", "capturable", "differentiable", "fused", "decoupled_weight_decay")):
++            raise ValueError("unsupported process Adam mode")
++        if tensors[2].shape[0] > request["max_eval_samples"] or tensors[2].shape[0] == 0:
++            raise ValueError("lab evaluation sample count exceeds requested bound or is empty")
++        self.named = list(model.named_parameters())
++        if len(self.named) > 256:
++            raise ValueError("process parameter count exceeds recorder bound")
++        self.head = f"net.{len(model.net) - 1}."
++        self.optimizer, self.request, self.seed = optimizer, request, seed
++        self.stream = hashlib.sha256()
++        self.steps = []
++        self.record = {"schema_version": 1, "recorder_version": "adam_ce_v1", "request": request,
++                       "seed": seed, "optimizer_type": "Adam", "decay_mode": "coupled",
++                       "optimizer_defaults": {k: (list(v) if isinstance(v, tuple) else v)
++                       for k, v in self.group.items() if k != "params"},
++                       "inputs": {name: _tensor_pin(value) for name, value in zip(
++                       ("train_x", "train_y", "test_x", "test_y"), tensors)}, "steps": self.steps}
++
++    def before(self, step, indices):
++        self.stream.update(indices.detach().cpu().contiguous().numpy().tobytes())
++        if step not in self.request["steps"]:
++            return None
++        snapshot = []
++        for name, parameter in self.named:
++            weight = parameter.detach().clone()
++            gradient = parameter.grad.detach().clone() if parameter.grad is not None else None
++            state = self.optimizer.state.get(parameter, {})
++            entry = {"name": name, "role": "head" if name.startswith(self.head) else "hidden",
++                     "shape": list(weight.shape), "active": gradient is not None, "parameter_norm": _norm(weight),
++                     "moment_before": {key: _norm(state[key]) if key in state else 0.0
++                                       for key in ("exp_avg", "exp_avg_sq")}}
++            if gradient is None:
++                entry["reason"] = "gradient absent; Adam skips this parameter"
++            else:
++                decay = self.group["weight_decay"] * weight
++                entry.update(data_gradient_norm=_norm(gradient), decay_gradient_norm=_norm(decay),
++                             coupled_gradient_norm=_norm(gradient + decay),
++                             decay_to_data_ratio=_ratio(_norm(decay), _norm(gradient)),
++                             parameter_data_cosine=_cosine(weight, gradient), parameter_decay_cosine=_cosine(weight, decay),
++                             data_decay_cosine=_cosine(gradient, decay))
++            snapshot.append((parameter, weight, gradient, entry))
++        return {"step": step, "minibatch": _tensor_pin(indices), "parameters": snapshot}
++
++    def after(self, snapshot):
++        if snapshot is None:
++            return
++        rows = []
++        for parameter, weight, gradient, entry in snapshot["parameters"]:
++            descent = weight - parameter.detach()
++            entry.update(descent_norm=_norm(descent), relative_descent=_ratio(_norm(descent), _norm(weight)))
++            state = self.optimizer.state.get(parameter, {})
++            entry["moment_after"] = {key: _norm(state[key]) if key in state else 0.0 for key in ("exp_avg", "exp_avg_sq")}
++            if gradient is not None:
++                beta1, beta2 = self.group["betas"]
++                count = float(state["step"])
++                direction = (state["exp_avg"] / (1 - beta1 ** count)) / (
++                    torch.sqrt(state["exp_avg_sq"] / (1 - beta2 ** count)) + self.group["eps"])
++                predicted = self.group["lr"] * direction
++                tolerance = 8 * torch.finfo(weight.dtype).eps * max(1.0, float(weight.abs().max()))
++                valid = bool(torch.allclose(descent, predicted, rtol=5e-5, atol=tolerance))
++                entry.update(preconditioned_direction_norm=_norm(direction), predicted_descent_norm=_norm(predicted),
++                             preconditioned_data_cosine=_cosine(direction, gradient),
++                             preconditioned_decay_cosine=_cosine(direction, self.group["weight_decay"] * weight),
++                             preconditioned_parameter_cosine=_cosine(direction, weight),
++                             descent_data_cosine=_cosine(descent, gradient),
++                             descent_decay_cosine=_cosine(descent, self.group["weight_decay"] * weight),
++                             descent_parameter_cosine=_cosine(descent, weight),
++                             adam_step_check={"passed": valid, "error_norm": _norm(descent - predicted),
++                                              "atol": tolerance, "rtol": 5e-5}, moment_step=count)
++                if not valid:
++                    raise ValueError("recorded Adam direction does not match actual descent")
++            elif torch.count_nonzero(descent).item():
++                raise ValueError("inactive Adam parameter unexpectedly moved")
++            rows.append(entry)
++        self.steps.append({"step": snapshot["step"], "minibatch": snapshot["minibatch"], "parameters": rows})
++
++    def finish(self, model, test_x, test_y, failed):
++        self.record["status"] = "failed" if failed else "completed"
++        self.record["minibatch_stream_sha256"] = self.stream.hexdigest()
++        if failed:
++            self.record["final_metrics"] = None
++            return {"record": self.record, "evaluation": {}}
++        model.eval()
++        with torch.inference_mode():
++            logits = model(test_x).detach().cpu()
++            targets = test_y.reshape(-1).detach().cpu()
++            predictions = logits.argmax(dim=-1)
++            other = logits.clone()
++            other.scatter_(1, targets[:, None], float("-inf"))
++            margins = logits.gather(1, targets[:, None]).reshape(-1) - other.max(dim=1).values
++            self.record["final_metrics"] = {"ce": float(F.cross_entropy(logits, targets)),
++                                            "accuracy": float((predictions == targets).float().mean())}
++        return {"record": self.record, "evaluation": {"indices": torch.arange(targets.shape[0]),
++                "logits": logits, "targets": targets, "predictions": predictions,
++                "errors": predictions != targets, "true_class_margins": margins}}
++'''
++
++
++def _process_train_py() -> str:
++    text = CLASSIFICATION_TRAIN_PY.replace("import math\n", "import math\nimport hashlib\n", 1)
++    text = text.replace("    progress_callback=None,\n", "    progress_callback=None,\n    process=None,\n", 1)
++    text = text.replace("    n = train_x.shape[0]\n", "    recorder = _ProcessRecorder(model, optimizer, process, seed, (train_x, train_y, test_x, test_y))\n    n = train_x.shape[0]\n", 1)
++    text = text.replace("        optimizer.step()\n", "        observation = recorder.before(step, idx)\n        optimizer.step()\n        recorder.after(observation)\n", 1)
++    text = text.replace("        \"failed\": failed,\n", "        \"process_diagnostics\": recorder.finish(model, test_x, test_y, failed),\n        \"failed\": failed,\n", 1)
++    return text + PROCESS_HELPERS
++
++
++REGRESSION_PROCESS_HELPERS = r'''
++class _RegressionRecorder:
++    def __init__(self, model, optimizer, request, seed, tensors):
++        if request.get("version") != "regression_mse_v1" or type(optimizer) not in (torch.optim.Adam, torch.optim.SGD) or len(optimizer.param_groups) != 1:
++            raise ValueError("unsupported regression recorder")
++        if any(t.shape[0] > request["max_eval_samples"] or not t.numel() for t in tensors):
++            raise ValueError("regression observation inputs exceed bound or are empty")
++        self.model, self.optimizer, self.request = model, optimizer, request
++        self.tensors, self.named = tensors, list(model.named_parameters())
++        self.initial = {name: p.detach().clone() for name, p in self.named}
++        self.head = f"net.{len(model.net) - 1}."
++        self.stream, self.steps = hashlib.sha256(), []
++        self.initial_train, self.initial_test, metrics = self.evaluate()
++        self.record = {"schema_version": 1, "recorder_version": request["version"], "request": request,
++                       "seed": seed, "optimizer_type": type(optimizer).__name__, "initial_metrics": metrics,
++                       "initial_parameters": {name: _tensor_pin(p) for name, p in self.named},
++                       "optimizer_defaults": {k: list(v) if isinstance(v, tuple) else v
++                                              for k, v in optimizer.param_groups[0].items() if k != "params"},
++                       "inputs": {k: _tensor_pin(t) for k, t in zip(("train_x", "train_y", "test_x", "test_y"), tensors)},
++                       "steps": self.steps}
++
++    def evaluate(self):
++        was_training = self.model.training
++        self.model.eval()
++        tx, ty, vx, vy = self.tensors
++        with torch.inference_mode():
++            train, test = self.model(tx).detach().clone(), self.model(vx).detach().clone()
++            metrics = {"train_mse": float(((train - ty) ** 2).mean()),
++                       "test_mse": float(((test - vy) ** 2).mean()),
++                       "train_prediction_mean": float(train.double().mean()),
++                       "test_prediction_mean": float(test.double().mean()),
++                       "train_target_mean": float(ty.double().mean()),
++                       "test_target_mean": float(vy.double().mean())}
++        self.model.train(was_training)
++        return train, test, metrics
++
++    def before(self, step, indices):
++        self.stream.update(indices.detach().cpu().contiguous().numpy().tobytes())
++        if step not in self.request["steps"]:
++            return None
++        rows = []
++        for name, p in self.named:
++            weight = p.detach().clone()
++            gradient = p.grad.detach() if p.grad is not None else None
++            row = {"name": name, "role": "head" if name.startswith(self.head) else "hidden",
++                   "active": gradient is not None, "parameter_norm": _norm(weight)}
++            if gradient is not None:
++                row["data_gradient_norm"] = _norm(gradient)
++            rows.append((name, p, weight, row))
++        return {"step": step, "minibatch": _tensor_pin(indices), "rows": rows}
++
++    def after(self, snapshot):
++        if snapshot is None:
++            return
++        rows = []
++        for name, p, weight, row in snapshot["rows"]:
++            row.update(descent_norm=_norm(weight - p.detach()),
++                       displacement_norm=_norm(p.detach() - self.initial[name]))
++            rows.append(row)
++        _, _, metrics = self.evaluate()
++        self.steps.append({"step": snapshot["step"], "minibatch": snapshot["minibatch"],
++                           "parameters": rows, "metrics": metrics})
++
++    def finish(self, model, test_x, test_y, failed):
++        self.record["status"] = "failed" if failed else "completed"
++        self.record["minibatch_stream_sha256"] = self.stream.hexdigest()
++        if failed:
++            self.record["final_metrics"] = None
++            return {"record": self.record, "evaluation": {}}
++        train, test, metrics = self.evaluate()
++        self.record["final_metrics"] = dict(metrics, mse=metrics["test_mse"])
++        _, train_y, _, test_y = self.tensors
++        return {"record": self.record, "evaluation": {"indices": torch.arange(test_y.shape[0]),
++                "predictions": test.cpu(), "targets": test_y.detach().cpu(),
++                "initial_predictions": self.initial_test.cpu(), "train_predictions": train.cpu(),
++                "train_targets": train_y.detach().cpu(), "initial_train_predictions": self.initial_train.cpu()}}
++'''
++
++
++def _regression_process_train_py() -> str:
++    text = REGRESSION_TRAIN_PY.replace("import math\n", "import math\nimport hashlib\n", 1)
++    text = text.replace("    progress_callback=None,\n", "    progress_callback=None,\n    process=None,\n", 1)
++    text = text.replace("    n = train_x.shape[0]\n", "    recorder = _RegressionRecorder(model, optimizer, process, seed, (train_x, train_y, test_x, test_y))\n    n = train_x.shape[0]\n", 1)
++    text = text.replace("        optimizer.step()\n", "        observation = recorder.before(step, idx)\n        optimizer.step()\n        recorder.after(observation)\n", 1)
++    text = text.replace("        \"failed\": failed,\n", "        \"process_diagnostics\": recorder.finish(model, test_x, test_y, failed),\n        \"failed\": failed,\n", 1)
++    common = PROCESS_HELPERS.split("class _ProcessRecorder:", 1)[0]
++    return text + common + REGRESSION_PROCESS_HELPERS
+ 
+ 
+ _TRAIN_PY_BY_KIND = {
+@@ -575,6 +916,9 @@
+     out_dir: Path,
+     model_family: ModelFamily,
+ ) -> Path:
++    process = validate_process_request(spec["process"], spec) if "process" in spec else None
++    if process is not None and process != spec["process"]:
++        raise ValueError("candidate process request must be normalized before hashing")
+     out_dir.mkdir(parents=True, exist_ok=True)
+     write_json(out_dir / "candidate_spec.json", spec)
+     (out_dir / "model.py").write_text(
+@@ -586,7 +930,10 @@
+     (out_dir / "optimizer.py").write_text(
+         render_optimizer_py(spec["optimizer"]), encoding="utf-8"
+     )
+-    (out_dir / "train.py").write_text(_train_py_for_family(spec["family"]), encoding="utf-8")
++    train = _train_py_for_family(spec["family"])
++    if process is not None:
++        train = _regression_process_train_py() if process["version"] == "regression_mse_v1" else _process_train_py()
++    (out_dir / "train.py").write_text(train, encoding="utf-8")
+     return out_dir
+ 
+ 
+--- a/src/architecture_iq/cli.py
++++ b/src/architecture_iq/cli.py
+@@ -80,7 +80,7 @@
+ 
+ @app.command("create-dataset")
+ def create_dataset_cmd(
+-    profile: str = typer.Option("v1", help="Profile name"),
++    profile: str = typer.Option("v1.5", help="Profile name"),
+     family: Optional[str] = typer.Option(
+         None,
+         help="Dataset family from profile pool",
+@@ -196,7 +196,7 @@
+         "--model-type-count",
+         help="Exact model quota as model_type=count; repeat for each type (requires --vary model)",
+     ),
+-    profile: str = typer.Option("v1"),
++    profile: str = typer.Option("v1.5"),
+     param_ratio_max: Optional[float] = typer.Option(
+         None,
+         "--param-ratio-max",
+@@ -308,7 +308,7 @@
+         None,
+         help="Number of choices (default: profile num_choices)",
+     ),
+-    profile: str = typer.Option("v1"),
++    profile: str = typer.Option("v1.5"),
+     seed: int = typer.Option(0),
+     candidate_reuse_policy: str = typer.Option(
+         "globally_disjoint_within_run",
+--- a/src/architecture_iq/families/bigram_lm/family.py
++++ b/src/architecture_iq/families/bigram_lm/family.py
+@@ -124,7 +124,7 @@
+             "table_seed": table_seed,
+         }
+         significance = {
+-            "gap_min": float(profile.significance["gap_min"]),
++            "mode": "full_separation",
+             "fail_threshold": float(cfg.get("fail_threshold", profile.ground_truth["fail_threshold"])),
+         }
+         return {
+--- a/src/architecture_iq/families/multivariate_regression/family.py
++++ b/src/architecture_iq/families/multivariate_regression/family.py
+@@ -89,7 +89,7 @@
+             "point_sampling": {"distribution": "uniform", "seed": point_seed},
+         }
+         significance = {
+-            "gap_min": float(profile.significance["gap_min"]),
++            "mode": "full_separation",
+             "fail_threshold": float(profile.ground_truth["fail_threshold"]),
+         }
+         return {
+--- a/src/architecture_iq/families/synthetic_tabular_classification/__init__.py
++++ b/src/architecture_iq/families/synthetic_tabular_classification/__init__.py
+@@ -491,7 +491,7 @@
+             "params": params,
+             "selection_metric": "test_ce",
+             "significance": {
+-                "gap_min": float(profile.significance["gap_min"]),
++                "mode": "full_separation",
+                 "fail_threshold": float(profile.ground_truth["fail_threshold"]),
+             },
+             "files": {"synthesize": "synthesize.py", "train": "train.pt", "test": "test.pt"},
+--- a/src/architecture_iq/families/univariate_regression/family.py
++++ b/src/architecture_iq/families/univariate_regression/family.py
+@@ -83,7 +83,7 @@
+             "point_sampling": {"distribution": "uniform", "seed": point_seed},
+         }
+         significance = {
+-            "gap_min": float(profile.significance["gap_min"]),
++            "mode": "full_separation",
+             "fail_threshold": float(profile.ground_truth["fail_threshold"]),
+         }
+         return {
+--- a/src/architecture_iq/ground_truth/runner.py
++++ b/src/architecture_iq/ground_truth/runner.py
+@@ -1,6 +1,9 @@
+ from __future__ import annotations
+ 
+ import inspect
++import hashlib
++import json
++import math
+ import os
+ import platform
+ import sys
+@@ -11,7 +14,7 @@
+ import numpy as np
+ import torch
+ 
+-from architecture_iq.candidates.generator import write_candidate
++from architecture_iq.candidates.generator import write_candidate, validate_process_request
+ from architecture_iq.profile import Profile, validate_execution_device
+ from architecture_iq.registry import get_dataset_family, get_model_type
+ from architecture_iq.runtime.loader import load_candidate_train
+@@ -21,6 +24,83 @@
+ 
+ 
+ ProgressCallback = Callable[[dict[str, Any]], None]
++
++
++def validate_target_transform(request: dict[str, Any], spec: dict[str, Any]) -> dict[str, Any]:
++    if not isinstance(request, dict) or set(request) - {"center", "offset"}:
++        raise ValueError("target_transform accepts only center and offset")
++    if get_dataset_family(spec["family"]).train_loop_kind != "regression" or spec["loss"] != {"loss_id": "mse"}:
++        raise ValueError("target_transform requires plain regression MSE")
++    center, offset = request.get("center", False), request.get("offset", 0.0)
++    if not isinstance(center, bool) or isinstance(offset, bool) or not isinstance(offset, (int, float)) or not math.isfinite(offset):
++        raise ValueError("target_transform requires boolean center and finite offset")
++    return {"center": center, "offset": float(offset)}
++
++
++def _validate_regression_diagnostics(diagnostics, spec, tensors, result):
++    record, arrays = diagnostics["record"], diagnostics["evaluation"]
++    request, optimizer = spec["process"], spec["optimizer"]
++    defaults = record.get("optimizer_defaults", {})
++    expected = {"lr": optimizer["lr"], "weight_decay": optimizer.get("weight_decay", 0.0)}
++    if optimizer["type"] == "Adam":
++        expected.update(betas=optimizer.get("betas", [.9, .999]), eps=1e-8)
++    else:
++        expected.update(momentum=optimizer.get("momentum", 0.0), dampening=0, nesterov=False)
++    if record.get("optimizer_type") != optimizer["type"] or any(defaults.get(key) != value for key, value in expected.items()):
++        raise ValueError("regression actual optimizer defaults mismatch")
++    if len(json.dumps(record, allow_nan=False).encode()) > 8 * 1024 * 1024:
++        raise ValueError("regression process scalar record exceeds bound")
++    observed = [row.get("step") for row in record.get("steps", [])]
++    if observed != sorted(set(observed)) or any(step not in request["steps"] for step in observed):
++        raise ValueError("invalid regression observation steps")
++    if not result["failed"] and observed != request["steps"]:
++        raise ValueError("requested regression observations missing")
++    for row in record.get("steps", []):
++        parameters = row.get("parameters", [])
++        if not 1 <= len(parameters) <= 256 or len({p.get("name") for p in parameters}) != len(parameters):
++            raise ValueError("invalid regression parameter records")
++        for p in parameters:
++            if not isinstance(p.get("name"), str) or p.get("role") not in {"head", "hidden"} or not isinstance(p.get("active"), bool):
++                raise ValueError("invalid regression parameter identity")
++            keys = ("parameter_norm", "descent_norm", "displacement_norm") + (("data_gradient_norm",) if p["active"] else ())
++            if any(isinstance(p.get(key), bool) or not isinstance(p.get(key), (int, float)) or not math.isfinite(p[key]) or p[key] < 0 for key in keys):
++                raise ValueError("invalid regression process norm")
++    for name, value in zip(("train_x", "train_y", "test_x", "test_y"), tensors):
++        value = value.detach().cpu().contiguous()
++        pin = {"shape": list(value.shape), "dtype": str(value.dtype),
++               "sha256": hashlib.sha256(value.numpy().tobytes()).hexdigest()}
++        if record.get("inputs", {}).get(name) != pin:
++            raise ValueError("regression input hash mismatch")
++    if result["failed"]:
++        if record.get("status") != "failed" or arrays:
++            raise ValueError("failed regression run returned evaluation")
++        return
++    required = {"indices", "predictions", "targets", "initial_predictions",
++                "train_predictions", "train_targets", "initial_train_predictions"}
++    if not isinstance(arrays, dict) or set(arrays) != required or any(not isinstance(v, torch.Tensor) for v in arrays.values()):
++        raise ValueError("invalid regression evaluation tensor schema")
++    train_x, train_y, test_x, test_y = tensors
++    if not torch.equal(arrays["indices"], torch.arange(test_x.shape[0])):
++        raise ValueError("regression evaluation order mismatch")
++    for prefix, target in (("", test_y), ("train_", train_y)):
++        target = target.detach().cpu()
++        if not torch.equal(arrays[prefix + "targets"], target):
++            raise ValueError("regression evaluation targets mismatch")
++        for key in (prefix + "predictions", "initial_" + prefix + "predictions"):
++            if arrays[key].shape != target.shape or not torch.isfinite(arrays[key]).all():
++                raise ValueError("regression evaluation shape or finiteness mismatch")
++    initial = record.get("initial_metrics", {})
++    for prefix in ("train", "test"):
++        stem = "train_" if prefix == "train" else ""
++        prediction, target = arrays["initial_" + stem + "predictions"], arrays[stem + "targets"]
++        metrics = {prefix + "_mse": float(((prediction - target) ** 2).mean()),
++                   prefix + "_prediction_mean": float(prediction.double().mean()),
++                   prefix + "_target_mean": float(target.double().mean())}
++        if any(not math.isclose(initial.get(key, float("nan")), value, rel_tol=1e-6, abs_tol=1e-7) for key, value in metrics.items()):
++            raise ValueError("regression step-zero metrics mismatch")
++    mse = float(((arrays["predictions"] - arrays["targets"]) ** 2).mean())
++    if record.get("status") != "completed" or not math.isclose(record.get("final_metrics", {}).get("mse", float("nan")), mse, rel_tol=1e-6, abs_tol=1e-7) or not math.isclose(result["final_test_mse"], mse, rel_tol=1e-6, abs_tol=1e-7):
++        raise ValueError("regression predictions disagree with final metric")
+ 
+ # Each generate-candidates worker process runs its own interpreter; without a
+ # clamp every process defaults torch to all cores and N parallel workers
+@@ -118,6 +198,36 @@
+     device: torch.device,
+     progress_callback: ProgressCallback | None = None,
+ ) -> dict[str, Any]:
++    target_transform = None
++    if "target_transform" in candidate_spec:
++        request = validate_target_transform(candidate_spec["target_transform"], candidate_spec)
++        if request != candidate_spec["target_transform"]:
++            raise ValueError("target_transform must be normalized")
++        if not train_y.is_floating_point() or not test_y.is_floating_point() or not train_y.numel() or not test_y.numel():
++            raise ValueError("target_transform requires nonempty floating labels")
++        original = {}
++        for name, value in (("train_y", train_y), ("test_y", test_y)):
++            value = value.detach().cpu().contiguous()
++            original[name] = {"sha256": hashlib.sha256(value.numpy().tobytes()).hexdigest(),
++                              "mean": float(value.double().mean())}
++        center = float(train_y.double().mean()) if request["center"] else 0.0
++        shift = request["offset"] - center
++        train_y, test_y = train_y + shift, test_y + shift
++        if not torch.isfinite(train_y).all() or not torch.isfinite(test_y).all():
++            raise ValueError("target_transform produced nonfinite labels")
++        target_transform = {"request": request, "center_source": "train_mean" if request["center"] else None, "subtracted_mean": center,
++                            "applied_offset": shift, "original_labels": original}
++        target_transform["transformed_labels"] = {}
++        for name, value in (("train_y", train_y), ("test_y", test_y)):
++            value = value.detach().cpu().contiguous()
++            target_transform["transformed_labels"][name] = {"sha256": hashlib.sha256(value.numpy().tobytes()).hexdigest(),
++                                                          "mean": float(value.double().mean())}
++        target_transform["runner_source_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
++    process = validate_process_request(candidate_spec["process"], candidate_spec) if "process" in candidate_spec else None
++    if process is not None and (process != candidate_spec["process"] or device.type != "cpu"):
++        raise ValueError("process execution requires normalized CPU request")
++    if process is not None and (test_x.shape[0] > process["max_eval_samples"] or not test_x.shape[0]):
++        raise ValueError("process evaluation sample count exceeds bound or is empty")
+     train_mod = load_candidate_train(candidate_path)
+     if not hasattr(train_mod, "train_and_eval"):
+         raise RuntimeError(
+@@ -131,6 +241,10 @@
+         "fail_threshold": fail_threshold,
+     }
+     parameters = inspect.signature(train_mod.train_and_eval).parameters
++    if process is not None:
++        if "process" not in parameters:
++            raise ValueError("generated train.py lacks requested process capability")
++        kwargs["process"] = process
+     supports_device = "device" in parameters
+     if supports_device:
+         kwargs["device"] = str(device)
+@@ -160,6 +274,95 @@
+     }
+     if "final_test_accuracy" in result:
+         seed_result["final_test_accuracy"] = float(result["final_test_accuracy"])
++    if target_transform is not None:
++        seed_result["target_transform"] = target_transform
++    if process is not None:
++        diagnostics = result.get("process_diagnostics")
++        if not isinstance(diagnostics, dict) or set(diagnostics) != {"record", "evaluation"}:
++            raise ValueError("training returned invalid process diagnostics")
++        record, evaluation = diagnostics["record"], diagnostics["evaluation"]
++        if not isinstance(record, dict) or record.get("schema_version") != 1 or record.get("recorder_version") != process["version"] or record.get("seed") != seed or record.get("request") != process:
++            raise ValueError("process record identity mismatch")
++        if process["version"] == "regression_mse_v1":
++            _validate_regression_diagnostics(diagnostics, candidate_spec, (train_x, train_y, test_x, test_y), seed_result)
++            seed_result["process_diagnostics"] = diagnostics
++            return seed_result
++        defaults = record.get("optimizer_defaults", {})
++        optimizer = candidate_spec["optimizer"]
++        if record.get("optimizer_type") != "Adam" or record.get("decay_mode") != "coupled" or any(
++            defaults.get(key) != value for key, value in {"lr": optimizer["lr"],
++            "weight_decay": optimizer.get("weight_decay", 0.0), "betas": optimizer.get("betas", [0.9, 0.999]), "eps": 1e-8}.items()
++        ):
++            raise ValueError("process actual optimizer defaults mismatch")
++        if len(json.dumps(record, allow_nan=False).encode()) > 8 * 1024 * 1024:
++            raise ValueError("process scalar record exceeds 8 MiB bound")
++        observed = [row.get("step") for row in record.get("steps", [])]
++        if observed != sorted(set(observed)) or any(step not in process["steps"] for step in observed):
++            raise ValueError("invalid process observation steps")
++        if not seed_result["failed"] and observed != process["steps"]:
++            raise ValueError("requested process observations are missing")
++        for row in record.get("steps", []):
++            parameters = row.get("parameters", [])
++            if not 1 <= len(parameters) <= 256 or len({p.get("name") for p in parameters}) != len(parameters):
++                raise ValueError("invalid process parameter records")
++            for parameter in parameters:
++                if not isinstance(parameter.get("name"), str) or parameter.get("role") not in {"head", "hidden"} or not isinstance(parameter.get("active"), bool):
++                    raise ValueError("invalid process parameter identity")
++                scalars = ("parameter_norm", "descent_norm") + (("data_gradient_norm", "decay_gradient_norm",
++                          "coupled_gradient_norm", "preconditioned_direction_norm", "predicted_descent_norm") if parameter["active"] else ())
++                if any(isinstance(parameter.get(key), bool) or not isinstance(parameter.get(key), (int, float)) or parameter[key] < 0 for key in scalars):
++                    raise ValueError("invalid process norm")
++                for key in ("moment_before", "moment_after"):
++                    if set(parameter.get(key, {})) != {"exp_avg", "exp_avg_sq"} or any(
++                        not isinstance(v, (int, float)) or v < 0 for v in parameter[key].values()
++                    ):
++                        raise ValueError("invalid process moment norm")
++                if parameter["active"] and parameter.get("adam_step_check", {}).get("passed") is not True:
++                    raise ValueError("process Adam step check failed")
++                for key, value in parameter.items():
++                    if key.endswith(("_cosine", "_ratio")) or key == "relative_descent":
++                        if not isinstance(value, dict) or set(value) != {"value", "reason"} or (
++                            value["value"] is None and not isinstance(value["reason"], str)
++                        ) or (value["value"] is not None and (not isinstance(value["value"], (int, float)) or value["reason"] is not None)):
++                            raise ValueError("invalid process ratio/angle schema")
++        for name, value in zip(("train_x", "train_y", "test_x", "test_y"), (train_x, train_y, test_x, test_y)):
++            cpu = value.detach().cpu().contiguous()
++            pin = {"shape": list(cpu.shape), "dtype": str(cpu.dtype),
++                   "sha256": hashlib.sha256(cpu.numpy().tobytes()).hexdigest()}
++            if record.get("inputs", {}).get(name) != pin:
++                raise ValueError("process dataset input hash mismatch")
++        if not isinstance(evaluation, dict):
++            raise ValueError("invalid process evaluation payload")
++        if seed_result["failed"]:
++            if record.get("status") != "failed" or evaluation:
++                raise ValueError("failed process execution returned final evaluation")
++        else:
++            expected = {"indices", "logits", "targets", "predictions", "errors", "true_class_margins"}
++            if set(evaluation) != expected or any(not isinstance(v, torch.Tensor) for v in evaluation.values()):
++                raise ValueError("invalid process evaluation tensor schema")
++            size, classes = test_x.shape[0], int(candidate_spec["model"]["output_dim"])
++            logits = evaluation["logits"]
++            targets = test_y.reshape(-1).cpu()
++            if logits.shape != (size, classes) or not torch.isfinite(logits).all() or any(
++                evaluation[key].shape != (size,) for key in expected - {"logits"}
++            ):
++                raise ValueError("invalid process evaluation shapes or nonfinite logits")
++            if not torch.equal(evaluation["indices"], torch.arange(size)) or not torch.equal(evaluation["targets"], targets):
++                raise ValueError("process evaluation order mismatch")
++            predictions = logits.argmax(dim=-1)
++            other = logits.clone()
++            other.scatter_(1, targets[:, None], float("-inf"))
++            margins = logits.gather(1, targets[:, None]).reshape(-1) - other.max(dim=1).values
++            ce = float(torch.nn.functional.cross_entropy(logits, targets))
++            accuracy = float((predictions == targets).float().mean())
++            if not torch.equal(evaluation["predictions"], predictions) or not torch.equal(evaluation["errors"], predictions != targets) or not torch.equal(evaluation["true_class_margins"], margins):
++                raise ValueError("process decision readback mismatch")
++            metrics = record.get("final_metrics", {})
++            if record.get("status") != "completed" or not math.isclose(metrics.get("ce", float("nan")), ce, rel_tol=1e-6, abs_tol=1e-7) or not math.isclose(metrics.get("accuracy", float("nan")), accuracy, abs_tol=1e-7):
++                raise ValueError("process final metric readback mismatch")
++            if not math.isclose(ce, seed_result[final_key], rel_tol=1e-6, abs_tol=1e-7) or accuracy != seed_result["final_test_accuracy"]:
++                raise ValueError("process logits disagree with final training metric")
++        seed_result["process_diagnostics"] = diagnostics
+     return seed_result
+ def _run_single_seed_cpu_worker(
+     payload: tuple[str, str, dict[str, Any], int, float, str, int],
+@@ -201,6 +404,10 @@
+ 
+     candidate_path = candidate_path.resolve()
+     spec = read_json(candidate_path / "candidate_spec.json")
++    if "target_transform" in spec and validate_target_transform(spec["target_transform"], spec) != spec["target_transform"]:
++        raise ValueError("target_transform must be normalized")
++    if "process" in spec and validate_process_request(spec["process"], spec) != spec["process"]:
++        raise ValueError("process request must be normalized")
+     device = _resolve_execution_device(spec, profile)
+     if sync_files:
+         _sync_candidate_files(candidate_path, spec)
+@@ -212,6 +419,28 @@
+     dataset_path = dataset_path.resolve()
+     train_x, train_y, test_x, test_y = family.load_tensors(dataset_path)
+     dataset_spec = read_json(dataset_path / "dataset_spec.json")
++    # Candidate specs are reusable across counterfactual datasets, but only
++    # when the paired datasets preserve the tensor contract. Fail before
++    # importing/running train.py so a malformed pair is recorded as a clean
++    # compatibility rejection rather than a low-level matmul traceback.
++    model_spec = spec.get("model", {})
++    if model_spec.get("type") == "mlp" and train_x.ndim >= 2:
++        expected_dim = int(model_spec.get("input_dim", train_x.shape[-1]))
++        actual_dim = int(train_x.shape[-1])
++        if expected_dim != actual_dim:
++            raise ValueError(
++                "candidate/dataset shape mismatch: "
++                f"model.input_dim={expected_dim}, dataset.feature_dim={actual_dim}"
++            )
++    if model_spec.get("type") == "mlp" and train_y.ndim >= 1:
++        output_dim = model_spec.get("output_dim")
++        if output_dim is not None and train_y.ndim == 1:
++            labels = train_y.detach().cpu()
++            if labels.numel() and int(labels.max().item()) >= int(output_dim):
++                raise ValueError(
++                    "candidate/dataset label mismatch: "
++                    f"model.output_dim={int(output_dim)}, dataset.max_label={int(labels.max().item())}"
++                )
+     selection_metric = dataset_spec["selection_metric"]
+     final_key = final_metric_key(selection_metric)
+     sig_cfg = dataset_spec.get("significance", {})
+@@ -320,6 +549,7 @@
+         "candidate_id": spec["candidate_id"],
+         "selection_metric": selection_metric,
+         "execution": "candidate_py_files",
++        **({"target_transform": spec["target_transform"]} if "target_transform" in spec else {}),
+         "n_seeds": n_seeds,
+         "base_seed": base_seed,
+         "failed_seeds": failed_count,
+@@ -353,6 +583,7 @@
+                     else {}
+                 ),
+                 **({"final_test_accuracy": r["final_test_accuracy"]} if "final_test_accuracy" in r else {}),
++                **({"target_transform": r["target_transform"]} if "target_transform" in r else {}),
+             }
+             for r in seed_results
+         ],
+@@ -376,6 +607,26 @@
+ 
+     results_dir = candidate_path / "results"
+     results_dir.mkdir(parents=True, exist_ok=True)
++    if "process" in spec:
++        process_files = {}
++        for row in seed_results:
++            diagnostics = row["process_diagnostics"]
++            record = dict(diagnostics["record"], profile=profile.name, candidate_id=spec["candidate_id"],
++                          selection_metric=selection_metric, dataset_id=spec["dataset_id"])
++            stem = f"seed_{row['seed']}"
++            directory = results_dir / "process"
++            directory.mkdir(exist_ok=True)
++            json_path, tensor_path = directory / (stem + ".json"), directory / (stem + ".npz")
++            json_path.write_text(json.dumps(record, indent=2, allow_nan=False))
++            np.savez(tensor_path, **{key: value.detach().cpu().numpy() for key, value in diagnostics["evaluation"].items()})
++            for path in (json_path, tensor_path):
++                payload = path.read_bytes()
++                if len(payload) > 8 * 1024 * 1024:
++                    raise ValueError("process artifact exceeds 8 MiB bound")
++                process_files[str(path.relative_to(candidate_path))] = {"bytes": len(payload),
++                    "sha256": hashlib.sha256(payload).hexdigest()}
++        summary["process"] = {"recorder_version": spec["process"]["version"], "request": spec["process"],
++                              "files": process_files}
+     write_json(results_dir / "summary.json", summary)
+     np.savez(
+         results_dir / "curves.npz",
+--- a/src/architecture_iq/profile.py
++++ b/src/architecture_iq/profile.py
+@@ -267,5 +267,5 @@
+         }
+ 
+ 
+-def load_profile(name: str = "v1") -> Profile:
++def load_profile(name: str = "v1.5") -> Profile:
+     return Profile.load(PROFILES_DIR / f"{name}.yaml")
+--- a/src/architecture_iq/prompts/formatters.py
++++ b/src/architecture_iq/prompts/formatters.py
+@@ -483,3 +483,87 @@
+             f"- The correct choice has the lowest **mean** {selection_metric} across seeds.",
+         ]
+     )
++
++
++# ---------------------------------------------------------------------------
++# Ranking-task rendering. The MCQ task asks for one winning letter; a ranking
++# question asks for the whole order. Only these pieces differ, so the task is a
++# first-class parameter of render_prompt rather than a post-hoc string
++# replacement inside the generator tool.
++# ---------------------------------------------------------------------------
++
++_RANKING_COUNTS = {2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven"}
++
++
++def format_ranking_objective(selection_metric: str) -> str:
++    """Closing line of the evaluation section for a ranking question.
++
++    `format_ranking_protocol` names a single winner ("the correct choice has the
++    lowest mean ..."), which is the MCQ task. A ranking question must instead
++    state what the requested order *means*, or the separator convention is unstated.
++    """
++    return (
++        f"- Rank all candidates by their mean {selection_metric} over seeds; "
++        "lower is better, so write the order from lowest to highest."
++    )
++
++
++def format_mcq_answer_section(letters: list[str]) -> str:
++    """The answer section for a pick-one question: a single tagged letter.
++
++    One definition rather than one per caller. `render_prompt` uses it to assemble a
++    fresh prompt; `canonicalize_mcq_prompt` uses it to bring a prompt rendered under
++    an older contract onto the current one, which is what the pool builders and the
++    merge tool need. The earlier form additionally demanded an
++    `<explanation></explanation>` paragraph: nothing scores it (the reward's
++    `AIQ_REQUIRE_EXPLANATION` is off) and it stretched completions toward the token
++    cap, so the contract is a single tag.
++    """
++    if not letters:
++        raise ValueError("letters must be non-empty")
++    joined = ", ".join(letters)
++    return "\n".join(
++        [
++            "## Your answer",
++            f"Choose exactly one of {joined}. End your reply with "
++            "exactly one tagged field, with nothing after it:",
++            "",
++            "<answer>the letter of your chosen option</answer>",
++            "",
++            f"Rules: `<answer>` must contain exactly one letter from "
++            f"{{{joined}}}. The grader reads only the **final** "
++            "`<answer>` tag in your reply.",
++        ]
++    )
++
++
++def format_ranking_answer_section(letters: list[str], *, answer_order: list[str] | None = None) -> str:
++    """The ranking counterpart of the MCQ answer section.
++
++    An example is worth showing -- letters joined by `<` inside one tag is an
++    unusual format -- but any permutation printed here is itself a legal answer,
++    so it is 1-in-n! away from being some question's gold. When the caller knows
++    the gold (`answer_order`) the example is derived from it and asserted to
++    differ, so a model that copies the example can never be right.
++    """
++    ordered = list(letters)
++    if not ordered:
++        raise ValueError("letters must be non-empty")
++    count = _RANKING_COUNTS.get(len(ordered), str(len(ordered)))
++    example = list(ordered)
++    if answer_order and len(answer_order) == len(ordered):
++        gold = list(answer_order)
++        example = gold[1:] + gold[:1]  # rotate by one: always a different permutation
++        if example == gold:  # pragma: no cover - single-letter orders only
++            example = list(reversed(gold))
++        assert example != gold, "example order must not be the gold order"
++    return "\n".join(
++        [
++            "## Your answer",
++            f"Rank all {count} choices from lowest to highest held-out loss, using "
++            "each letter exactly once. Write the complete order inside a single "
++            "`<answer>` tag, as the letters joined by `<`, and put nothing after "
++            f"the tag, for example `<answer>{'<'.join(example)}</answer>`. "
++            "The grader reads only the **final** `<answer>` tag in your reply.",
++        ]
++    )
+--- a/src/architecture_iq/prompts/renderer.py
++++ b/src/architecture_iq/prompts/renderer.py
+@@ -1,5 +1,6 @@
+ from __future__ import annotations
+ 
++import re
+ from pathlib import Path
+ 
+ from architecture_iq.ground_truth.runner import _sync_candidate_files
+@@ -16,13 +17,21 @@
+     TABULAR_CLASSIFICATION_FAMILIES,
+     format_dataset_protocol,
+     format_loss_nl,
++    format_mcq_answer_section,
+     format_synthetic_tabular_classification_rule,
+     format_model_nl,
+     format_optimizer_nl,
++    format_ranking_answer_section,
++    format_ranking_objective,
+     format_ranking_protocol,
+     format_training_schedule,
+ )
+ from architecture_iq.util import read_json
++
++
++# Supported prompt tasks. "mcq" picks one winning letter; "ranking" asks for the
++# full order and prints the shared model/optimizer once (see render_prompt).
++TASKS = frozenset({"mcq", "ranking"})
+ 
+ 
+ def _read_template(name: str) -> str:
+@@ -43,7 +52,7 @@
+ def _evaluation_meta(q: dict) -> dict:
+     if "evaluation" in q:
+         return q["evaluation"]
+-    profile = load_profile(q.get("profile", "v1"))
++    profile = load_profile(q.get("profile", "v1.5"))
+     return {
+         "selection_metric": "test_mse",
+         "n_seeds": profile.n_seeds,
+@@ -52,12 +61,68 @@
+     }
+ 
+ 
++def _ranking_shared_sections(
++    q: dict, artifact_root: Path, question_path: Path
++) -> list[str]:
++    """Model + optimizer for a ranking question, printed once instead of per choice.
++
++    A ranking question varies the loss only (model / optimizer / batch size /
++    budget are invariant), so the per-choice model and optimizer blocks of the MCQ
++    layout would be five identical copies -- measured at 46% of the rendered
++    prompt. Repeating them also invites a reader to hunt for a difference that is
++    not there, so the layout states the shared setup once. The invariant is
++    asserted rather than assumed: if a question labelled a ranking question ever
++    varies the model or optimizer, the compression would hide it, so fail loudly.
++    """
++    first = q["choices"][0]
++    first_path = artifact_root / first["candidate_path"]
++    first_spec = read_json(first_path / "candidate_spec.json")
++    for choice in q["choices"][1:]:
++        other = read_json(artifact_root / choice["candidate_path"] / "candidate_spec.json")
++        if other["model"] != first_spec["model"]:
++            raise ValueError(f"{question_path.name}: choices disagree on the model")
++        if other["optimizer"] != first_spec["optimizer"]:
++            raise ValueError(f"{question_path.name}: choices disagree on the optimizer")
++    _sync_candidate_files(first_path, first_spec)
++    return [
++        "## Shared setup (same for all choices)",
++        "",
++        "**Model (natural language)**",
++        format_model_nl(first_spec["model"]),
++        "",
++        "**Model code**",
++        "```python",
++        excerpt_model_py((first_path / "model.py").read_text(encoding="utf-8")),
++        "```",
++        "",
++        "**Optimizer**",
++        format_optimizer_nl(first_spec["optimizer"]),
++        "",
++        "```python",
++        excerpt_optimizer_py((first_path / "optimizer.py").read_text(encoding="utf-8")),
++        "```",
++        "",
++    ]
++
++
++def _gold_order(q: dict) -> list[str] | None:
++    """The ranked letters of a ranking question, from `answer` or `correct_order`."""
++    gold = q.get("answer")
++    if isinstance(gold, str) and gold:
++        return [part for part in gold.replace(">", "<").split("<") if part]
++    gold = q.get("correct_order")
++    return list(gold) if isinstance(gold, list) and gold else None
++
++
+ def render_prompt(
+     question_path: Path,
+     *,
+     dataset_path: Path | None = None,
+     artifact_root: Path | None = None,
++    task: str = "mcq",
+ ) -> str:
++    if task not in TASKS:
++        raise ValueError(f"unknown prompt task {task!r}; expected one of {sorted(TASKS)}")
+     q = read_json(question_path / "question.json")
+     dataset_path = (dataset_path or dataset_dir(q["family"], q["dataset_id"])).resolve()
+     artifact_root = (artifact_root or DATA_DIR).resolve()
+@@ -66,12 +131,14 @@
+     eval_meta = _evaluation_meta(q)
+     selection_metric = eval_meta.get("selection_metric", dataset_spec["selection_metric"])
+ 
+-    header = _read_template("header.md") or (
+-        "You are taking the ArchitectureIQ benchmark. "
+-        "Read each training setup and pick the choice that achieves the best "
+-        f"**{selection_metric}** after the stated training budget. Give the answer "
+-        "as a single letter wrapped in <answer></answer> tags."
+-    )
++    header = _read_template("header_ranking.md" if task == "ranking" else "header.md")
++    if not header:
++        header = (
++            "You are taking the ArchitectureIQ benchmark. "
++            "Read each training setup and pick the choice that achieves the best "
++            f"**{selection_metric}** after the stated training budget. Give the answer "
++            "as a single letter wrapped in <answer></answer> tags."
++        )
+ 
+     dataset_nl = _read_template(f"dataset/{q['family']}.md")
+     if not dataset_nl:
+@@ -140,36 +207,55 @@
+                 "Each choice specifies its own training budget below.",
+             ]
+         )
+-    parts.extend(
+-        [
+-            "",
+-            "## Evaluation metric",
+-            format_ranking_protocol(
+-                n_seeds=int(eval_meta["n_seeds"]),
+-                base_seed=int(eval_meta["base_seed"]),
+-                selection_metric=selection_metric,
+-                device=str(eval_meta.get("device", "cpu")),
+-            ),
+-            "",
+-            "## Choices",
+-        ]
+-    )
++    protocol = format_ranking_protocol(
++        n_seeds=int(eval_meta["n_seeds"]),
++        base_seed=int(eval_meta["base_seed"]),
++        selection_metric=selection_metric,
++        device=str(eval_meta.get("device", "cpu")),
++    )
++    if task == "ranking":
++        # same ground-truth protocol, but the closing line must state the order's
++        # direction instead of naming a single winner
++        protocol = "\n".join(
++            protocol.splitlines()[:-1] + [format_ranking_objective(selection_metric)]
++        )
++    parts.extend(["", "## Evaluation metric", protocol, ""])
++
++    ranking_loss_only = task == "ranking" and q.get("type") == "loss_only"
++    if ranking_loss_only:
++        parts.extend(_ranking_shared_sections(q, artifact_root, question_path))
++
++    parts.append("## Choices")
+ 
+     for choice in q["choices"]:
+         cand_path = artifact_root / choice["candidate_path"]
+         cand_spec = read_json(cand_path / "candidate_spec.json")
+         _sync_candidate_files(cand_path, cand_spec)
++
++        parts.extend(
++            [
++                "",
++                f"### Choice {choice['letter']}",
++                "",
++            ]
++        )
++        if ranking_loss_only:
++            loss_code = excerpt_loss_py((cand_path / "loss.py").read_text(encoding="utf-8"))
++            parts.extend(
++                [
++                    "**Loss**",
++                    format_loss_nl(cand_spec["loss"]),
++                    "",
++                    "```python",
++                    loss_code,
++                    "```",
++                ]
++            )
++            continue
+         model_code = excerpt_model_py((cand_path / "model.py").read_text(encoding="utf-8"))
+         loss_code = excerpt_loss_py((cand_path / "loss.py").read_text(encoding="utf-8"))
+         opt_code = excerpt_optimizer_py((cand_path / "optimizer.py").read_text(encoding="utf-8"))
+ 
+-        parts.extend(
+-            [
+-                "",
+-                f"### Choice {choice['letter']}",
+-                "",
+-            ]
+-        )
+         if not single_axis:
+             parts.extend(
+                 [
+@@ -205,23 +291,15 @@
+         )
+ 
+     letters = [c["letter"] for c in q["choices"]]
+-    parts.extend(
+-        [
+-            "",
+-            "## Your answer",
+-            f"Choose exactly one of {', '.join(letters)}. End your reply with "
+-            "exactly two tagged fields, in this order and with nothing after "
+-            "them:",
+-            "",
+-            "<explanation>The mechanism that decides the winner, and why "
+-            "each other choice loses.</explanation>",
+-            "<answer>the letter of your chosen option</answer>",
+-            "",
+-            f"Rules: `<answer>` must contain exactly one letter from "
+-            f"{{{', '.join(letters)}}}. The grader reads only the **final** "
+-            "`<answer>` tag in your reply.",
+-        ]
+-    )
++    if task == "ranking":
++        parts.extend(
++            [
++                "",
++                format_ranking_answer_section(letters, answer_order=_gold_order(q)),
++            ]
++        )
++        return "\n".join(parts)
++    parts.extend(["", format_mcq_answer_section(letters)])
+     return "\n".join(parts)
+ 
+ 
+@@ -230,12 +308,44 @@
+     *,
+     dataset_path: Path | None = None,
+     artifact_root: Path | None = None,
++    task: str = "mcq",
+ ) -> Path:
+     text = render_prompt(
+         question_path,
+         dataset_path=dataset_path,
+         artifact_root=artifact_root,
++        task=task,
+     )
+     out = question_path / "prompt.txt"
+     out.write_text(text, encoding="utf-8")
+     return out
++
++
++# The preamble sentence older revisers wrote to pre-announce the two-field answer
++# format. It repeats the answer section, and it names a field the contract no longer
++# asks for, so normalising a stored prompt drops it.
++_STALE_FORMAT_PARA = re.compile(
++    r"\n*Answer format is specified in the final section.*?tags\.\n*", re.DOTALL
++)
++_LETTERS_IN_SECTION = re.compile(r"Choose exactly one of ([A-Z](?:, [A-Z])*)\.\s")
++
++
++def canonicalize_mcq_prompt(prompt: str, letters: list[str] | None = None) -> str:
++    """Rewrite the answer section of a stored pick-one prompt onto the current contract.
++
++    Prompt assembly lives in this module, so bringing an older prompt up to date belongs
++    here too. The alternative -- each tool growing its own copy of the answer section --
++    is how the pool builders and the merge tool would drift apart, and a prompt that
++    still asks for `<explanation>` is rejected outright by the parquet converter.
++
++    Everything above the answer section is returned byte-identical, so a prompt already
++    on the current contract round-trips unchanged.
++    """
++    cut = prompt.rfind("## Your answer")
++    if cut < 0:
++        raise ValueError("no '## Your answer' section")
++    head = _STALE_FORMAT_PARA.sub("", prompt[:cut]).rstrip()
++    if letters is None:
++        found = _LETTERS_IN_SECTION.search(prompt, cut)
++        letters = found.group(1).split(", ") if found else ["A", "B", "C"]
++    return head + "\n\n" + format_mcq_answer_section(letters)
+--- a/src/architecture_iq/significance/validator.py
++++ b/src/architecture_iq/significance/validator.py
+@@ -56,16 +56,20 @@
+     written before the field keep their exact behaviour.
+     """
+     sig = profile.significance
+-    gap_min = float(gap_min if gap_min is not None else sig["gap_min"])
+-    win_rate_min = float(win_rate_min if win_rate_min is not None else sig["win_rate_min"])
+-    use_non_overlap = bool(
+-        use_non_overlap if use_non_overlap is not None else sig.get("use_non_overlap", True)
+-    )
+-    require_full_separation = bool(
+-        require_full_separation
+-        if require_full_separation is not None
+-        else sig.get("require_full_separation", False)
+-    )
++    v15_mode = str(sig.get("mode", "legacy")) == "full_separation"
++    if v15_mode:
++        # v1.5 intentionally has no configurable gap or paired win-rate gate.
++        gap_min = 0.0
++        win_rate_min = 0.0
++        use_non_overlap = False
++        require_full_separation = True
++    else:
++        # Compatibility for frozen pre-v1.5 artifacts only. New generation
++        # profiles must use mode=full_separation.
++        gap_min = float(gap_min if gap_min is not None else sig.get("gap_min", 0.0))
++        win_rate_min = float(win_rate_min if win_rate_min is not None else sig.get("win_rate_min", 0.0))
++        use_non_overlap = bool(use_non_overlap if use_non_overlap is not None else sig.get("use_non_overlap", True))
++        require_full_separation = bool(require_full_separation if require_full_separation is not None else sig.get("require_full_separation", False))
+     mean_key = mean_metric_key(metric)
+     final_key = final_metric_key(metric)
+ 
+@@ -98,15 +102,8 @@
+     worst = int(order[-1])
+     gap = float(abs(means[runner_up] - means[winner]))
+     gap_worst = float(abs(means[worst] - means[winner]))
+-    if gap < gap_min:
+-        return SignificanceResult(
+-            passed=False,
+-            gap=gap,
+-            win_rate=0.0,
+-            metric=metric,
+-            winner_index=winner,
+-            reason=f"gap {gap:.4f} < {gap_min}",
+-        )
++    if not v15_mode and gap < gap_min:
++        return SignificanceResult(False, gap, 0.0, metric, winner, reason=f"gap {gap:.4f} < {gap_min}")
+     if gap_max is not None and gap > float(gap_max):
+         return SignificanceResult(
+             passed=False,
+@@ -179,16 +176,10 @@
+         winner_worst - best_rival if higher_is_better else best_rival - winner_worst
+     )
+ 
+-    if win_rate < win_rate_min:
+-        return SignificanceResult(
+-            passed=False,
+-            gap=gap,
+-            win_rate=win_rate,
+-            metric=metric,
+-            winner_index=winner,
+-            separation_margin=separation_margin,
+-            reason=f"win_rate {win_rate:.2f} < {win_rate_min}",
+-        )
++    if not v15_mode and win_rate < win_rate_min:
++        return SignificanceResult(False, gap, win_rate, metric, winner,
++                                  reason=f"win_rate {win_rate:.2f} < {win_rate_min}",
++                                  separation_margin=separation_margin)
+ 
+     # Separation is strictly stronger than win_rate == 1.0, and the difference
+     # matters because win_rate is a *paired* sign test. When two choices share
+@@ -213,17 +204,11 @@
+             ),
+         )
+ 
+-    if use_non_overlap:
++    if not v15_mode and use_non_overlap:
+         if means[winner] + stds[winner] >= means[runner_up] - stds[runner_up]:
+-            return SignificanceResult(
+-                passed=False,
+-                gap=gap,
+-                win_rate=win_rate,
+-                metric=metric,
+-                winner_index=winner,
+-                separation_margin=separation_margin,
+-                reason="non-overlap heuristic failed",
+-            )
++            return SignificanceResult(False, gap, win_rate, metric, winner,
++                                      reason="non-overlap heuristic failed",
++                                      separation_margin=separation_margin)
+ 
+     return SignificanceResult(
+         passed=True,
