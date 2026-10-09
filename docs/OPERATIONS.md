@@ -22,7 +22,7 @@ gh release download handoff-20261009 --repo guoshaoyang-pku/science-of-ai-protot
 .venv/bin/python research/d2_scaling_20261009/verify.py
 ~~~
 
-私库附件由 gh 使用自己的登录下载，也可先取得文件再传 --archives。解压器先验证完整归档 SHA-256，只释放清单中的普通文件，拒绝越界路径和符号链接；已有不同 hash 的文件不覆盖。verify.py 对 8 个保存条件做 256 步直接 GD 核对，不发起扫描/API；会更新交付数据中的 verification.json。
+私库附件由 gh 使用自己的登录下载，也可先取得文件再传 --archives。三个归档共 100 个分片；工具先校验每片、重组并验证归档总 SHA-256。解压器只释放清单中的普通文件，拒绝越界路径和符号链接；已有不同 hash 的文件不覆盖。verify.py 对 8 个保存条件做 256 步直接 GD 核对，不发起扫描/API；会更新交付数据中的 verification.json。
 
 默认 D2 读取本库 evidence/d2_scaling_20261009。AIQ_KB_DATA_ROOT 会改为其 runs/d2_scaling_20261009；验证时不要误指向新空数据根。plot.py 使用 --study evidence/d2_scaling_20261009/studies/n_sigma_tasks，会重绘交付图。
 

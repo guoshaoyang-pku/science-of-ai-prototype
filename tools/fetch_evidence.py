@@ -30,6 +30,26 @@ def main():
         if args.group and not item['manifest'].endswith('/' + args.group + '.json'):
             continue
         path = args.archives / item['name']
+        if not path.exists() and item.get('parts'):
+            path.parent.mkdir(parents=True, exist_ok=True)
+            partial = path.with_name(path.name + '.assembling')
+            if partial.exists():
+                raise RuntimeError('Partial reassembly requires review: ' + partial.name)
+            try:
+                with partial.open('xb') as assembled:
+                    for part in item['parts']:
+                        segment = args.archives / part['name']
+                        if not segment.is_file() or segment.stat().st_size != part['size'] or digest(segment) != part['sha256']:
+                            raise RuntimeError('Missing or changed archive part: ' + part['name'])
+                        with segment.open('rb') as source:
+                            for block in iter(lambda: source.read(1024 * 1024), b''):
+                                assembled.write(block)
+                if digest(partial) != item['sha256']:
+                    raise RuntimeError('Reassembled archive hash mismatch: ' + item['name'])
+                partial.replace(path)
+            except Exception:
+                partial.unlink(missing_ok=True)
+                raise
         if not path.is_file() or digest(path) != item['sha256']:
             raise RuntimeError('Missing or changed archive: ' + item['name'])
         group = json.loads((ROOT / item['manifest']).read_text())

@@ -39,7 +39,7 @@ gh release download handoff-20261009 --repo guoshaoyang-pku/science-of-ai-protot
 
 题库来源是 [renrua52/ArchitectureIQ](https://github.com/renrua52/ArchitectureIQ) 的 main，当前固定 6eafe8c1e11c5dc6ad28254caf2669be2ee4da8c。新实验还需明确 release、暴露记录和 group/seed/variant 隔离；换 seed 不产生新题。题库正文与最终 benchmark test 没有复制进本库。
 
-保存数据共约 3.3 GB，分 v1、v2、D2 三个 Release 附件。数值数组保持原字节；机器路径在文本/元数据中归一化，原 hash 与交付 hash 都在清单中。完整模型会话、CLI home、凭据和旧 Git 对象不入库；原时序以 commit 索引交接，不把索引称为独立时序证明。
+保存数据共约 3.3 GB，按 v1、v2、D2 三个归档提供为 100 个 Release 分片。工具校验分片后重组，再校验归档总 hash。数值数组保持原字节；机器路径在文本/元数据中归一化，原 hash 与交付 hash 都在清单中。完整模型会话、CLI home、凭据和旧 Git 对象不入库；原时序以 commit 索引交接，不把索引称为独立时序证明。
 
 ## 当前结果
 
