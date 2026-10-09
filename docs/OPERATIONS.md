@@ -9,7 +9,7 @@ PYTHONPATH=src .venv/bin/python -m pytest -q
 .venv/bin/aiq-kb-loop --help
 ~~~
 
-安装包括 runtime、CPU research 和 Markdown renderer 依赖。测试使用假 CLI、合成题池和临时目录；release builder 已随包提供，AIQ main 没有原本未发布的 helper。macOS/Linux 支持 fcntl/resource，Windows 使用 WSL。
+安装包括固定 AIQ benchmark runtime、CPU research 和 Markdown renderer 依赖。测试使用假 CLI、合成题池和临时目录；release builder 已随包提供，AIQ main 没有原本未发布的 helper。macOS/Linux 支持 fcntl/resource，Windows 使用 WSL。
 
 submodule 在 external/ArchitectureIQ，固定 main 的 6eafe8c1…，不增加 aiq_bench_repo 子目录。upstream.lock.json 登记真实依赖。升级需手动核对 commit，不能静默浮动实验合同。
 
