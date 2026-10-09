@@ -16,7 +16,7 @@ submodule 在 external/ArchitectureIQ，固定 main 的 6eafe8c1…，不增加 
 ## 下载与复核数据
 
 ~~~bash
-gh release download handoff-20261009 --repo guoshaoyang-pku/science-of-ai-prototype --dir ../science-evidence
+gh release download handoff-20261009 --repo guoshaoyang-pku/science-of-ai-prototype --pattern '*.part*' --pattern SHA256SUMS --dir ../science-evidence
 .venv/bin/python tools/fetch_evidence.py --archives ../science-evidence
 .venv/bin/python tools/verify_handoff.py --full
 .venv/bin/python research/d2_scaling_20261009/verify.py

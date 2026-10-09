@@ -19,7 +19,7 @@ cd science-of-ai-prototype
 安装与检查不需要模型密钥。完整曲线需下载 [handoff-20261009 Release](https://github.com/guoshaoyang-pku/science-of-ai-prototype/releases/tag/handoff-20261009)：
 
 ~~~bash
-gh release download handoff-20261009 --repo guoshaoyang-pku/science-of-ai-prototype --dir ../science-evidence
+gh release download handoff-20261009 --repo guoshaoyang-pku/science-of-ai-prototype --pattern '*.part*' --pattern SHA256SUMS --dir ../science-evidence
 .venv/bin/python tools/fetch_evidence.py --archives ../science-evidence --verify-only
 ~~~
 
