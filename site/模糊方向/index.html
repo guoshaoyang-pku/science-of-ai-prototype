@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模糊方向</title><link rel="stylesheet" href="style.css">
+<script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body><main><div class="nav"><a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype">GitHub 仓库</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/site/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/index.html">编辑此页</a></div>
+<h1>模糊方向</h1>
+<p style="font-size:15px">中心化自动研究线（Sol 6.1 Ultra，2026-10-06 启动）。每份报告结构：结论 → Formulation → 成立程度 → support 材料后置。研究线已于 2026-10-08 停车；D2 已更新至 2026-10-09。本页保留方向报告与证据；<a href="morning_2026-10-07.html">晨报</a> · <a href="lines_overview.html">新旧实验线总览</a> · <a href="https://guoshaoyang-pku.github.io/blogs/kb_site/index.html#runs">旧线 runs</a></p>
+<ul class="idx">
+<li><a class="t" href="D1_u_effective_time.html">D1：等效训练时间 U</a><span class="s">$U$ 是沿恒定梯度方向的参数位移标定量，单位为参数单位。</span></li>
+<li><a class="t" href="D2_overfitting_u_curve.html">D2：风险回升与跨任务边界</a> · <a href="D2_overfitting_u_curve_integrated.html">整合版</a><span class="s">旧范围 U≈0.28·n/σ²；扩域与跨任务统一指数失败。新增 train/val、信号噪声与机制图。</span></li>
+<li><a class="t" href="D3_capacity_resolution.html">D3：容量与分辨率的描述量</a><span class="s">在固定特征、零初始化且更新不会发散的模型中，训练量超过拟合阈值后，残余由下式确定。有限训练留下各方向尚未消去的误差。长期尾部由慢方向主导。无限训练只留下模型不能学习的方向；浮点计算还需考虑数值底。</span></li>
+<li><a class="t" href="D4_sigmoid_training_curve.html">D4：单 sigmoid 拟合何时成功、何时失败</a><span class="s">(a) 经验判定映射：固定特征、全批量 SGD（每步使用全部样本）、样本数与参数数均为 2、学习率 0.1、无动量与衰减时，单 sigmoid 是否通过取决于谱比（快/慢方向曲率比）、慢损失占比 α 和选解协议。 等初始损失五点设计中，最小二乘（选平方误差和最小的保存解）在谱比 1/3/10 各通过 3/3、30/10…</span></li>
+<li><a class="t" href="D5_ln_geometry.html">D5：LN同宽度收益的机制</a><span class="s">LN同宽度收益的机制仍未确立。真实训练收益成立，但已检验的初始化几何候选量没有达到预注册的解释判据。共享Linear与LN affine初始化核采用旧实际batch64顺序后，仍与真实train方向0/20匹配。范围限于四个development（开发条件，未封存）函数和以下配方：width64（隐藏层宽度64）、固定…</span></li>
+<li><a class="t" href="D6_kernel_drift.html">D6：核漂移与晚期预测</a><span class="s">核心问题的答案是：在固定四个 recipe、三初始化和三条冻结早期公式下，dataseed260610 仍得到 Δ=MAEE−MAET<0（−0.029842999），所以“加入标签早期读数不会改善晚期预测”这一符号判据再次成立；但点预期 −0.20 未实现，四个 recipe 的区间均跨零，不能把它当作稳定的逐 re…</span></li>
+<li><a class="t" href="D7_train_gain_test_harm.html">D7：train增益与test损害的机制边界</a><span class="s">训练误差降低，仍不能判定继续训练是否提高 test（未参与训练的样本）风险。晚期损害由 C=Ltest(512)−Ltest(128)>0 描述；C 是同一模型两时点的风险差。这个判据需要事后查看 test。现有实验尚未建立只靠 train（训练样本）的前瞻信号，也未识别三种候选机制的比例。</span></li>
+<li><a class="t" href="D8_activation_pathway.html">D8：激活通路在非零 bias 下的边界</a><span class="s">已测非零 bias 条件保留两种小尺度规律：已测 b=0/1 的固定偏置使偶/奇能量比按 a² 变化；二阶导数零点改为 a⁶。偏移按尺度平方变化时，解析极限在 a=0.0125/0.025/0.05 通过 2% 判据，在 a=0.075 与 a=0.1 均为 0/12 通过。新增 a=0.075 的极限误差为 2.59…</span></li>
+<li><a class="t" href="D9_minibatch_noise.html">D9：小批量噪声与有效时间</a><span class="s">测量结论仅适用于以下固定数据合同。输入维度 d=4、训练样本 n=64、冻结 ReLU 特征（使用 max(0,x) 的固定非线性特征）宽度128、含常数项且零初始化的线性头（head）。实验使用 float64（64 位浮点数）、MSE（均方误差）和 SGD（随机梯度下降），无动量、无权重衰减。风险指固定无噪声审计样…</span></li>
+<li><a class="t" href="D10_depth_propagation.html">D10：深度增加时的拟合时间</a><span class="s">最慢参数组候选无法在两倍内描述已测早期拟合时间；全核候选通过注册判据，仍有 width16 反例。</span></li>
+<li><a class="t" href="D11_width_scaling.html">D11：宽度与样本量的标度律</a><span class="s">已测的预算标度依赖谱尺度。同 Rayleigh 商（目标加权的平均特征值）不能独立决定预算，维数增加也没有消除两目标的预算差。</span></li>
+<li><a class="t" href="D12_cascade_sigmoid.html">D12：延迟跃迁与级联 sigmoid</a><span class="s">已验证的逐模态参数公式是 hi=log2/[-2log(1−ηλi)]、b=2log2，双段候选为 C(t)=α/[1+(t/hs)^b]+(1−α)/[1+(t/hf)^b]。t 与 h 是更新步数和半幅度时间；λ 是模态特征值，η 是学习率，b 是对数时间陡度，α 是初始慢损失占比。局部半幅度与斜率匹配给出这些参数…</span></li>
+<li><a class="t" href="D13_linear_flow_world.html">D13：Linear Flow World</a><span class="s">目前尚未建立从架构与初始化预测相变时间、再读出有效深度的可靠标定式。相变时间指曲线的拟合中点或陡降位置；有效深度指用该时间换算的链深度。固定深度 4、宽度 32、正交目标和逐 seed 初始矩阵，只把全批量 GD 学习率 0.02 降到 0.00125，原协议 A/B 一致性从 0/3 提升至 3/3，但固定时间轴后的…</span></li>
+</ul>
+<div class="stamp">网页迁移于 2026-10-10（北京时间）· 各方向报告保留原同步时间</div>
+</main></body></html>

@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KB 科学实验线总览 · 2026-10-06 21:15</title><link rel="stylesheet" href="style.css">
+<script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/site/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/lines_overview.html">编辑此页</a></div>
+<h1>KB 科学实验线总览 · 2026-10-06 21:15</h1>
+<p>本页取代 panel_kb_science_lines.html（该 HTML 保留但不再维护）。数据来源：central/log.jsonl、central/kb.json、各方向 report.md、公开 kb_site index（built 2026-10-03）、v1/主线交接文档。</p>
+<h2>新线 science_program_v2（运行中）</h2>
+<p>🤖 gpt-6.1-sol（Sol 6.1 Ultra） · 🧠 ultra · ⏱️ 轮超时 7200s · 📊 预算 3 轮×8 方向 · 🖥️ 本机 CPU · 🔒 沙箱可写工作区+.git，无网络</p>
+<p>现状一句话：16 轮完成、第 17 轮（D1）进行中；19:31 修复重启后 5 轮全部 ok；中心 KB 17 条 claim（15 measured/mixed + 2 refuted 保留）。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>方向</th>
+<th>问题</th>
+<th>轮</th>
+<th>当前发现一句话</th>
+<th>报告</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1</td>
+<td>等效训练时间 U 何时可信（含 mom=0 异常）</td>
+<td>2/3</td>
+<td>梯度范数只是单位换算，不改归一化轨迹（差 3e-15）；动量启动换算早期 4/4 准、晚期 6/10 失败（已登记 refuted）</td>
+<td>report（<code>../directions/D1_u_effective_time/report.md</code>）</td>
+</tr>
+<tr>
+<td>D2</td>
+<td>过拟合 U 型最低点、无标签早停</td>
+<td>2/3</td>
+<td>"同 n/σ² 严格折叠"被 4 反例推翻；n/σ² 幂律粗预测 57/60 在 2 倍内通过；无标签早停未建立</td>
+<td>report（<code>../directions/D2_overfitting_u_curve/report.md</code>）</td>
+</tr>
+<tr>
+<td>D3</td>
+<td>容量与分辨率的描述参量</td>
+<td>2/3</td>
+<td>匹配全部标量描述量（trace、有效秩、Rayleigh、初始损失）的两个目标，1% 损失预算仍差 2.9–8.9 倍；完整目标加权谱预测精确</td>
+<td>report（<code>../directions/D3_capacity_resolution/report.md</code>）</td>
+</tr>
+<tr>
+<td>D4</td>
+<td>训练曲线的 sigmoid 描述与参数公式</td>
+<td>2/3</td>
+<td>log-time 单 sigmoid 适用边界=谱时间尺度分离度：比值 1/3/10 通过、30/100 失败；拟合参数≠真实半衰期（偏差 −9%~+72%）</td>
+<td>report（<code>../directions/D4_sigmoid_training_curve/report.md</code>）</td>
+</tr>
+<tr>
+<td>D5</td>
+<td>LN 同宽度收益机制</td>
+<td>2/3</td>
+<td>LN 降条件数方向 12/12 一致，但降幅与收益相关 r=.42 低于注册 .5（refuted 保留）；条件数差在初始化已存在，机制未定</td>
+<td>report（<code>../directions/D5_ln_geometry/report.md</code>）</td>
+</tr>
+<tr>
+<td>D6</td>
+<td>核漂移早期→晚期预测</td>
+<td>2/3</td>
+<td>前 32 步漂移方向在 3/4 recipe 保留到 256 步；mixed_sine×width8 反例 0/3 seed 保留</td>
+<td>report（<code>../directions/D6_kernel_drift/report.md</code>）</td>
+</tr>
+<tr>
+<td>D7</td>
+<td>train 增益 vs test 损害边界</td>
+<td>2/3</td>
+<td>固定加噪使真实网络对线性化网络的 clean-test 差距 4/4 单元扩大（12/12 初始化）；"每个 seed 晚期都受损"不成立</td>
+<td>report（<code>../directions/D7_train_gain_test_harm/report.md</code>）</td>
+</tr>
+<tr>
+<td>D8</td>
+<td>激活通路结论在 bias 下的存活性</td>
+<td>2/3</td>
+<td>解析+72 cell 实测：普通 bias 只改系数、能量比仍按 a²（测得 ~4.0 倍）；二阶导零点 b*=2.3994 处变 a⁶（测得 ~64.0 倍）；P1–P3 全过</td>
+<td>report（<code>../directions/D8_activation_pathway/report.md</code>）</td>
+</tr>
+</tbody>
+</table></div>
+<p>事故与修复（已完成）：① 沙箱默认拒写 .git，前 10 轮无法预注册 commit（8 failed、2 partial）；修复=writable_roots 加入本 repo .git，烟测+第 12 轮实证通过。② rounds_done 双重计数；修复=supervisor 从 log.jsonl 单源重建。修复 commit <code>205a9f4</code>；第 12 轮起每轮预注册 commit 早于训练（git log 可查 r012–r017）。</p>
+<h2>旧线整理（公开页：<a href="https://guoshaoyang-pku.github.io/blogs/kb_site/index.html#runs">kb_site index #runs</a>）</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>线</th>
+<th>模型</th>
+<th>规模</th>
+<th>结果一句话</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>soa_v1</td>
+<td>gpt-6.1-sol</td>
+<td>e1–e13，KB 28 条</td>
+<td>kb_0010 val +6.83±2.13pt；反复选择后 val 非独立证据</td>
+<td>归档</td>
+</tr>
+<tr>
+<td>soa_v2</td>
+<td>gpt-6.1-sol</td>
+<td>仅种子 KB</td>
+<td>训练对照诊断，无完整轮</td>
+<td>归档</td>
+</tr>
+<tr>
+<td>soa_v3</td>
+<td>gpt-6.1-sol</td>
+<td>e1–e10，KB 28 条</td>
+<td>kb_0008 val +5.67±1.84pt；被拒候选保留</td>
+<td>归档</td>
+</tr>
+<tr>
+<td>soa_v4</td>
+<td>gpt-6.1-sol</td>
+<td>6.9 轮，KB 35 条</td>
+<td>e5 val +1.04±1.82pt，不能排除零增益</td>
+<td>归档</td>
+</tr>
+<tr>
+<td>luna_main</td>
+<td>gpt-6-luna</td>
+<td>12 轮，~$84/10h，40 题×3 采样</td>
+<td>noKB 36.7%；e8 峰值 44.2%（+7.5±4.4pt）后回落；增益主要来自筛选种子条目（361 引用仅 8 次指向新增）</td>
+<td>归档</td>
+</tr>
+<tr>
+<td>qwen_6ep_40eval</td>
+<td>qwen3.8-max</td>
+<td>5 轮中断</td>
+<td>kb_0002 −6.9pt、kb_0004 −6.3pt，无增益</td>
+<td>归档</td>
+</tr>
+<tr>
+<td>sol_tool</td>
+<td>gpt-6.1-sol</td>
+<td>e1–e4，15 题/轮</td>
+<td>工具检索版初始 KB，训练均值 .47→.62</td>
+<td>归档</td>
+</tr>
+<tr>
+<td>luna_b15 / luna_gate</td>
+<td>gpt-6-luna</td>
+<td>试跑 1 轮 / 门控中止</td>
+<td>试跑 −8.75±10.5pt；门控版无结果</td>
+<td>归档</td>
+</tr>
+<tr>
+<td>smoke×3（qwen/opus）</td>
+<td>qwen / opus-5.5</td>
+<td>烟测</td>
+<td>opus 线 vapi 余额耗尽全部失败</td>
+<td>归档</td>
+</tr>
+<tr>
+<td><strong>soa_async_v1（旧主线）</strong></td>
+<td>gpt-6.1-sol</td>
+<td>15 epochs，143 条 KB，77 报告</td>
+<td>macro15（105 dev ranking×3）：KB 70.08% vs noKB 65.87%，<strong>+4.21±2.37pt</strong>；早期长 KB 曾 −8.1pt，改短 KB+工具检索后转正</td>
+<td>完成，publisher 存活（PID 15910）</td>
+</tr>
+<tr>
+<td><strong>science_program_v1</strong></td>
+<td>本机小实验</td>
+<td>3 方向 12 研究，2652 cells</td>
+<td>7 条 KB（head 增长非必要、U 非普适、SiLU 偶通路 scale² 抑制、谱 forecast 风险曲线）；854MB 测量随 release</td>
+<td><a href="https://github.com/guoshaoyang-pku/science-of-ai-kb/releases/tag/v0.2.0">开源 v0.2.0</a></td>
+</tr>
+</tbody>
+</table></div>
+<p>旧线三点结论（2026-10-03 阶段验收，仍是当前共识）：闭环全自动跑通；有提升但不稳（单次评测噪声 ±5pt 量级）；提升主要来自筛选而非新科学——这是转向 v1/v2 受控小实验的原因。</p>
+<h2>文件索引</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>内容</th>
+<th>路径（相对本目录）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>各方向科学报告（8 份，活文档）</td>
+<td><code>../directions/D*/report.md</code></td>
+</tr>
+<tr>
+<td>逐轮进度流水</td>
+<td><code>PROGRESS.md</code></td>
+</tr>
+<tr>
+<td>中心 KB（17 条）</td>
+<td><code>../central/kb.json</code></td>
+</tr>
+<tr>
+<td>每轮会话完整输出</td>
+<td><code>../central/rounds/rNNN_Dx/output.log</code></td>
+</tr>
+<tr>
+<td>操作手册（监控/停车/转向/预算）</td>
+<td><code>../OPERATIONS.md</code></td>
+</tr>
+<tr>
+<td>目标与边界</td>
+<td><code>../GOAL.md</code> · 每轮规则 <code>../AGENTS.md</code></td>
+</tr>
+<tr>
+<td>启动报告</td>
+<td><code>LAUNCH_REPORT_2026-10-06.md</code></td>
+</tr>
+<tr>
+<td>v1 交接 / 主线交接</td>
+<td><code>~/Desktop/workdir/Ideas/handoffs/KB定向Science开源交接_2026-10-06.md</code></td>
+</tr>
+</tbody>
+</table></div>
+<div class="stamp">同步于 2026-10-08 19:23（北京时间）· 本页为研究快照，网页在 prototype 仓库内维护</div>
+</main></body></html>

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D13：Linear Flow World</title><link rel="stylesheet" href="style.css">
+<script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/site/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D13_linear_flow_world.html">编辑此页</a></div>
+<h1>D13：Linear Flow World</h1>
+<h2>结论</h2>
+<p>目前尚未建立从架构与初始化预测相变时间、再读出有效深度的可靠标定式。相变时间指曲线的拟合中点或陡降位置；有效深度指用该时间换算的链深度。固定深度 4、宽度 32、正交目标和逐 seed 初始矩阵，只把全批量 GD 学习率 0.02 降到 0.00125，原协议 A/B 一致性从 0/3 提升至 3/3，但固定时间轴后的比值仍为 0.155–0.341，3/3 均未一致。</p>
+<p>降低学习率改善了原 step 协议读数。最细学习率的 A/B 比值为 0.779–1.016，对数偏移减少 80.955%–99.455%。这支持减小步长的操作性预测，但尚不能把相变时间当作协议不变量。</p>
+<p>跨 seed 稳定性仍未通过。固定时间轴的两档较小学习率只在 2/3 初始化达到 10% 收敛判据；三 seed 共同的最细学习率 A 时间变异系数为 0.277，仍超过 0.25。因此暂不能定义有效深度换算式，也不能进入 skip 组合律。</p>
+<p>单个初始化的步长稳定性得到支持。只把 seed22 的学习率再降到 .0003125，固定时钟 A 时间从 .018598187 增至 .019403482，按旧值计增加 4.329964%，通过事前 5% 判据。但 A/B 比值仍仅 .161696；这没有建立协议一致性或跨 seed 稳健性。</p>
+<p>另一个初始化的步长稳定性也通过。seed11 的固定时钟 A 时间从 .023834804503907975 增至 .024400284818224063，按旧值计变化 2.3724982272179767%，通过同一事前 5% 判据。它和 seed22 的通过分别描述两个已选初始化。seed11 的 A/B 仍仅 .20333570681853386，未消除协议偏移。</p>
+<p>第三个初始化也通过同一判据。seed33 的固定时钟 A 时间从 0.04093862880339804 变为 0.04147141342752652，按旧值计变化 1.301422738624447%。三个已选初始化均在 5% 内，但 A/B 仍为 0.3455951118960543，未消除协议偏移。</p>
+<p>四个斜率起点未使 A 时间变化超过 1%。复用同一条最细步长曲线，只把拟合初始斜率 k0 改为 .25、.5、2、4，4/4 成功，时间相对原读数的最大差为 0.000006376%，通过事前 1% 判据。这只支持该初始化对四个斜率起点的读数稳定性，未证明全局最优。</p>
+<p>两个中点起点也未使 A 时间变化超过 1%。同一保存曲线固定初始斜率为 1，仅把拟合中点初值从参考时钟的 10 改为 1 与 100，2/2 成功。时间相对原读数的最大差为 0.000001423115398%，通过事前 1% 判据。这只排除了两个指定中点起点造成超过 1% 偏差的情况；A/B 偏移与跨 seed 稳健性失败仍未解决。</p>
+<p>初始深度标定的反例仍保留。在 sigma=0.8、eta=0.02 的无 skip 链上，深度 1、2、4、8 的 A 时间均值为 9.197、1.161、0.926、4.593 步；线性斜率 −0.263、R²=0.044，未支持深度越大相变越晚。这限定当前时间读出方法，不否定固定数据与更新规则下完整初始矩阵决定动力学。</p>
+<h2>Formulation</h2>
+<p>协议 A 的操作定义是：</p>
+<p>$$
+\widehat\ell(t)=c+\frac{a-c}{1+\exp\{k[\log(1+t)-\log(1+t_{c,A})]\}}.
+$$</p>
+<p>ell(t) 是第 t 步的均方误差（MSE）；t 和 t_c 的单位为 step。a 是拟合上平台，c 是自由拟合下平台，单位同 MSE。k&gt;0 是无量纲的 log-time 斜率。实际约束为 t_c&gt;=0；A 对全部步做有界局部最小二乘。</p>
+<p>协议 B 固定下基线为实测 final loss，对 loss 做 11 点移动平均，再取对 log(1+t) 的最大负斜率位置 t_c,B。B 是导数峰值估计，未另做固定平台 sigmoid 拟合；常数下基线不改变导数。</p>
+<p>学习率配对采用 tau=eta×t、末端 tau=60。eta 是旧代码优化目标 J=4×MSE 的 GD 学习率，tau 为该目标的累计梯度时间。统一时钟诊断取 s=tau/0.02：A 把公式中的 t 换为 s；B 在 tau=0,0.02,...,60 公共网格平滑，统一读数为 tau_c=0.02×s_c。</p>
+<p>seed11、seed22 与 seed33 的新步长检验采用 δ=|tau_A,new−tau_A,base|/|tau_A,base|≤.05，以 eta=.00125 的旧读数作分母。δ 无量纲；旧三 seed 的 10% 判据以 fine 读数作分母，两个判据分开报告。</p>
+<p>起点检查采用 δ_start=|tau_A,k0−tau_A,k0=1|/|tau_A,k0=1|≤.01，要求四个新拟合都成功。k0 是拟合器初始斜率，区别于拟合后的 k，均无量纲。只改 k0=.25/.5/2/4，其余初值为 a0=loss0、c0=final loss、h0=log(11)，h 为 log(1+s_c)。原 k0=1 成功拟合只读复用。</p>
+<p>中点起点检查采用 δ_h=|tau_A,h0−.01940348189419637|/.01940348189419637≤.01，要求两个拟合都成功。仅 h0=log(2)/log(101)，即初始 s_c=1/100；s_c 为参考时钟中的拟合中点，h0 无量纲。固定 k0=1、a0=loss0、c0=final loss。原 h0=log(11) 及四个斜率起点结果只读复用。</p>
+<p>目前没有测得 d_eff=g(t_c) 的标定公式。原协议与固定时间轴诊断读数须分别声明，不能直接合并为一个有效深度。</p>
+<h2>成立程度</h2>
+<p>原 sigmoid 通过条件是归一化 RMSE≤0.05 且 R²≥0.99。A/B 一致条件是比值在 0.5–2；seed 稳健性参考条件是样本标准差/均值（CV）≤0.25。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>深度 4 的学习率</th>
+<th style="text-align: right;">A 形状通过</th>
+<th style="text-align: right;">原 A/B 一致</th>
+<th>原 A/B 比值</th>
+<th style="text-align: right;">原 A 时间 CV</th>
+<th>固定时钟 A/B 比值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.02</td>
+<td style="text-align: right;">3/3</td>
+<td style="text-align: right;">0/3</td>
+<td>0.053479–0.269599</td>
+<td style="text-align: right;">0.705261</td>
+<td>0.053479–0.269599</td>
+</tr>
+<tr>
+<td>0.005</td>
+<td style="text-align: right;">3/3</td>
+<td style="text-align: right;">3/3</td>
+<td>0.824100–0.868042</td>
+<td style="text-align: right;">0.323635</td>
+<td>0.128920–0.324026</td>
+</tr>
+<tr>
+<td>0.00125</td>
+<td style="text-align: right;">3/3</td>
+<td style="text-align: right;">3/3</td>
+<td>0.779080–1.016098</td>
+<td style="text-align: right;">0.276924</td>
+<td>0.154985–0.341155</td>
+</tr>
+</tbody>
+</table></div>
+<p>最细学习率的 3/3 比值进入一致范围，且对数偏移各减少至少 25%，支持预注册 P1。比值增量范围 +0.509481～+0.962619，均值 +0.711357，配对 95% t 区间 [0.138588,1.284125]。这只描述三个已选初始化，不估计 seed 总体概率。</p>
+<p>统一时钟的 A 时间在 eta=.005→.00125 相对差为 8.874894%、16.817806%、5.020817%；B 全为 0%。10% 的全 seed 判据仅通过 2/3，P2 被推翻。B 始终在公共网格第 6 点、tau=.12；粗网格零变化不证明真实峰值收敛。</p>
+<p>seed22、eta=.00125→.0003125 的 5% 预测通过 1/1。读数 .018598187170700903→.01940348189419637，变化 4.329963539479303%；事前区间 [.01766827781216586,.01952809652923595]。新 A 归一化 RMSE=.0009849355772315344、R²=.9968988754894407；B 仍 tau=.12，A/B=.1616956824516364。它不替代三 seed 的旧稳健性检验。</p>
+<p>seed11 的同一 5% 步长预测通过 1/1。读数 0.023834804503907975→0.024400284818224063，变化 2.3724982272179767%；事前点预测 0.024363632886567045，区间 [.022643064278712575,.025026544729103376]，点误差 +3.665193165701755e-05。预测来自旧差值四分之一的非盲 development 外推，区间不是置信区间。A success，归一化 RMSE=0.0009057780288794508、R²=0.997317958934518；B tau=.12、第6点，A/B=0.20333570681853386。seed11 与 seed22 分别通过，不替代旧三 seed 10% 或 CV 判据。</p>
+<p>seed33 的同一 5% 步长预测通过 1/1。读数 0.04093862880339804→0.04147141342752652，变化 1.301422738624447%；事前点预测 0.041452492222264194，区间 [0.03889169736322814,0.04298556024356794]，点误差 +1.8921205262326102e-05。预测来自 seed33 旧 reference A 差值四分之一的非盲 development 外推，区间不是置信区间。A success，归一化 RMSE=0.0012790417775864755、R²=0.9965349072347274；B tau=.12、第6点，A/B=0.3455951118960543。三个已选初始化均通过，但这不替代旧三 seed 10% 或 CV 判据。</p>
+<p>相同 seed22 最细步长曲线的四个 k 起点检查通过 4/4。tau_A 范围 [.01940348123809112,.019403483131352352]，相对原 .01940348189419637 的最大差 6.375948340467023e-8（无量纲）。四个事前区间相同，均为 [.019209447075254404,.019597516713138335]；区间不是置信区间。归一化 RMSE 范围 [.0009849355772315331,.0009849355772315472]，R² 范围 [.9968988754894406,.9968988754894407]。这不检验其他参数起点或参数可识别性，不增加独立训练 cell 数。</p>
+<p>同一曲线的两个 h 起点检查通过 2/2。log(2) 与 log(101) 分别得到 tau_A=.019403481836800077/.01940348161806243，相对原读数差为 2.9580408760040104e-9/1.4231153982422837e-8。两条点预测均为旧基准，两条事前区间同为 [.019209447075254404,.019597516713138335]，不是置信区间。归一化 RMSE=.0009849355772315346/.000984935577231538，R² 均为 .9968988754894407；形状通过 2/2。两种起点检查分别改一个因子，不覆盖全部参数起点或参数可识别性。</p>
+<p>初始四深度证据保留：A 形状通过 11/12，唯一失败是深度 8、seed22、R²=0.980826；A/B 一致仅 5/12，比值 0.053–0.884。深度 1、2、4、8 的 A 时间 CV 为 0.051、0.367、0.705、0.503，稳健性仅 1/4 通过。深度线性拟合 tc_A=4.956903−0.263382L，R²=0.044444，最大相对误差 3.217327，未通过正斜率、R²≥0.90、每点误差≤0.25 的判据。</p>
+<p>适用范围为无 skip、L={1,2,4,8}、width=32、sigma=0.8、4×4 正交目标、固定 128×4 高斯输入、float64 全批量 GD。学习率配对仅 L4、seed11/22/33、eta=.02/.005/.00125、tau≤60。seed11、seed22 与 seed33 另测 eta=.0003125、tau≤60。未测 skip、其他宽度、sigma、目标谱、优化器、泛化或无限时间梯度流。</p>
+<h2>方法与条件</h2>
+<p>初始深度网格有 12 个训练 cell，各训练 3000 步，A 使用 3001 个 step 点。学习率研究新增 2 个 eta recipe，各 3 seed，共 6 个训练 cell；旧 L4 的 3 个成功 cell 只读复用。seed 仅改变初始化，不是独立数据重复。每个 seed 跨 eta 使用逐位相同的层矩阵，固定了所有层谱；不同 seed 的谱未匹配。</p>
+<p>eta=.005 与 .00125 分别训练 12000 与 48000 步，保存每步 MSE、全部初始权重和 12 个权重检查点。更新沿用 g=2err/n，实际优化输出维度求和的 J=4×MSE；学习率比较没有改梯度口径。上述旧 A 使用原单起点有界 least_squares，不称全局最优。B 的原 11 点窗口在累计时间中的跨度随 eta 改变。</p>
+<p>seed22 的额外细步长只新增 1 个训练 cell（192000 步、192001 个点）与 1 个 reference A 拟合，逐位保留原输入/目标/层矩阵。训练 7.587524 秒，预注册早于训练 12.395513 秒。60 旧文件 hash/mtime 未变；12 checkpoint 与 2 次局部更新独立核验误差≤2.220446e-16/3.469447e-18，拟合 RMSE 差≤4.336809e-19、R² 差 0。恢复 0 训练/0 拟合，4 个成功文件保持。</p>
+<p>seed11、seed22 与 seed33 的新细步长各新增 1 个训练 cell（192000 步、192001 个点）与 1 个 reference A 拟合，逐位保留原输入/目标/层矩阵。seed11 训练 6.794929027557373 秒；seed33 训练 6.927286863327026 秒。</p>
+<p>起点检查新增 4 个拟合 cell、0 个训练 cell，仍使用全部 192001 点、原边界、clip 和 1e-12 精度。四次拟合共 .800199 秒，预注册早于首拟合 22.294276 秒。74 个历史文件的 hash/mtime 未变；独立 expit（稳定 sigmoid 函数）与高精度求和重算的 RMSE 最大差为 2.168404e-19，R² 与 tau 差均为 0。恢复新增 0 拟合/0 训练，4 个结果及 summary 共 5 个文件的 hash/mtime 不变。</p>
+<p>中点检查新增 2 个拟合 cell、0 个训练 cell；这是同一训练曲线的两个拟合，不是两个 seed。全点、自由平台、原 bounds/clip/1e-12 精度不变。拟合共 .345870 秒，唯一预注册早于首拟合 32.711909 秒。90 个历史文件集合/hash/mtime 保持；独立 expit 与高精度求和复算 RMSE 差≤4.336809e-19，R² 与 tau 差均为 0。恢复新增 0 拟合/0 训练，仅复用 2 个结果；两结果、summary 与独立回执共 4 个文件的 hash/mtime 不变。</p>
+<p>此前两档学习率新训练共 6.531911 秒。预注册早于首 cell 21.471142 秒，30 个旧文件 hash/mtime 未变。独立 einsum 核验 72 个检查点和最初 12 次局部更新；loss 误差≤2.220446e-16，权重误差≤5.551115e-17，拟合 RMSE 重算差≤8.673617e-19，R² 重算差 0，原/reference B 峰值位置全部一致。恢复检查确认 21 个成功文件未改动，0 新训练、0 新拟合。</p>
+<h2>失败与反例</h2>
+<p>初始深度网格的 A/B 一致预测失败。深度 1 为 3/3、深度 2 与 4 各 0/3、深度 8 为 2/3；深度 4、seed22 最低比值 0.053479。B 在深度 2 与 4 的全部 seed 都给出 6 步；在深度 1 为 10、11、12 步，在深度 8 为 6、6、11 步。初始四深度所有曲线的 final loss 约 10^-30–10^-31。</p>
+<p>初始深度与稳健性预测失败。A 精确时间均值为 9.197379、1.160850、0.925557、4.593098；深度 1 均值最大、深度 4 最小。最大 CV 为 0.705261；单 sigmoid 形状能拟合，不保证中点能稳定读出深度。</p>
+<p>降低学习率未使固定时间轴的 A/B 一致，也未使 A 达到全部 seed 的 10% 收敛。seed22 的固定时间 A 读数从 0.015470380 到 0.018598187，差 16.817806%。最细 eta 的原 A 时间仍未通过 CV≤0.25 的旧参考门槛。</p>
+<p>旧 A 合同文字写 t_c≥1，源码实际是 t_c≥0；本研究明确保留实际约束，未改旧数字。训练输出曾发 matmul 除零、overflow、invalid 警告；保存 loss 和全部检查点权重有限，独立重构通过，根因未定。冻结前静态草稿错误已修正，当时无训练或新拟合。背景单模式可解关系不保证一般随机矩阵链的总 loss 精确为 sigmoid，未把该启发登记为新发现。</p>
+<p>最细步长合同的 reference_protocol.purpose 沿用旧“不代替主P1”措辞；该合同的 question、predictions.P1 与实际执行明确以 reference A 作主判据。保留冻结原文并披露这处文字冲突。该次训练再次出现相同 matmul 告警，原始 stderr 已保存，原因仍未确定。</p>
+<p>seed11 新细步长没有新增失败预测。训练再次出现同类 matmul 警告；保存曲线与全部检查点权重有限，独立核验通过，原始日志保留，原因未定。分析 stderr 为空。冻结前写稿编排有一次 Python 未闭合字符串 SyntaxError，解析前失败，未写文件或运行训练/拟合；修正编排后通过。冻结合同与三源码未改。
+seed33 新细步长也没有新增失败预测。训练再次出现同类 matmul 警告；保存曲线与全部检查点权重有限，独立核验通过，原始 warning 记录保留，原因未定。分析 stderr 为空。</p>
+<p>四个 k 起点未产生新的失败预测；拟合 stderr 为空。平台初值、局部参数平坦性和全部参数域仍未检查。恢复编排的工具输入曾有两次 JS 引号解析错误，均未执行 shell 命令；修正调用后恢复核验通过，冻结源码及成功结果未改。</p>
+<p>两个指定 h 起点也未产生失败预测，拟合 stderr 为空；平台初值与局部参数平坦性仍未检查。根工具编排有三次 JS 引号解析错误，均未执行 shell；独立审查也有一次解析错误。收尾链接扫描在根编排与独立审查分别触发一次 TypeError/AttributeError，修正未冻结的扫描编排后通过。这些错误未改冻结源码或成功结果。四个旧 k 起点稳定与两个新 h 起点稳定均不证明全局最优。</p>
+<h2>未决问题</h2>
+<p>seed33 的 1/1 细步长检验已完成并支持 5% 判据。下一小问题只读汇总三个 seed 在 eta=.0003125 的 tau_A 跨 seed 变异，以及相对 eta=.00125 的三组配对变化；不重跑训练或拟合。即使三组均通过，也不证明连续步长极限、seed 总体或有效深度公式；不进入 skip 与有效深度组合律。</p>
+<h2>证据</h2>
+<ul>
+<li>初始深度网格：合同（<code>studies/r001_chain_tc/preregistration.json</code>）、执行源码（<code>studies/r001_chain_tc/executed/run_experiment.py</code>）、曲线（<code>studies/r001_chain_tc/results/</code>）、summary（<code>studies/r001_chain_tc/analysis/summary.json</code>）、发现（<code>findings/r001_chain_tc.md</code>）；预注册提交 3c9242f。</li>
+<li>学习率配对：合同（<code>studies/r101_lr_protocol_offset/preregistration.json</code>）、训练源码（<code>studies/r101_lr_protocol_offset/executed/run_experiment.py</code>）、分析源码（<code>studies/r101_lr_protocol_offset/analysis.py</code>）、结果（<code>studies/r101_lr_protocol_offset/results/</code>）、逐 cell 拟合（<code>studies/r101_lr_protocol_offset/fits/</code>）、summary（<code>studies/r101_lr_protocol_offset/summary.json</code>）、发现（<code>findings/r101_lr_protocol_offset.md</code>）；预注册提交 657a4d4。</li>
+<li>独立核验源码（<code>studies/r101_lr_protocol_offset/executed/verify.py</code>）、独立核验回执（<code>studies/r101_lr_protocol_offset/executed/independent_verification.json</code>）、恢复核验（<code>studies/r101_lr_protocol_offset/executed/recovery_verification.json</code>）。</li>
+<li>seed22 细步长：合同（<code>studies/r102_seed22_refinement/preregistration.json</code>）、训练源码（<code>studies/r102_seed22_refinement/executed/run_experiment.py</code>）、分析源码（<code>studies/r102_seed22_refinement/analysis.py</code>）、结果（<code>studies/r102_seed22_refinement/results/</code>）、summary（<code>studies/r102_seed22_refinement/summary.json</code>）、发现（<code>findings/r102_seed22_refinement.md</code>）；预注册提交 1839094。</li>
+<li>细步长核验：独立源码（<code>studies/r102_seed22_refinement/executed/verify.py</code>）、独立回执（<code>studies/r102_seed22_refinement/executed/independent_verification.json</code>）、恢复回执（<code>studies/r102_seed22_refinement/executed/recovery_verification.json</code>）、原始告警（<code>studies/r102_seed22_refinement/executed/training_stderr.log</code>）。</li>
+<li>四个 k 起点：合同（<code>studies/r103_A_start_sensitivity/preregistration.json</code>）、拟合源码（<code>studies/r103_A_start_sensitivity/executed/run_experiment.py</code>）、分析源码（<code>studies/r103_A_start_sensitivity/analysis.py</code>）、结果（<code>studies/r103_A_start_sensitivity/results/</code>）、summary（<code>studies/r103_A_start_sensitivity/summary.json</code>）、发现（<code>findings/r103_A_start_sensitivity.md</code>）；唯一预注册提交 cdad9d2。</li>
+<li>起点核验：独立源码（<code>studies/r103_A_start_sensitivity/executed/verify.py</code>）、独立回执（<code>studies/r103_A_start_sensitivity/executed/independent_verification.json</code>）、恢复回执（<code>studies/r103_A_start_sensitivity/executed/recovery_verification.json</code>）、执行审计（<code>studies/r103_A_start_sensitivity/executed/execution_audit.json</code>）。</li>
+<li>两个 h 起点：合同（<code>studies/r104_A_midpoint_start/preregistration.json</code>）、拟合源码（<code>studies/r104_A_midpoint_start/executed/run_experiment.py</code>）、分析源码（<code>studies/r104_A_midpoint_start/analysis.py</code>）、结果（<code>studies/r104_A_midpoint_start/results/</code>）、summary（<code>studies/r104_A_midpoint_start/summary.json</code>）、发现（<code>findings/r104_A_midpoint_start.md</code>）；唯一预注册提交 ae9671f。</li>
+<li>seed33 细步长：合同（<code>studies/r111_seed33_refinement/preregistration.json</code>）、训练源码（<code>studies/r111_seed33_refinement/executed/run_experiment.py</code>）、分析源码（<code>studies/r111_seed33_refinement/analysis.py</code>）、结果（<code>studies/r111_seed33_refinement/results/</code>）、拟合（<code>studies/r111_seed33_refinement/fits/</code>）、summary（<code>studies/r111_seed33_refinement/summary.json</code>）、发现（<code>findings/r111_seed33_refinement.md</code>）；唯一预注册提交 f23ea04。</li>
+<li>seed33 核验：独立源码（<code>studies/r111_seed33_refinement/executed/verify.py</code>）、独立回执（<code>studies/r111_seed33_refinement/executed/independent_verification.json</code>）、恢复回执（<code>studies/r111_seed33_refinement/executed/recovery_verification.json</code>）、执行审计（<code>studies/r111_seed33_refinement/executed/execution_audit.json</code>）、原始 warning（<code>studies/r111_seed33_refinement/executed/training_stderr.log</code>）。</li>
+<li>
+<p>中点核验：独立源码（<code>studies/r104_A_midpoint_start/executed/verify.py</code>）、独立回执（<code>studies/r104_A_midpoint_start/executed/independent_verification.json</code>）、恢复回执（<code>studies/r104_A_midpoint_start/executed/recovery_verification.json</code>）、执行审计（<code>studies/r104_A_midpoint_start/executed/execution_audit.json</code>）。</p>
+</li>
+<li>
+<p>seed11 细步长：合同（<code>studies/r105_seed11_refinement/preregistration.json</code>）、训练源码（<code>studies/r105_seed11_refinement/executed/run_experiment.py</code>）、分析源码（<code>studies/r105_seed11_refinement/analysis.py</code>）、结果（<code>studies/r105_seed11_refinement/results/</code>）、拟合（<code>studies/r105_seed11_refinement/fits/</code>）、summary（<code>studies/r105_seed11_refinement/summary.json</code>）、发现（<code>findings/r105_seed11_refinement.md</code>）；唯一预注册提交 a559d79。</p>
+</li>
+<li>seed11 核验：独立源码（<code>studies/r105_seed11_refinement/executed/verify.py</code>）、独立回执（<code>studies/r105_seed11_refinement/executed/independent_verification.json</code>）、恢复回执（<code>studies/r105_seed11_refinement/executed/recovery_verification.json</code>）、执行审计（<code>studies/r105_seed11_refinement/executed/execution_audit.json</code>）、原始警告（<code>studies/r105_seed11_refinement/executed/training_stderr.log</code>）。</li>
+</ul>
+<div class="stamp">同步于 2026-10-08 19:23（北京时间）· 本页为研究快照，网页在 prototype 仓库内维护</div>
+</main></body></html>

@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D11：宽度与样本量的标度律</title><link rel="stylesheet" href="style.css">
+<script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/site/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D11_width_scaling.html">编辑此页</a></div>
+<h1>D11：宽度与样本量的标度律</h1>
+<h2>结论</h2>
+<p>已测的预算标度依赖谱尺度。同 Rayleigh 商（目标加权的平均特征值）不能独立决定预算，维数增加也没有消除两目标的预算差。</p>
+<p>以下测量均限于结构化固定特征：d=8–8192 的 11 个二倍网格、零初始化、全批量半平方损失 SGD（用全部样本的梯度更新参数）、学习率 η=0.5、无动量、无权重衰减。d 是固定特征参数数，不是真实网络宽度。预算 T 是首次达到相对损失阈值的更新步数。中间目标把能量放在中间谱模态（特征值对应的方向）；首尾目标把能量分配到最快与最慢模态。n 是损失记账使用的样本数。</p>
+<ul>
+<li>原谱 λᵢ=i⁻¹（λᵢ 是第 i 个特征值）下，1% 损失预算在已测网格内接近 d 的一次幂。n=d 与 n=8192 零填充条件的结果相同。中间目标拟合为 2.249735 d^1.003161，最大相对拟合误差 0.868262%；首尾目标拟合为 4.438350 d^1.005095，最大相对拟合误差 2.528432%。</li>
+<li>同 Rayleigh 商不足以决定预算。原谱下，两目标的该平均值均为 2/d，初始损失均为 0.5；33 个同坐标配对的首尾/中间预算比为 1.944444–2.000000。单 Rayleigh 的单指数近似对首尾目标低估 48.571429%–50.000000%，对中间目标全部准确。维数增加没有消除反例。</li>
+<li>固定 n 的零填充对照排除了预算依赖 n=d 损失记账的解释。把 n=d 改为 n=8192，按 √n 缩放前 d 个非零输入与目标，其余样本置零，66 个新旧预算配对的差均为 0 步。归一化损失曲线最大差≤4.440892e−16。非零样本数仍为 d，没有增加独立信息样本。</li>
+<li>原近一次 d 标度依赖谱的整体尺度。固定 n=8192，仅把非零谱除以调和和 h_d（从 1 到 d 的倒数之和），使 trace=1（特征值总和为 1）后，1% 预算按 d h_d 的两个已知系数缩放。中间/首尾全网格最大系数误差为 2.126802%/4.124214%。同 Rayleigh 的 33 个预算比仍为 1.959184–1.999956；首尾单 Rayleigh 预测仍低估 48.958333%–49.998894%。</li>
+<li>trace=1 下，2% 和 5% 两个离散阈值均满足原注册误差边界。2% 的中间/首尾全网格最大误差为 1.244504%/4.771486%；5% 为 1.743710%/4.814219%。两次评价只读取保存曲线，没有改变固定特征或参数更新。这三个已测阈值不能支持连续阈值外推。</li>
+<li>同 Rayleigh 的预算差不依赖原首尾目标中随 d 消失的快模态权重。固定上述 trace=1 谱，仅把目标改为 d/4 与 d 模态各占 1/3、2/3 能量后，33 个同坐标配对的 1% 预算是中间目标的 1.823860–1.857143 倍。单 Rayleigh 预测低估 45.171233%–46.153846%。两个占用模态均随 d 缩放，权重保持固定；这仍是固定特征结果。</li>
+</ul>
+<h2>Formulation</h2>
+<p>固定特征、零初始化、全批量半平方损失 SGD 的谱递推是已知结果。经验幂律来自网格内拟合；trace=1 的近似系数来自已知谱递推，不是新理论。</p>
+<p>\[
+L_t=\frac{\|X\theta_t-y\|^2}{2n},\quad H=XX^\top/n,\quad
+\frac{L_t}{L_0}=\sum_iw_i(1-\eta\lambda_i)^{2t},\quad
+T_\varepsilon=\min\{t\in\mathbb N_0:L_t/L_0\le\varepsilon\}.
+\]
+\[
+\lambda_i=i^{-1}\ (i\le d),\quad n\in\{d,8192\},\quad m_1=\sum_iw_i\lambda_i=2/d,\quad
+w_i=\begin{cases}\mathbf1_{i=d/2}&\text{中间目标},\\
+\frac1{d-1}\mathbf1_{i=1}+\frac{d-2}{d-1}\mathbf1_{i=d}&\text{首尾目标},\end{cases}
+\quad T_R=\left\lceil\frac{\log\varepsilon}{2\log(1-\eta m_1)}\right\rceil.
+\]
+\[
+\widehat T_{1\%}(d)=\begin{cases}
+2.249735\,d^{1.003161}&\text{中间目标；最大相对拟合误差 }0.868262\%,\\
+4.438350\,d^{1.005095}&\text{首尾目标；最大相对拟合误差 }2.528432\%.
+\end{cases}
+\]</p>
+<p>固定 n 的零填充构造为：
+\[
+X_{i,\pi(i)}=\sqrt{n\lambda_i}\,s_i,\quad y_i=\sqrt{nw_i}\quad(i\le d),\qquad
+X_{i,:}=0,\ y_i=0\quad(d&lt;i\le n).
+\]
+\[
+X^\top X/n=P^\top\operatorname{diag}(\lambda_1,\ldots,\lambda_d)P,\qquad
+\Delta T=T_{1\%}^{n=8192}-T_{1\%}^{n=d}=0\quad\text{（66 个实测配对）}.
+\]
+固定 n=8192、仅整体归一化非零谱后，公式为：
+\[
+h_d=\sum_{i=1}^d\frac1i,\quad \lambda_i^{\rm tr}=\frac1{i h_d},\quad
+\operatorname{tr}H=1,\quad m_1^{\rm tr}=\frac2{d h_d},\qquad
+\widehat T_{1\%}^{\rm tr}=\begin{cases}
+\frac{\log100}{2}\,d h_d=2.302585\,d h_d&\text{中间目标；最大系数误差 }2.126802\%,\\
+\log100\,d h_d=4.605170\,d h_d&\text{首尾目标；最大系数误差 }4.124214\%.
+\end{cases}
+\]</p>
+<p>n 是样本数，d 是固定特征参数数，i 是从 1 开始的谱索引。X 是 n×d 特征矩阵，θₜ 是第 t 步参数，y 是目标。H=XXᵀ/n 是归一化样本 Gram 矩阵（样本特征内积组成的矩阵），λᵢ 是其特征值。wᵢ 是对应目标能量比例，总和为 1。</p>
+<p>m₁ 是目标 Rayleigh 商，η 是学习率，ε 是相对损失阈值。Lₜ 是每样本半平方损失，L₀=0.5。特征、目标、λ、w、m₁、η、ε 均采用无量纲数值。t、T、T_R、Ť 的单位是更新步；ℕ₀ 是非负整数，𝟙 是指示函数，ceil 表示上取整。</p>
+<p>T_R 是单 Rayleigh 的单指数预算近似。Ť 是在双对数坐标上、按各维数等权拟合的预算。经验系数的单位是步/d^β，β 是无量纲指数。拟合误差为 max_d|Ť/T−1|，不是概率置信区间。</p>
+<p>π 是样本模态到参数坐标的置换，sᵢ∈{−1,1} 是坐标符号，P 是对应置换矩阵。后 n−d 个零模态的目标权重为零。ΔT 是同 d、同 seed（置换与符号的随机种子）、同目标的新旧记账预算差，单位是更新步。</p>
+<p>h_d 是无量纲调和和，λᵢᵗʳ 是 trace=1 条件的特征值，m₁ᵗʳ 是其目标 Rayleigh 商，Ťᵗʳ 的单位是步。系数误差为 |T/Ťᵗʳ−1|，与拟合误差 |Ť/T−1| 使用不同分母。</p>
+<p>两目标的渐近差异可由已知递推解释。中间目标只占用 λ=2/d 的模态。首尾目标在 λ=1/d 的最慢模态上保留 (d−2)/(d−1) 的能量，只用少量最快模态能量匹配 m₁。两预算的渐近斜率均为 1，渐近系数分别为 log(100)/2 和 log(100)。实测指数与约两倍预算比符合这一解释；这不是新谱理论。参数目标范数平方分别为 d/2 和 d−1，二阶谱矩（目标加权的特征值平方均值）也不同，不能独立归因于慢模态质量。</p>
+<p>固定权重的新目标记为 q（quarter_tail，四分之一位置与尾部的两个模态）：
+\[
+w_i^q=\tfrac13\mathbf1_{i=d/4}+\tfrac23\mathbf1_{i=d},\quad
+m_1^q=\frac2{d h_d}=m_1^{\rm middle},\quad
+m_2^q=\frac6{d^2h_d^2},\quad \|\theta_*^q\|^2=\frac34d h_d.
+\]
+\[
+\frac{L_t^q}{L_0^q}=\frac13\left(1-\frac2{d h_d}\right)^{2t}
++\frac23\left(1-\frac1{2d h_d}\right)^{2t},\quad
+\frac13 e^{-4C_q}+\frac23 e^{-C_q}=0.01,\quad C_q=4.199706765.
+\]</p>
+<p>q 是目标标签，θ* 是能精确拟合目标的参数；其范数平方采用无量纲数值。m₂ 是目标加权的特征值平方均值。C_q 是从已知递推取 d 增大极限后的无量纲系数，T≈C_q d h_d 的单位仍为更新步。该根在注册后计算，只作解析解释。它不是新理论、拟合参数或注册判据。中间目标的 m₂=4/(d²h_d²)、参数目标范数平方=d h_d/2；这两个量没有与 q 匹配。</p>
+<h2>成立程度</h2>
+<p>原谱结果只在 d=8–8192 的 11 个二倍网格内成立。n=d 或 n=8192 零填充、λᵢ=i⁻¹、η=0.5、无动量、无衰减、ε=0.01 时，两条幂律误差均≤2.528432%。完整目标加权谱对 66 个 cell（一个条件与一个坐标 seed 的运行）的整数阈值全部预测正确。66 个样本记账配对的 ΔT 全为 0，差范围为 [0,0] 步。d≥256 的同 Rayleigh 预算比为 1.998302–2.000000。</p>
+<p>trace=1 的系数误差通过了注册边界。下表均为固定 n=8192、原中间/首尾目标、η=0.5、无动量、无衰减条件的最大相对误差。中间/首尾参考系数分别为 ε=0.01 时的 log(100)/2 与 log(100)，ε=0.02 时的 log(50)/2 与 log(50)，ε=0.05 时的 log(20)/2 与 log(20)。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">相对损失阈值 ε</th>
+<th style="text-align: right;">中间全网格误差</th>
+<th style="text-align: right;">首尾全网格误差</th>
+<th style="text-align: right;">d≥128 中间误差</th>
+<th style="text-align: right;">d≥128 首尾误差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0.01（1%）</td>
+<td style="text-align: right;">2.126802%</td>
+<td style="text-align: right;">4.124214%</td>
+<td style="text-align: right;">0.029565%</td>
+<td style="text-align: right;">0.207098%</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.02（2%）</td>
+<td style="text-align: right;">1.244504%</td>
+<td style="text-align: right;">4.771486%</td>
+<td style="text-align: right;">0.022762%</td>
+<td style="text-align: right;">0.205409%</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.05（5%）</td>
+<td style="text-align: right;">1.743710%</td>
+<td style="text-align: right;">4.814219%</td>
+<td style="text-align: right;">0.065304%</td>
+<td style="text-align: right;">0.257302%</td>
+</tr>
+</tbody>
+</table></div>
+<p>全网格注册上界为中间≤3%、首尾≤5%；d≥128 时两者均≤0.3%。ε=0.02 与 0.05 的四项注册边界均通过。2% 评价的 33 个目标配对，其坐标 seed 仍逐维一致。5% 评价的 66/66 条保存曲线均首次命中，三个坐标 seed 逐维一致。5% 结果只验证这一离散端点，不构成连续 ε 外推。</p>
+<p>固定 trace 没有保留旧 d 幂律的误差边界。中间/首尾预算变为 49–180859 步与 96–361710 步，相对原谱分别增加 2.722222–9.588538 倍与 2.742857–9.588326 倍。新预算对 d 的描述性拟合误差为 15.540384%/16.570413%，超出旧误差 6% 边界。</p>
+<p>这些结果没有识别独立数据量或真实可学习网络宽度的阈值。固定特征没有核漂移（训练期间特征内积结构的变化），不能识别 lazy↔rich 边界（特征近似固定与特征学习改变动力学的分界）。跨 d 的谱尾、trace 与目标索引共同按规则延伸。随机特征集中、固定输入维度、真实网络宽度及网格外维数均未测试。三个 seed 只改变参数坐标，不是独立数据重复，不计算 seed 置信区间。封存前瞻（未看结果前锁定新条件与预测的验证）尚未执行。</p>
+<p>固定权重 q 的对照通过全部注册判据。11 个维数条件×3 个坐标 seed=33 个新训练 cell，无删失；33/33 新/中间预算比在事前 [1.75,1.90] 内，33/33 单 Rayleigh 低估≥40%。同坐标配对的 Rayleigh 与初始损失最大差分别为 6.938894e−18、1.110223e−16。11 组整数预算均在三个 seed 间一致。预算范围为 91–329872 步；新/旧整数步数差为 42–149013 步，均为正。</p>
+<p>作为描述性比较，q 的 T/(d h_d) 对解析系数 C_q 的全网格最大相对误差为 0.343458%，d≥128 为 0.022459%。该误差没有注册为独立预测。实际参数曲线与完整谱递推的最大差为 8.118506e−15。新控制只排除“反例必须使用不缩放的极快模态和随 d 消失的快权重”这一必要条件；第二谱矩与参数目标范数仍改变，不能独立归因慢模态质量，也未识别任何真实网络宽度边界。</p>
+<h2>方法与条件</h2>
+<p>实验实际优化参数 θ，逐步计算损失与梯度。谱公式只用于独立预算预测与核验，不用于生成训练曲线。使用 n=d 的满秩样本特征，以及 n=8192、前 d 个非零样本的零填充控制。两者均取 X[i,perm[i]]=√(nλᵢ)·sign[i]、yᵢ=√(nwᵢ)，其余元素为零；perm 与 sign 对应 π 与 sᵢ。同 d/seed 的两目标与新旧配对使用相同置换与符号。归一化谱、初始损失和参数目标保持一致，新增零模态没有目标能量。两目标的幂律系数、指数与 Rayleigh 反例在固定 n 条件下均保持。</p>
+<p>旧两组没有删失（到运行上限仍未达阈值的情况）。每个 cell 到首次 L/L₀≤0.01 后再执行一步；旧两组上限为 5d，未达阈值原定保留删失。每组记账方案含 11 个维数×2 个目标=22 个条件，3 个坐标 seed=66 cell、33 个两目标配对。旧两组累计 132 cell，另有 66 个新旧预算配对。固定 n 的主判据为所有新旧预算差绝对值≤1 步；实际全部精确相等。原谱中间预算从 18 增至 18862 步，首尾从 35 增至 37724 步。</p>
+<p>trace=1 对照也没有删失。它另含 22 个条件×3 个坐标 seed=66 个新 cell、33 个两目标配对与 66 个旧谱配对。有效累计训练为 198 cell，失效准备轮为 0 新训练/拟合。仅改谱整体尺度，目标权重、目标数组、置换与符号逐位沿用旧保存数组；上限改为 ceil(5 d h_d)，66/66 无删失。同 seed 报告配对范围。归一化同时改变初始梯度和参数目标范数，不能从该对照独立归因某个中介。</p>
+<p>实验保存全损失曲线、输入合同、seed、检查点参数与源码 hash（文件内容摘要）。旧两组最多 19 个检查点，trace=1 组最多 23 个；最大参数检查点数组为 23×8192，不分配 d² 矩阵。运行环境是 CPU、NumPy float64（双精度浮点数）、单线程；θ₀=0，全批量 SGD η=0.5，无动量、无衰减。全部条件属于 development（已知条件上的开发验证），不是封存 OOD（未见新条件上的验证）。</p>
+<p>整数预算如下；旧两种 n 方案的数值相同。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">d（旧两种 n 方案相同）</th>
+<th style="text-align: right;">旧中间步数</th>
+<th style="text-align: right;">旧首尾步数</th>
+<th style="text-align: right;">旧共同 Rayleigh 步数</th>
+<th style="text-align: right;">trace=1 中间步数</th>
+<th style="text-align: right;">trace=1 首尾步数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">49</td>
+<td style="text-align: right;">96</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">36</td>
+<td style="text-align: right;">72</td>
+<td style="text-align: right;">36</td>
+<td style="text-align: right;">124</td>
+<td style="text-align: right;">245</td>
+</tr>
+<tr>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">73</td>
+<td style="text-align: right;">146</td>
+<td style="text-align: right;">73</td>
+<td style="text-align: right;">298</td>
+<td style="text-align: right;">593</td>
+</tr>
+<tr>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">147</td>
+<td style="text-align: right;">293</td>
+<td style="text-align: right;">147</td>
+<td style="text-align: right;">698</td>
+<td style="text-align: right;">1393</td>
+</tr>
+<tr>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">294</td>
+<td style="text-align: right;">588</td>
+<td style="text-align: right;">294</td>
+<td style="text-align: right;">1601</td>
+<td style="text-align: right;">3196</td>
+</tr>
+<tr>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">589</td>
+<td style="text-align: right;">1177</td>
+<td style="text-align: right;">589</td>
+<td style="text-align: right;">3609</td>
+<td style="text-align: right;">7213</td>
+</tr>
+<tr>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1178</td>
+<td style="text-align: right;">2356</td>
+<td style="text-align: right;">1178</td>
+<td style="text-align: right;">8036</td>
+<td style="text-align: right;">16065</td>
+</tr>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">2357</td>
+<td style="text-align: right;">4714</td>
+<td style="text-align: right;">2357</td>
+<td style="text-align: right;">17705</td>
+<td style="text-align: right;">35403</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">4715</td>
+<td style="text-align: right;">9430</td>
+<td style="text-align: right;">4715</td>
+<td style="text-align: right;">38678</td>
+<td style="text-align: right;">77348</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">9431</td>
+<td style="text-align: right;">18861</td>
+<td style="text-align: right;">9431</td>
+<td style="text-align: right;">83893</td>
+<td style="text-align: right;">167777</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">18862</td>
+<td style="text-align: right;">37724</td>
+<td style="text-align: right;">18862</td>
+<td style="text-align: right;">180859</td>
+<td style="text-align: right;">361710</td>
+</tr>
+</tbody>
+</table></div>
+<p>固定权重 q 的训练直接读取旧中间目标的特征值、坐标置换与符号，保存同一特征尺度字节，仅改变目标权重与相应目标数组。沿用 n=8192、η=0.5、ε=0.01、零初始化与 ceil(5 d h_d) 上限。33 个旧中间结果只读，不再次训练。此次新增 33 cell，连同此前 198 cell，有效训练累计 231 cell。计算累计 20.860995 秒，单 cell 0.001431–5.234300 秒。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">d</th>
+<th style="text-align: right;">q 的 1% 预算（步）</th>
+<th style="text-align: right;">同坐标中间预算（步）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">91</td>
+<td style="text-align: right;">49</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">227</td>
+<td style="text-align: right;">124</td>
+</tr>
+<tr>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">545</td>
+<td style="text-align: right;">298</td>
+</tr>
+<tr>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">1275</td>
+<td style="text-align: right;">698</td>
+</tr>
+<tr>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">2920</td>
+<td style="text-align: right;">1601</td>
+</tr>
+<tr>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">6584</td>
+<td style="text-align: right;">3609</td>
+</tr>
+<tr>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">14657</td>
+<td style="text-align: right;">8036</td>
+</tr>
+<tr>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">32293</td>
+<td style="text-align: right;">17705</td>
+</tr>
+<tr>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">70546</td>
+<td style="text-align: right;">38678</td>
+</tr>
+<tr>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">153013</td>
+<td style="text-align: right;">83893</td>
+</tr>
+<tr>
+<td style="text-align: right;">8192</td>
+<td style="text-align: right;">329872</td>
+<td style="text-align: right;">180859</td>
+</tr>
+</tbody>
+</table></div>
+<p>新对照属于 development。数值预测来自已见旧反例的粗略判断，注册前没有计算新整数端点或极限根。训练前核对唯一冻结提交字节、3 份源码 hash、603 个旧文件 hash/mtime 与空结果目录。独立检查 564 个参数检查点和 132 个相邻更新：保存 loss 与一步更新误差均为 0，闭式参数最大误差 3.808509e−12。恢复调用新增 0 cell；603 个旧文件与 67 个新结果文件的 hash/mtime 不变。</p>
+<h3>失败与反例</h3>
+<p>单 Rayleigh 近似的反例全部保留。它在 33 个中间目标 cell 中精确命中预算，在全部 33 个首尾目标 cell 中低估 48.571429%–50.000000%。较大维数没有消除反例。联合维数实验的三个判据与固定 n 控制的两个判据均通过；这里的反例是注册预测得到支持，不是注册预测失败。没有删除或修订失败实验。</p>
+<p>首尾目标的经验幂律不是每一区间的精确规律。d=8→16 的相邻指数为 1.040642，超过全网格拟合指数的注册上界 1.04。这不是全网格判据的失败。没有检验网格外维数，不把拟合误差当作外推保证。</p>
+<p>trace=1 的候选对照在准备阶段失效。原因是临时解析脚本写入研究目录之外；未开展新训练或拟合。候选的两个误差判据均未评估。旧幂律、同 Rayleigh 预算反例和零填充对照保持原结果。</p>
+<p>旧冻结 d 幂律不能在旧误差边界内描述有效 trace=1 的新预算。作为预先指定的描述性比较，它对中间/首尾新预算分别低估 63.027438%–89.515453% 与 62.619843%–89.475831%。新预算对 d 的拟合为 4.888044 d^1.177950 与 9.616830 d^1.180201，最大相对误差 15.540384%/16.570413%。这些数字超出旧条件的指数 [0.98,1.04] 和误差 6% 边界。有效 trace=1 对照的两个注册判据均通过；不追溯改判旧谱预测，也不把描述性比较登记为新注册失败。</p>
+<p>ε=0.05 的评价没有产生新的训练或拟合失败。它只读复用 66 条旧曲线，不能支持连续阈值规律。</p>
+<p>固定权重 q 的两项注册预测均得到支持，没有新增失败预测。单 Rayleigh 不充分的反例范围继续保留。旧 ε=0.05 研究目录缺少收尾核验回执；此次通过旧汇总最后提交与 74 个研究文件逐字匹配补充审计，如实保留缺口，不补造旧回执。一次写脚本的工具字符串错误在执行前阻止调用，未训练、未外写；修正后再冻结。</p>
+<h2>未决问题</h2>
+<p>固定权重 q 已完成。下一小问题可继续只改目标：在同一 trace=1 谱上，使用 d/8、d/2、d 三个模态，权重为 1/21、2/3、2/7。该目标在解析上与 q 同 m₁、同 m₂，但参数目标范数未匹配。先注册新的数值预测、输入 hash 与冻结源码，再测预算是否仍与 q 不同；这只是候选，没有计算新预算。</p>
+<p>ε=0.05 已完成且四项误差判据通过。不把 ε=0.01/0.02/0.05 三点当连续 ε 外推，也不重跑任何成功 cell。pinned 指冻结字节的源码。以下保留旧候选建议作历史交接，不作为当前优先问题：</p>
+<p>下一小问题优先零新训练：保持 trace=1 保存曲线和原数据/目标/优化器，改评价阈值到尚未测的离散端点；每次先写明确数值预测、来源 hash 与 pinned 评价源码并 commit，匹配后才计算新端点。</p>
+<p>固定特征没有核漂移，不能识别真实特征学习的 lazy↔rich 边界。跨 d 的谱尾、trace 与目标索引共同按规则延伸；随机特征集中、固定输入维度和真实网络宽度仍未测试。封存前瞻也尚未执行。</p>
+<h2>证据</h2>
+<p>以下保留原报告的证据记录。P1 是各研究的第一项注册判据，hash 是文件内容摘要，SHA256 是摘要算法，mtime 是文件修改时间。maxabs 表示最大绝对误差，loss 表示损失，update 表示参数更新；middle/endpoints 分别对应中间/首尾目标。</p>
+<p>预注册（<code>studies/r027_dimension_rayleigh/preregistration.json</code>）、执行源码（<code>studies/r027_dimension_rayleigh/executed/run.py</code>）与分析源码（<code>studies/r027_dimension_rayleigh/analysis.py</code>）同提交 3804aa6，早于全部参数训练；训练前记录（<code>studies/r027_dimension_rayleigh/executed/experiment_start.json</code>）核验同提交字节及 0 个已有 cell。解析审查（<code>studies/r027_dimension_rayleigh/executed/pre_execution_analytic_review.json</code>）保留训练前已知谱算术，不作为新测量。</p>
+<p>汇总（<code>studies/r027_dimension_rayleigh/summary.json</code>）给出逐 cell、配对、每 seed 全网格拟合及相邻指数。P1 的曲线误差≤4.385381e−15，闭式参数误差≤8.668622e−13；同 Rayleigh 配对差为 0，初始损失最大差 1.665335e−16。累计实验计算 3.607685 秒。首 cell 核验（<code>studies/r027_dimension_rayleigh/executed/first_cell_verification.json</code>）通过后补齐其余结果；恢复审计（<code>studies/r027_dimension_rayleigh/executed/resume_audit.json</code>）确认再次执行新增 0 cell，133 个结果文件 hash 与 mtime 不变。</p>
+<p>独立核验（<code>studies/r027_dimension_rayleigh/executed/independent_verification.json</code>）、中心更新审计（<code>studies/r027_dimension_rayleigh/executed/central_update_audit.json</code>）与本轮记录（<code>findings/r027_dimension_rayleigh.md</code>）提供保存证据及交接边界。既有对照入口为 D3 报告（<code>../D3_capacity_resolution/report.md</code>），它只提供研究起点，没有复写旧结果。</p>
+<p>固定 n 预注册（<code>studies/r031_fixed_n8192/preregistration.json</code>）、执行源码（<code>studies/r031_fixed_n8192/executed/run.py</code>）及分析源码（<code>studies/r031_fixed_n8192/analysis.py</code>）同提交 cc2f552，早于新参数训练；训练前记录（<code>studies/r031_fixed_n8192/executed/experiment_start.json</code>）保存空结果目录与源码/旧证据 hash 核验。汇总（<code>studies/r031_fixed_n8192/summary.json</code>）保存 66 个逐 cell 配对、完整阈值及拟合；计算 3.714066 秒，曲线审计误差≤4.385381e−15，参数闭式审计误差≤8.668622e−13。</p>
+<p>旧收尾审计（<code>studies/r031_fixed_n8192/executed/r027_closeout_audit.json</code>）确认旧科学收尾 37d1ea6 与 145 个研究文件逐字相等，并记录旧 final_commit_verification 文件缺失；旧证据清单（<code>studies/r031_fixed_n8192/executed/baseline_manifest.json</code>）固定全部 SHA256/mtime。首 cell 核验（<code>studies/r031_fixed_n8192/executed/first_cell_verification.json</code>）、恢复审计（<code>studies/r031_fixed_n8192/executed/resume_audit.json</code>）、独立核验（<code>studies/r031_fixed_n8192/executed/independent_verification.json</code>）通过 957 个检查点及 267 个相邻更新（loss/update误差0），只读复算中止记录（<code>studies/r031_fixed_n8192/executed/verification_interruption.json</code>）保留重复解压问题与读取修复；中心更新审计（<code>studies/r031_fixed_n8192/executed/central_update_audit.json</code>）、本轮记录（<code>findings/r031_fixed_n8192.md</code>）与收尾提交核验（<code>studies/r031_fixed_n8192/executed/final_commit_verification.json</code>）提供交接证据。</p>
+<p>失效记录（<code>studies/r043_trace_normalization/executed/round_invalidation.json</code>）与本轮记录（<code>findings/r043_trace_normalization.md</code>）保存目录边界违规、删除确认和 0 新训练；锁定草稿（<code>studies/r043_trace_normalization/preregistration.json</code>）仅作下一轮交接，不是有效实验预注册。只读分析（<code>studies/r043_trace_normalization/analysis.py</code>）、汇总（<code>studies/r043_trace_normalization/summary.json</code>）与旧证据核验（<code>studies/r043_trace_normalization/executed/prior_evidence_audit.json</code>）复核 293 个旧研究文件和 132 个保存 cell；执行锁（<code>studies/r043_trace_normalization/executed/run.py</code>）禁止运行失效草稿。</p>
+<p>有效 trace=1 预注册（<code>studies/r073_trace_one/preregistration.json</code>）、实际参数更新（<code>studies/r073_trace_one/executed/run.py</code>）、分析（<code>studies/r073_trace_one/analysis.py</code>）、独立核验源码（<code>studies/r073_trace_one/executed/verify.py</code>）同提交 89a0f20 早于训练；时序记录（<code>studies/r073_trace_one/executed/experiment_start.json</code>）核对提交字节、源码 hash 与空 results。注册前整数参考来自失效草稿保存的已知递推算术，明确为 development 非盲验证。</p>
+<p>ε=.02 评价汇总（<code>studies/r075_epsilon02/summary.json</code>）、独立核验（<code>studies/r075_epsilon02/executed/independent_verification.json</code>）、输入清单（<code>studies/r075_epsilon02/executed/source_manifest.json</code>）及预注册（<code>studies/r075_epsilon02/preregistration.json</code>）记录 66 个保存曲线的只读端点评价；middle/endpoints 最大误差 1.244504%/4.771486%，d≥128 为 .022762%/.205409%。</p>
+<p>ε=.05 预注册（<code>studies/r087_epsilon05/preregistration.json</code>）与冻结评价源码（<code>studies/r087_epsilon05/executed/run.py</code>）、分析源码（<code>studies/r087_epsilon05/analysis.py</code>）同提交 e6369c5，早于曲线读取；输入清单（<code>studies/r087_epsilon05/executed/input_manifest.json</code>）固定 r073 的 134 个文件及其 hash/mtime。</p>
+<p>ε=.05 汇总（<code>studies/r087_epsilon05/summary.json</code>）保存 66 个逐 cell 端点；middle/endpoints 最大误差 1.743710%/4.814219%，d≥128 为 .065304%/.257302%。独立核验（<code>studies/r087_epsilon05/executed/independent_verification.json</code>）通过 134 个输入文件、66 个首次命中和 22 个 seed 一致性检查，且不改写旧输入。</p>
+<p>trace=1 汇总（<code>studies/r073_trace_one/summary.json</code>）保存 66 个预算与配对、系数误差、冻结旧拟合误差和描述性 d 拟合；计算 34.852269 秒。首 cell 核验（<code>studies/r073_trace_one/executed/first_cell_verification.json</code>）、独立核验（<code>studies/r073_trace_one/executed/independent_verification.json</code>）通过 1101 检查点和 264 相邻更新；曲线 maxabs 5.695999e−13、闭式参数误差 1.078604e−10、保存 loss/一步更新误差 0。恢复审计（<code>studies/r073_trace_one/executed/resume_audit.json</code>）新增 0 cell，133 个新结果与 302 个旧文件 hash/mtime 不变。旧输入清单（<code>studies/r073_trace_one/executed/baseline_manifest.json</code>）、旧证据审计（<code>studies/r073_trace_one/executed/prior_evidence_audit.json</code>）、过程记录（<code>studies/r073_trace_one/executed/session_audit.json</code>）、本轮记录（<code>findings/r073_trace_one.md</code>）、中心更新审计（<code>studies/r073_trace_one/executed/central_update_audit.json</code>）及收尾核验（<code>studies/r073_trace_one/executed/final_commit_verification.json</code>）保留归属、科学边界与交接。</p>
+<p>固定权重目标预注册（<code>studies/r099_quarter_tail/preregistration.json</code>）、参数训练源码（<code>studies/r099_quarter_tail/executed/run.py</code>）、分析源码（<code>studies/r099_quarter_tail/analysis.py</code>）与独立检查源码（<code>studies/r099_quarter_tail/executed/verify.py</code>）在唯一提交 78390d0 冻结，早于首个新训练 cell 15.646525 秒。开始记录（<code>studies/r099_quarter_tail/executed/experiment_start.json</code>）核对空结果目录与冻结字节；旧文件清单（<code>studies/r099_quarter_tail/executed/baseline_manifest.json</code>）锁定 603 个文件。</p>
+<p>固定权重目标汇总（<code>studies/r099_quarter_tail/summary.json</code>）保存 33 个新 cell 与旧中间目标配对、全部整数预算及描述性系数误差；独立检查（<code>studies/r099_quarter_tail/executed/independent_verification.json</code>）、恢复审计（<code>studies/r099_quarter_tail/executed/resume_audit.json</code>）、旧证据审计（<code>studies/r099_quarter_tail/executed/prior_evidence_audit.json</code>）和本轮记录（<code>findings/r099_quarter_tail.md</code>）提供复算与科学边界。</p>
+<p>独立只读审查（<code>studies/r099_quarter_tail/executed/independent_review.json</code>）、报告自查（<code>studies/r099_quarter_tail/executed/report_style_audit.json</code>）和中心更新审计（<code>studies/r099_quarter_tail/executed/central_update_audit.json</code>）记录保存结果与两项判据的独立检查、原报告数字保全、六节骨架及仅修改本方向交接字段的核验。</p>
+<div class="stamp">同步于 2026-10-08 19:23（北京时间）· 本页为研究快照，网页在 prototype 仓库内维护</div>
+</main></body></html>

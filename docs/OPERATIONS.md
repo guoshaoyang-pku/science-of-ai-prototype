@@ -24,7 +24,7 @@ gh release download handoff-20261009 --repo guoshaoyang-pku/science-of-ai-protot
 .venv/bin/python research/d2_scaling_20261009/verify.py
 ~~~
 
-私库附件由 gh 使用自己的登录下载，也可先取得文件再传 --archives。三个归档共 100 个分片；工具先校验每片、重组并验证归档总 SHA-256。解压器只释放清单中的普通文件，拒绝越界路径和符号链接；已有不同 hash 的文件不覆盖。verify.py 对 8 个保存条件做 256 步直接 GD 核对，不发起扫描/API；会更新交付数据中的 verification.json。
+公开 Release 附件可从网页或 gh 下载，再传 --archives。三个归档共 100 个分片；工具先校验每片、重组并验证归档总 SHA-256。解压器只释放清单中的普通文件，拒绝越界路径和符号链接；已有不同 hash 的文件不覆盖。verify.py 对 8 个保存条件做 256 步直接 GD 核对，不发起扫描/API；会更新交付数据中的 verification.json。
 
 默认 D2 读取本库 evidence/d2_scaling_20261009。AIQ_KB_DATA_ROOT 会改为其 runs/d2_scaling_20261009；验证时不要误指向新空数据根。plot.py 使用 --study evidence/d2_scaling_20261009/studies/n_sigma_tasks，会重绘交付图。
 
@@ -44,3 +44,11 @@ export AIQ_KB_DATA_ROOT=/absolute/path/to/AIQ_KB_DATA
 solver 需要自己的 AIQ_KB_KEYS 和经隔离审查的 AIQ_KB_POOL，见 .env.example。不要从旧题池直接发车，不读取最终 benchmark test。旧 soa_async_v1 不在本次证据包，其公开交付仍在 science-of-ai-kb；旧 run 与 publisher 保持原路径。
 
 旧 v2 publisher main 和自动修复/重启脚本已禁用；HTML renderer 可只读导入。新 D2 publisher 需显式 AIQ_KB_BLOG_ROOT，只写目标文件，不 commit/push。它面向已有 kb_site 索引，首次建站需指定交付目标；导入成功不等于完整发布已验证。
+
+协作网页的发布源是 site/模糊方向/，在线入口为 [模糊方向](https://guoshaoyang-pku.github.io/science-of-ai-prototype/模糊方向/)。直接编辑该目录内的 HTML、style.css 和图片；科学结论的数字仍须核对 studies/*/summary.json。已有 Markdown 和证据附件是封存快照；新增研究结果写入独立 run，再将有来源的结论更新到网页。
+
+~~~bash
+python3 -m http.server 8000 --directory site
+~~~
+
+本地打开 http://localhost:8000/模糊方向/ 检查页面、图片和公式。将网页改动推送 main 后，.github/workflows/pages.yml 会直接上传 site/ 的静态文件；在 Actions 查看 Publish 模糊方向 的结果，再检查在线页。此流程不重新生成 HTML、不启动模型或实验；旧 publisher 与本页是不同发布入口，旧 v2 publisher 继续禁用。
