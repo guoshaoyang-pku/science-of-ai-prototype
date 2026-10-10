@@ -45,10 +45,10 @@ solver 需要自己的 AIQ_KB_KEYS 和经隔离审查的 AIQ_KB_POOL，见 .env.
 
 旧 v2 publisher main 和自动修复/重启脚本已禁用；HTML renderer 可只读导入。新 D2 publisher 需显式 AIQ_KB_BLOG_ROOT，只写目标文件，不 commit/push。它面向已有 kb_site 索引，首次建站需指定交付目标；导入成功不等于完整发布已验证。
 
-协作网页的发布源是 site/模糊方向/，在线入口为 [模糊方向](https://guoshaoyang-pku.github.io/science-of-ai-prototype/模糊方向/)。直接编辑该目录内的 HTML、style.css 和图片；科学结论的数字仍须核对 studies/*/summary.json。已有 Markdown 和证据附件是封存快照；新增研究结果写入独立 run，再将有来源的结论更新到网页。
+协作网页的发布源是 docs/模糊方向/，在线入口为 [模糊方向](https://guoshaoyang-pku.github.io/science-of-ai-prototype/模糊方向/)。直接编辑该目录内的 HTML、style.css 和图片；科学结论的数字仍须核对 studies/*/summary.json。已有 Markdown 和证据附件是封存快照；新增研究结果写入独立 run，再将有来源的结论更新到网页。
 
 ~~~bash
-python3 -m http.server 8000 --directory site
+python3 -m http.server 8000 --directory docs
 ~~~
 
-本地打开 http://localhost:8000/模糊方向/ 检查页面、图片和公式。将网页改动推送 main 后，.github/workflows/pages.yml 会直接上传 site/ 的静态文件；在 Actions 查看 Publish 模糊方向 的结果，再检查在线页。此流程不重新生成 HTML、不启动模型或实验；旧 publisher 与本页是不同发布入口，旧 v2 publisher 继续禁用。
+本地打开 http://localhost:8000/模糊方向/ 检查页面、图片和公式。GitHub Pages 已设为从 main 分支的 /docs 发布；将网页改动推送 main 后自动更新，在 Actions 查看 pages build and deployment 的结果，再检查在线页。此流程不重新生成 HTML、不启动模型或实验；旧 publisher 与本页是不同发布入口，旧 v2 publisher 继续禁用。

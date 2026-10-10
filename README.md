@@ -4,7 +4,7 @@
 
 先读 [交接说明](docs/HANDOFF.md)、[研究方向](docs/RESEARCH_DIRECTIONS.md) 和 [操作手册](docs/OPERATIONS.md)。默认保持 parked，不启动研究轮。
 
-研究网页：[模糊方向](https://guoshaoyang-pku.github.io/science-of-ai-prototype/模糊方向/)。网页实体在 [site/模糊方向/](site/模糊方向/)；协作者可直接编辑 HTML、样式、图片和证据附件，推送 main 后由 GitHub Pages 自动发布。
+研究网页：[模糊方向](https://guoshaoyang-pku.github.io/science-of-ai-prototype/模糊方向/)。网页实体在 [docs/模糊方向/](docs/模糊方向/)；协作者可直接编辑 HTML、样式、图片和证据附件，推送 main 后由 GitHub Pages 自动发布。
 
 ## 安装与检查
 
@@ -37,7 +37,7 @@ gh release download handoff-20261009 --repo guoshaoyang-pku/science-of-ai-protot
 | evidence/d2_scaling_20261009/ | 最新 D2 报告、数字、图和执行审计；优先于旧 D2 报告 |
 | references/science_program_v1/ | v2 引用的 v1 代码、报告与轻量证据 |
 | evidence/manifests/、evidence/history/ | 每文件 source/export hash、归档 hash、历史 commit 索引 |
-| site/模糊方向/ | 可共同编辑的研究网页、图片和网页证据附件；GitHub Pages 发布源 |
+| docs/模糊方向/ | 可共同编辑的研究网页、图片和网页证据附件；GitHub Pages 发布源 |
 | external/ArchitectureIQ/ | 来自 AIQ main 的固定 commit submodule；题目与 benchmark runtime 的外部来源 |
 | benchmark_compat/ | 旧 KB lab 的 process/target-transform 已有补丁，可应用到外部副本 |
 
