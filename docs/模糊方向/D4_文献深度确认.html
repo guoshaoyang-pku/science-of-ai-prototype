@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D4：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D4_sigmoid_training_curve.html">D4 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D4_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D4：命题 × 文献状态对照（深度确认）</h1>
+<p class="bg">本页把 D4 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 arXiv API 与 OpenAlex（2026-10-11），判定基于论文标题、作者、年份与摘要，<b>尚未逐篇精读全文</b>。</p>
+<p class="bg">D4 的对照对象是固定特征、样本数与参数数均为 2、全批量 SGD（$\eta=0.1$、无动量与权重衰减）、对数时间轴上单段 sigmoid 的 development 实验；下列文献多数针对真实深度网络或大模型，判定时须注意<b>对象与构造的差异</b>。「疑似新」只表示本轮检索<b>未找到直接前作</b>，不等于学术上不存在；判定随检索范围变化。</p>
+
+<div class="legend">
+判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
+<span class="tag mix">部分已知</span>现象相同但对象或构造不同（例如文献用真实网络/saddle-to-saddle 的损失曲线，D4 用固定特征二次损失上的单段 logistic）·
+<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<b>—</b> 需读全文才能定论
+</div>
+
+<h2>总览</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr><th>编号</th><th>D4 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
+</thead>
+<tbody>
+<tr><td>(a)</td><td>单 sigmoid 是否通过取决于谱比、慢占比 α 与选解协议；最小二乘在谱比 1/3/10 各通过 3/3、30/100 各失败 3/3；谱比 100 九点 α 设计仅 α=0.99/1 各 3/3；补充格点 15 通过 3/3、20 失败 3/3</td><td><span class="tag mix">部分已知</span></td><td>Saddle-to-Saddle 2021；Naidu et al. 2025；Qiu et al. 2025；Bifurcations and loss jumps 2023</td></tr>
+<tr><td>(b)</td><td>谱比 100、两时间尺度均占初始损失时，单段形状不足以同时覆盖快降与慢尾；最差点误差不能靠换选解协议消除，min-maxabs 下界 0.08338322414783761/0.08268412546021864/0.09797454939689487 均 &gt;0.05</td><td><span class="tag mix">部分已知</span></td><td>Saddle-to-Saddle 2021；SGD in the Saddle-to-Saddle Regime 2026；Spectral Bias 综述 2022</td></tr>
+<tr><td>(c)</td><td>min-maxabs 压低局部误差峰值，代价是 RMSE 增大与拟合中点偏移；α=0/0.01 由 0/3 变 3/3，RMSE 增 0.00249738653/0.00205599340，中点提前 0.16274563882/0.13411860236 步</td><td><span class="tag mix">部分已知</span></td><td>The Shape of Learning Curves 2022；LCDB 1.1 2025；Exponential curve fitting 2024</td></tr>
+<tr><td>(d)</td><td>拟合中点与拟合斜率不能直接读作真实半衰期与半高处局部斜率；谱比 1→100 中点偏差 −8.99%→+72.40%，斜率偏差 +4.36%→+86.73%</td><td><span class="tag ok">已知</span>（基本）</td><td>The Shape of Learning Curves 2022；The power law repealed 2000；LCDB 1.1 2025</td></tr>
+</tbody>
+</table></div>
+
+<h2>逐条对照</h2>
+
+<h3>(a) 单 sigmoid 的通过与否取决于谱比、慢占比 α 与选解协议</h3>
+<p>谱比是快、慢方向曲率之比；比值大时快模态迅速下降、慢模态长期主导，损失曲线呈「快降 + 慢尾」两阶段。单 sigmoid（对数时间轴上的 logistic）要一段形状同时覆盖两段。D4 的判定映射：等初始损失下最小二乘在谱比 1/3/10 各通过 3/3、30/100 各失败 3/3；谱比 100 的九点 α 设计仅 α=0.99/1 各通过 3/3，其余七点各失败 3/3；同条件补充格点在谱比 15 通过 3/3、20 失败 3/3，均方根/最差点误差分别为 0.027550353/0.047113104 与 0.032733550/0.052902145。</p>
+<ul class="refs">
+<li><a href="#ref-saddle2021">Saddle-to-Saddle Dynamics in Deep Linear Networks (2021)</a>：深度线性网络训练依次穿过一系列鞍点；损失在长平台上缓慢变化后突然下降，天然是「多阶段、多时间尺度」曲线，而不是单一速率。</li>
+<li><a href="#ref-quiet2025">Naidu et al. (2025)</a>：算法任务的验证损失长期几乎不降、随后骤降，偏离幂律，属非幂律的分阶段曲线。</li>
+<li><a href="#ref-collapse2025">Qiu et al. (2025)</a>：不同规模模型的损失曲线归一化后坍缩到同一形状（含分阶段结构）。</li>
+<li><a href="#ref-rnn2023">Bifurcations and loss jumps in RNN training (2023)</a>：训练中损失出现跳变/分岔，曲线不是单一光滑幂律。</li>
+<li><a href="#ref-bigelow2025">Bigelow et al. (2025)</a>、<a href="#ref-asr2026">Akavarapu et al. (2026)</a>：分别对累积证据建模、对训练频率观测到 sigmoid 形学习曲线（S 形）。</li>
+</ul>
+<p><b>判定：部分已知。</b>「谱比大 → 多时间尺度 → 两阶段损失、单段形状难覆盖」与已知的多阶段 / saddle-to-saddle 与谱偏置（spectral bias）理论一致；但把「单 sigmoid 在注册 log 时间网格上是否通过」整理成谱比 × α × 选解协议的受控判定映射，本轮检索未找到直接前作。</p>
+
+<h3>(b) 谱比 100、两时间尺度均占一定初始损失时，单段形状不足</h3>
+<p>α=0.25/0.5/0.75 的最小二乘最差点误差为 0.17433681/0.08556858/0.11474926；改用 min-maxabs（选最差点误差最小的参数）后，参数域内最大误差的数值下界仍为 0.08338322414783761/0.08268412546021864/0.09797454939689487，均 &gt;0.05，各 3/3 坐标核验支持注册网格与参数域内不存在达标参数。</p>
+<ul class="refs">
+<li><a href="#ref-saddle2021">Saddle-to-Saddle 2021</a>、<a href="#ref-sgd-saddle2026">SGD in the Saddle-to-Saddle Regime (2026)</a>：多模态/多鞍点序列产生多个分离的时间尺度，单段近似难以同时覆盖早期快降与晚期慢收敛。</li>
+<li><a href="#ref-spectral2022">Overview Frequency Principle / Spectral Bias (2022)</a>：网络先拟合低频/快方向、后拟合高频/慢方向，曲线由两个不同速率的成分叠加。</li>
+<li><a href="#ref-solvable2022">A Solvable Model of Neural Scaling Laws (2022)</a>：损失由多个衰减速率不同的模态叠加，机理上支持单段不足。</li>
+</ul>
+<p><b>判定：部分已知。</b>「时间尺度分离下，单段形状不足以同时覆盖快降与慢尾」是已知多模态/多阶段理论的直接后果；但给出「注册有限网格 + 有界参数域内 maxabs 下界 &gt;0.05、且换选解协议也消除不掉」的不可达证书，本轮检索未找到直接前作。</p>
+
+<h3>(c) min-maxabs 压低局部误差峰值，代价是 RMSE 增大与拟合中点偏移</h3>
+<p>α=0/0.01 各由最小二乘的 0/3 通过变为 3/3 通过；降峰后均方根/最差点误差为 0.01437779613/0.03702806721 与 0.01227958828/0.03337965078，均方根误差分别增加 0.00249738653/0.00205599340（低于 ≥0.003 的预测，该配对预测被推翻），拟合中点分别提前 0.16274563882/0.13411860236 步（3.18633600430→3.02359036549、3.21456987380→3.08045127144 步）。</p>
+<ul class="refs">
+<li><a href="#ref-shape2022">The Shape of Learning Curves: A Review (2022)</a>：系统比较幂律、指数等函数形式与拟合/选解方式，说明曲线拟合结论对函数形式与选择准则敏感。</li>
+<li><a href="#ref-lcdb2025">LCDB 1.1 (2025)</a>：学习曲线比通常设想更「不守规矩」，模型选择与拟合准则会影响可复现性。</li>
+<li><a href="#ref-expfit2024">Analysis of learning curves using exponential curve fitting (2024)</a>：不同拟合函数给出不同的参数与渐近估计。</li>
+</ul>
+<p><b>判定：部分已知。</b>「用最大误差最小化（L∞，minimax）压低最差点误差、代价是均方误差（L2）增大」是逼近论中最小二乘与 Chebyshev 逼近的基本取舍；D4 的新意是把它作为「选解协议代价」在受控曲线族上测量，并记录中点偏移与配对增幅预测被推翻，这一具体对照本轮检索未找到直接前作（且未引用具体逼近论条目，取舍仅作一般陈述）。</p>
+
+<h3>(d) 拟合中点与拟合斜率不能直接读作真实半衰期与半高处局部斜率</h3>
+<p>等初始损失的谱比 1/3/10/30/100 下，拟合中点相对真实半衰期的偏差依次为 −8.99%/−6.53%/+3.95%/+21.96%/+72.40%，拟合斜率相对半高处局部斜率的偏差为 +4.36%/+4.15%/+8.39%/+26.28%/+86.73%；偏差随谱比单调增大。</p>
+<ul class="refs">
+<li><a href="#ref-shape2022">The Shape of Learning Curves: A Review (2022)</a>：拟合出的曲线参数依赖所选函数形式，不能等同于生成数据的过程参数。</li>
+<li><a href="#ref-powerlaw2000">The power law repealed: The case for an exponential law of practice (2000)</a>：同一学习数据既可用幂律也可用指数律拟合，说明「拟合参数 ≠ 真实机制参数」。</li>
+<li><a href="#ref-lcdb2025">LCDB 1.1 (2025)</a>：曲线「不守规矩」使参数外推不可靠。</li>
+<li><a href="#ref-bnsl2022">Broken Neural Scaling Laws (2022)</a>：真实曲线可由分段幂律拼成，单一函数拟合出的指数不代表单一机制。</li>
+</ul>
+<p><b>判定：已知（基本）。</b>「拟合得到的曲线参数（指数/中点/斜率）不等于底层动力学的真实参数」在学习曲线与 scaling law 拟合文献中已被反复强调（函数形式歧义、曲线不守规矩）；D4 的贡献是在已知谱递推的受控系统里把偏差量化到具体百分比，而不是首次提出该告诫。</p>
+
+<h2>相关文献</h2>
+<ol class="refs">
+<li id="ref-shape2022">The Shape of Learning Curves: A Review (2022). <em>TPAMI</em>. <a href="https://arxiv.org/abs/2103.10948">arXiv:2103.10948</a> · DOI:10.1109/TPAMI.2022.3220744</li>
+<li id="ref-lcdb2025">LCDB 1.1: A Database Illustrating Learning Curves Are More Ill-Behaved Than Previously Thought (2025). DOI:10.52202/085713-0487</li>
+<li id="ref-expfit2024">Analysis of learning curves in predictive modeling using exponential curve fitting with an asymptotic approach (2024). <em>PLOS ONE</em>. DOI:10.1371/journal.pone.0299811</li>
+<li id="ref-powerlaw2000">The power law repealed: The case for an exponential law of practice (2000). <em>Psychonomic Bulletin &amp; Review</em>. DOI:10.3758/BF03212979</li>
+<li id="ref-saddle2021">Saddle-to-Saddle Dynamics in Deep Linear Networks: Small Initialization Training, Symmetry, and Sparsity (2021). <a href="https://arxiv.org/abs/2106.15933">arXiv:2106.15933</a></li>
+<li id="ref-sgd-saddle2026">Stochastic Gradient Descent in the Saddle-to-Saddle Regime of Deep Linear Networks (2026). <a href="https://arxiv.org/abs/2604.06366">arXiv:2604.06366</a></li>
+<li id="ref-spectral2022">Overview Frequency Principle / Spectral Bias in Deep Learning (2022). <a href="https://arxiv.org/abs/2201.07395">arXiv:2201.07395</a></li>
+<li id="ref-solvable2022">A Solvable Model of Neural Scaling Laws (2022). <a href="https://arxiv.org/abs/2210.16859">arXiv:2210.16859</a></li>
+<li id="ref-bnsl2022">Broken Neural Scaling Laws (2022). <a href="https://arxiv.org/abs/2210.14891">arXiv:2210.14891</a></li>
+<li id="ref-quiet2025">Naidu, P., Wang, Z., Bergen, L., &amp; Paturi, R. (2025). Quiet Feature Learning in Algorithmic Tasks. <a href="https://arxiv.org/abs/2505.03997">arXiv:2505.03997</a></li>
+<li id="ref-collapse2025">Qiu, S., Xiao, L., Wilson, A. G., Pennington, J., &amp; Agarwala, A. (2025). Scaling Collapse Reveals Universal Dynamics in Compute-Optimally Trained Neural Networks. <a href="https://arxiv.org/abs/2507.02119">arXiv:2507.02119</a></li>
+<li id="ref-rnn2023">Bifurcations and loss jumps in RNN training (2023). <a href="https://arxiv.org/abs/2310.17561">arXiv:2310.17561</a></li>
+<li id="ref-bigelow2025">Bigelow, E., Wurgaft, D., Wang, Y., Goodman, N., Ullman, T., Tanaka, H., &amp; Lubana, E. S. (2025). Belief Dynamics Reveal the Dual Nature of In-Context Learning and Activation Steering. <a href="https://arxiv.org/abs/2511.00617">arXiv:2511.00617</a></li>
+<li id="ref-asr2026">Akavarapu, V. S. D. S. M., Daniel, M., &amp; Jäger, G. (2026). Hard to Be Heard: Phoneme-Level ASR Analysis of Phonologically Complex, Low-Resource Endangered Languages. <a href="https://arxiv.org/abs/2604.18204">arXiv:2604.18204</a></li>
+<li id="ref-multipower2025">Luo, K., Wen, H., Hu, S., Sun, Z., Liu, Z., Sun, M., Lyu, K., &amp; Chen, W. (2025). A Multi-Power Law for Loss Curve Prediction Across Learning Rate Schedules. <a href="https://arxiv.org/abs/2503.12811">arXiv:2503.12811</a></li>
+<li id="ref-lranneal2024">Tissue, H., Wang, V., &amp; Wang, L. (2024). Scaling Law with Learning Rate Annealing. <a href="https://arxiv.org/abs/2408.11029">arXiv:2408.11029</a></li>
+</ol>
+
+<h2>方法与边界</h2>
+<p>检索词包括 <code>learning curve sigmoid</code>、<code>loss curve power law</code>、<code>saddle-to-saddle</code>、<code>spectral bias / frequency principle</code>、<code>timescale separation</code>、<code>loss curve prediction/extrapolation</code>、<code>learning curve fitting model selection</code>。判定基于标题、作者、年份与摘要；引用条目均经 arXiv / OpenAlex 接口返回核对，未见虚构条目。未核验全文，也<b>不构成新颖性结论</b>：标「疑似新」仅是本轮检索的负结果。</p>
+<p>对象提醒：D4 的结论只覆盖固定特征二次损失、$n=d=2$、全批量 SGD（$\eta=0.1$、无动量/衰减）、对数时间轴单 sigmoid、所列曲率谱与阈值，属 development，不外推 Adam、小批量、learned features 或非线性网络；上列文献多数是真实网络/大模型，故「部分已知」主要指「现象相同但对象或构造不同」。</p>
+<p>接口边界：arXiv API 在检索后期返回 HTTP 429（速率限制），部分 arXiv 查询未返回结果；受影响的主题（如 saddle-to-saddle）改由 OpenAlex 返回条目核对，其 arXiv ID 取自 OpenAlex 记录的 DOI。本页所有 arXiv ID / DOI 均来自实际返回的 API 响应，未发生成引用。</p>
+
+<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+</main></body></html>

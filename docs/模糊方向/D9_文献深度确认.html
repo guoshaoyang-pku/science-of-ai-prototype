@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D9：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D9_minibatch_noise.html">D9 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D9_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D9：命题 × 文献状态对照（深度确认）</h1>
+<p class="bg">本页把 D9 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 arXiv API 与 OpenAlex（2026-10-11），判定基于论文标题、作者、年份与摘要，<b>尚未逐篇精读全文</b>。重要校正：D9 标题里的「有效时间」不是系统/HPC 的 <i>effective training time</i>（训练有效时间占比）；它对应的是<b>小批量噪声（minibatch noise）与梯度噪声尺度（gradient noise scale）</b>这一族——即噪声强度如何随批量大小、学习率与训练进程改变训练的时间标定与风险最低点位置。</p>
+<p class="bg">D9 的对照对象是固定特征 ReLU 线性头、n=64、d=4、无动量全批量/小批量 SGD 的 development 实验。报告自己已声明：其中「固定特征线性头的均值/协方差矩递推」属于<b>已知解析理论，不是本方向的新发现</b>。因此本页的重点，是判断 D9 各条受控测量中，哪些是文献早已确立的规律，哪些只是本轮的数值边界。</p>
+
+<div class="legend">
+判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
+<span class="tag mix">部分已知</span>现象相同但对象或构造不同（例如文献用真实网络/连续时间/渐近展开，D9 用固定特征线性头、离散无放回小批量的受控测量）·
+<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<b>—</b> 需读全文才能定论
+</div>
+
+<h2>总览</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr><th>编号</th><th>D9 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
+</thead>
+<tbody>
+<tr><td>F1</td><td>降低学习率没使全部八轨迹最低点进入两倍范围（22/24，区间跨零）</td><td><span class="tag mix">部分已知</span></td><td>McCandlish et al. 2018；Ziyin et al. 2022；Bordelon &amp; Pehlevan 2022</td></tr>
+<tr><td>F2</td><td>风险分母口径影响最低点比值（期望 20/24 vs 同标签 22/24）</td><td><span class="tag mix">部分已知</span></td><td>Ziyin et al. 2022；Liu, Ziyin &amp; Ueda 2021</td></tr>
+<tr><td>F3</td><td>把 M 从 8 补到 64，两个反例回到两倍内（2.142857/2.784314→1.163265/0.767974）</td><td><span class="tag mix">部分已知</span></td><td>Ziyin et al. 2022；Liu, Ziyin &amp; Ueda 2021</td></tr>
+<tr><td>F4</td><td>小批量条件期望下两个最低点在两倍内（50/315 vs 49/306＝1.020408/1.029412，矩递推）</td><td><span class="tag ok">已知</span>（解析）</td><td>Ziyin et al. 2022；Liu, Ziyin &amp; Ueda 2021；Bordelon &amp; Pehlevan 2022；Chen et al. 2021</td></tr>
+<tr><td>F5</td><td>仅 B=8→4，期望最低点延后 2/9 步（50/315→52/324）</td><td><span class="tag mix">部分已知</span></td><td>Bordelon &amp; Pehlevan 2022；Ziyin et al. 2022；McCandlish et al. 2018</td></tr>
+<tr><td>F6</td><td>较高学习率 η=0.3 两项普遍预测失败（3/4,1/4,2/4；0/4,1/4,2/4）</td><td><span class="tag ok">已知</span></td><td>Ziyin et al. 2022；Keskar et al. 2017；Sclocchi et al. 2023</td></tr>
+<tr><td>F7</td><td>仅 B=4→2，期望最低点再延后 3/19 步（52/324→55/343）</td><td><span class="tag mix">部分已知</span></td><td>Ziyin et al. 2022；Liu, Ziyin &amp; Ueda 2021；You et al. 2020</td></tr>
+</tbody>
+</table></div>
+
+<h2>逐条对照</h2>
+
+<h3>F1. 降低学习率不能让全部八轨迹最低点回到两倍范围</h3>
+<p>固定标签噪声、B=8/32、σ²=0.25/0.5/1、seed411–414、M=8，η 从 0.3 降到 0.1 且 $\eta T=230.4$ 不变时，同标签全批量最低点比值两档均为 22/24 落入 $[0.5,2]$；18/24 配对 cell 的偏离量 $d$ 减小；但所有配对变化的 bootstrap 区间跨零。</p>
+<ul class="refs">
+<li><a href="#ref-mccandlish2018">McCandlish et al. (2018)</a>：提出梯度噪声尺度预测「最大有效批量」——学习率与批量只能在有限范围内互换，超过临界批量后简单放大不再等效。</li>
+<li><a href="#ref-ziyin2022">Ziyin et al. (2022)</a>：在局部极小附近系统研究小批量噪声，说明大学习率/小批量下噪声偏离简单标定。</li>
+<li><a href="#ref-bordelon2022">Bordelon &amp; Pehlevan (2022)</a>：在 MSE 下精确求解 SGD 的测试损失曲线，最优批量取决于特征相关结构，说明批量与学习率的交互是条件依赖的。</li>
+</ul>
+<p><b>判定：部分已知。</b>「批量与学习率不能用统一系数互换、其交互条件依赖」已有理论与实验；D9 的贡献是在固定特征线性头上给出 22/24 与跨零区间的受控边界，而非首次发现该现象。</p>
+
+<h3>F2. 风险分母口径影响最低点比值</h3>
+<p>η=0.1、M=8 网格中，对标签噪声取期望的分母使 20/24 落入 $[0.5,2]$，固定同一次标签噪声的分母使 22/24 通过；前一口径同时含标签噪声实现差异，不能把旧位移全部归因于小批量。</p>
+<ul class="refs">
+<li><a href="#ref-ziyin2022">Ziyin et al. (2022)</a>：把 SGD 噪声分解为小批量抽样与标签噪声成分，并对线性回归给出解析。</li>
+<li><a href="#ref-kliu2021">Liu, Ziyin &amp; Ueda (2021)</a>：分别刻画有限学习率下的小批量噪声与协方差，为区分两类噪声提供框架。</li>
+</ul>
+<p><b>判定：部分已知。</b>文献已把 SGD 噪声分解为标签噪声与小批量抽样两类，两类噪声的实现差异是已知概念；至于「用哪个分母、通过计数如何变化」属 D9 的测量约定（协议依赖），未检索到直接前作。</p>
+
+<h3>F3. 增加轨迹后两个反例回到两倍内</h3>
+<p>固定 η=0.1、B=8、σ²=1、seed411/412，M 从 8 补到 64 后，同标签比值由 2.142857/2.784314 变为 1.163265/0.767974；独立第二块（r=64–127）为 1.142857/1.284314，两块 95% 条件区间上界均 $<2$。</p>
+<ul class="refs">
+<li><a href="#ref-ziyin2022">Ziyin et al. (2022)</a>：小批量噪声的强度与批量大小成反比，说明固定批量下有限轨迹估计的抽样误差随 M 收缩。</li>
+<li><a href="#ref-kliu2021">Liu, Ziyin &amp; Ueda (2021)</a>：给出小批量噪声与固定点附近协方差的解析，支撑「有限 M 是候选解释」。</li>
+</ul>
+<p><b>判定：部分已知。</b>「小批量 Monte Carlo 噪声随轨迹数收缩」是已知统计性质；把具体反例归因于有限 M 并给出两块独立验证，是 D9 的受控判定与测量，两块通过本身不证明精确期望通过。</p>
+
+<h3>F4. 条件期望下两个最低点在两倍内（矩递推）</h3>
+<p>固定数据与标签噪声，η=0.1、B=8、T=2304 时，条件期望最低点为 50/315 步，同标签全批量为 49/306 步，比值 1.020408163/1.029411765。报告自己声明「已知线性矩递推属于解析理论，不是本方向的新发现」。</p>
+<ul class="refs">
+<li><a href="#ref-ziyin2022">Ziyin et al. (2022)</a>：在线性回归中精确分析小批量噪声与波动，并给出逼近不同类型极小的噪声公式。</li>
+<li><a href="#ref-kliu2021">Liu, Ziyin &amp; Ueda (2021)</a>：推导二次损失、含/不含动量的离散时间 SGD 平稳分布与协方差。</li>
+<li><a href="#ref-bordelon2022">Bordelon &amp; Pehlevan (2022)</a>：精确求解结构化特征下 SGD 的测试损失动力学。</li>
+<li><a href="#ref-chen2021">Chen, Mou &amp; Maguluri (2021)</a>：常步长 SGD 的平稳分布与 Lyapunov 方程协方差。</li>
+</ul>
+<p><b>判定：已知（解析）。</b>固定特征线性头的均值/协方差矩递推与平稳协方差是已有理论；D9 的数值只是复核，不构成新发现。</p>
+
+<h3>F5. B=8→4 期望最低点延后 2/9 步</h3>
+<p>同数据、标签噪声、η=0.1、σ²=1 下，最低点 50/315→52/324 步，相对同标签全批量 1.061224490/1.058823529。注册要求均值与保存 B8 逐位相等的核验在两 seed 均失败（坐标差 $\le 2.309264\times10^{-14}$），该测量保留 partial。</p>
+<ul class="refs">
+<li><a href="#ref-bordelon2022">Bordelon &amp; Pehlevan (2022)</a>：批量大小改变噪声项与测试损失曲线，最优批量依赖于数据结构。</li>
+<li><a href="#ref-ziyin2022">Ziyin et al. (2022)</a>：噪声强度随 B 变化，改变动力学的时间标定。</li>
+<li><a href="#ref-mccandlish2018">McCandlish et al. (2018)</a>：噪声尺度随损失下降与训练进程变化，批量与学习率的有效换算随之改变。</li>
+</ul>
+<p><b>判定：部分已知。</b>「批量大小进入噪声协方差、改变风险曲线时间尺度」已有理论；具体的 2/9 步位移与逐位核验失败是 D9 的测量，且不构成连续 batch 单调律。</p>
+
+<h3>F6. 较高学习率的两项普遍预测失败</h3>
+<p>η=0.3、M=8、σ²=0.25/0.5/1 下，B=32 落入 $[0.8,1.2]$ 的通过数为 3/4、1/4、2/4；B=8 提前至少 10% 的通过数为 0/4、1/4、2/4。旧失败与原始记录继续有效。</p>
+<ul class="refs">
+<li><a href="#ref-ziyin2022">Ziyin et al. (2022)</a>：明确报告线性学习率–批量缩放规律在大学习率或小批量下失效。</li>
+<li><a href="#ref-keskar2017">Keskar et al. (2017)</a>：大批量导致泛化差距，归因于批量决定的梯度噪声及极小点尖锐度差异。</li>
+<li><a href="#ref-sclocchi2023">Sclocchi et al. (2023)</a>：SGD 噪声在不同训练区制下可有益或有害，「噪声何时影响结果」高度依赖区制。</li>
+</ul>
+<p><b>判定：已知。</b>「大学习率/小批量下简单批量换算失效」是 Ziyin et al. (2022) 的明确结论；D9 的 η=0.3 失败是同一现象在受控线性头下的复核。</p>
+
+<h3>F7. B=4→2 期望最低点再延后 3/19 步</h3>
+<p>固定同数据与标签噪声、η=0.1、σ²=1 及 2304 步窗口，最低点 52/324→55/343 步，比值 1.122448980/1.120915033；最低风险增加 0.056821650/0.050625305。新固定 C 布局及事前容差核验通过，旧 B4 逐位核验失败仍保留。</p>
+<ul class="refs">
+<li><a href="#ref-ziyin2022">Ziyin et al. (2022)</a>：有限总体/无放回小批量噪声随 B 变化。</li>
+<li><a href="#ref-kliu2021">Liu, Ziyin &amp; Ueda (2021)</a>：小批量噪声协方差随批量变化，改变收敛与波动标定。</li>
+<li><a href="#ref-you2020">You et al. (2020)</a>：系统研究批量缩放的极限，指出大批量收益并非单调。</li>
+</ul>
+<p><b>判定：部分已知。</b>批量缩放极限与噪声标定已有系统研究；具体 3/19 步位移是 D9 的测量，报告也声明不证明连续 batch 单调律。</p>
+
+<h2>相关文献</h2>
+<ol class="refs">
+<li id="ref-bordelon2022">Bordelon, B., &amp; Pehlevan, C. (2022). Learning curves for SGD on structured features. <em>ICLR 2022</em>. <a href="https://arxiv.org/abs/2106.02713">arXiv:2106.02713</a></li>
+<li id="ref-chen2021">Chen, Z., Mou, S., &amp; Maguluri, S. T. (2021). Stationary behavior of constant stepsize SGD type algorithms: an asymptotic characterization. <a href="https://arxiv.org/abs/2111.06328">arXiv:2111.06328</a></li>
+<li id="ref-damian2021">Damian, A., Ma, T., &amp; Lee, J. D. (2021). Label noise SGD provably prefers flat global minimizers. <em>NeurIPS 2021</em>. <a href="https://arxiv.org/abs/2106.06530">arXiv:2106.06530</a></li>
+<li id="ref-keskar2017">Keskar, N. S., Mudigere, D., Nocedal, J., Smelyanskiy, M., &amp; Tang, P. T. P. (2017). On large-batch training for deep learning: generalization gap and sharp minima. <em>ICLR 2017</em>. <a href="https://arxiv.org/abs/1609.04836">arXiv:1609.04836</a></li>
+<li id="ref-kliu2021">Liu, K., Ziyin, L., &amp; Ueda, M. (2021). Noise and fluctuation of finite learning rate stochastic gradient descent. <em>ICML 2021</em>. <a href="https://arxiv.org/abs/2012.03636">arXiv:2012.03636</a></li>
+<li id="ref-sli2024">Li, S., Zhao, P., Zhang, H., Sun, X., Wu, H., Jiao, D., Wang, W., Liu, C., Fang, Z., Xue, J., Tao, Y., Cui, B., &amp; Wang, D. (2024). Surge phenomenon in optimal learning rate and batch size scaling. <a href="https://arxiv.org/abs/2405.14578">arXiv:2405.14578</a></li>
+<li id="ref-mccandlish2018">McCandlish, S., Kaplan, J., Amodei, D., &amp; OpenAI Dota Team (2018). An empirical model of large-batch training. <a href="https://arxiv.org/abs/1812.06162">arXiv:1812.06162</a></li>
+<li id="ref-sclocchi2023">Sclocchi, A., Geiger, M., &amp; Wyart, M. (2023). Dissecting the effects of SGD noise in distinct regimes of deep learning. <a href="https://arxiv.org/abs/2301.13703">arXiv:2301.13703</a></li>
+<li id="ref-you2020">You, Y., Wang, Y., Zhang, H., Zhang, Z., Demmel, J., &amp; Hsieh, C.-J. (2020). The limit of the batch size. <a href="https://arxiv.org/abs/2006.08517">arXiv:2006.08517</a></li>
+<li id="ref-ziyin2022">Ziyin, L., Liu, K., Mori, T., &amp; Ueda, M. (2022). Strength of minibatch noise in SGD. <em>ICLR 2022</em>. <a href="https://arxiv.org/abs/2102.05375">arXiv:2102.05375</a></li>
+</ol>
+
+<h2>方法与边界</h2>
+<p>检索词包括 <code>minibatch noise</code>、<code>gradient noise scale</code>、<code>critical batch size</code>、<code>optimal step size</code>、<code>SGD stationary distribution</code>、<code>noise covariance</code>、<code>learning curves SGD</code>、<code>large-batch generalization gap</code>、<code>label noise SGD</code>、<code>batch size scaling</code>。arXiv API 在本次检索中持续返回 HTTP 429（限流），遂改用 arXiv 摘要页与 OpenAlex Works API 交叉核对；判定基于标题、作者、年份与摘要，引用条目均经上述接口返回核对，未见虚构条目。未核验全文，也<b>不构成新颖性结论</b>：本轮未标出「疑似新」，是因为 D9 各条都能对应到已有小批量噪声/噪声尺度文献，而非断言不存在更近的前作。</p>
+<p>词义提醒：文献里的 <i>critical batch size / gradient noise scale</i> 研究的是<b>训练算力效率</b>（最大有效批量），与 D9 关心的「测试风险最低点位置」不是同一问题；D9 的均值/协方差矩递推对应线性回归型 SGD 理论，本身不是新发现。D9 的结论只覆盖固定特征 ReLU 线性头、n=64、d=4、SGD 无动量/weight decay、B=2/4/8/32、σ²=0.25/0.5/1、seed411–414、T=768/2304，属 development，不外推 learned features、其他优化器、连续 η/batch 临界或其他数据合同。</p>
+
+<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+</main></body></html>
