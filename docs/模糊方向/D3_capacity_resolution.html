@@ -5,22 +5,22 @@
 <script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D3_capacity_resolution.html">编辑此页</a></div>
+<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D3_capacity_resolution.html">编辑此页</a> · <a href="背景与文献.html">背景与文献</a> · <a href="D3_文献深度确认.html">命题×文献对照</a></div>
 <h1>D3：容量与分辨率的描述量</h1>
 <h2>结论</h2>
+<ul>
+<li><strong>拟合阈值不是停止点。</strong> 9 样本、9 参数（n=d=9）、零初始化、全批量 SGD（每步使用全部样本）、η=0.5、无动量或权重衰减的 36 条保存曲线，在 1% 阈值后的 32,232 个点上，与精确级数的最大绝对误差为 2.584738e−16。</li>
+<li><strong>相同阈值之后，尾部仍可相差多个数量级。</strong> 同一六方向配对在 1000 步的残余比例，快目标为 1.783342e−18–1.783343e−18，慢目标为 2.256357e−7；两者的 1% 阈值分别为 103/138 步，0.1% 阈值分别为 160/322 步。</li>
+<li><strong>本例的解析无限训练残余为零。</strong> 36/36 条曲线的谱满秩（所有特征值都大于零），不可学目标能量为 0。</li>
+</ul>
 <p>在固定特征、零初始化且更新不会发散的模型中，训练量超过拟合阈值后，残余由下式确定。有限训练留下各方向尚未消去的误差。长期尾部由慢方向主导。无限训练只留下模型不能学习的方向；浮点计算还需考虑数值底。</p>
 <p>\[
 R_U^{\rm exact}=\underbrace{\sum_{\lambda_i=0}w_i}_{\text{不可学分量}}
 +\underbrace{\sum_{\lambda_i>0}w_i(1-\eta\lambda_i)^{2U}}_{\text{尚未消去的尾部}},
 \qquad R_\infty^{\rm exact}=\sum_{\lambda_i=0}w_i,
 \qquad R_U^{\rm saved}=R_U^{\rm exact}+\delta_{\rm num}(U).
-\]
-U 是全批量更新步数，这里用它计训练量。R 是损失除以初始损失后的残余比例。i 是把目标拆开后的方向编号。λᵢ 是该方向的学习速度系数，称为特征值。特征值等于零时，模型不能学习该方向。wᵢ 是目标在该方向的能量比例。所有方向的比例和为 1。η 是学习率。exact 表示精确算术。saved 表示保存的浮点结果。δ_num(U) 是两者之差。数值底指浮点舍入等误差限制下可达到的残余水平。</p>
-<ul>
-<li><strong>拟合阈值不是停止点。</strong> 9 样本、9 参数（n=d=9）、零初始化、全批量 SGD（每步使用全部样本）、η=0.5、无动量或权重衰减的 36 条保存曲线，在 1% 阈值后的 32,232 个点上，与精确级数的最大绝对误差为 2.584738e−16。</li>
-<li><strong>相同阈值之后，尾部仍可相差多个数量级。</strong> 同一六方向配对在 1000 步的残余比例，快目标为 1.783342e−18–1.783343e−18，慢目标为 2.256357e−7；两者的 1% 阈值分别为 103/138 步，0.1% 阈值分别为 160/322 步。</li>
-<li><strong>本例的解析无限训练残余为零。</strong> 36/36 条曲线的谱满秩（所有特征值都大于零），不可学目标能量为 0。</li>
-</ul>
+\]</p>
+<p>U 是全批量更新步数，这里用它计训练量。R 是损失除以初始损失后的残余比例。i 是把目标拆开后的方向编号。λᵢ 是该方向的学习速度系数，称为特征值。特征值等于零时，模型不能学习该方向。wᵢ 是目标在该方向的能量比例。所有方向的比例和为 1。η 是学习率。exact 表示精确算术。saved 表示保存的浮点结果。δ_num(U) 是两者之差。数值底指浮点舍入等误差限制下可达到的残余水平。</p>
 <p>保存结果只到 1000 步。它们尚未给出数值底或永久 plateau（不再下降的平台）的实测值。</p>
 <p>尾部数字标为<strong>保存数据事后拟合（development）</strong>：development 指已见、可继续分析的数据。本次用已知公式事后核验，未拟合参数，未新增训练；零特征值项与无限训练公式是解析结果，未在含零特征值的模型上实测。</p>
 <h2>Formulation</h2>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D3：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D3_capacity_resolution.html">D3 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D3_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D3：命题 × 文献状态对照（深度确认）</h1>
+<p class="bg">本页把 D3 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 arXiv API 与 OpenAlex（2026-10-11），判定基于论文标题、作者、年份与摘要，<b>尚未逐篇精读全文</b>。重要校正：D3 的 $R$ 是「训练到 $U$ 步的残余损失比例」，<b>不是</b>文献里的 capacity / effective rank 本身；文献里确有一族描述量叫 <b>effective rank（有效秩）</b>与 <b>learning capacity</b>，而 D3 的命题恰恰是：这些标量（连同 Rayleigh 商、trace、参数数）不足以唯一确定拟合预算。</p>
+<p class="bg">「疑似新」只表示本轮检索<b>未找到直接前作</b>，不等于学术上不存在；判定随检索范围变化。D3 的对照对象是固定特征、零初始化、全批量 SGD、$n=d=9$ 的 development 实验与保存数据事后核验，不外推真实网络。零特征值项与无限训练公式是解析结果，未在含零特征值的模型上实测。</p>
+
+<div class="legend">
+判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
+<span class="tag mix">部分已知</span>现象相同但对象或构造不同（例如文献用 effective rank / 随机特征谱，D3 用受控 $n=d=9$ 的整数步预算）·
+<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<b>—</b> 需读全文才能定论
+</div>
+
+<h2>总览</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr><th>编号</th><th>D3 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
+</thead>
+<tbody>
+<tr><td>P1</td><td>拟合阈值不是停止点：有限预算残余是精确谱级数，36 曲线/32,232 点最大绝对误差 2.584738e−16</td><td><span class="tag ok">已知</span>（解析）</td><td>Defilippis et al. 2024；Liao &amp; Couillet 2018；Dandi et al. 2024</td></tr>
+<tr><td>P2</td><td>相同阈值之后尾部仍可差多个数量级：快 1.783342e−18 vs 慢 2.256357e−7，1% 阈值 103/138、0.1% 阈值 160/322</td><td><span class="tag mix">部分已知</span></td><td>Paquette et al. 2026；Rizzi et al. 2026；Roy &amp; Vetterli 2007</td></tr>
+<tr><td>P3</td><td>无限训练残余只留不可学分量：满秩 $R_\infty=0$，36/36 曲线不可学能量为 0</td><td><span class="tag ok">已知</span></td><td>Defilippis et al. 2024；Ahsan et al. 2026</td></tr>
+<tr><td>P4</td><td>匹配 Rayleigh 商、参数数、trace、有效秩、初始损失与梯度范数仍不能定预算（13/38 vs 41/364）</td><td><span class="tag mix">部分已知</span></td><td>Nakis et al. 2026；Chen et al. 2023；Roy &amp; Vetterli 2007</td></tr>
+<tr><td>P5</td><td>再匹配前三阶谱矩与插值参数范数仍不能定预算（103/138 vs 160/322，比 1.34–2.01）</td><td><span class="tag no">疑似新</span></td><td>Defilippis et al. 2024；Rizzi et al. 2026</td></tr>
+</tbody>
+</table></div>
+
+<h2>逐条对照</h2>
+
+<h3>P1. 拟合阈值不是停止点：有限预算残余是精确谱级数</h3>
+<p>固定特征、零初始化、稳定全批量 GD（$0<\eta\lambda_i<2$）下，残余比例为</p>
+<p>\[ R_U^{\rm exact}=\sum_{\lambda_i=0}w_i+\sum_{\lambda_i>0}w_i(1-\eta\lambda_i)^{2U}. \]</p>
+<p>报告在 36 条保存曲线、1% 阈值后的 32,232 个点上核验该级数，最大绝对误差 2.584738e−16，全曲线误差 1.665335e−15。</p>
+<ul class="refs">
+<li><a href="#ref-defilippis2024">Defilippis, Loureiro &amp; Misiakiewicz (2024)</a>：随机特征岭回归的测试误差被一个<b>只依赖特征映射特征值</b>的闭式表达式乘性逼近——即损失由谱决定。</li>
+<li><a href="#ref-liao2018">Liao &amp; Couillet (2018)</a>：用随机矩阵理论对随机特征 Gram 矩阵做谱分析，说明非线性与数据统计如何共同塑造谱。</li>
+<li><a href="#ref-dandi2024">Dandi et al. (2024)</a>：给出训练后特征经验协方差的确定性等价，刻画梯度下降如何改变特征谱。</li>
+</ul>
+<p><b>判定：已知（解析）。</b>二次损失上 GD 的逐特征方向几何衰减因子 $(1-\eta\lambda_i)$ 是标准解析事实，有限预算残余等于各模态之和属同一定理；D3 的价值是把该级数在受控小系统里复核并给出 $10^{-16}$ 量级的数值验证，而非新增公式。</p>
+
+<h3>P2. 相同阈值之后，尾部仍可相差多个数量级</h3>
+<p>同一六方向配对：快目标在 1000 步的残余为 1.783342e−18–1.783343e−18，慢目标为 2.256357e−7；两者 1% 阈值分别 103/138 步，0.1% 阈值 160/322 步。达到同一相对阈值并不锁定后续尾部。</p>
+<ul class="refs">
+<li><a href="#ref-paquette2026">Paquette, Xiao &amp; Zhu (2026)</a>：证明随机特征总体协方差的幂律谱指数被输入协方差逐字继承（仅差对数修正），说明尾部形状由最慢模态决定。</li>
+<li><a href="#ref-rizzi2026">Rizzi et al. (2026)</a>：在幂律各向异性下给出核岭回归的尖锐渐近，误差异质由不同谱带主导。</li>
+<li><a href="#ref-roy2007">Roy &amp; Vetterli (2007)</a>：提出有效秩作为「谱的有效维数」，正是刻画「同一维度/阈值下衰减速度不同」的工具。</li>
+</ul>
+<p><b>判定：部分已知。</b>「长期尾部由最慢模态主导、幂律谱下衰减速度差异巨大」在谱-模态与随机特征渐近文献中反复出现；但把「达到同一损失阈值后残余仍可差多个数量级」作为<b>分辨率描述量</b>的受控陈述，本轮未见与之同构的直接前作。D3 的贡献是受控复核与整数步端点的显式记录。</p>
+
+<h3>P3. 无限训练残余只留不可学分量</h3>
+<p>$\lambda_i=0$ 的方向残余保持原值，故 $R_\infty^{\rm exact}=\sum_{\lambda_i=0}w_i$。报告的例子谱满秩，36/36 曲线不可学能量为 0，解析无限训练残余为零。</p>
+<ul class="refs">
+<li><a href="#ref-defilippis2024">Defilippis et al. (2024)</a>：核/随机特征回归中，落在特征映射核（零空间）内的目标分量不可被下降消除，是已知的谱分解事实。</li>
+<li><a href="#ref-ahsan2026">Ahsan et al. (2026)</a>：明确以「terminal null-space correction（末端零空间修正）」指称训练无法触及的零空间分量。</li>
+</ul>
+<p><b>判定：已知。</b>「目标在算子零空间上的投影永远保留」是最小二乘/核回归的标准结论；满秩（过参数化插值可达）时残余为零也属推论。D3 只是把该边界与实测「36/36 满秩」并置记录。</p>
+
+<h3>P4. 注册标量共同相同仍不能确定拟合预算</h3>
+<p>同谱匹配 Rayleigh 商（$m_1$）、参数数、trace、有效秩、初始损失与初始梯度范数时，$p=1/2$ 的 1% 预算仍为 13/38 与 41/364 步，$p=0$ 均为 4 步。再匹配 $m_2$ 与首步下降仍为 41/319 步（比 7.780488）。</p>
+<ul class="refs">
+<li><a href="#ref-nakis2026">Nakis et al. (2026)</a>：标题直言「Rank Is Not Capacity」，用谱占用（spectral occupancy）说明秩（有效的维数）不能等同容量。</li>
+<li><a href="#ref-chen2023">Chen, Chang &amp; Chaudhari (2023)</a>：提出「Learning Capacity」作为模型有效维数的度量——即承认单一标量（秩/维数）的刻画野心，也提示其边界。</li>
+<li><a href="#ref-roy2007">Roy &amp; Vetterli (2007)</a>：有效秩的原始定义与动机。</li>
+<li><a href="#ref-robin2023">Robin, Scaman &amp; Lelarge (2023)</a>：以 Rayleigh 商为分析对象讨论过参数化之外的收敛。</li>
+</ul>
+<p><b>判定：部分已知。</b>「秩/一步曲率/有效维数等标量不足以表征容量与拟合」是 2023–2026 年的一组活跃主张（Rank Is Not Capacity；One-Step Curvature Probes）；D3 与之方向一致，但把该主张落成<b>匹配到具体标量后整数步预算仍分离的受控反例</b>（13/38 vs 41/364），本轮未见同构数字。</p>
+
+<h3>P5. 再匹配高阶谱矩与插值参数范数仍不能确定预算</h3>
+<p>范数匹配使预算变为 68/135 步（比 1.985294）；前三阶谱矩 $m_1,m_2,m_3$ 与插值参数范数全部匹配的六模态配对，1% 预算 103/138 步（比 1.339806）、0.1% 预算 160/322 步（比 2.0125）。三对照的共同矩值各不相同，完整目标加权谱递推才与实测整数步一致。</p>
+<ul class="refs">
+<li><a href="#ref-defilippis2024">Defilippis et al. (2024)</a>：测试误差仅由<b>完整特征映射特征值</b>决定，而非个别矩——支持「需整条谱」但并非对矩匹配反例的陈述。</li>
+<li><a href="#ref-rizzi2026">Rizzi et al. (2026)</a>：幂律各向异性下不同谱带各自贡献，暗示少数矩不足以定全谱行为。</li>
+</ul>
+<p><b>判定：疑似新。</b>「匹配到前三阶目标加权谱矩与插值参数范数后，阈值步数预算仍相差 1.3–2.0 倍」是一个具体的受控否证型结果，本轮检索未找到直接前作。同时保留：高阶矩与慢模态能量仍共同改变，不能独立归因；跨 $p$ 的 trace 不同，结论只取同 $p$ 内配对。</p>
+
+<h2>相关文献</h2>
+<ol class="refs">
+<li id="ref-abbas2021">Abbas, A., Sutter, D., Figalli, A., &amp; Woerner, S. (2021). Effective dimension of machine learning models. <a href="https://arxiv.org/abs/2112.04807">arXiv:2112.04807</a></li>
+<li id="ref-ahsan2026">Ahsan, A. S.-A. M. M.-I. A., Shihab, I. F., &amp; Swaqeeb, M. N. (2026). One-step curvature probes miss the fitting operator: retained capacity and terminal null-space correction for continual learning. <a href="https://arxiv.org/abs/2610.03952">arXiv:2610.03952</a></li>
+<li id="ref-chen2023">Chen, D., Chang, W.-K., &amp; Chaudhari, P. (2023). Learning capacity: a measure of the effective dimensionality of a model. <a href="https://arxiv.org/abs/2305.17332">arXiv:2305.17332</a></li>
+<li id="ref-chenlong2023">Chen, H., Long, J., &amp; Wu, L. (2023). A duality framework for analyzing random feature and two-layer neural networks. <a href="https://arxiv.org/abs/2305.05642">arXiv:2305.05642</a></li>
+<li id="ref-dandi2024">Dandi, Y., Pesce, L., Cui, H., Krzakala, F., Lu, Y. M., &amp; Loureiro, B. (2024). A random matrix theory perspective on the spectrum of learned features and asymptotic generalization capabilities. <a href="https://arxiv.org/abs/2410.18938">arXiv:2410.18938</a></li>
+<li id="ref-defilippis2024">Defilippis, L., Loureiro, B., &amp; Misiakiewicz, T. (2024). Dimension-free deterministic equivalents and scaling laws for random feature regression. <em>NeurIPS 2024</em>. <a href="https://arxiv.org/abs/2405.15699">arXiv:2405.15699</a></li>
+<li id="ref-hashemi2021">Hashemi, A., Schaeffer, H., Shi, R., Topcu, U., Tran, G., &amp; Ward, R. (2021). Generalization bounds for sparse random feature expansions. <a href="https://arxiv.org/abs/2103.03191">arXiv:2103.03191</a></li>
+<li id="ref-kam2026">Kam, C.-F., Bessafi, M., &amp; Cadet, F. (2026). Structured features overfit where random features grok. <a href="https://arxiv.org/abs/2609.15047">arXiv:2609.15047</a></li>
+<li id="ref-liao2018">Liao, Z., &amp; Couillet, R. (2018). On the spectrum of random features maps of high dimensional data. <em>ICML 2018</em>. <a href="https://arxiv.org/abs/1805.11916">arXiv:1805.11916</a></li>
+<li id="ref-nakis2026">Nakis, N., Promponas, P., Tsirkas, K., Mamali, K., Makri, E., Tassiulas, L., &amp; Christakis, N. A. (2026). Rank is not capacity: spectral occupancy for latent graph models. <a href="https://arxiv.org/abs/2605.11142">arXiv:2605.11142</a></li>
+<li id="ref-paquette2026">Paquette, E., Xiao, K. L., &amp; Zhu, Y. (2026). Power-law spectrum of the random feature model. <a href="https://arxiv.org/abs/2603.14578">arXiv:2603.14578</a></li>
+<li id="ref-rizzi2026">Rizzi, L., Wortsman, A., &amp; Loureiro, B. (2026). Learning between the peaks: sharp asymptotics for kernel ridge regression under power-law anisotropy. <a href="https://arxiv.org/abs/2608.28564">arXiv:2608.28564</a></li>
+<li id="ref-robin2023">Robin, D. A. R., Scaman, K., &amp; Lelarge, M. (2023). Convergence beyond the over-parameterized regime using Rayleigh quotients. <a href="https://arxiv.org/abs/2301.08117">arXiv:2301.08117</a></li>
+<li id="ref-roy2007">Roy, O., &amp; Vetterli, M. (2007). The effective rank: a measure of effective dimensionality. <a href="https://doi.org/10.5281/zenodo.40328">DOI:10.5281/zenodo.40328</a></li>
+</ol>
+
+<h2>方法与边界</h2>
+<p>检索词包括 <code>effective rank</code>、<code>Rayleigh quotient</code>、<code>condition number</code>、<code>target weighted spectrum</code>、<code>capacity of linear model</code>、<code>learning budget</code>、<code>random features regression spectrum</code>、<code>spectral decay least squares</code>、<code>null space interpolation</code>。判定基于标题、作者、年份与摘要；引用条目均经 arXiv API 或 OpenAlex 接口返回核对，未见虚构条目。未核验全文，也<b>不构成新颖性结论</b>：标「疑似新」仅是本轮检索的负结果。</p>
+<p>词义提醒：文献里的 <b>effective rank / learning capacity / effective dimension</b> 是「模型或谱的有效维数」这一族描述量（Roy &amp; Vetterli 2007；Chen et al. 2023），与 D3 的 $R_U$（残余损失比例）不是同一个量；2026 年已有工作明确主张「rank 不等于 capacity」「一步曲率探针抓不住拟合算子」，与 D3 的标量不足结论同向。D3 的结论只覆盖固定特征、平方损失、零初始化、稳定全批量 SGD、$n=d=9$、谱 $\lambda_i=i^{-p}$（$p=0/1/2$）、所列表阈值与 1000 步窗口，属 development，不外推 Adam、小批量、learned features、非线性网络或空间分辨率；含零特征值模型与数值平台出现时间仍是未测边界。</p>
+
+<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+</main></body></html>

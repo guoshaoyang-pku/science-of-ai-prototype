@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D7：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D7_train_gain_test_harm.html">D7 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D7_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D7：命题 × 文献状态对照（深度确认）</h1>
+<p class="bg">本页把 D7 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 arXiv API 与 OpenAlex（2026-10-11），判定基于论文标题、作者、年份与摘要，<b>尚未逐篇精读全文</b>。重要提醒：D7 的核心对象是两个容易混淆的量——<b>相对损害</b> $H=L_{test}(\text{real})-L_{test}(\text{tangent})$（真实网络减切线模型）与 <b>绝对损害</b> $C=L_{test}(512)-L_{test}(128)$（同一模型两时点的风险差）。文献里的「泛化差距」「双下降」「标签噪声鲁棒性」各自只覆盖其中一部分，不能直接等同。</p>
+<p class="bg">「疑似新」只表示本轮检索<b>未找到直接前作</b>，不等于学术上不存在；判定随检索范围变化。D7 的对照对象是 d5 Gaussian、train32/test256、两层 hidden SiLU、全批量 SGD、CPU float64 的 development 实验，不外推真实网络、小批量或封存 OOD。</p>
+
+<div class="legend">
+判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
+<span class="tag mix">部分已知</span>现象相同但对象或构造不同（例如文献报告一般泛化差距，D7 报告真实网络减切线的相对差距）·
+<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<b>—</b> 需读全文才能定论
+</div>
+
+<h2>总览</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr><th>编号</th><th>D7 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
+</thead>
+<tbody>
+<tr><td>Q</td><td>训练误差降低不能判定继续训练是否提高 test；晚期损害 $C=L_{test}(512)-L_{test}(128)&gt;0$ 需事后看 test，尚无 train-only 前瞻信号</td><td><span class="tag mix">部分已知</span></td><td>Zhang 2017；Keskar 2016；Nakkiran 2021；Mahsereci 2017</td></tr>
+<tr><td>C1</td><td>人工标签噪声不是相对损害的必因（clean 来源 8/8 单元 train 增益 &gt;.05×初始 loss，其中 6/8 单元终点 test 差距均值为正）</td><td><span class="tag mix">部分已知</span></td><td>Zhang 2017；优化导致双下降 2023；Jacot 2018</td></tr>
+<tr><td>C2</td><td>H/D/G 三指标不可互相替代（$D&gt;0$ 不等于 $H&gt;0$，也不等于 $C&gt;0$）</td><td><span class="tag no">疑似新</span></td><td>Chaudhari 2016；Nakkiran 2021</td></tr>
+<tr><td>C3</td><td>sigma=1 边界：三组条件均 4/4 单元通过正向判据；两 draw mean(D)=.287093–.800986 与 .127211–.466452；改 data7339 仍 4/4、12/12 $D&gt;0$</td><td><span class="tag mix">部分已知</span></td><td>Zeng 2023；Xue 2022；Zhang 2017</td></tr>
+<tr><td>C4</td><td>sigma=.5 半强度只在 3/4 单元通过正向判据（radial×8 = −.046567，仅 1/3 为正）</td><td><span class="tag no">疑似新</span></td><td>Xue 2022；Huh &amp; Rebeschini 2023</td></tr>
+<tr><td>C5</td><td>已测条件不支持连续强度缩放（$D(.5)&lt;D(1)$ 但不能给线性/二次规律）</td><td><span class="tag no">疑似新</span></td><td>Huh &amp; Rebeschini 2023；Xue 2022</td></tr>
+<tr><td>C6</td><td>较低带噪 train 误差不保证晚期 test 继续下降（sigma=1 的 12 个终点 $H_1$ 为正；$G$ 均值 .433225–.573030、12/12 $G&gt;0$）</td><td><span class="tag mix">部分已知</span></td><td>Zhang 2017；Nakkiran 2021</td></tr>
+<tr><td>C7</td><td>$D&gt;0$ 也可仅缩小真实网络原有优势（radial×32：$D$ .075103–.185840 均正，$H_1$ −.151615 至 −.047987 均负，真实 $C$ −.198348 至 −.088044 均负）</td><td><span class="tag no">疑似新</span></td><td>Jacot 2018；Advani 2020</td></tr>
+<tr><td>C8</td><td>更换噪声向量推翻半强度正向判据的保持预测（通过率 3/4→1/4；新四 mean D=.086687、−.008957、−.013877、.003331）</td><td><span class="tag mix">部分已知</span></td><td>Arpit 2017；Liu &amp; Lu 2026</td></tr>
+<tr><td>C9</td><td>「不足 3/4 会再现」的预测被推翻（通过数 3/4、1/4、3/4；四 mean D = 0.206577/0.175632/−0.037836/0.054909）</td><td><span class="tag no">疑似新</span></td><td>—</td></tr>
+</tbody>
+</table></div>
+
+<h2>逐条对照</h2>
+
+<h3>Q. 核心命题：train 降低不能判定 test 是否继续改善</h3>
+<p>D7 要问的是：训练误差降低后，能否判定「继续训练还会不会提高 test」。报告回答是否定的，并给出绝对损害的判据 $C=L_{test}(512)-L_{test}(128)&gt;0$。这条主线文献<b>已经系统讨论过</b>「低 train loss 不保证低 test loss」。</p>
+<ul class="refs">
+<li><a href="#ref-zhang2017">Zhang et al. (2017)</a>：随机标签也可被完全拟合，训练集上的行为本身不能预测泛化，必须以 test 为准。</li>
+<li><a href="#ref-keskar2016">Keskar et al. (2016)</a>：大 batch 的泛化差距——训练表现相同甚至更好，test 却更差。</li>
+<li><a href="#ref-nakkiran2021">Nakkiran et al. (2021)</a>：deep double descent，训练中 test error 先降后升再降，与 train 单调下降脱钩。</li>
+<li><a href="#ref-mahsereci2017">Mahsereci et al. (2017)</a>：尝试只靠训练信息做 early stopping，说明 train-only 前瞻信号的困难。</li>
+</ul>
+<p><b>判定：部分已知。</b>「train 降低不保证 test 改善」是经典；D7 的新意在于<b>同模型两时点的风险差</b> $C$ 这一刻画，以及明确记录「尚未建立 train-only 前瞻信号」这一负结果，而非首次提出该现象。</p>
+
+<h3>C1. 人工标签噪声不是相对损害的必要原因</h3>
+<p>clean（不加人工标签噪声）来源实验已有 8/8 函数×宽度×SGD 单元的均值 train 增益 $&gt;.05\times$ 初始 loss，其中 6/8 单元的终点 test 差距均值为正。</p>
+<ul class="refs">
+<li><a href="#ref-zhang2017">Zhang et al. (2017)</a>：泛化差距在无噪声/随机标签设定下同样存在。</li>
+<li><a href="#ref-optdouble2023">Understanding the Role of Optimization in Double Descent (2023)</a>：test 上升可由优化路径本身产生，无需标签噪声。</li>
+<li><a href="#ref-jacot2018">Jacot et al. (2018)</a>；<a href="#ref-advani2020">Advani et al. (2020)</a>：固定核/切线模型的泛化由目标加权谱决定，与标签噪声无关。</li>
+</ul>
+<p><b>判定：部分已知。</b>「损害可无噪声发生」与双下降、泛化差距文献一致；8/8 与 6/8 的受控计数是 D7 的复核，而非新机制。</p>
+
+<h3>C2. H/D/G 三指标不可互相替代</h3>
+<p>报告用三个指标：$H$ 是终点真实网络减切线的 test 误差，$D$ 是加噪后 $H$ 减不加噪 $H$，$G$ 是终点切线减真实网络的 train 误差。报告强调 $D&gt;0$ 既不等于 $H&gt;0$，也不等于 $C&gt;0$。</p>
+<ul class="refs">
+<li><a href="#ref-chaudhari2016">Chaudhari et al. (2016)</a>：训练损失与泛化的相对/绝对度量不是同一件事。</li>
+<li><a href="#ref-nakkiran2021">Nakkiran et al. (2021)</a>：train 与 test 曲线可以反向，训练侧的相对量不能替代绝对风险。</li>
+</ul>
+<p><b>判定：疑似新。</b>把「相对劣势（$H$）」与「绝对损害（$C$）」拆成三个互不等同的指标，未检索到同构前作。</p>
+
+<h3>C3. sigma=1 边界：三组条件均 4/4 通过</h3>
+<p>已测 sigma=1 边界在三组条件均通过 4/4 单元。noise733107 与 noise733123 各 4/4 单元满足 mean(D)$\ge$.02 且各 $\ge$2/3 init $D&gt;0$；两 draw 的 mean(D) 分别 .287093–.800986 与 .127211–.466452。相同 recipe 仅改 data 为 7339 仍 4/4 通过：mean(D)=.111892–.519513、12/12 $D&gt;0$。</p>
+<ul class="refs">
+<li><a href="#ref-zeng2023">Zeng et al. (2023)</a>：标签噪声削弱 DNN 泛化（PAC-Bayes 界变松）。</li>
+<li><a href="#ref-xue2022">Xue et al. (2022)</a>：标签噪声在双下降曲线上造成 final ascent，最优泛化出现在中间宽度。</li>
+<li><a href="#ref-zhang2017">Zhang et al. (2017)</a>：噪声标签可被记忆并影响 test。</li>
+</ul>
+<p><b>判定：部分已知。</b>「标签噪声增大 test 差距」方向性已知；但 4/4 单元、mean(D)$\ge$.02、2/3 init 的这套受控阈值判据未在检索中找到。</p>
+
+<h3>C4. sigma=.5 半强度只在 3/4 单元通过</h3>
+<p>固定 data7339/noise733123 与原 recipe，sigma=.5 的 $D=H(.5)-H(0)$ 在 mixed_sine×8、mixed_sine×32、radial×32 均值分别为 .125194、.229192、.060492（三单元均 3/3 init 为正）；radial×8 为 −.046567，只有 1/3 为正。预设判据通过 3/4 单元。</p>
+<ul class="refs">
+<li><a href="#ref-xue2022">Xue et al. (2022)</a>：test loss 形状由 noise-to-sample-size 比决定，中等噪声可能不单调放大差距。</li>
+<li><a href="#ref-huh2023">Huh &amp; Rebeschini (2023)</a>：label noise SGD 的泛化界依赖噪声与条件，非无条件放大。</li>
+</ul>
+<p><b>判定：疑似新。</b>具体强度节点上「哪些函数×宽度单元通过」的单元计数未检索到前作；它与上述理论方向一致，但结论形式不同。</p>
+
+<h3>C5. 已测条件不支持连续强度缩放</h3>
+<p>三个通过单元的 $D(.5)$ 都小于对应 $D(1)$，但不能据此给出线性、二次或连续强度规律。</p>
+<ul class="refs">
+<li><a href="#ref-huh2023">Huh &amp; Rebeschini (2023)</a>；<a href="#ref-xue2022">Xue et al. (2022)</a>：文献给出的是上界、比值阈值或渐近率，而非该离散格点上的连续律。</li>
+</ul>
+<p><b>判定：疑似新。</b>这是一个否证型结论（拒绝连续缩放），未检索到同构前作；且它只在 sigma $\in\{0,.5,1\}$ 三个格点上成立。</p>
+
+<h3>C6. 较低带噪 train 误差不保证晚期 test 继续下降</h3>
+<p>data7339/noise733123、sigma=1 的 12 个终点 $H_1$ 为正；真实网络对带噪 train 标签的 $G$ 均值 .433225–.573030、12/12 $G&gt;0$。终点相对劣势仍不保证同模型晚期 test 上升。</p>
+<ul class="refs">
+<li><a href="#ref-zhang2017">Zhang et al. (2017)</a>：train 侧表现与 test 解耦。</li>
+<li><a href="#ref-nakkiran2021">Nakkiran et al. (2021)</a>：train 下降与 test 上升可同时发生（epoch-wise double descent）。</li>
+</ul>
+<p><b>判定：部分已知。</b>解耦是经典结论；这里 $H_1&gt;0$ 与 $G&gt;0$ 的具体计数是新证据，不是新机制。</p>
+
+<h3>C7. $D&gt;0$ 也可仅缩小真实网络原有优势</h3>
+<p>data7331/noise733123 的 radial×32，三 init 的 $D=.075103$–$.185840$ 均正，$H_1=-.151615$ 至 $-.047987$ 均负，真实 $C=-0.198348$ 至 $-0.088044$ 均负：噪声使真实网络相对切线更差，但它在终点仍优于切线，晚期 test 也仍下降。</p>
+<ul class="refs">
+<li><a href="#ref-jacot2018">Jacot et al. (2018)</a>；<a href="#ref-advani2020">Advani et al. (2020)</a>：真实网络相对切线的优势与绝对风险由谱-目标能量分别决定，二者可以反向。</li>
+</ul>
+<p><b>判定：疑似新。</b>「正 $D$ 伴随负 $H_1$ 且负 $C$」这一具体对照未检索到前作。</p>
+
+<h3>C8. 更换噪声向量推翻半强度正向判据的保持预测</h3>
+<p>固定 data7339、sigma=.5 与同一训练条件，仅把 noise733123 换为 noise733131，原「至少 3/4 单元 mean D$\ge$.01 且各至少 2/3 init $D&gt;0$」预测通过率从 3/4 降为 1/4；新四单元 mean D 依次为 .086687、−.008957、−.013877、.003331。</p>
+<ul class="refs">
+<li><a href="#ref-arpit2017">Arpit et al. (2017)</a>：记忆与泛化行为对数据/噪声结构敏感。</li>
+<li><a href="#ref-liu2026">Liu &amp; Lu (2026)</a>：记忆-泛化共存，噪声下标量行为依赖具体配置。</li>
+<li><a href="#ref-randlabel2026">Random Label Prediction Heads for Studying Memorization (2026)</a>：用随机标签头研究记忆，说明标签侧随机性会改变可复现的泛化行为。</li>
+</ul>
+<p><b>判定：部分已知。</b>「泛化对随机种子/噪声实现敏感」是已知关切；但该判据的 draw 依赖（3/4→1/4）作为记录是新证据。</p>
+
+<h3>C9. 「不足 3/4 会再现」的预测被推翻</h3>
+<p>仅把 noise733131 换为预指定 733139，原正向判据又有 3/4 单元通过。四均值 D 依次为 0.206577/0.175632/−0.037836/0.054909。三个半强度噪声向量的通过数为 3/4、1/4、3/4。</p>
+<ul class="refs">
+<li>—：未检索到对同一判据跨噪声向量通过数序列的前作。</li>
+</ul>
+<p><b>判定：疑似新。</b>这是否证型序列（同一强度与训练条件下通过数不决定），未找到同构报告；同时它只描述已测向量，不能估计跨噪声概率。</p>
+
+<h2>相关文献</h2>
+<ol class="refs">
+<li id="ref-advani2020">Advani, M. S., Saxe, A. M., &amp; Sompolinsky, H. (2020). High-dimensional dynamics of generalization error in neural networks. <em>Neural Networks</em>, 132, 428–446. <a href="https://doi.org/10.1016/j.neunet.2020.08.022">DOI:10.1016/j.neunet.2020.08.022</a>（OpenAlex W2763894180）</li>
+<li id="ref-arpit2017">Arpit, D., et al. (2017). A Closer Look at Memorization in Deep Networks. <a href="https://arxiv.org/abs/1706.05394">arXiv:1706.05394</a>（OpenAlex W2682189153）</li>
+<li id="ref-chaudhari2016">Chaudhari, P., et al. (2016). Entropy-SGD: Biasing Gradient Descent Into Wide Valleys. <a href="https://arxiv.org/abs/1611.01838">arXiv:1611.01838</a>（OpenAlex W2949568260）</li>
+<li id="ref-huh2023">Huh, J. E., &amp; Rebeschini, P. (2023). Generalization Bounds for Label Noise Stochastic Gradient Descent. <a href="https://arxiv.org/abs/2311.00274">arXiv:2311.00274</a></li>
+<li id="ref-huang2025">Huang, W., et al. (2025). How Does Label Noise Gradient Descent Improve Generalization in the Low SNR Regime? <em>NeurIPS 2025</em>. <a href="https://arxiv.org/abs/2510.17526">arXiv:2510.17526</a></li>
+<li id="ref-jacot2018">Jacot, A., Gabriel, F., &amp; Hongler, C. (2018). Neural Tangent Kernel: Convergence and Generalization in Neural Networks. <a href="https://arxiv.org/abs/1806.07572">arXiv:1806.07572</a>（OpenAlex W2809090039）</li>
+<li id="ref-keskar2016">Keskar, N. S., et al. (2016). On Large-Batch Training for Deep Learning: Generalization Gap and Sharp Minima. <a href="https://arxiv.org/abs/1609.04836">arXiv:1609.04836</a>（OpenAlex W2523060838）</li>
+<li id="ref-liu2026">Liu, L., &amp; Lu, P. (2026). Unveiling Memorization-Generalization Coexistence: A Case Study on Arithmetic Tasks with Label Noise. <a href="https://arxiv.org/abs/2605.18022">arXiv:2605.18022</a></li>
+<li id="ref-mahsereci2017">Mahsereci, M., et al. (2017). Early Stopping without a Validation Set. <a href="https://arxiv.org/abs/1703.09580">arXiv:1703.09580</a>（OpenAlex W2605047975）</li>
+<li id="ref-nakkiran2021">Nakkiran, P., et al. (2021). Deep double descent: where bigger models and more data hurt. <a href="https://doi.org/10.1088/1742-5468/ac3a74">DOI:10.1088/1742-5468/ac3a74</a>（OpenAlex W2994081359）</li>
+<li id="ref-pesme2021">On the Origin of Implicit Regularization in Stochastic Gradient Descent (2021). <a href="https://arxiv.org/abs/2101.12176">arXiv:2101.12176</a>（OpenAlex W3120901154）</li>
+<li id="ref-priebe2022">Priebe, C. E., et al. (2022). Deep Learning is Provably Robust to Symmetric Label Noise. <a href="https://arxiv.org/abs/2210.15083">arXiv:2210.15083</a></li>
+<li id="ref-randlabel2026">Random Label Prediction Heads for Studying Memorization in Deep Neural Networks (2026). <a href="https://arxiv.org/abs/2607.11541">arXiv:2607.11541</a>（OpenAlex W7168246291）</li>
+<li id="ref-soudry2017">Soudry, D., et al. (2017). The Implicit Bias of Gradient Descent on Separable Data. <a href="https://arxiv.org/abs/1710.10345">arXiv:1710.10345</a>（OpenAlex W2766965791）</li>
+<li id="ref-tripledescent2020">Triple descent and the two kinds of overfitting: Where &amp; why do they appear? (2020). <a href="https://doi.org/10.1088/1742-5468/ac3909">DOI:10.1088/1742-5468/ac3909</a>（OpenAlex W3033802587）</li>
+<li id="ref-optdouble2023">Understanding the Role of Optimization in Double Descent (2023). <a href="https://arxiv.org/abs/2312.03951">arXiv:2312.03951</a>（OpenAlex W4389500932）</li>
+<li id="ref-xue2022">Xue, Y., Whitecross, K., &amp; Mirzasoleiman, B. (2022). Investigating the Impact of Model Width and Density on Generalization in Presence of Label Noise. <a href="https://arxiv.org/abs/2208.08003">arXiv:2208.08003</a></li>
+<li id="ref-zeng2023">Zeng, L., et al. (2023). Feature Noise Boosts DNN Generalization under Label Noise. <a href="https://arxiv.org/abs/2308.01609">arXiv:2308.01609</a></li>
+<li id="ref-zhang2017">Zhang, C., et al. (2017). Understanding deep learning requires rethinking generalization. <a href="https://arxiv.org/abs/1611.03530">arXiv:1611.03530</a>（OpenAlex W2950220847）</li>
+<li id="ref-zhang2021">Zhang, C., et al. (2021). Understanding deep learning (still) requires rethinking generalization. <em>Communications of the ACM</em>. <a href="https://doi.org/10.1145/3446776">DOI:10.1145/3446776</a>（OpenAlex W2566079294）</li>
+</ol>
+
+<h2>方法与边界</h2>
+<p>检索词包括 <code>optimization / generalization / gradient descent</code>、<code>label noise / generalization</code>、<code>train test gap</code>、<code>optimization generalization gap early stopping</code>、<code>implicit bias gradient descent</code>、<code>understanding deep learning rethinking generalization</code>、<code>double descent test error model size</code>、<code>implicit regularization label noise memorization</code>。判定基于标题、作者、年份与摘要；引用条目均经 arXiv/OpenAlex 接口返回核对，未见虚构条目。注意两点边界：(1) arXiv 的短语检索 <code>"train test gap" AND "deep learning"</code> 返回 0 条，说明该字面短语不是文献惯用词，相关主题由 OpenAlex 的 <code>generalization gap</code> 族覆盖；(2) 本轮部分 arXiv 查询遇到 429 限流，这些主题改用 OpenAlex 覆盖。</p>
+<p>未核验全文，也<b>不构成新颖性结论</b>：标「疑似新」仅是本轮检索的负结果。D7 的结论只覆盖 d5 Gaussian、train32/test256、两层 hidden SiLU、全批量 SGD、CPU float64、所列函数/宽度/init/噪声向量与 sigma $\in\{0,.5,1\}$，属 development，不外推真实网络、小批量、其他 optimizer/归一化/深度或封存 OOD。文献里的「泛化差距」多是 train−test 的绝对差，D7 的 $H$ 是真实网络−切线的相对差、$C$ 是同模型两时点绝对差，三者不可互换。</p>
+
+<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+</main></body></html>

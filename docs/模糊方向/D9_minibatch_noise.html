@@ -5,10 +5,9 @@
 <script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D9_minibatch_noise.html">编辑此页</a></div>
+<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D9_minibatch_noise.html">编辑此页</a> · <a href="背景与文献.html">背景与文献</a> · <a href="D9_文献深度确认.html">命题×文献对照</a></div>
 <h1>D9：小批量噪声与有效时间</h1>
 <h2>结论</h2>
-<p>测量结论仅适用于以下固定数据合同。输入维度 d=4、训练样本 n=64、冻结 ReLU 特征（使用 max(0,x) 的固定非线性特征）宽度128、含常数项且零初始化的线性头（head）。实验使用 float64（64 位浮点数）、MSE（均方误差）和 SGD（随机梯度下降），无动量、无权重衰减。风险指固定无噪声审计样本上的均方误差。一个 cell 是一个条件与数据随机种子 seed 的组合；一条轨迹是一次完整的小批量抽样更新序列。recipe 指一组科学条件，轨迹与 seed 不算独立 recipe。</p>
 <ul>
 <li><strong>降低学习率没有使全部八轨迹最低点进入两倍范围。</strong> 比较固定标签噪声、B（每步批量样本数）=8/32、σ²（标签噪声方差）=0.25/0.5/1、seed411–414、M（轨迹数）=8。η（更新系数）从0.3降至0.1，ηT=230.4（T 为更新次数窗口）不变。同标签全批量最低点比值两档均为22/24落入[0.5,2]。18/24配对 cell 的偏离量 d（最低点比值与1的距离）减小。但所有配对变化的 bootstrap 区间（重抽已有轨迹得到的描述区间）均跨零。不能据此证明统一、单调或具有总体统计保证的收窄。</li>
 <li><strong>风险分母的口径影响最低点比值。</strong> 在上述 η=0.1、M=8 网格中，对标签噪声取期望的分母使20/24落入[0.5,2]；固定同一次标签噪声的分母使22/24通过。前一口径同时含标签噪声实现差异，不能把旧位移全部归因于小批量。</li>
@@ -22,6 +21,7 @@
 <p><strong>仅将小批量从 B=4 减至2，两个条件的期望最低点再延后3/19步。</strong> 同上述固定数据与标签噪声、η=0.1、σ²=1及2304步窗口，最低点52/324→55/343步，相对同标签full为1.122448980/1.120915033。注册53–75/325–400步支持2/2，最低风险增加0.056821650/0.050625305。新固定C布局及事前容差核验通过；旧B4逐位核验失败仍保留。</p>
 </li>
 </ul>
+<p>测量结论仅适用于以下固定数据合同。输入维度 d=4、训练样本 n=64、冻结 ReLU 特征（使用 max(0,x) 的固定非线性特征）宽度128、含常数项且零初始化的线性头（head）。实验使用 float64（64 位浮点数）、MSE（均方误差）和 SGD（随机梯度下降），无动量、无权重衰减。风险指固定无噪声审计样本上的均方误差。一个 cell 是一个条件与数据随机种子 seed 的组合；一条轨迹是一次完整的小批量抽样更新序列。recipe 指一组科学条件，轨迹与 seed 不算独立 recipe。</p>
 <h2>Formulation</h2>
 <p>风险比值区分固定标签与期望标签两个分母。固定特征线性头更新及风险定义为
 \[

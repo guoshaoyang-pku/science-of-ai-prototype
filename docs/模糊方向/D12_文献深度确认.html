@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D12：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D12_cascade_sigmoid.html">D12 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D12_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D12：命题 × 文献状态对照（深度确认）</h1>
+<p class="bg">本页把 D12 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 arXiv API 与 OpenAlex（2026-10-11）；<b>arXiv API 本轮持续返回 HTTP 429（限流）</b>，故实际引用条目全部来自 OpenAlex 接口的返回，判定基于论文标题、年份与摘要，<b>尚未逐篇精读全文</b>。</p>
+<p class="bg">D12 的对象是<b>固定特征的双模态二次损失</b>（$n=d=2$、float64、half-MSE、全批量 SGD、$\eta=0.1$、momentum=0、无 weight decay、$\lambda_s=0.01$、$\lambda_f=r\lambda_s$、平台 1/0），它问的是：谱分离时损失曲线能否分解为「两段 logistic 在 log 时间上的级联」。因此与文献对照的关键词是 <code>timescale separation</code>、<code>two-stage learning curve</code>、<code>grokking / delayed generalization</code>、<code>exact solutions of deep linear networks</code>。报告自己已声明：对数时间上的双段近似<b>不能</b>当作原时间轴 S 形或 grokking 延迟泛化的证据。</p>
+<p class="bg">「疑似新」只表示本轮检索<b>未找到直接前作</b>，不等于学术上不存在；判定随检索范围变化。D12 的结论只覆盖上述受控双模态 recipe 与所列离散谱比/占比格点，不外推 learned features、momentum、小批量、非线性网络或真实任务。</p>
+
+<div class="legend">
+判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
+<span class="tag mix">部分已知</span>现象相同但对象或构造不同（例如文献用真实网络的延迟泛化，D12 用固定特征双模态的 log-时间双段）·
+<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<b>—</b> 需读全文才能定论
+</div>
+
+<h2>总览</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr><th>编号</th><th>D12 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
+</thead>
+<tbody>
+<tr><td>P1</td><td>逐模态时间标度 $h_i=\log2/[-2\log(1-\eta\lambda_i)]$ 与陡度 $b=2\log2$ 由局部半幅度/斜率匹配给出</td><td><span class="tag ok">已知</span>（基本）</td><td>Saxe et al. 2014；Jacot et al. 2018</td></tr>
+<tr><td>P2</td><td>不等初始损失时精确递推 $f_\alpha=\alpha e^{-a_s t}+(1-\alpha)e^{-a_f t}$，$\alpha=L_s(0)/L(0)$</td><td><span class="tag ok">已知</span></td><td>Saxe et al. 2014；Exact learning dynamics … prior knowledge 2023</td></tr>
+<tr><td>P3</td><td>等权双段 logistic 拟合在 $r=12/15/20/25$ 均通过（RMSE 0.013446–0.015873，max 0.021608–0.031214），且比单段更准</td><td><span class="tag mix">部分已知</span></td><td>Power et al. 2022；The complexity dynamics of grokking 2025</td></tr>
+<tr><td>P4</td><td>单段 logistic 在 $r=12/15$ 通过、$r=20/25$ 失败；边界只在 15 与 20 两格点之间，无连续临界值</td><td><span class="tag mix">部分已知</span>（现象）／<span class="tag no">疑似新</span>（该对照）</td><td>Grokking phase transitions … 2022；Liu et al. 2022</td></tr>
+<tr><td>P5</td><td>无拟合双段公式在 $r=3/10/12/15/20/25/30/100$ 八个离散格点均通过（最小余量 0.000403300/0.000638477）</td><td><span class="tag no">疑似新</span></td><td>Saxe et al. 2014；Power et al. 2022</td></tr>
+<tr><td>P6</td><td>等权通过不可推广到 $\alpha=0.25$：$r=100$ 时 RMSE=0.022740946$\le$0.03 但 max=0.053989623&gt;0.05，3/3 未通过</td><td><span class="tag no">疑似新</span></td><td>Liu et al. 2022（Omnigrok）；Saxe et al. 2014</td></tr>
+<tr><td>P7</td><td>$\alpha=0.75$ 时同公式 RMSE=0.027824997、max=0.049822548，3/3 通过，余量仅 0.000177452；两项注册预测被推翻</td><td><span class="tag no">疑似新</span></td><td>Liu et al. 2022（Omnigrok）</td></tr>
+<tr><td>P8</td><td>「接近纯模态即可通过」失败：$r=100$、慢损失占比 0.01 原单段拟合 max=0.06476095；纯快模态 max=0.07462910</td><td><span class="tag no">疑似新</span>（负结果）</td><td>Liu et al. 2022（Omnigrok）</td></tr>
+<tr><td>P9</td><td>「多段公式总更好」反例：$r=3/10/12$ 的双段公式两项误差均高于原单段拟合</td><td><span class="tag mix">部分已知</span>（模型选择常识）</td><td>Power et al. 2022</td></tr>
+<tr><td>P10</td><td>真实正权双指数在原时间轴严格凸；log 时间上的双段近似不能作为原时间轴 S 形或延迟泛化证据</td><td><span class="tag ok">已知</span>（解析）</td><td>Saxe et al. 2014</td></tr>
+</tbody>
+</table></div>
+<p class="bg">注：$r$ 为快、慢特征值之比；$\alpha$ 为慢模态初始损失占比；「通过」是 D12 的注册定义，指 RMSE$\le$0.03 且最大误差$\le$0.05。定义本身是约定，不是文献发现。</p>
+
+<h2>逐条对照</h2>
+
+<h3>P1. 逐模态时间标度与陡度公式（解析）</h3>
+<p>$h_i=\log2/[-2\log(1-\eta\lambda_i)]$、$b=2\log2$ 由「指数模态在半幅度点的值与斜率」做局部匹配得到。</p>
+<ul class="refs">
+<li><a href="#ref-saxe2014">Saxe, McClelland &amp; Ganguli (2014)</a>：给出固定特征、深层线性网络的逐模态指数衰减率 $a_i=-2\log(1-\eta\lambda_i)$ 与精确半衰期，是这类时间标度的经典来源。</li>
+<li><a href="#ref-jacot2018">Jacot, Gabriel &amp; Hongler (2018)</a>：核机制下的模态分解与固定核动力学，说明特征谱决定学习速率。</li>
+</ul>
+<p><b>判定：已知（基本）。</b>逐模态指数衰减与半衰期是 Saxe 等 2014 的经典结果；把指数衰减在 $\log$ 时间上做一阶局部匹配、从而得到 S 曲线的陡度 $b=2\log2$，是标准解析操作。报告也自述这是「已知解析工具」，P1 只是复核而非新发现。</p>
+
+<h3>P2. 不等初始损失的双指数精确解</h3>
+<p>初始模态损失不等时 $f_\alpha(t)=\alpha e^{-a_s t}+(1-\alpha)e^{-a_f t}$ 是精确归一化损失，$C_\alpha$ 是其加权描述候选，$\alpha=L_s(0)/L(0)$ 为慢模态初始损失占比。</p>
+<ul class="refs">
+<li><a href="#ref-saxe2014">Saxe, McClelland &amp; Ganguli (2014)</a>：多模态线性动力学可精确求解，因各模态独立指数衰减。</li>
+<li><a href="#ref-prior2023">Exact learning dynamics of deep linear networks with prior knowledge (2023)</a>：带初值/先验的线性网络精确学习动力学，与「按初始模态能量加权」的构造一致。</li>
+<li><a href="#ref-deeplinear2022">Exact Solutions of a Deep Linear Network (2022)</a>：同一族精确解。</li>
+</ul>
+<p><b>判定：已知。</b>带初始条件的多模态线性动力学精确解（各模态独立指数衰减、按初始系数加权）是既有理论；$\alpha$ 就是慢模态初始损失占比。<b>但「这个精确解能否用一个不含校准的两段 logistic 近似到 0.03/0.05」是描述性问题，不在这一条里</b>（见 P5）。</p>
+
+<h3>P3. 等权双段 logistic 拟合（r=12/15/20/25）均通过且优于单段</h3>
+<p>双段拟合的 RMSE=0.013446–0.015873，最大误差=0.021608–0.031214；四个条件双段都比单段更准；单段失败的两个条件经双段后同时通过；三个坐标 seed 判定一致。</p>
+<ul class="refs">
+<li><a href="#ref-power2022">Power et al. (2022)</a>：grokking——训练损失已降而泛化在更晚才跃迁，是「多阶段 / 延迟跃迁」曲线的原型描述。</li>
+<li><a href="#ref-complexity2025">The complexity dynamics of grokking (2025)</a>：把 grokking 描述为复杂性随时间的两阶段结构。</li>
+<li><a href="#ref-slowfast2023">Learning Slow and Fast System Dynamics via Automatic Separation of Time Scales (2023)</a>：多时间尺度系统的快慢分离建模。</li>
+</ul>
+<p><b>判定：部分已知。</b>「两阶段 / 多时间尺度的损失下降」在 grokking 与快慢时间尺度文献里已被广泛描述；但「用两条 $\log$ 时间 logistic 之和对固定特征双模态窗口逐谱比拟合，并与单段拟合配对比较误差」这一受控构造未见直接前作。提醒：双段 4 个自由参数对单段 2 个，「更准」部分来自表达能力，不能独立归因于「存在两个物理阶段」。</p>
+
+<h3>P4. 单段 logistic 的通过/失败边界</h3>
+<p>等初始损失的单段 logistic 在 $r=12/15$ 通过、在 $r=20/25$ 失败；判定只在 15 与 20 两个格点之间改变，尚未得到连续临界值。</p>
+<ul class="refs">
+<li><a href="#ref-grokkinglocal2022">Grokking phase transitions in learning local rules with gradient descent (2022)</a>：把 grokking 视为梯度下降下的相变，时间尺度分离驱动跃迁。</li>
+<li><a href="#ref-omnigrok2022">Liu, Michaud &amp; Tegmark (2022)</a>：Omnigrok——延迟泛化由权重范数等量控制，可用单标量组织相图。</li>
+<li><a href="#ref-falsifiable2026">Grokking as a Falsifiable Finite-Size Transition (2026)</a>：把相变当作有限尺寸、可证伪的转变。</li>
+</ul>
+<p><b>判定：部分已知（现象）／疑似新（该对照）。</b>「时间尺度分离使单 sigmoid 不足以描述」是直观且与相变/延迟泛化文献方向一致；但把边界钉在 $r=15\!\to\!20$ 的受控离散格点对照，并明确「无连续临界值」，本轮未见直接前作。报告也强调不能把两格点外推为连续阈值。</p>
+
+<h3>P5. 无拟合双段公式在八个离散谱比格点通过</h3>
+<p>用谱量直接给出的无拟合公式在 $r=3/10/12/15/20/25/30/100$ 八个已保存离散格点均通过；$r=20/25$ 的 RMSE=0.027321–0.027379，最大误差=0.049278–0.049362；最小通过余量 0.000403300/0.000638477。</p>
+<ul class="refs">
+<li><a href="#ref-saxe2014">Saxe, McClelland &amp; Ganguli (2014)</a>：谱模态时间标度决定曲线下降；是「参数由谱给出」的理论依据。</li>
+<li><a href="#ref-power2022">Power et al. (2022)</a>：多阶段下降的现象背景。</li>
+</ul>
+<p><b>判定：疑似新。</b>「不校准、直接用谱量给定的两段 logistic 参数，仍在八个离散谱比上同时通过 0.03/0.05」是本轮检索未见的同构结果。但它只覆盖这八个离散格点与单一 recipe，余量很小（最小 max 余量约 $6.4\times10^{-4}$），<b>不能外推连续区间</b>。</p>
+
+<h3>P6. 等权通过不可推广到 α=0.25</h3>
+<p>$r=100$、$\alpha=0.25$ 时加权双段公式 RMSE=0.022740946$\le$0.03，但最大误差=0.053989623&gt;0.05，三个坐标 seed 均未同时通过（0/3）。保持 $h/b$ 不变、只按保存初始损失改幅度后，同谱比仍不足以保证通过。</p>
+<ul class="refs">
+<li><a href="#ref-omnigrok2022">Liu, Michaud &amp; Tegmark (2022)</a>：Omnigrok 讨论权重范数等量如何控制延迟泛化，涉及不等权情形。</li>
+<li><a href="#ref-saxe2014">Saxe, McClelland &amp; Ganguli (2014)</a>：初始模态能量分配改变各模态的相对贡献。</li>
+</ul>
+<p><b>判定：疑似新。</b>「仅改初始损失分配就让 $\alpha=0.25$ 在 $r=100$ 失败、而 $\alpha=0.5$ 通过」这一受控反例未见直接前作。该反例不定位连续 $\alpha$ 临界值，也不改变等权八个格点的原判定。</p>
+
+<h3>P7. α=0.75 通过且距阈值极近；两项注册预测被推翻</h3>
+<p>同一公式在 $r=100$、$\alpha=0.75$ 时 RMSE=0.027824997、最大误差=0.049822548，3/3 通过，最大误差距阈值仅 0.000177452；此前注册的两项预测（max&gt;0.05、max$\in$[0.050,0.060]）均被 3/3 推翻。</p>
+<ul class="refs">
+<li><a href="#ref-omnigrok2022">Liu, Michaud &amp; Tegmark (2022)</a>：延迟泛化对权重/损失分配敏感，与「判别边界对 $\alpha$ 非单调」方向一致。</li>
+</ul>
+<p><b>判定：疑似新。</b>「$\alpha=0.75$ 通过且余量仅约 $1.8\times10^{-4}$，而 $\alpha=0.25$ 失败」这一具体的、非单调的判别边界事实未见前作。它只说明两个不等权格点不同，<b>不能推成连续、单调或唯一临界</b>。</p>
+
+<h3>P8. 「接近纯模态即可通过」失败</h3>
+<p>固定 $r=100$、慢损失占比 0.01 时，原单段拟合最大误差 0.06476095；纯快模态 0.07462910，两者均超 0.05。</p>
+<ul class="refs">
+<li><a href="#ref-omnigrok2022">Liu, Michaud &amp; Tegmark (2022)</a>：偏好简单（近纯模态）解未必对应曲线可拟合。</li>
+<li><a href="#ref-power2022">Power et al. (2022)</a>：曲线形状与现象阶段的背景。</li>
+</ul>
+<p><b>判定：疑似新（负结果）。</b>直觉上「越接近单时间尺度越易被单 sigmoid 描述」，但受控结果显示纯模态极限下单段反而更差。这一否证性结果未见前作，且报告明确「不能仅用谱比判断拟合能力」。</p>
+
+<h3>P9. 「多段公式总更好」的反例</h3>
+<p>$r=3/10/12$ 的双段公式两项误差均高于原单段拟合（如 $r=12$ 相对单段差 +0.003130356/+0.003204821）。</p>
+<ul class="refs">
+<li><a href="#ref-power2022">Power et al. (2022)</a>；<a href="#ref-complexity2025">The complexity dynamics of grokking (2025)</a>：多阶段描述的语境。</li>
+</ul>
+<p><b>判定：部分已知（模型选择常识）。</b>「参数更多不保证在给定窗口/判据下更优」属一般模型选择事实；此处的价值是受控复核对「多段公式总更好」这一<b>未注册泛化说法</b>给出反例，而非新机制。</p>
+
+<h3>P10. 正权双指数原时间轴严格凸；log 时间双段≠原时间轴 S 形/延迟泛化证据</h3>
+<p>真实正权双指数和 $f_\alpha$ 在原时间轴上严格凸（斜率随时间递增）。</p>
+<ul class="refs">
+<li><a href="#ref-saxe2014">Saxe, McClelland &amp; Ganguli (2014)</a>：正权衰减指数和的解析结构。</li>
+</ul>
+<p><b>判定：已知（解析）。</b>正权衰减指数之和是严格凸的递减函数，是初等解析性质。报告据此提醒：<b>$\log$ 时间上呈 S 形的两段近似不构成原时间轴上 S 形或 grokking 延迟泛化的证据。</b>这条是把已知解析性质用作边界声明，不是新现象。</p>
+
+<h2>相关文献</h2>
+<ol class="refs">
+<li id="ref-saxe2014">Saxe, A. M., McClelland, J. L., &amp; Ganguli, S. (2014). <em>Exact solutions to the nonlinear dynamics of learning in deep linear neural networks</em>. <a href="https://doi.org/10.48550/arxiv.1312.6120">arXiv:1312.6120</a>（OpenAlex W2125930537）</li>
+<li id="ref-power2022">Power, A., Burda, Y., Edwards, H., Babuschkin, I., &amp; Misra, V. (2022). <em>Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets</em>. <a href="https://doi.org/10.48550/arxiv.2201.02177">arXiv:2201.02177</a>（OpenAlex W4226434736）</li>
+<li id="ref-omnigrok2022">Liu, Z., Michaud, E. J., &amp; Tegmark, M. (2022). <em>Omnigrok: Grokking Beyond Algorithmic Data</em>. <a href="https://doi.org/10.48550/arxiv.2210.01117">arXiv:2210.01117</a>（OpenAlex W4302013344）</li>
+<li id="ref-grokkinglocal2022"><em>Grokking phase transitions in learning local rules with gradient descent</em> (2022). <a href="https://doi.org/10.48550/arxiv.2210.15435">arXiv:2210.15435</a>（OpenAlex W4307537005）</li>
+<li id="ref-progress2024"><em>Progress Measures for Grokking on Real-world Tasks</em> (2024). <a href="https://doi.org/10.48550/arxiv.2405.12755">arXiv:2405.12755</a>（OpenAlex W4398230769）</li>
+<li id="ref-complexity2025"><em>The complexity dynamics of grokking</em> (2025). <em>Physica D</em>. <a href="https://doi.org/10.1016/j.physd.2025.134859">DOI:10.1016/j.physd.2025.134859</a>（OpenAlex W4413243258）</li>
+<li id="ref-falsifiable2026"><em>Grokking as a Falsifiable Finite-Size Transition</em> (2026). <a href="https://doi.org/10.48550/arxiv.2603.24746">arXiv:2603.24746</a>（OpenAlex W7141734836）</li>
+<li id="ref-quantify2026"><em>Quantifying the Memorization-to-Generalization Transition: Scaling Laws and Phase Structure in Grokking</em> (2026). <a href="https://doi.org/10.48550/arxiv.2609.10657">arXiv:2609.10657</a>（OpenAlex W7212269809）</li>
+<li id="ref-solvable2022"><em>A Solvable Model of Neural Scaling Laws</em> (2022). <a href="https://doi.org/10.48550/arxiv.2210.16859">arXiv:2210.16859</a>（OpenAlex W4307929880）</li>
+<li id="ref-slowfast2023"><em>Learning Slow and Fast System Dynamics via Automatic Separation of Time Scales</em> (2023). <em>KDD</em>. <a href="https://doi.org/10.1145/3580305.3599858">DOI:10.1145/3580305.3599858</a>（OpenAlex W4385568105）</li>
+<li id="ref-prior2023"><em>Exact learning dynamics of deep linear networks with prior knowledge</em> (2023). <em>J. Stat. Mech.</em> <a href="https://doi.org/10.1088/1742-5468/ad01b8">DOI:10.1088/1742-5468/ad01b8</a>（OpenAlex W4388706387）</li>
+<li id="ref-deeplinear2022"><em>Exact Solutions of a Deep Linear Network</em> (2022). <a href="https://doi.org/10.48550/arxiv.2202.04777">arXiv:2202.04777</a>（OpenAlex W4225834566）</li>
+<li id="ref-cohen2021">Cohen, J. M., Kaur, S., Li, Y., Kolter, J. Z., &amp; Talwalkar, A. (2021). <em>Gradient Descent on Neural Networks Typically Occurs at the Edge of Stability</em>. <a href="https://doi.org/10.48550/arxiv.2103.00065">arXiv:2103.00065</a>（OpenAlex W3132026801）</li>
+<li id="ref-eos2022"><em>Understanding Gradient Descent on Edge of Stability in Deep Learning</em> (2022). <a href="https://doi.org/10.48550/arxiv.2205.09745">arXiv:2205.09745</a>（OpenAlex W4281251260）</li>
+<li id="ref-jacot2018">Jacot, A., Gabriel, F., &amp; Hongler, C. (2018). <em>Neural Tangent Kernel: Convergence and Generalization in Neural Networks</em>. <a href="https://doi.org/10.48550/arxiv.1806.07572">arXiv:1806.07572</a>（OpenAlex W2809090039）</li>
+<li id="ref-rosenfeld2019">Rosenfeld, J. S., Rosenfeld, A., Belinkov, Y., &amp; Shavit, N. (2019). <em>A Constructive Prediction of the Generalization Error Across Scales</em>. <a href="https://doi.org/10.48550/arxiv.1909.12673">arXiv:1909.12673</a>（OpenAlex W2996151541）</li>
+<li id="ref-advani2020">Advani, M. S., Saxe, A. M., &amp; Sompolinsky, H. (2020). <em>High-dimensional dynamics of generalization error in neural networks</em>. <em>Neural Networks</em>, 132, 428–446. <a href="https://doi.org/10.1016/j.neunet.2020.08.022">DOI:10.1016/j.neunet.2020.08.022</a>（OpenAlex W2763894180）</li>
+</ol>
+
+<h2>方法与边界</h2>
+<p>检索词包括 <code>cascade sigmoid</code>、<code>multi-timescale loss</code>、<code>two-stage learning curve</code>、<code>piecewise logistic</code>、<code>grokking</code>、<code>phase transition</code>、<code>delayed generalization</code>、<code>exact solutions deep linear networks</code>、<code>timescale separation</code>。本轮 arXiv API 的查询<b>持续返回 HTTP 429（限流）</b>，故所有引用条目均来自实际执行的 OpenAlex 接口返回（含各条的 arXiv ID 或 DOI 与 OpenAlex work id），<b>未见虚构条目</b>。判定基于标题、年份与摘要；<b>未核验全文</b>，也<b>不构成新颖性结论</b>：标「疑似新」仅是本轮检索的负结果。</p>
+<p>边界与对象提醒：D12 的结论<b>只覆盖固定特征的双模态二次损失</b>——$n=d=2$、float64、half-MSE、全批量 SGD、$\eta=0.1$、momentum=0、无 weight decay、平台 1/0，以及所列的离散谱比 $r$ 与初始损失占比 $\alpha$ 格点。它是 development 实验，不外推 learned features、momentum、小批量、非线性网络或真实任务。报告明确：<b>$\log$ 时间上的双段近似不等于原时间轴的 S 形，也不构成 grokking 式延迟泛化的证据</b>；「无 learned-features 延迟跃迁证据」是范围声明。通过判据（RMSE$\le$0.03 且 max$\le$0.05）是 D12 的注册定义，属约定而非文献发现。</p>
+
+<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+</main></body></html>

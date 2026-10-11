@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D13：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D13_linear_flow_world.html">D13 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D13_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D13：命题 × 文献状态对照（深度确认）</h1>
+<p class="bg">本页把 D13 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论在文献里是否已经讨论过」的判定。检索使用 OpenAlex（2026-10-11）；本轮 arXiv API 持续返回 HTTP 429（限流），未取得结果，因此以 OpenAlex 完成检索，并用其返回的 arXiv DOI（<code>10.48550/arxiv.*</code>）交叉核对 arXiv 编号。判定基于论文标题、年份与书目记录，<b>尚未逐篇精读全文</b>。重要校正：文献里的 “phase transition” 多指 lazy-training 的插值相变（按参数/样本量计的阈值）或物理相变，与 D13 的「loss 曲线拟合中点 / 陡降位置」不是同一对象；“effective depth” 在残差网络文献里常指等效可及的浅子网络数，也非 D13 的「用相变时间换算的链深度」。两者只是<b>同名不同物</b>。</p>
+<p class="bg">「疑似新」只表示本轮检索<b>未找到直接前作</b>，不等于学术上不存在；判定随检索范围变化。D13 的对照对象是固定深度 4、宽度 32、4×4 正交目标、逐 seed 固定初始矩阵、float64 全批量 GD 的无 skip 链，属 development，不外推真实网络、skip 连接或无限时间梯度流。</p>
+
+<div class="legend">
+判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
+<span class="tag mix">部分已知</span>现象或方向相同但对象、构造或量纲不同（例如文献讲 $\eta T$ 式时间缩放，D13 讲统一时钟 $\tau=\eta t$ 上的相变中点）·
+<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<b>—</b> 需读全文才能定论
+</div>
+
+<h2>总览</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr><th>编号</th><th>D13 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
+</thead>
+<tbody>
+<tr><td>Q</td><td>未能建立「架构+初始化 → 相变时间 → 有效深度」的可靠标定式；lr $0.02\to0.00125$ 使 A/B 一致从 0/3 提升至 3/3，但固定时间轴比值仍 0.155–0.341，3/3 未一致</td><td><span class="tag mix">部分已知</span></td><td>Spectral Edge Dynamics 2026；Zeroth/first/second-order phase transitions 2023；Cohen 2021</td></tr>
+<tr><td>C1</td><td>降低学习率改善原 step 协议读数；最细学习率 A/B 比值 0.779–1.016，对数偏移减少 80.955%–99.455%</td><td><span class="tag mix">部分已知</span></td><td>Surge 2024；Random-Matrix lr/batch 2020；Time Transfer 2024</td></tr>
+<tr><td>C2</td><td>跨 seed 稳定性未通过：固定时间轴两档小学习率仅 2/3 达 10% 判据；三 seed 最细学习率 A 时间 CV=0.277 &gt; 0.25</td><td><span class="tag mix">部分已知</span></td><td>Variance of NN Training 2023</td></tr>
+<tr><td>C3</td><td>seed22 步长稳定通过 5%：固定时钟 A 时间 .018598187 → .019403482（+4.329964%）</td><td><span class="tag mix">部分已知</span></td><td>Time Transfer 2024；Surge 2024</td></tr>
+<tr><td>C4</td><td>seed11 步长稳定通过 5%：.023834804503907975 → .024400284818224063（+2.372498%）</td><td><span class="tag mix">部分已知</span></td><td>Time Transfer 2024</td></tr>
+<tr><td>C5</td><td>seed33 步长稳定通过 5%：0.04093862880339804 → 0.04147141342752652（+1.301423%）</td><td><span class="tag mix">部分已知</span></td><td>Time Transfer 2024</td></tr>
+<tr><td>C6</td><td>四个斜率起点 k0=.25/.5/2/4 未使 A 时间变化超过 1%：4/4 成功，最大差 0.000006376%</td><td><span class="tag no">疑似新</span></td><td>—</td></tr>
+<tr><td>C7</td><td>两个中点起点 h0=1/100 未使 A 时间变化超过 1%：2/2 成功，最大差 0.000001423115398%</td><td><span class="tag no">疑似新</span></td><td>—</td></tr>
+<tr><td>C8</td><td>初始深度标定反例：深度 1/2/4/8 的 A 时间均值 9.197/1.161/0.926/4.593 步；线性斜率 −0.263、R²=0.044，未支持「深度越大相变越晚」</td><td><span class="tag mix">部分已知</span></td><td>Saddle-to-Saddle 2021；Deep Linear Random Init 2025；Cascading 2026</td></tr>
+</tbody>
+</table></div>
+
+<h2>逐条对照</h2>
+
+<h3>Q. 核心命题：能否从架构与初始化预测相变时间、再读出有效深度</h3>
+<p>D13 把「相变时间」定义为 loss 曲线的拟合中点（协议 A 的 $t_{c,A}$）或陡降位置（协议 B 的导数峰值 $t_{c,B}$），再问能否用它把一个无 skip 链换算成有效深度 $d_\mathrm{eff}=g(t_c)$。固定深度 4、宽度 32、正交目标和逐 seed 初始矩阵，只把全批量 GD 学习率 $0.02$ 降到 $0.00125$，原 step 协议 A/B 一致从 0/3 升到 3/3，但换成固定时间轴后比值仍是 0.155–0.341，3/3 都没进一致范围（0.5–2）。结论是：<b>尚未建立可靠标定式</b>。</p>
+<ul class="refs">
+<li><a href="#ref-spectraledge2026">Spectral Edge Dynamics (2026)</a>：以解析加经验方式研究训练中的相变，是最接近「训练相变可解析刻画」的当代工作，但针对谱边而非架构到相变时间的标定。</li>
+<li><a href="#ref-phasetrans2023">Zeroth, first, and second-order phase transitions in deep neural networks (2023)</a>：把深度网络的训练/泛化刻画成相变，说明「相变」在这条线里是既有语言。</li>
+<li><a href="#ref-eos2021">Gradient Descent ... Edge of Stability (2021)</a>：学习率越过稳定性边界会改变晚期动力学，支持「时间轴读数依赖学习率」这一前提。</li>
+<li><a href="#ref-catapultsgd2023">Catapults in SGD (2023)</a>：SGD 训练损失存在尖峰（catapult），说明 loss 曲线本身可含非单调结构，拟合中点不是天然不变量。</li>
+</ul>
+<p><b>判定：部分已知。</b>「训练存在相变、且相变与学习率耦合」在文献里有系统讨论；但把「架构 + 初始化 → 相变时间」做成可靠标定式、再读出有效深度，本轮<b>未找到直接前作</b>。D13 的负结果（固定时间轴比值 3/3 未一致）更像对本问题边界的一次受控限定，而非首次提出「相变可被研究」。</p>
+
+<h3>C1. 降低学习率改善原 step 协议读数</h3>
+<p>减小步长后，原 step 协议的 A/B 读数变好：最细学习率 $0.00125$ 的 A/B 比值为 0.779–1.016，对数偏移相对最粗学习率减少 80.955%–99.455%。D13 认为这支持「减小步长的操作性预测」，但不足以把相变时间当作协议不变量。</p>
+<ul class="refs">
+<li><a href="#ref-surge2024">Surge Phenomenon in Optimal Learning Rate and Batch Size Scaling (2024)</a>：最优学习率随 batch 的标度在临界点出现「激增」，说明 lr 与时间尺度之间存在非平凡映射。</li>
+<li><a href="#ref-rmtlr2020">Learning Rates as a Function of Batch Size (2020)</a>：用随机矩阵理论给出 lr–batch 的解析标度，是「步长改变时间读数」的经典框架。</li>
+<li><a href="#ref-timetransfer2024">Time Transfer (2024)</a>：在无限数据极限下研究最优 lr 与 batch，直接对应「换 lr 后时间能否迁移」。</li>
+</ul>
+<p><b>判定：部分已知。</b>学习率控制训练时间尺度、换 lr 后曲线读数改变，属于连续时间/线性缩放文献的主题；D13 的新意只在受控小系统里复核这一方向，且把「step 协议读数」与「固定时间轴读数」分开报告。</p>
+
+<h3>C2. 跨 seed 稳定性仍未通过</h3>
+<p>固定时间轴上的两档较小学习率只在 2/3 初始化达到 10% 收敛判据；三 seed 共同的最细学习率 A 时间变异系数 CV=0.277，仍超过参考门槛 0.25。因此 D13 暂不能定义有效深度换算式，也不进入 skip 组合律。</p>
+<ul class="refs">
+<li><a href="#ref-variance2023">On the Variance of Neural Network Training with respect to Test Sets and Distributions (2023)</a>：系统刻画训练随机性带来的方差，支持「单次读数不可直接当总体量」。</li>
+</ul>
+<p><b>判定：部分已知。</b>「seed/随机性造成训练结果波动」是公认现象；但把「相变时间」本身当作被测量、并报告其跨 seed CV 这一具体做法，本轮<b>未见直接前作</b>。这条结论的强度受限于仅 3 个已选初始化。</p>
+
+<h3>C3. 单个初始化的步长稳定性得到支持（seed22）</h3>
+<p>只把 seed22 的学习率再降到 $0.0003125$，固定时钟 A 时间从 $.018598187$ 增至 $.019403482$，按旧值计增加 4.329964%，通过事前 5% 判据。但 A/B 比值仍仅 $.161696$。</p>
+<h3>C4. 另一个初始化的步长稳定性也通过（seed11）</h3>
+<p>seed11 的固定时钟 A 时间从 $0.023834804503907975$ 增至 $0.024400284818224063$，变化 2.372498%，通过同一 5% 判据；A/B 仍仅 $0.20333570681853386$。</p>
+<h3>C5. 第三个初始化也通过同一判据（seed33）</h3>
+<p>seed33 的固定时钟 A 时间从 $0.04093862880339804$ 变为 $0.04147141342752652$，按旧值计变化 1.301423%。三个已选初始化均在 5% 内，但 A/B 仍为 $0.3455951118960543$，未消除协议偏移。</p>
+<ul class="refs">
+<li><a href="#ref-timetransfer2024">Time Transfer (2024)</a> 与 <a href="#ref-surge2024">Surge (2024)</a>：换 lr 后时间尺度近似可迁移/缩放，是这些读数「稳定」方向的理论背景。</li>
+</ul>
+<p><b>判定：部分已知。</b>「小步长下累计时间 $\tau=\eta t$ 上的相变中点近似不变」与线性缩放/时间迁移的方向一致，属已知现象族；但三条记录是<b>单 seed 的受控读数</b>（每 seed 仅一次 4× 降步长），具体数字未见前作，且都不能替代跨 seed 稳健性检验。</p>
+
+<h3>C6. 四个斜率起点未使 A 时间变化超过 1%</h3>
+<p>复用同一条最细步长曲线，只把拟合初始斜率 k0 改为 .25/.5/2/4，4/4 成功，时间相对原读数的最大差 0.000006376%，通过事前 1% 判据。D13 明说这只支持该初始化对四个斜率起点的读数稳定性，未证明全局最优。</p>
+<p><b>判定：疑似新。</b>这是拟合器的<b>初值敏感性</b>检查，属数值方法学层面的受控结果；本轮检索未见把「相变中点读数对拟合初值的稳健性」作为结论的报告。因未找到直接前作，标疑似新，也只覆盖一个参数、四个取值。</p>
+
+<h3>C7. 两个中点起点也未使 A 时间变化超过 1%</h3>
+<p>同一保存曲线固定初始斜率 1，仅把拟合中点初值 h0 从参考时钟的 10 改为 1 与 100，2/2 成功，最大差 0.000001423115398%，通过事前 1% 判据。D13 明说这只排除两个指定中点起点造成超过 1% 偏差，A/B 偏移与跨 seed 稳健性失败仍未解决。</p>
+<ul class="refs">
+<li><a href="#ref-learningcurves2022">The Shape of Learning Curves: A Review (2022)</a>：讨论学习曲线形状与拟合，是「曲线形状可被参数化描述」的背景，但不涉及中点读数对初值的稳健性。</li>
+</ul>
+<p><b>判定：疑似新。</b>与 C6 同类，是拟合初值敏感性检查；未见直接前作，且仅两个取值、不覆盖参数可识别性。</p>
+
+<h3>C8. 初始深度标定的反例仍保留</h3>
+<p>在 $\sigma=0.8$、$\eta=0.02$ 的无 skip 链上，深度 1、2、4、8 的 A 时间均值为 9.197、1.161、0.926、4.593 步；线性斜率 −0.263、R²=0.044，未支持「深度越大相变越晚」。D13 明说这限定当前时间读出方法，不否定「固定数据与更新规则下完整初始矩阵决定动力学」。</p>
+<ul class="refs">
+<li><a href="#ref-saddletosaddle2021">Saddle-to-Saddle Dynamics in Deep Linear Networks (2021)</a>；<a href="#ref-saddlediag2023">... in Diagonal Linear Networks (2023)</a>；<a href="#ref-sgdsaddle2026">SGD in the Saddle-to-Saddle Regime (2026)</a>：深线性网络的训练按序越过鞍点，深度改变学习次序——是「深度影响相变时间」的理论侧。</li>
+<li><a href="#ref-deeplinearrand2025">Deep Linear Network Training Dynamics from Random Initialization (2025)</a>：显式研究数据、宽度、深度与超参在随机初始化下的传递，直接邻接 D13 的「深度 → 时间」问题。</li>
+<li><a href="#ref-cascading2026">Cascading Through the Hierarchy (2026)</a>：把深线性网络中的特征检测描述成级联相变，说明「深度—相变次数」关系是活跃研究对象。</li>
+<li><a href="#ref-identity2016">Identity Mappings in Deep Residual Networks (2016)</a>；<a href="#ref-skipsingular2017">Skip Connections Eliminate Singularities (2017)</a>；<a href="#ref-skiplandscape2020">Is the Skip Connection Provable to Reform the Neural Network Loss Landscape? (2020)</a>：skip/恒等连接改变深度端的动力学与损失面，是 D13 尚未进入的 skip 组合律的理论背景。</li>
+</ul>
+<p><b>判定：部分已知。</b>「深度改变深线性网络的动力学与学习次序」有成熟理论（saddle-to-saddle、层级相变）；但 D13 这条是<b>反例</b>——在它的受控设置下深度并<b>不</b>单调推迟相变（斜率 −0.263、R²=0.044），这与「更深 ⇒ 更多级联相变 ⇒ 更晚」的朴素期待相反。方向已在文献里，具体反例读数疑似新。</p>
+
+<h2>相关文献</h2>
+<ol class="refs">
+<li id="ref-cascading2026">Cascading Through the Hierarchy: Regularizer-Induced Feature Detection as Phase Transitions in Deep Linear Neural Networks (2026). <a href="https://arxiv.org/abs/2608.06597">arXiv:2608.06597</a> · DOI 10.48550/arxiv.2608.06597（OpenAlex W7202147690）</li>
+<li id="ref-catapultsgd2023">Catapults in SGD: spikes in the training loss and their impact on generalization through feature learning (2023). <a href="https://arxiv.org/abs/2306.04815">arXiv:2306.04815</a> · DOI 10.48550/arxiv.2306.04815（OpenAlex W4380136152）</li>
+<li id="ref-deeplinearrand2025">Deep Linear Network Training Dynamics from Random Initialization: Data, Width, Depth, and Hyperparameter Transfer (2025). <a href="https://arxiv.org/abs/2502.02531">arXiv:2502.02531</a> · DOI 10.48550/arxiv.2502.02531（OpenAlex W4407186888）</li>
+<li id="ref-eos2021">Gradient Descent on Neural Networks Typically Occurs at the Edge of Stability (2021). <a href="https://arxiv.org/abs/2103.00065">arXiv:2103.00065</a> · DOI 10.48550/arxiv.2103.00065（OpenAlex W3132026801）</li>
+<li id="ref-identity2016">Identity Mappings in Deep Residual Networks (2016). <a href="https://arxiv.org/abs/1603.05027">arXiv:1603.05027</a> · DOI 10.48550/arxiv.1603.05027（OpenAlex W2949427019）</li>
+<li id="ref-interp2022">The interpolation phase transition in neural networks: Memorization and generalization under lazy training (2022). DOI <a href="https://doi.org/10.1214/22-aos2211">10.1214/22-aos2211</a>（OpenAlex W3044937292）</li>
+<li id="ref-landscaperegimes2021">Landscape and training regimes in deep learning (2021). <em>Physics Reports</em>. DOI <a href="https://doi.org/10.1016/j.physrep.2021.04.001">10.1016/j.physrep.2021.04.001</a>（OpenAlex W3153303803）</li>
+<li id="ref-learningcurves2022">The Shape of Learning Curves: A Review (2022). <em>IEEE TPAMI</em>. DOI <a href="https://doi.org/10.1109/tpami.2022.3220744">10.1109/tpami.2022.3220744</a>（OpenAlex W3136016591）</li>
+<li id="ref-phasetrans2023">Zeroth, first, and second-order phase transitions in deep neural networks (2023). <em>Phys. Rev. Research</em> 5, 043243. DOI <a href="https://doi.org/10.1103/physrevresearch.5.043243">10.1103/physrevresearch.5.043243</a>（OpenAlex W4389763667）</li>
+<li id="ref-rmtlr2020">Learning Rates as a Function of Batch Size: A Random Matrix Theory Approach to Neural Network Training (2020). <a href="https://arxiv.org/abs/2006.09092">arXiv:2006.09092</a> · DOI 10.48550/arxiv.2006.09092（OpenAlex W3103622152）</li>
+<li id="ref-saddlediag2023">Saddle-to-Saddle Dynamics in Diagonal Linear Networks (2023). <a href="https://arxiv.org/abs/2304.00488">arXiv:2304.00488</a> · DOI 10.48550/arxiv.2304.00488（OpenAlex W4362598441）</li>
+<li id="ref-saddletosaddle2021">Saddle-to-Saddle Dynamics in Deep Linear Networks: Small Initialization Training, Symmetry, and Sparsity (2021). <a href="https://arxiv.org/abs/2106.15933">arXiv:2106.15933</a> · DOI 10.48550/arxiv.2106.15933（OpenAlex W4286795904）</li>
+<li id="ref-sgdsaddle2026">Stochastic Gradient Descent in the Saddle-to-Saddle Regime of Deep Linear Networks (2026). <a href="https://arxiv.org/abs/2604.06366">arXiv:2604.06366</a> · DOI 10.48550/arxiv.2604.06366（OpenAlex W7152708613）</li>
+<li id="ref-skiplandscape2020">Is the Skip Connection Provable to Reform the Neural Network Loss Landscape? (2020). <a href="https://arxiv.org/abs/2006.05939">arXiv:2006.05939</a> · IJCAI 2020, DOI <a href="https://doi.org/10.24963/ijcai.2020/387">10.24963/ijcai.2020/387</a>（OpenAlex W3034243911）</li>
+<li id="ref-skipsingular2017">Skip Connections Eliminate Singularities (2017). <a href="https://arxiv.org/abs/1701.09175">arXiv:1701.09175</a> · DOI 10.48550/arxiv.1701.09175（OpenAlex W2623790698）</li>
+<li id="ref-spectraledge2026">Spectral Edge Dynamics: An Analytical-Empirical Study of Phase Transitions in Neural Network Training (2026). <a href="https://arxiv.org/abs/2603.28964">arXiv:2603.28964</a> · DOI 10.48550/arxiv.2603.28964（OpenAlex W7147016776）</li>
+<li id="ref-surge2024">Surge Phenomenon in Optimal Learning Rate and Batch Size Scaling (2024). <a href="https://arxiv.org/abs/2405.14578">arXiv:2405.14578</a> · DOI 10.48550/arxiv.2405.14578（OpenAlex W4398836280）</li>
+<li id="ref-timetransfer2024">Time Transfer: On Optimal Learning Rate and Batch Size In The Infinite Data Limit (2024). <a href="https://arxiv.org/abs/2410.05838">arXiv:2410.05838</a> · DOI 10.48550/arxiv.2410.05838（OpenAlex W4403347080）</li>
+<li id="ref-variance2023">On the Variance of Neural Network Training with respect to Test Sets and Distributions (2023). <a href="https://arxiv.org/abs/2304.01910">arXiv:2304.01910</a> · DOI 10.48550/arxiv.2304.01910（OpenAlex W4362656047）</li>
+</ol>
+
+<h2>方法与边界</h2>
+<p>检索词包括 <code>phase transition training time</code>、<code>effective depth</code>、<code>skip connection</code>、<code>residual network dynamics</code>、<code>catapult mechanism</code>、<code>linear network flow</code>，以及 <code>deep linear network dynamics</code>、<code>saddle-to-saddle</code>、<code>linear scaling rule learning rate batch size</code>、<code>seed variability</code>、<code>loss curve</code>。本轮 arXiv API（<code>export.arxiv.org/api/query</code>）反复返回 HTTP 429，未能取得任何条目；所有引用均来自 <code>api.openalex.org/works</code> 的实际返回，并保留其 OpenAlex ID 与 arXiv/DOI 编号。判定基于标题、年份与书目记录，未核验全文，也<b>不构成新颖性结论</b>：标「疑似新」仅是本轮检索的负结果。</p>
+<p>词义提醒：文献里的 “phase transition” 常指 lazy-training 的插值相变（按参数/样本量计的阈值）或物理相变；“effective depth” 在残差网络文献里指等效可及的浅子网络数。两者与 D13 的「loss 曲线拟合中点 $t_c$」和「由 $t_c$ 换算的链深度」同名不同物，不能直接互引。D13 的结论只覆盖无 skip、$L\in\{1,2,4,8\}$、width 32、$\sigma=0.8$、4×4 正交目标、固定 128×4 高斯输入、float64 全批量 GD，学习率配对仅 L4、seed 11/22/33、$\eta\in\{0.02,0.005,0.00125,0.0003125\}$、$\tau\le60$；属 development，不外推 skip、其他宽度/$\sigma$/目标谱、优化器、泛化或无限时间梯度流。</p>
+
+<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 本轮 arXiv API 限流（HTTP 429），检索以 OpenAlex 完成 · 网页在 prototype 仓库内维护</div>
+</main></body></html>

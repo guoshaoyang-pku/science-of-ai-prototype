@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D6：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D6_kernel_drift.html">D6 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D6_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D6：命题 × 文献状态对照（深度确认）</h1>
+<p class="bg">本页把 D6 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 arXiv API 与 OpenAlex（2026-10-11），判定基于论文标题、作者、年份与摘要，<b>尚未逐篇精读全文</b>。需要先分清两件事：D6 的“核漂移”是<b>有限宽网络训练中经验核（empirical NTK）随时间变化</b>——这一现象在文献里确有专门研究（kernel evolution / kernel learning / silent alignment）；D6 的贡献不在“发现核会漂移”，而在<b>用固定 $r_0$、做 trace 匹配后检验早期漂移方向能否预测晚期幅度</b>，并给出对输入 draw 敏感的受控反例。</p>
+<p class="bg">「疑似新」只表示本轮检索<b>未找到直接前作</b>，不等于学术上不存在；判定随检索范围变化。D6 的对照对象是 $d=3$、$n=32$ 高斯输入、product/mixed_sine、width 8/32、两层 SiLU、全批量 SGD（$\eta=0.05$，momentum/weight decay 为 0）的 development 实验，不外推真实网络或其他优化器。</p>
+
+<div class="legend">
+判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
+<span class="tag mix">部分已知</span>现象相同但对象或构造不同（例如文献在真实网络/分类任务上研究 NTK 演化，D6 在受控小回归上做 trace 匹配的幅度预测）·
+<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<b>—</b> 需读全文才能定论
+</div>
+
+<h2>总览</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr><th>编号</th><th>D6 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
+</thead>
+<tbody>
+<tr><td>Q</td><td>加入标签早期核读数不改善晚期预测（$\Delta&lt;0$ 再现，260610 $\Delta=-0.029842999$），但点预期 $-0.20$ 未实现、四 recipe 区间均跨零</td><td><span class="tag mix">部分已知</span></td><td>Jacot et al. 2018；Loo et al. 2022；Hanin &amp; Nica 2019；2608.03709</td></tr>
+<tr><td>C1</td><td>trace 匹配 + 固定 $r_0$ 后，早期核漂移方向在 3/4 recipe 持续（product×8、product×32、mixed_sine×32 各 2/3；mixed_sine×8 为 0/3 反例）</td><td><span class="tag mix">部分已知</span></td><td>Atanasov et al. 2021；Paccolat et al. 2020；Hanin &amp; Nica 2019</td></tr>
+<tr><td>C2</td><td>固定标签早期读数在原 draw 降低晚期预测误差（260606 T MAE 0.441188817 vs E 0.550345073，改善 0.109156256，过 ≤0.70/≥0.08；W 改善 0.052337126）</td><td><span class="tag mix">部分已知</span></td><td>2105.14301；2608.19497；Paccolat et al. 2020</td></tr>
+<tr><td>C3</td><td>该收益不迁移：三个新 draw 相对改善为负（−0.383048543、−0.152998507、−0.045043418，260610 亦 −0.029842999），对输入 draw 敏感</td><td><span class="tag mix">部分已知</span></td><td>2608.19497；2203.14577</td></tr>
+<tr><td>C4</td><td>260607/260608 的预注册预测被推翻（≤0.70/≥0.08 联合失败；失效再现的 MAE&gt;0.70 项被否证）</td><td><span class="tag no">疑似新</span></td><td>—</td></tr>
+<tr><td>C5</td><td>仅换 data_seed 同时改变输入、clean 目标与居中/RMS 归一化，不能将失效独立归因于其中一项</td><td><span class="tag no">疑似新</span></td><td>—</td></tr>
+<tr><td>C6</td><td>标签读数 $Q$ 的负系数是关联，不证明目标对齐越高越坏</td><td><span class="tag mix">部分已知</span></td><td>2105.14301；2311.18817</td></tr>
+<tr><td>C7</td><td>固定 $r_0$ 的方向持续不保证晚期残差 $r_t$ 拟合收益或 test 改善</td><td><span class="tag mix">部分已知</span></td><td>2507.12837；Atanasov et al. 2021</td></tr>
+<tr><td>C8</td><td>trace 匹配排除整体核尺度差异；固定 $r_0$ 排除残差旋转（方法控制）</td><td><span class="tag ok">已知</span></td><td>Atanasov et al. 2021；Hanin &amp; Nica 2019</td></tr>
+</tbody>
+</table></div>
+
+<h2>逐条对照</h2>
+
+<h3>Q. 核心命题：早期核读数能否预测晚期幅度</h3>
+<p>D6 问：把早期（第 32 步）核读数 $E,Q$ 冻结成公式后，能否预测晚期（第 256 步）固定 $r_0$ 下的核读数 $L$。核心符号判据是 $\Delta=\mathrm{MAE}_E-\mathrm{MAE}_T&lt;0$，即“加了标签读数 $Q$ 的 T 模型并不比只用 $E$ 的 E 模型更准”。260610 给出 $\Delta=-0.029842999$，符号再现；但点预期 $-0.20$ 与实测相差 $+0.170157001$，T 仅 5/12 cell 更好，四 recipe 三初始化区间均跨零。</p>
+<ul class="refs">
+<li><a href="#ref-jacot2018">Jacot et al. (2018)</a>：NTK 在无限宽极限下冻结并给出函数空间的线性演化——即“用核描述晚期动力学”的范式来源。</li>
+<li><a href="#ref-loo2022">Loo et al. (2022)</a>：在有限宽下实证经验 NTK 的演化，指出特征学习发生在<b>训练早期</b>（kernel learning），随后进入核基本固定的 lazy 阶段——即“早期核读数携带晚期信息”的直接背景。</li>
+<li><a href="#ref-hanin2019">Hanin &amp; Nica (2019)</a>：证明深而宽 ReLU 网络中 NTK 在训练中非平凡地演化，首次 SGD 更新期望随深宽比指数变化——核会动、且早期就动。</li>
+<li><a href="#ref-telemetry2026">Predicting DNN Training Outcomes from Early Training Telemetry (2026)</a>：直接研究用<b>早期训练遥测预测训练结局</b>，与 Q 的问题设定最接近。</li>
+</ul>
+<p><b>判定：部分已知。</b>“用核/早期读数刻画并预测训练演化”是已被反复研究的主题（NTK、kernel evolution、early telemetry）；但文献多在真实网络的分类/鲁棒性场景或系统级遥测上做<b>相关性</b>预测，D6 给的是受控小回归下的<b>符号判据反例</b>（$\Delta&lt;0$ 再现但幅度不实现），并非首次提出“早期读数可预测晚期”。</p>
+
+<h3>C1. 早期核漂移方向在 3/4 recipe 持续</h3>
+<p>排除整体核尺度（trace 匹配）并固定初始残差 $r_0$ 后，D6 要求同一 recipe 至少 2/3 seed 在第 32 步与第 256 步保留同一非零方向（超过 5% deadband）。product×8、product×32、mixed_sine×32 各 2/3 通过；mixed_sine×8 为 0/3，是反例。</p>
+<ul class="refs">
+<li><a href="#ref-atanasov2021">Atanasov et al. (2021)</a>：silent alignment——核在早期<b>幅度还小</b>时就完成特征结构（eigenstructure）的演化，之后仅整体放大尺度；等价于“方向早期定、尺度晚期长”，正是 D6 分离 trace（尺度）与方向的做法。</li>
+<li><a href="#ref-paccolat2020">Paccolat et al. (2020)</a>：证明压缩会改变 NTK 的时间演化，使其 top eigenvectors 变得更有信息、对标签投影更大，且<b>训练末端的冻结 NTK 优于初始 NTK</b>。</li>
+<li><a href="#ref-hanin2019">Hanin &amp; Nica (2019)</a>：给出核早期演化的解析尺度。</li>
+</ul>
+<p><b>判定：部分已知。</b>“早期核方向/谱结构演化并趋于稳定”在 silent alignment 与 NTK 演化文献中已有；D6 的新意只在<b>特定判据</b>——trace 匹配 + 固定 $r_0$ 后在步 32/256 之间的方向持续性检验与 3/4 通过/1 反例的受控计数，而非现象本身。</p>
+
+<h3>C2. 固定标签早期读数在原 draw 降低晚期预测误差</h3>
+<p>在 data_seed260606、新初始化（init701/719/737）上，冻结 T 模型（$E$ 读数 + 标签读数 $Q$）的 MAE 为 0.441188817，相对 E 的 0.550345073 改善 0.109156256，通过事前 ≤0.70/≥0.08 判据；W（$E$ + 宽度指示）改善 0.052337126。</p>
+<ul class="refs">
+<li><a href="#ref-align2021">A Theory of Neural Tangent Kernel Alignment and Its Influence on Training (2021)</a>：系统研究 NTK 对齐度如何影响训练，把“核-标签对齐”量化并与其动力学联系。</li>
+<li><a href="#ref-quantum2026">Juárez-Osorio et al. (2026)</a>：用 kernel-target alignment、kernel drift 等 NTK 诊断量刻画学习几何。</li>
+<li><a href="#ref-paccolat2020">Paccolat et al. (2020)</a>：训练末端核（含标签信息的核）优于初始核，支持“晚期可被携带标签信息的核读数预测”。</li>
+</ul>
+<p><b>判定：部分已知。</b>“核-标签对齐是训练/泛化的预测性诊断量”已有理论与实证；D6 的价值是把该诊断落到<b>固定早期读数 → 晚期幅度</b>的回归、并给出单 draw 通过的具体数字，而非首次提出对齐量。</p>
+
+<h3>C3. 收益不迁移：对输入 draw 敏感</h3>
+<p>同一冻结 T 公式在 260607/260608/260609/260610 上的相对 E 改善分别为 $-0.383048543$、$-0.152998507$、$-0.045043418$、$-0.029842999$，全部为负；T 逐 cell 更优数从 7/12 降到 2–5/12，四 recipe 区间跨零。</p>
+<ul class="refs">
+<li><a href="#ref-quantum2026">Juárez-Osorio et al. (2026)</a>：明确指出<b>单个 NTK 诊断量不构成验证收敛的单调预测器</b>（individual NTK diagnostics do not provide monotonic predictors of validation convergence）——与 C3 的“收益不迁移”最接近。</li>
+<li><a href="#ref-demystify2022">Demystifying the NTK from a Practical Perspective (2022)</a>：检验 NTK 派生量在跨条件实际使用中的可靠性，提示其预测能力受设定影响。</li>
+</ul>
+<p><b>判定：部分已知。</b>“早期/单指标诊断在跨设定下不稳健、不单调”已有文献明确指出；D6 的贡献是把它做成<b>冻结公式在指定 draw 上的受控负迁移反例</b>（带配对区间），而非首次发现 NTK 诊断不可靠。</p>
+
+<h3>C4. 260607/260608 的预注册预测被推翻</h3>
+<p>260607 推翻“T MAE≤0.70 且改善≥0.08”的联合预测（T MAE 升至 1.265316394）与“W 改善&lt;0.08”预测；260608 又推翻“MAE&gt;0.70 且改善&lt;0.08”的失效再现预测（绝对误差回到 0.70 内）。两批均为事先注册的联合阈值判据的证伪。</p>
+<p><b>判定：疑似新。</b>这属于对<b>具体预注册联合阈值</b>的逐批证伪，本轮 arXiv/OpenAlex 检索未找到同构的、在同一受控合同下用注册阈值检验“早期核读数迁移”的前作。注意：这是本团队协议下的否证结果，不是一般性理论命题。</p>
+
+<h3>C5. data_seed 变更的混杂</h3>
+<p>D6 明确：换 data_seed 会<b>同时</b>改变输入 draw、clean（无噪声）目标与样本居中/RMS 归一化，因而不把失效独立归因于其中任何一项。这是一个受控但多因子联动的边界声明。</p>
+<p><b>判定：疑似新。</b>“数据种子同时耦合输入、目标与归一化”的显式边界声明，本轮检索未见直接前作；相关但不同的方向是数据对称性/初始化对特征学习的影响（如 Breaking Data Symmetry, 2026）。</p>
+
+<h3>C6. 标签读数 $Q$ 的负系数是关联而非因果</h3>
+<p>D6 的 $Q=\log\!\big((y^\top K_{32} y)/(a_{32}\,y^\top K_0 y)\big)$ 在 T 公式中系数为负，报告强调这描述<b>关联</b>，不证明“目标对齐越高越坏”。</p>
+<ul class="refs">
+<li><a href="#ref-align2021">A Theory of NTK Alignment (2021)</a>：对齐度与训练/泛化的关系被当作<b>影响/相关</b>来研究，并非单一方向的因果律。</li>
+<li><a href="#ref-grokking2023">Dichotomy of Early and Late Phase Implicit Biases (2023)</a>：早期与晚期隐式偏置的相互作用，说明为何“早期对齐”与“最终行为”之间不是简单单调关系。</li>
+</ul>
+<p><b>判定：部分已知。</b>把核-标签对齐处理成相关/影响的量是标准做法，D6 的措辞与之一致；其新意在提醒不要在受控回归外把 $Q$ 读成因果机制。</p>
+
+<h3>C7. 固定 $r_0$ 方向持续不保证晚期 $r_t$ 拟合或 test</h3>
+<p>D6 强调：预测目标是固定 $r_0$ 下的晚期核读数，而非移动残差 $r_t$ 的拟合速度；方向持续不保证 $r_t$ 拟合收益或测试集改善。</p>
+<ul class="refs">
+<li><a href="#ref-eos2025">Jiang, Cohen &amp; Li (2025)</a>：在 edge of stability 下观察到更大学习率使晚期 NTK 的 leading eigenvectors 与训练目标更对齐——说明“晚期对齐”与训练设置强相关，早期方向不自动等于晚期收益。</li>
+<li><a href="#ref-atanasov2021">Atanasov et al. (2021)</a>：silent alignment 下早期定方向、晚期长尺度；方向固定并不单独给出泛化保证。</li>
+</ul>
+<p><b>判定：部分已知。</b>“早期核方向/对齐不自动保证晚期拟合或泛化”与 NTK 演化、EoS 文献一致；D6 是在固定 $r_0$ 幅度的受控检验里复述并限定该边界。</p>
+
+<h3>C8. trace 匹配与固定 $r_0$ 的方法控制</h3>
+<p>trace 匹配（$a_t=\mathrm{trace}(K_t)/\mathrm{trace}(K_0)$）排除读数中的整体核尺度差异；固定 $r_0$ 排除读数中的残差旋转，使 $\rho_t=R(r_0,K_t)/R(r_0,a_tK_0)$ 只反映方向变化。</p>
+<ul class="refs">
+<li><a href="#ref-atanasov2021">Atanasov et al. (2021)</a>：把核演化分解为“方向（eigenstructure）”与“整体尺度”两部分，D6 的控制与之一致。</li>
+<li><a href="#ref-hanin2019">Hanin &amp; Nica (2019)</a>：给出 trace/尺度随训练变化的解析描述。</li>
+</ul>
+<p><b>判定：已知。</b>把核演化拆成尺度与方向、并用 Rayleigh 商取固定方向上的作用是标准构造；D6 是把该控制显式写进受控协议，而非新增理论。</p>
+
+<h2>相关文献</h2>
+<ol class="refs">
+<li id="ref-align2021">A Theory of Neural Tangent Kernel Alignment and Its Influence on Training (2021). <a href="https://doi.org/10.48550/arxiv.2105.14301">arXiv:2105.14301</a>（OpenAlex W4287163837）</li>
+<li id="ref-atanasov2021">Atanasov, A., Bordelon, B., &amp; Pehlevan, C. (2021). Neural networks as kernel learners: the silent alignment effect. <em>ICLR 2022</em>. <a href="https://arxiv.org/abs/2111.00034">arXiv:2111.00034</a></li>
+<li id="ref-demystify2022">Demystifying the neural tangent kernel from a practical perspective: can it be trusted for neural architecture search without training? (2022). <a href="https://doi.org/10.48550/arxiv.2203.14577">arXiv:2203.14577</a>（OpenAlex W4221145570）</li>
+<li id="ref-eos2025">Jiang, K., Cohen, J., &amp; Li, Y. (2025). Understanding the evolution of the neural tangent kernel at the edge of stability. <a href="https://arxiv.org/abs/2507.12837">arXiv:2507.12837</a></li>
+<li id="ref-grokking2023">Dichotomy of early and late phase implicit biases can provably induce grokking (2023). <a href="https://doi.org/10.48550/arxiv.2311.18817">arXiv:2311.18817</a>（OpenAlex W4389261629）</li>
+<li id="ref-gu2019">Guo, E., &amp; Draper, D. (2021). Neural tangent kernel of matrix product states: convergence and applications. <a href="https://arxiv.org/abs/2111.14046">arXiv:2111.14046</a></li>
+<li id="ref-hanin2019">Hanin, B., &amp; Nica, M. (2019). Finite depth and width corrections to the neural tangent kernel. <a href="https://arxiv.org/abs/1909.05989">arXiv:1909.05989</a></li>
+<li id="ref-jacot2018">Jacot, A., Gabriel, F., &amp; Hongler, C. (2018). Neural tangent kernel: convergence and generalization in neural networks. <em>NeurIPS 2018</em>. <a href="https://arxiv.org/abs/1806.07572">arXiv:1806.07572</a></li>
+<li id="ref-kumar2023">Kumar, T., Bordelon, B., Gershman, S. J., &amp; Pehlevan, C. (2023). Grokking as the transition from lazy to rich training dynamics. <a href="https://arxiv.org/abs/2310.06110">arXiv:2310.06110</a></li>
+<li id="ref-li2023">Li, G., Qiu, H., Guo, S., Li, J., &amp; Zhang, T. (2023). Rethinking adversarial training with neural tangent kernel. <a href="https://arxiv.org/abs/2312.02236">arXiv:2312.02236</a></li>
+<li id="ref-loo2022">Loo, N., Hasani, R., Amini, A., &amp; Rus, D. (2022). Evolution of neural tangent kernels under benign and adversarial training. <em>NeurIPS 2022</em>. <a href="https://arxiv.org/abs/2210.12030">arXiv:2210.12030</a></li>
+<li id="ref-paccolat2020">Paccolat, J., Petrini, L., Geiger, M., Tyloo, K., &amp; Wyart, M. (2020/2021). Geometric compression of invariant manifolds in neural nets. <em>J. Stat. Mech.</em> <a href="https://arxiv.org/abs/2007.11471">arXiv:2007.11471</a></li>
+<li id="ref-quantum2026">Juárez-Osorio, S. L., Hernandez-Martinez, J. I., Ruiz-Martinez, J. I., Mendez-Vazquez, A., &amp; Rodriguez-Tello, E. (2026). Empirical characterization of learning geometry in hybrid quantum forecasting models. <a href="https://arxiv.org/abs/2608.19497">arXiv:2608.19497</a></li>
+<li id="ref-seleznova2023">Seleznova, M., Weitzner, D., Giryes, R., Kutyniok, G., &amp; Chou, H.-H. (2023). Neural (tangent kernel) collapse. <em>NeurIPS 2023</em>. <a href="https://arxiv.org/abs/2305.16427">arXiv:2305.16427</a></li>
+<li id="ref-symmetry2026">Breaking data symmetry is needed for generalization in feature learning kernels (2026). <a href="https://doi.org/10.48550/arxiv.2604.00316">arXiv:2604.00316</a>（OpenAlex W7148405216）</li>
+<li id="ref-telemetry2026">Predicting deep neural network training outcomes from early training telemetry (2026). <a href="https://doi.org/10.48550/arxiv.2608.03709">arXiv:2608.03709</a>（OpenAlex W7172513183）</li>
+<li id="ref-earlyphase2020">The early phase of neural network training (2020). <a href="https://doi.org/10.48550/arxiv.2002.10365">arXiv:2002.10365</a>（OpenAlex W2996309822）</li>
+<li id="ref-zokernel2026">Zhang, C., Cheng, Y., Ding, C., Wang, S., Lei, J., Yu, R., Wu, Y.-C., &amp; Wong, N. (2026). Model evolution under zeroth-order optimization: a neural tangent kernel perspective. <a href="https://arxiv.org/abs/2603.21169">arXiv:2603.21169</a></li>
+</ol>
+
+<h2>方法与边界</h2>
+<p>检索词包括 <code>neural tangent kernel evolution</code>、<code>kernel drift</code>、<code>kernel learning</code>、<code>lazy to rich</code>、<code>feature learning</code>、<code>early training predicts late</code>、<code>kernel target alignment</code>、<code>NTK finite width</code>。判定基于标题、作者、年份与摘要；引用条目均经 arXiv/OpenAlex 接口返回核对，未见虚构条目。本轮 arXiv API 对部分后续查询返回 429（限流），故部分条目仅以 OpenAlex 返回的 DOI/arXiv 编号核对；未核验全文，也<b>不构成新颖性结论</b>：标「疑似新」仅是本轮检索的负结果。</p>
+<p>词义提醒：D6 的“核漂移（kernel drift）”指训练中<b>经验 NTK 的方向变化</b>（已排除整体尺度）；它<b>不等于</b>概念漂移（concept drift / distribution shift）或量子模型里的 quantum kernel drift。D6 的结论只覆盖 $d=3$、$n=32$ 高斯输入、product/mixed_sine×width8/32、两层 SiLU、全批量 SGD $\eta=0.05$/mom0/wd0、step32→256，属 development，不外推真实网络、其他优化器、层归一化、更深网络或泛化性能。</p>
+
+<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+</main></body></html>

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D8：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D8_activation_pathway.html">D8 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D8_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D8：命题 × 文献状态对照（深度确认）</h1>
+<p class="bg">本页把 D8 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 arXiv API 与 OpenAlex（2026-10-11）。arXiv API 本轮持续返回 HTTP 429（限流），故实际返回结果全部来自 <b>OpenAlex</b>；判定基于标题、年份与摘要级信息，<b>尚未逐篇精读全文</b>。重要校正：D8 用「输入反射 $x\to-x$ 下变号／不变」定义奇特征与居中偶特征，这正是激活函数关于 0 的 <b>奇偶（parity）分解</b>；文献里同一主题通常写在 <b>spectral bias / frequency principle（谱偏置／频率原理）</b>、<b>activation-function dependence of spectral bias</b> 与 <b>parity learning</b> 三个标题下，而不叫「偶/奇能量比」。</p>
+<p class="bg">「疑似新」只表示本轮检索<b>未找到直接前作</b>，不等于学术上不存在；判定随检索范围变化。D8 的对照对象是冻结单层 SiLU、对称 Gaussian 四维输入、MSE、全批量 GD 的 development 实验，不外推多层、可学习隐藏层或非对称输入。</p>
+
+<div class="legend">
+判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
+<span class="tag mix">部分已知</span>现象或方法相同但对象/构造不同（例如文献讨论谱偏置的幂律，D8 讨论固定 bias 下偶/奇能量比 $R$ 的 $a^2/a^6$）·
+<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<b>—</b> 需读全文才能定论
+</div>
+
+<h2>总览</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr><th>编号</th><th>D8 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
+</thead>
+<tbody>
+<tr><td>Q1</td><td>固定 bias（b=0/1）不改变小尺度偶/奇能量比 $R$ 的 $a^2$ 领先阶（增长 3.984–4.003、指数均值 1.995/2.001）</td><td><span class="tag mix">部分已知</span></td><td>激活依赖的谱偏置（arXiv:2208.04924）；多项式网络谱偏置（arXiv:2202.13473）；频率原理综述（arXiv:2201.07395）</td></tr>
+<tr><td>Q2</td><td>二阶导数正零点 $b^\*=2.3993572805154675$ 处二次偶项消失、四次偶项领先（增长 63.95–63.99、指数均值 5.999、判据 [48,80]）</td><td><span class="tag mix">部分已知</span>（解析机制）/ <span class="tag no">疑似新</span>（该构造）</td><td>对称门控激活的 Hermite 结构（DOI:10.56947/bs4wx079）；Beyond ReLU（arXiv:2506.22429）</td></tr>
+<tr><td>Q3</td><td>近根混合式（二次＋四次＋交叉项）解释有限尺度 $R$（108 cell 最大相对误差 $0.001192850$；δ=0/±1e−5 增长 62.81–65.19∈[60,68]）</td><td><span class="tag no">疑似新</span></td><td>激活的 Taylor/频率分解（arXiv:2208.04924；arXiv:1912.01198）</td></tr>
+<tr><td>Q4</td><td>固定 λ=δ/$a^2$=−3/+3 时 $Q=R/a^6$ 跨三小尺度相差 &lt;2%（配对 spread 0.0110–0.0121；36 cell 对解析极限 $F$ 最大误差 0.01291&lt;0.02）</td><td><span class="tag no">疑似新</span></td><td>谱偏置标度律/塌缩（arXiv:2208.04924；arXiv:2506.22429）</td></tr>
+<tr><td>Q5</td><td>$a=0.1$ 处 2% 精度失效（abs($Q/F$−1)=0.0457–0.0523，0/12；四尺度 spread 0.0471–0.0514，0/12；范围预测 [0.03,0.07] 12/12 命中）</td><td><span class="tag mix">部分已知</span>（有限尺度失效）/ <span class="tag no">疑似新</span>（该边界）</td><td>幂级数收敛半径（数学通用）/ 激活谱偏置（arXiv:2208.04924）</td></tr>
+<tr><td>Q6</td><td>$a=0.075$ 处 2% 精度仍失效（abs($Q/F$−1)=0.02596–0.02919；四尺度 spread 0.0259–0.0284，0/12；逐 seed ±0.002 预测 12/12）</td><td><span class="tag mix">部分已知</span> / <span class="tag no">疑似新</span></td><td>同上</td></tr>
+<tr><td>Q7</td><td>总偶能量 ≠ 目标相关核能量，不能单独推断最终拟合优劣</td><td><span class="tag ok">已知</span></td><td>task-model alignment（DOI:10.1038/s41467-021-23103-1）；target alignment（arXiv:2206.14255）</td></tr>
+</tbody>
+</table></div>
+
+<h2>逐条对照</h2>
+
+<h3>Q1. 固定 bias 不改变小尺度偶/奇能量比 $R$ 的 $a^2$ 领先阶</h3>
+<p>在 $a=0.025\to0.05$ 时，b=0/1 的六 seed 增长分别为 3.984159–3.991788 / 4.002060–4.003272，指数均值 1.995464 / 2.000962，即 $R$ 仍以 $a^2$ 领先。把激活按输入反射做奇偶分解、再对每阶项估幂次，是谱偏置文献的标准手段。</p>
+<ul class="refs">
+<li><a href="#ref-actbias">Activation-function dependence of spectral bias（2022）</a>：证明「哪些分量先被学到」随激活函数的高阶可微结构改变，把谱偏置写成激活的解析性质。</li>
+<li><a href="#ref-polyNN">Spectral bias of polynomial neural networks（2022）</a>：把多项式激活网络的谱偏置写成各阶项贡献。</li>
+<li><a href="#ref-freqprinciple">Frequency principle / spectral bias 综述（2022）</a>：低频优先是普遍学习行为。</li>
+<li><a href="#ref-periodic">Periodic activation functions induce stationarity（2021）</a>：激活的周期/对称结构决定可学分量。</li>
+</ul>
+<p><b>判定：部分已知。</b>奇偶（parity）分解与「按阶项估幂律」在谱偏置文献中已系统使用；但「固定同一 bias 下偶/奇能量比 $R$ 保持 $a^2$ 领先阶」这一受控陈述在本轮检索中未见直接前作，D8 的价值是把该事实在冻结单层小系统里复核并给出边界。</p>
+
+<h3>Q2. 二阶导数零点处领先阶由 $a^2$ 变为 $a^6$</h3>
+<p>在 $b^\*=2.3993572805154675$，二次偶项 $f''(b)$ 消失，四次偶项成为领先项：同尺度六 seed 的 $R$ 增长 63.953437–63.985564，均值 63.970738，指数均值 5.999340，符合 $a^6$ 判据 [48,80]。</p>
+<ul class="refs">
+<li><a href="#ref-hermite">Hermite structure and spectral properties of symmetric gated activations（2026）</a>：用 Hermite/多项式阶结构刻画对称激活的谱性质。</li>
+<li><a href="#ref-beyondrelu">Beyond ReLU: how activations affect neural kernels（2025）</a>：激活的高阶导数结构决定其核与可学尺度。</li>
+<li><a href="#ref-actbias">Activation-function dependence of spectral bias（2022）</a>：同族结论的解析来源。</li>
+</ul>
+<p><b>判定：部分已知（解析机制）／疑似新（该构造）。</b>Taylor 领先系数消失后由下一阶接管属解析平凡事实，文献对「激活高阶结构决定可学尺度」已有讨论；但 $b^\*$ 的具体值与 $a^6$ 窗口 [48,80] 这一受控构造未见前作。</p>
+
+<h3>Q3. 近根混合式解释有限尺度 $R$</h3>
+<p>保留二次、四次偶项及交叉项的混合式 $R_{24}$ 解释了有限尺度 $R$：$a=0.025/0.05$ 的 108 cell 最大相对误差 0.001192850；δ=0/±1e−5 的六 seed 增长 62.813129–65.187934 均满足 [60,68]，±1e−4 全部离开该窗口。正偏移时两项相消，使有效指数可低于 2 或高于 6，不能用单调 $a^2\to a^6$ 描述转折。</p>
+<ul class="refs">
+<li><a href="#ref-actbias">Activation-function dependence of spectral bias（2022）</a>；<a href="#ref-understanding-spectral">Towards understanding the spectral bias（2019）</a>；<a href="#ref-polyNN">Polynomial NN spectral bias（2022）</a>：均从激活的 Taylor/频率展开出发分析可学分量。</li>
+</ul>
+<p><b>判定：疑似新。</b>「把激活做 Taylor 展开再逐阶分析」是既有方法，但把二次/四次偶项加交叉项写成一个近根混合式、并用 $a_{eq}$、$κ$ 刻画偶/奇能量比的有限尺度转折，本轮检索未见直接前作。</p>
+
+<h3>Q4. 固定 λ 时 $Q=R/a^6$ 跨小尺度塌缩</h3>
+<p>固定 λ=δ/$a^2$=−3/+3 时，$Q=R/a^6$ 在 $a=0.0125/0.025/0.05$ 三个尺度间相差不到 2%：12 个同 seed/λ 配对的 spread 为 0.011019256654–0.012094422622；36 cell 相对解析极限 $F$ 的最大误差 0.012907814800，均低于注册阈值 0.02。$F$ 由旧投影矩与导数确定，未拟合系数。</p>
+<ul class="refs">
+<li><a href="#ref-actbias">Activation-function dependence of spectral bias（2022）</a>；<a href="#ref-beyondrelu">Beyond ReLU（2025）</a>：讨论激活/尺度相关的谱偏置标度行为。</li>
+<li><a href="#ref-freqprinciple">Frequency principle 综述（2022）</a>：尺度与频率分量的对应是既有主题。</li>
+</ul>
+<p><b>判定：疑似新。</b>「标度塌缩」在其他语境（有效学习率、谱偏置标度律）被讨论过，但固定 δ/$a^2$ 比值下 $R/a^6$ 的塌缩及其解析极限 $F$，本轮检索未见直接前作。</p>
+
+<h3>Q5–Q6. $a=0.1$ 与 $a=0.075$ 处 2% 精度失效</h3>
+<p>$a=0.1$ 时 12 个新 cell 的 abs($Q/F$−1)=0.045673857405–0.052255236441，原判据 0/12 通过；四尺度 spread 0.047094464030–0.051410247227，折叠判据也 0/12。$a=0.075$ 时 abs($Q/F$−1)=0.025956782989–0.029189276970，四尺度 spread 0.025898649401–0.028362810341，两项均 0/12；事前预测的误差范围与 spread 落在 [0.03,0.07]，12/12 命中。</p>
+<ul class="refs">
+<li><a href="#ref-actbias">Activation-function dependence of spectral bias（2022）</a>；<a href="#ref-understanding-spectral">Towards understanding the spectral bias（2019）</a>：Taylor/频率近似的适用范围是既有讨论对象。</li>
+</ul>
+<p><b>判定：部分已知（通用数学）／疑似新（该边界）。</b>幂级数/Taylor 近似只在有限半径内成立属通用数学事实；但「λ=−3/+3、固定三小尺度通过、$a\ge0.075$ 失败」这一受控精度边界本轮检索未见前作。失败只限定有限尺度精度，不推翻小尺度结论或 $a\to0$ 解析极限。</p>
+
+<h3>Q7. 总偶能量不等于目标相关核能量</h3>
+<p>总偶能量（全部偶特征能量）不等于目标相关核能量（特征对指定目标的贡献），也不能单独推断最终拟合优劣。这是核-目标对齐文献的核心论点。</p>
+<ul class="refs">
+<li><a href="#ref-alignment">Spectral bias and task-model alignment（2021）</a>：泛化误差由核谱与目标能量的对齐决定，而非单一能量总量。</li>
+<li><a href="#ref-targetalign">Target alignment in truncated kernel ridge regression（2022）</a>：给出目标对齐的定量刻画。</li>
+<li><a href="#ref-featalign">Feature learning as alignment（2024）</a>：把梯度下降的特征学习解释为对齐过程。</li>
+</ul>
+<p><b>判定：已知。</b>「进度由目标加权谱而非单一能量决定」与核-目标对齐文献一致；D8 是把该区别在受控小系统里复核，而不是新增该原理。</p>
+
+<h2>相关文献</h2>
+<ol class="refs">
+<li id="ref-actbias">On the Activation Function Dependence of the Spectral Bias of Neural Networks (2022). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2208.04924">arXiv:2208.04924</a></li>
+<li id="ref-polyNN">The Spectral Bias of Polynomial Neural Networks (2022). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2202.13473">arXiv:2202.13473</a></li>
+<li id="ref-freqprinciple">Overview Frequency Principle / Spectral Bias in Deep Learning (2022). <em>arXiv preprint</em>；期刊版 2024. <a href="https://arxiv.org/abs/2201.07395">arXiv:2201.07395</a>；<a href="https://doi.org/10.1007/s42967-024-00398-7">DOI:10.1007/s42967-024-00398-7</a></li>
+<li id="ref-frequency">Theory of the Frequency Principle for General Deep Neural Networks (2021). <em>CSIAM Trans. Appl. Math.</em> <a href="https://doi.org/10.4208/csiam-am.so-2020-0005">DOI:10.4208/csiam-am.so-2020-0005</a></li>
+<li id="ref-understanding-spectral">Towards Understanding the Spectral Bias of Deep Learning (2019). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/1912.01198">arXiv:1912.01198</a></li>
+<li id="ref-beyondrelu">Beyond ReLU: How Activations Affect Neural Kernels and Random Wide Networks (2025). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2506.22429">arXiv:2506.22429</a></li>
+<li id="ref-hermite">Hermite Structure And Spectral Properties Of Symmetric Gated Activation Functions (2026). <a href="https://doi.org/10.56947/bs4wx079">DOI:10.56947/bs4wx079</a></li>
+<li id="ref-periodic">Periodic Activation Functions Induce Stationarity (2021). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2110.13572">arXiv:2110.13572</a></li>
+<li id="ref-symmetry-dynamics">On the symmetries in the dynamics of wide two-layer neural networks (2023). <em>Electronic Research Archive</em>. <a href="https://doi.org/10.3934/era.2023112">DOI:10.3934/era.2023112</a></li>
+<li id="ref-symconstraint">Symmetry Induces Structure and Constraint of Learning (2023). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2309.16932">arXiv:2309.16932</a></li>
+<li id="ref-paramsym">Parameter Symmetry Potentially Unifies Deep Learning Theory (2025). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2502.05300">arXiv:2502.05300</a></li>
+<li id="ref-parity2002">Learning Parities with Neural Networks (2020). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2002.07400">arXiv:2002.07400</a></li>
+<li id="ref-hiddenprogress2022">Hidden Progress in Deep Learning: SGD Learns Parities Near the Computational Limit (2022). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2207.08799">arXiv:2207.08799</a></li>
+<li id="ref-parity2412">Learning High-Degree Parities: The Crucial Role of the Initialization (2024). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2412.04910">arXiv:2412.04910</a></li>
+<li id="ref-parity2501">Hardness of Learning Fixed Parities with Neural Networks (2025). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2501.00817">arXiv:2501.00817</a></li>
+<li id="ref-parity2026">Learning High-Dimensional Parity Functions with Product Networks using Gradient Descent (2026). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2605.28612">arXiv:2605.28612</a></li>
+<li id="ref-sq2024">Matching the Statistical Query Lower Bound for k-Sparse Parity Problems with Sign Stochastic Gradient Descent (2024). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2404.12376">arXiv:2404.12376</a></li>
+<li id="ref-boolean-entropy">Neural networks are a priori biased towards Boolean functions with low entropy (2019). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/1909.11522">arXiv:1909.11522</a></li>
+<li id="ref-alignment">Spectral bias and task-model alignment explain generalization in kernel regression and infinitely wide neural networks (2021). <em>Nature Communications</em>. <a href="https://doi.org/10.1038/s41467-021-23103-1">DOI:10.1038/s41467-021-23103-1</a></li>
+<li id="ref-targetalign">Target alignment in truncated kernel ridge regression (2022). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2206.14255">arXiv:2206.14255</a></li>
+<li id="ref-featalign">Feature learning as alignment: a structural property of gradient descent in non-linear neural networks (2024). <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2402.05271">arXiv:2402.05271</a></li>
+</ol>
+
+<h2>方法与边界</h2>
+<p>检索词包括 <code>parity learning</code>、<code>symmetric activation</code>、<code>Taylor expansion loss</code>、<code>odd even symmetry</code>、<code>hidden progress parities</code>、<code>spectral bias / frequency principle</code>、<code>activation function dependence spectral bias</code>、<code>task-model alignment</code>。本轮 arXiv API（export.arxiv.org）持续返回 HTTP 429，故所有引用均经 <b>OpenAlex</b> 接口返回核对；批注中的 DOI 为 10.48550/arxiv.* 者即 arXiv 预印本，其编号即 arXiv ID。判定基于标题、年份与摘要，未见虚构条目，<b>未核验全文</b>。</p>
+<p>词义提醒：D8 的 $R$ 是「居中偶特征／奇特征」的均方能量比，文献里的 "spectral bias" 指频率分量的学习速度，两者共享奇偶/频率分解的骨架但不是同一个量。D8 结论只覆盖冻结单层 SiLU、对称 Gaussian d=4、train128、width64、特征 seed101–106、固定同单元 bias、MSE、全批量 GD（η=0.8/mom0/nodecay/1024）；未测随机 bias、非对称输入、多层、learned hidden、CE、小批量、其他数据或干预收益，<b>不构成新颖性结论</b>。</p>
+<p>边界提示：总偶能量不等于目标相关核能量，也不能单独推断最终拟合优劣（见 Q7）。「疑似新」仅为本轮检索的负结果，随检索范围变化。</p>
+
+<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+</main></body></html>
