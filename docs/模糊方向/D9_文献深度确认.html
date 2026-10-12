@@ -1,23 +1,24 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>D9：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<title>D9：小批量噪声与风险最低点的已有研究对照</title><link rel="stylesheet" href="style.css">
 <script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D9_minibatch_noise.html">D9 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D9_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
-<h1>D9：命题 × 文献状态对照（深度确认）</h1>
+<body><main><div class="nav"><a href="index.html">← 研究总览</a> · <a href="D9_minibatch_noise.html">D9 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D9_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D9：小批量噪声与风险最低点的已有研究对照</h1>
+<p class="bg"><b>先看结论：</b>小批量噪声及线性模型的均值、协方差递推已有理论。本报告的重点是给出指定条件下最低点移动的数值，并保留较高学习率预测失败和逐位核验失败。各条均有相关文献，具体位移不能推出连续的批量单调律；未找到直接前作也不等于新颖性确认。本页是摘要级文献对照，沿用原检索记录，本次仅修改文字。</p>
 <p class="bg">本页把 D9 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 arXiv API 与 OpenAlex（2026-10-11），判定基于论文标题、作者、年份与摘要，<b>尚未逐篇精读全文</b>。重要校正：D9 标题里的「有效时间」不是系统/HPC 的 <i>effective training time</i>（训练有效时间占比）；它对应的是<b>小批量噪声（minibatch noise）与梯度噪声尺度（gradient noise scale）</b>这一族——即噪声强度如何随批量大小、学习率与训练进程改变训练的时间标定与风险最低点位置。</p>
 <p class="bg">D9 的对照对象是固定特征 ReLU 线性头、n=64、d=4、无动量全批量/小批量 SGD 的 development 实验。报告自己已声明：其中「固定特征线性头的均值/协方差矩递推」属于<b>已知解析理论，不是本方向的新发现</b>。因此本页的重点，是判断 D9 各条受控测量中，哪些是文献早已确立的规律，哪些只是本轮的数值边界。</p>
 
 <div class="legend">
 判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
 <span class="tag mix">部分已知</span>现象相同但对象或构造不同（例如文献用真实网络/连续时间/渐近展开，D9 用固定特征线性头、离散无放回小批量的受控测量）·
-<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<span class="tag no">未找到直接前作</span>仅指原检索结果，不代表已确认新颖性 ·
 <b>—</b> 需读全文才能定论
 </div>
 
-<h2>总览</h2>
+<h2>已有噪声理论与最低点移动的具体测量</h2>
 <div class="table-wrap"><table>
 <thead>
 <tr><th>编号</th><th>D9 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
@@ -44,7 +45,7 @@
 </ul>
 <p><b>判定：部分已知。</b>「批量与学习率不能用统一系数互换、其交互条件依赖」已有理论与实验；D9 的贡献是在固定特征线性头上给出 22/24 与跨零区间的受控边界，而非首次发现该现象。</p>
 
-<h3>F2. 风险分母口径影响最低点比值</h3>
+<h3>F2. 选择不同的全批量基准，会改变最低点时间比值</h3>
 <p>η=0.1、M=8 网格中，对标签噪声取期望的分母使 20/24 落入 $[0.5,2]$，固定同一次标签噪声的分母使 22/24 通过；前一口径同时含标签噪声实现差异，不能把旧位移全部归因于小批量。</p>
 <ul class="refs">
 <li><a href="#ref-ziyin2022">Ziyin et al. (2022)</a>：把 SGD 噪声分解为小批量抽样与标签噪声成分，并对线性回归给出解析。</li>
@@ -111,9 +112,9 @@
 <li id="ref-ziyin2022">Ziyin, L., Liu, K., Mori, T., &amp; Ueda, M. (2022). Strength of minibatch noise in SGD. <em>ICLR 2022</em>. <a href="https://arxiv.org/abs/2102.05375">arXiv:2102.05375</a></li>
 </ol>
 
-<h2>方法与边界</h2>
-<p>检索词包括 <code>minibatch noise</code>、<code>gradient noise scale</code>、<code>critical batch size</code>、<code>optimal step size</code>、<code>SGD stationary distribution</code>、<code>noise covariance</code>、<code>learning curves SGD</code>、<code>large-batch generalization gap</code>、<code>label noise SGD</code>、<code>batch size scaling</code>。arXiv API 在本次检索中持续返回 HTTP 429（限流），遂改用 arXiv 摘要页与 OpenAlex Works API 交叉核对；判定基于标题、作者、年份与摘要，引用条目均经上述接口返回核对，未见虚构条目。未核验全文，也<b>不构成新颖性结论</b>：本轮未标出「疑似新」，是因为 D9 各条都能对应到已有小批量噪声/噪声尺度文献，而非断言不存在更近的前作。</p>
+<h2>D9 原检索范围与尚未核验的内容</h2>
+<p>原检索词包括 <code>minibatch noise</code>、<code>gradient noise scale</code>、<code>critical batch size</code>、<code>optimal step size</code>、<code>SGD stationary distribution</code>、<code>noise covariance</code>、<code>learning curves SGD</code>、<code>large-batch generalization gap</code>、<code>label noise SGD</code>、<code>batch size scaling</code>。原记录注明 arXiv API 持续返回 HTTP 429（限流），遂改用 arXiv 摘要页与 OpenAlex Works API 交叉核对；判断基于标题、作者、年份与摘要。本次文字修订未重新核验文献。未核验全文，也<b>不构成新颖性结论</b>：各条均列为已知或部分已知，是因为都有相关的小批量噪声/噪声尺度文献，不表示每个具体数值都已有前作，也不排除更直接的前作。</p>
 <p>词义提醒：文献里的 <i>critical batch size / gradient noise scale</i> 研究的是<b>训练算力效率</b>（最大有效批量），与 D9 关心的「测试风险最低点位置」不是同一问题；D9 的均值/协方差矩递推对应线性回归型 SGD 理论，本身不是新发现。D9 的结论只覆盖固定特征 ReLU 线性头、n=64、d=4、SGD 无动量/weight decay、B=2/4/8/32、σ²=0.25/0.5/1、seed411–414、T=768/2304，属 development，不外推 learned features、其他优化器、连续 η/batch 临界或其他数据合同。</p>
 
-<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+<div class="stamp">摘要级文献对照首版 2026-10-11（北京时间）· 尚未逐篇精读全文 · 网页在 prototype 仓库内维护</div>
 </main></body></html>

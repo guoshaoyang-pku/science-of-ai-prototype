@@ -1,23 +1,24 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>D4：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<title>D4：单 sigmoid 拟合与已有研究的对照</title><link rel="stylesheet" href="style.css">
 <script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D4_sigmoid_training_curve.html">D4 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D4_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
-<h1>D4：命题 × 文献状态对照（深度确认）</h1>
-<p class="bg">本页把 D4 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 arXiv API 与 OpenAlex（2026-10-11），判定基于论文标题、作者、年份与摘要，<b>尚未逐篇精读全文</b>。</p>
-<p class="bg">D4 的对照对象是固定特征、样本数与参数数均为 2、全批量 SGD（$\eta=0.1$、无动量与权重衰减）、对数时间轴上单段 sigmoid 的 development 实验；下列文献多数针对真实深度网络或大模型，判定时须注意<b>对象与构造的差异</b>。「疑似新」只表示本轮检索<b>未找到直接前作</b>，不等于学术上不存在；判定随检索范围变化。</p>
+<body><main><div class="nav"><a href="index.html">← 研究总览</a> · <a href="D4_sigmoid_training_curve.html">D4 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D4_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D4：单 sigmoid 拟合与已有研究的对照</h1>
+<p class="bg"><b>先看结论：</b>多时间尺度会影响曲线形状，拟合参数也不等于真实动力学参数，这些都有已有研究。本报告具体测量单 sigmoid 在哪些谱比、损失占比和拟合准则下不够准确；这些受控对照未找到直接前作，不等于新颖性确认。本页是摘要级文献对照，沿用原检索记录，本次仅修改文字。</p>
+<p class="bg">下面按 D4 报告的结论逐条说明与已有研究的关系。原检索使用 arXiv API 与 OpenAlex（2026-10-11），判断依据是论文标题、作者、年份与摘要，<b>尚未逐篇精读全文</b>；标签表示这次摘要级对照的判断。</p>
+<p class="bg">D4 的对照对象是固定特征、样本数与参数数均为 2、全批量 SGD（$\eta=0.1$、无动量与权重衰减）、对数时间轴上单段 sigmoid 的 development 实验；下列文献多数针对真实深度网络或大模型，对照时须注意<b>对象与构造的差异</b>。「未找到直接前作」仅指原检索没有找到直接对应的研究，不等于新颖性确认；扩大检索或阅读全文后，判断可能改变。</p>
 
 <div class="legend">
 判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
 <span class="tag mix">部分已知</span>现象相同但对象或构造不同（例如文献用真实网络/saddle-to-saddle 的损失曲线，D4 用固定特征二次损失上的单段 logistic）·
-<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<span class="tag no">未找到直接前作</span>仅指原检索结果，不代表已确认新颖性 ·
 <b>—</b> 需读全文才能定论
 </div>
 
-<h2>总览</h2>
+<h2>已知的拟合局限与本报告测得的误差边界</h2>
 <div class="table-wrap"><table>
 <thead>
 <tr><th>编号</th><th>D4 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
@@ -30,9 +31,9 @@
 </tbody>
 </table></div>
 
-<h2>逐条对照</h2>
+<h2>逐条对照：单段何时不够，换拟合准则有何代价</h2>
 
-<h3>(a) 单 sigmoid 的通过与否取决于谱比、慢占比 α 与选解协议</h3>
+<h3>(a) 单 sigmoid 能否达标，取决于谱比、慢损失占比 α 与拟合准则</h3>
 <p>谱比是快、慢方向曲率之比；比值大时快模态迅速下降、慢模态长期主导，损失曲线呈「快降 + 慢尾」两阶段。单 sigmoid（对数时间轴上的 logistic）要一段形状同时覆盖两段。D4 的判定映射：等初始损失下最小二乘在谱比 1/3/10 各通过 3/3、30/100 各失败 3/3；谱比 100 的九点 α 设计仅 α=0.99/1 各通过 3/3，其余七点各失败 3/3；同条件补充格点在谱比 15 通过 3/3、20 失败 3/3，均方根/最差点误差分别为 0.027550353/0.047113104 与 0.032733550/0.052902145。</p>
 <ul class="refs">
 <li><a href="#ref-saddle2021">Saddle-to-Saddle Dynamics in Deep Linear Networks (2021)</a>：深度线性网络训练依次穿过一系列鞍点；损失在长平台上缓慢变化后突然下降，天然是「多阶段、多时间尺度」曲线，而不是单一速率。</li>
@@ -91,10 +92,10 @@
 <li id="ref-lranneal2024">Tissue, H., Wang, V., &amp; Wang, L. (2024). Scaling Law with Learning Rate Annealing. <a href="https://arxiv.org/abs/2408.11029">arXiv:2408.11029</a></li>
 </ol>
 
-<h2>方法与边界</h2>
-<p>检索词包括 <code>learning curve sigmoid</code>、<code>loss curve power law</code>、<code>saddle-to-saddle</code>、<code>spectral bias / frequency principle</code>、<code>timescale separation</code>、<code>loss curve prediction/extrapolation</code>、<code>learning curve fitting model selection</code>。判定基于标题、作者、年份与摘要；引用条目均经 arXiv / OpenAlex 接口返回核对，未见虚构条目。未核验全文，也<b>不构成新颖性结论</b>：标「疑似新」仅是本轮检索的负结果。</p>
+<h2>原检索范围与尚未核验的内容</h2>
+<p>原检索词包括 <code>learning curve sigmoid</code>、<code>loss curve power law</code>、<code>saddle-to-saddle</code>、<code>spectral bias / frequency principle</code>、<code>timescale separation</code>、<code>loss curve prediction/extrapolation</code>、<code>learning curve fitting model selection</code>。原记录注明引用条目经 arXiv / OpenAlex 返回信息核对，判断基于标题、作者、年份与摘要。本次文字修订未重新核验文献。未核验全文，也<b>不构成新颖性结论</b>：「未找到直接前作」只说明原检索没有找到直接对应的研究。</p>
 <p>对象提醒：D4 的结论只覆盖固定特征二次损失、$n=d=2$、全批量 SGD（$\eta=0.1$、无动量/衰减）、对数时间轴单 sigmoid、所列曲率谱与阈值，属 development，不外推 Adam、小批量、learned features 或非线性网络；上列文献多数是真实网络/大模型，故「部分已知」主要指「现象相同但对象或构造不同」。</p>
 <p>接口边界：arXiv API 在检索后期返回 HTTP 429（速率限制），部分 arXiv 查询未返回结果；受影响的主题（如 saddle-to-saddle）改由 OpenAlex 返回条目核对，其 arXiv ID 取自 OpenAlex 记录的 DOI。本页所有 arXiv ID / DOI 均来自实际返回的 API 响应，未发生成引用。</p>
 
-<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+<div class="stamp">摘要级文献对照首版 2026-10-11（北京时间）· 尚未逐篇精读全文 · 网页在 prototype 仓库内维护</div>
 </main></body></html>

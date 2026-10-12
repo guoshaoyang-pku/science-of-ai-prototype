@@ -1,30 +1,31 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>D10：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<title>D10：网络深度与训练时间的已有研究对照</title><link rel="stylesheet" href="style.css">
 <script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D10_depth_propagation.html">D10 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D10_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
-<h1>D10：命题 × 文献状态对照（深度确认）</h1>
+<body><main><div class="nav"><a href="index.html">← 研究总览</a> · <a href="D10_depth_propagation.html">D10 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D10_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D10：网络深度与训练时间的已有研究对照</h1>
+<p class="bg"><b>先看结论：</b>各层核相加、用固定核预测训练进度是已有理论。本报告比较最慢参数组与全核两种时间预测，前者系统性高估，后者在部分条件通过但仍有反例。具体通过率及反例未找到直接前作，不等于新颖性确认，也未单独解释层间耦合或核漂移。本页是摘要级文献对照，沿用原检索记录，本次仅修改文字。</p>
 <p class="bg">本页把 D10 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 OpenAlex 与 arXiv（2026-10-11），判定基于论文标题、作者、年份与摘要，<b>尚未逐篇精读全文</b>。检索过程中 arXiv API 持续返回 HTTP 429（限流），多次重试无效，故文献条目主要来自 OpenAlex，并用 arXiv 摘要页对若干关键条目逐条复核。</p>
-<p class="bg">D10 研究的对象是<b>非线性</b>网络（SiLU，无 bias/LN/残差，全批量 SGD，momentum0）：把网络在初始化处线性化，按层算冻结切线核（Jacobian 外积）的半损失时间，再比较「最慢单层」与「各层核之和」两个候选能否在两倍内预测实际半损失时间 $T_{50}$。文献里的对应物是 <b>NTK／冻结核动力学</b>、<b>深度线性网络的精确动力学</b>、<b>kernel 与 rich 两区制</b>与 <b>saddle-to-saddle 平台</b>。「疑似新」只表示本轮检索<b>未找到直接前作</b>，不等于学术上不存在；判定随检索范围变化。D10 结论只覆盖 development 中的固定目标、d3/n32、width16/32、depth1/2/4/6，不外推。</p>
+<p class="bg">D10 研究的对象是<b>非线性</b>网络（SiLU，无 bias/LN/残差，全批量 SGD，momentum0）：把网络在初始化处线性化，按层算冻结切线核（Jacobian 外积）的半损失时间，再比较「最慢单层」与「各层核之和」能否在两倍内预测实际半损失时间 $T_{50}$。相关文献包括 <b>NTK／冻结核动力学</b>、<b>深度线性网络的精确动力学</b>、<b>kernel 与 rich 两种训练状态</b>与 <b>saddle-to-saddle 平台</b>。「未找到直接前作」仅指原检索没有找到直接对应的研究，不等于新颖性确认。D10 结论只覆盖 development 中的固定目标、d3/n32、width16/32、depth1/2/4/6，不外推。</p>
 
 <div class="legend">
 判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
 <span class="tag mix">部分已知</span>现象相同但对象或构造不同（例如文献用无限宽冻结 NTK，D10 用小宽度逐层冻结切线）·
-<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<span class="tag no">未找到直接前作</span>仅指原检索结果，不代表已确认新颖性 ·
 <b>—</b> 需读全文才能定论
 </div>
 
-<h2>总览</h2>
+<h2>已知的核预测方法与本报告的通过、失败条件</h2>
 <div class="table-wrap"><table>
 <thead>
 <tr><th>编号</th><th>D10 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
 </thead>
 <tbody>
 <tr><td>Q</td><td>冻结切线核能否在两倍内预测早期半损失时间</td><td><span class="tag mix">部分已知</span></td><td>Jacot et al. 2018；Saxe et al. 2014；Geiger et al. 2020</td></tr>
-<tr><td>C1</td><td>最慢参数组候选无法在两倍内描述实际半损失时间（width16 比值 4.73–2053，12/12 高估超两倍）</td><td><span class="tag mix">部分已知</span>（机理）/ <span class="tag no">疑似新</span>（该受控反例）</td><td>Jacot et al. 2018；Saxe et al. 2014</td></tr>
+<tr><td>C1</td><td>最慢参数组候选无法在两倍内描述实际半损失时间（width16 比值 4.73–2053，12/12 高估超两倍）</td><td><span class="tag mix">部分已知</span>（机理）/ <span class="tag no">未找到直接前作</span>（该受控反例）</td><td>Jacot et al. 2018；Saxe et al. 2014</td></tr>
 <tr><td>C2</td><td>相加全核达到注册判据（10/12、12/12 在两倍内），仍保留 width16 两个反例</td><td><span class="tag ok">已知</span>（核相加解析）/ <span class="tag mix">部分已知</span>（反例边界）</td><td>Jacot et al. 2018；Li &amp; Sompolinsky 2021；Bordelon &amp; Pehlevan 2025</td></tr>
 <tr><td>C3</td><td>实测时间不随深度单调增加（init1129 相邻深度差 −7/50/127；width32 相对 width16 有 10/12 加快、2/12 变慢）</td><td><span class="tag mix">部分已知</span></td><td>Saxe et al. 2014；Jacot et al. 2021</td></tr>
 <tr><td>C4</td><td>学习率配对保留候选通过边界（降 eta 时间增长 2–4 倍，全核仍 10/12 或 12/12 在两倍内）</td><td><span class="tag mix">部分已知</span></td><td>Jacot et al. 2018；Bordelon &amp; Pehlevan 2025</td></tr>
@@ -50,7 +51,7 @@
 <li><a href="#ref-saxe2014">Saxe et al. (2014)</a>：多模态时慢模态主导整网收敛，单层/单方向时间不能代表整体进度。</li>
 <li><a href="#ref-bordelon2025">Bordelon &amp; Pehlevan (2025)</a>：深度线性网络 GD 动力学随 data/width/depth 共同变化，层间不可简单分离。</li>
 </ul>
-<p><b>判定：部分已知（机理）／疑似新（该受控反例）。</b>核相加说明「最慢层」不是正确对象，属已知结构；但「逐层冻结切线的最慢时间在本族上系统性高估真实半损失时间、且 12/12 超两倍」这一具体受控边界，未检索到直接前作。</p>
+<p><b>判定：部分已知（机理）／未找到直接前作（该受控反例）。</b>核相加说明整体更新不能只由最慢层代表，这是已知结构；但「逐层冻结切线的最慢时间在这些条件下系统性高估真实半损失时间、且 12/12 超两倍」这一具体受控结果，原检索未找到直接前作。</p>
 
 <h3>C2. 相加全核达到注册判据，仍保留 width16 反例</h3>
 <p>width16、eta=.02/.005 的全核/实际比值分别为 .333333–3.320442 和 .328638–3.339360，<b>各 10/12 在 [.5,2] 内</b>；width32 对应 eta=.005/.02/.04 的比值分别为 .666667–1.052632、.75–1、.75–1，<b>三个学习率族均 12/12 在 [.5,2] 内</b>。报告明确：核求和是已知解析关系；这些结果未单独证明层间耦合或核漂移的机制。</p>
@@ -70,7 +71,7 @@
 </ul>
 <p><b>判定：部分已知。</b>「深度不单调决定训练时间」有经典理论支撑（Saxe：深度无关学习时间与平台）；但「实测半损失时间随深度非单调、并给出逐初始化的相邻深度差」的具体受控数值未见同构前作。宽度对照又混杂了形状/参数量/初始函数，故只能算部分已知。</p>
 
-<h3>C4. 学习率配对保留候选通过边界</h3>
+<h3>C4. 改变学习率后，两种时间预测的通过情况保持不变</h3>
 <p>width16 从 eta=.02 降至 .005，实际时间增长 2.000000–4.000000 倍，全核仍 10/12 在两倍内；width32 从 eta=.005 升至 .02（固定全部初始参数），全核仍 12/12 在两倍内，新/旧时间比值 .166667–.294118；再由 .02 升至 .04，全核仍 12/12 在两倍内，最慢组仍 12/12 超过两倍。</p>
 <ul class="refs">
 <li><a href="#ref-jacot2018">Jacot et al. (2018)</a>：收敛最快沿核的最大主成分，时间尺度由 $\eta\lambda$ 决定——降低 $\eta$ 按比例拉长半损失时间，是解析事实。</li>
@@ -94,9 +95,9 @@
 <li id="ref-woodworth2020">Woodworth, B., Gunasekar, S., Lee, J. D., Moroshko, E., Savarese, P., Golan, I., Soudry, D., &amp; Srebro, N. (2020). Kernel and rich regimes in overparametrized models. <em>COLT 2020</em>. <a href="https://arxiv.org/abs/2002.09277">arXiv:2002.09277</a></li>
 </ol>
 
-<h2>方法与边界</h2>
+<h2>原检索范围与尚未核验的内容</h2>
 <p>检索词包括 <code>deep linear network training time</code>、<code>depth dynamics</code>、<code>layerwise timescale</code>、<code>sum of neural tangent kernels layers</code>、<code>frozen tangent kernel half loss time</code>、<code>kernel regime rich regime depth</code>、<code>saddle to saddle deep linear network</code>、<code>width depth trade-off training time</code>、<code>deep bootstrap</code>。本次 arXiv API 全程返回 <b>HTTP 429</b>（限流），多次重试无效，改用 OpenAlex 检索，并用 arXiv 摘要页对 Saxe 2014、Jacot 2018、Geiger 2020、Jacot 2021、Bordelon 2025、Woodworth 2020 等关键条目复核。所有条目均来自实际发起的接口／摘要页返回，<b>未见虚构条目</b>。注意 OpenAlex 返回的 <em>Kernel and Rich Regimes</em>（旧号 arXiv:1906.05827）已被作者撤回，本页引用其更新版 arXiv:2002.09277。</p>
-<p>词义提醒：文献中的 “training time” 有时指 wall-clock/HPC 训练时长，与 D10 的「更新步半损失时间 $T_{50}$」不是同一量；D10 的时间是优化步数，对应核收敛速率 $(1-\eta\lambda)^{2t}$ 这一族。判定基于标题、作者、年份与摘要，未核验全文，也<b>不构成新颖性结论</b>：标「疑似新」仅是本轮检索的负结果。D10 结论只覆盖固定目标 $x_0+.5x_0x_1$、d3/n32、SiLU、无 bias/LN/残差、全批量 SGD/momentum0、width16/32、depth1/2/4/6、eta .005/.02/.04 的 development 实验；不外推其他宽度/深度、优化器、mini-batch、泛化或封存 OOD。</p>
+<p>词义提醒：文献中的 “training time” 有时指 wall-clock/HPC 训练时长，与 D10 的「更新步半损失时间 $T_{50}$」不是同一量；D10 的时间是优化步数，对应核收敛速率 $(1-\eta\lambda)^{2t}$。以上沿用原检索记录，本次文字修订未重新核验文献。判断基于标题、作者、年份与摘要，未核验全文，也<b>不构成新颖性结论</b>：「未找到直接前作」仅指原检索范围。D10 结论只覆盖固定目标 $x_0+.5x_0x_1$、d3/n32、SiLU、无 bias/LN/残差、全批量 SGD/momentum0、width16/32、depth1/2/4/6、eta .005/.02/.04 的 development 实验；不外推其他宽度/深度、优化器、mini-batch、泛化或封存 OOD。</p>
 
-<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+<div class="stamp">摘要级文献对照首版 2026-10-11（北京时间）· 尚未逐篇精读全文 · 网页在 prototype 仓库内维护</div>
 </main></body></html>

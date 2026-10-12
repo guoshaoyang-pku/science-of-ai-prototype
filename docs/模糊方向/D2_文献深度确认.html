@@ -1,23 +1,24 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>D2：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<title>D2：风险回升时间与已有研究的对照</title><link rel="stylesheet" href="style.css">
 <script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D2_overfitting_u_curve.html">D2 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D2_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
-<h1>D2：命题 × 文献状态对照（深度确认）</h1>
+<body><main><div class="nav"><a href="index.html">← 研究总览</a> · <a href="D2_overfitting_u_curve.html">D2 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D2_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D2：风险回升时间与已有研究的对照</h1>
+<p class="bg"><b>先看结论：</b>风险随训练时间变化、早停和标签噪声的影响已有研究。本页对照原扫描中的起点预测与短段幂律；具体指数及其外推失败未找到直接前作，不等于新颖性确认。原扫描的成功不代表跨任务规律成立。本页是摘要级文献对照，沿用原检索记录，本次仅修改文字。</p>
 <p class="bg">本页把 D2 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 arXiv API 与 OpenAlex（2026-10-11），判定基于论文标题、作者、年份与摘要，<b>尚未逐篇精读全文</b>。重要对应：D2 的「回升起点 / 回升支」在文献里出现于 <b>epoch-wise double descent</b>、<b>early stopping</b> 与 <b>effective model complexity</b> 这一族；D2 的 $\sigma^2$ 对应文献里的 <b>label noise（标签噪声）方差</b>，$U=\eta t$ 对应文献的累计训练时间。</p>
-<p class="bg">「疑似新」只表示本轮检索<b>未找到直接前作</b>，不等于学术上不存在；判定随检索范围变化。D2 的对照对象是四维高斯输入、目标 $x_0+0.5x_0x_1$、宽度 128 的冻结特征、全批量梯度下降与平方损失的 development 扫描，不外推真实网络或分类任务。</p>
+<p class="bg">「未找到直接前作」仅指原检索范围内没有找到直接对应的研究，<b>不等于新颖性确认</b>；扩大检索或阅读全文后，判断可能改变。D2 的对照对象是四维高斯输入、目标 $x_0+0.5x_0x_1$、宽度 128 的冻结特征、全批量梯度下降与平方损失的 development 扫描，不外推真实网络或分类任务。</p>
 
 <div class="legend">
 判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
 <span class="tag mix">部分已知</span>现象或方向相同但对象、坐标或标定不同（例如文献以模型复杂度/epoch 为横轴，D2 以累计训练量 $U=\eta t$ 为横轴）·
-<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<span class="tag no">未找到直接前作</span>仅指原检索结果，不代表已确认新颖性 ·
 <b>—</b> 需读全文才能定论
 </div>
 
-<h2>总览</h2>
+<h2>已有的风险曲线理论与本报告的具体测量</h2>
 <div class="table-wrap"><table>
 <thead>
 <tr><th>编号</th><th>D2 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
@@ -26,14 +27,14 @@
 <tr><td>Q</td><td>能否用一个标量（回升起点 $\widehat U_{\rm rise}$）由 $n/\sigma^2$ 预测风险何时回升</td><td><span class="tag mix">部分已知</span></td><td>Bodin &amp; Macris 2021；Nakkiran et al. 2019；Viering &amp; Loog 2021</td></tr>
 <tr><td>R1</td><td>回升起点随 $n/\sigma^2$ 增加；留出预测 57/60 在实测两倍内，实测 $U_{\rm rise}=2.4\text{–}166.5$</td><td><span class="tag mix">部分已知</span></td><td>Nakkiran et al. 2019；Nakkiran 2019；Xue et al. 2022</td></tr>
 <tr><td>R2</td><td>实测最低点即首次回升转折点；78/78 曲线最低点后下一步升高、至 16384 步无下降区间（网格分辨率 0.3）</td><td><span class="tag mix">部分已知</span></td><td>Nakkiran et al. 2019；Olmin &amp; Lindsten 2024；Gamba et al. 2022</td></tr>
-<tr><td>R3</td><td>短段回升约按距起点 1.546 次方增长；$C=0.00101845\text{–}0.119553$，原扫描 54/60、其余 17/18 取样点两倍内</td><td><span class="tag no">疑似新</span></td><td>Bodin &amp; Macris 2021；Yilmaz &amp; Heckel 2022</td></tr>
-<tr><td>R4</td><td>该幂律不能覆盖整条上升支：延伸至 16384 步时 78/78 超两倍，预测为实测的 4.89–2634.75 倍</td><td><span class="tag no">疑似新</span></td><td>Viering &amp; Loog 2021；Klug &amp; Heckel 2022</td></tr>
+<tr><td>R3</td><td>短段回升约按距起点 1.546 次方增长；$C=0.00101845\text{–}0.119553$，原扫描 54/60、其余 17/18 取样点两倍内</td><td><span class="tag no">未找到直接前作</span></td><td>Bodin &amp; Macris 2021；Yilmaz &amp; Heckel 2022</td></tr>
+<tr><td>R4</td><td>该幂律不能覆盖整条上升支：延伸至 16384 步时 78/78 超两倍，预测为实测的 4.89–2634.75 倍</td><td><span class="tag no">未找到直接前作</span></td><td>Viering &amp; Loog 2021；Klug &amp; Heckel 2022</td></tr>
 <tr><td>R5</td><td>$\sigma^2/n$ 不足以给统一起点系数：相同比值下跨 $n$ 极差 .0158203125→.0740625，「至少减半」被推翻</td><td><span class="tag mix">部分已知</span></td><td>Nakkiran 2019；Xue et al. 2022；Bartlett et al. 2019</td></tr>
 <tr><td>R6</td><td>不外推到未测协议（学到特征、非线性读出、交叉熵、小批量、其他维度）</td><td><span class="tag ok">已知</span>（边界声明）</td><td>—</td></tr>
 </tbody>
 </table></div>
 
-<h2>逐条对照</h2>
+<h2>逐条对照：起点预测、短段拟合与外推失败</h2>
 
 <h3>Q. 核心命题：能否用 $n/\sigma^2$ 预测回升起点 $U_{\rm rise}$</h3>
 <p>D2 的经验式为 $\widehat U_{\rm rise}=\eta\,e^{a}(n/\sigma^2)^{b}$，$b\approx1$；问「训练到什么时候风险回升」能否由样本数与标签噪声预测量化。这条主线文献<b>已经系统讨论过</b>，但横轴通常是模型复杂度或 epoch，而不是累计训练量 $U=\eta t$。</p>
@@ -69,7 +70,7 @@
 <li><a href="#ref-bodin2021">Bodin &amp; Macris (2021)</a>：给出随机特征梯度流下误差的解析时间路径，可读出上升支形状，但未给出 D2 的「相对训练量幂律」。</li>
 <li><a href="#ref-yilmaz2022">Yilmaz &amp; Heckel (2022)</a>：风险随早停时间的 double descent 可解释为 bias-variance 叠加；描述形状但不给该短段指数。</li>
 </ul>
-<p><b>判定：疑似新。</b>文献有上升支的解析与叠加描述，但「距起点 $x$ 的 1.546 次方短段」这一具体指数族，未检索到直接前作。</p>
+<p><b>判定：未找到直接前作。</b>文献有上升支的解析与叠加描述，但「距起点 $x$ 的 1.546 次方短段」这一具体指数族，原检索未找到直接前作。</p>
 
 <h3>R4. 幂律不能覆盖整条后期上升支（尾部 78/78 失败）</h3>
 <p>把短段幂律延伸到第 16384 步，78/78 条曲线超过两倍误差，预测回升量为实测的 4.89–2634.75 倍。</p>
@@ -77,7 +78,7 @@
 <li><a href="#ref-viering2021">Viering &amp; Loog (2021)</a>：明确警告没有普适学习曲线模型，power law 未必准确、外推需谨慎。</li>
 <li><a href="#ref-klug2022">Klug &amp; Heckel (2022)</a>：早停梯度下降的学习曲线在达到误差地板后趋于平坦，简单外推会失真。</li>
 </ul>
-<p><b>判定：疑似新（针对本式）。</b>「短段幂律外推失败」是该式自身的边界负结果；文献层面最近对应是「学习曲线形状多样、外推不可靠」的一般警告，未见对同构式尾部失败的定量前作。</p>
+<p><b>判定：未找到直接前作（针对本式）。</b>短段幂律外推失败，限定了该式的适用范围；相关文献提醒「学习曲线形状多样、外推不可靠」，原检索未找到直接对应的尾部失败定量结果。</p>
 
 <h3>R5. $\sigma^2/n$ 不足以给统一起点系数</h3>
 <p>$n32/64$、相同比值格点 128/256、四 seed、共享分布标签归一化后，起点比例系数的跨 $n$ 极差由 $0.0158203125$ 增到 $0.0740625$；「至少减半」的预测被推翻。</p>
@@ -112,9 +113,9 @@
 <li id="ref-zavatoneveth2022">Zavatone-Veth, J. A., Tong, W. L., &amp; Pehlevan, C. (2022). Contrasting random and learned features in deep Bayesian linear regression. <em>Physical Review E</em>, 105, 064118. <a href="https://arxiv.org/abs/2203.00573">arXiv:2203.00573</a> · <a href="https://doi.org/10.1103/PhysRevE.105.064118">doi:10.1103/PhysRevE.105.064118</a></li>
 </ol>
 
-<h2>方法与边界</h2>
-<p>检索词包括 <code>double descent</code>、<code>epoch-wise double descent</code>、<code>sample-wise double descent</code>、<code>benign overfitting</code>、<code>label noise</code>、<code>early stopping</code>、<code>optimal stopping time</code>、<code>shape of learning curves</code>、<code>effective model complexity</code>、<code>noise accumulation</code>。判定基于标题、作者、年份与摘要；引用条目均经 arXiv/OpenAlex 接口返回核对，未见虚构条目。未核验全文，也<b>不构成新颖性结论</b>：标「疑似新」仅是本轮检索的负结果。</p>
+<h2>原检索范围与尚未核验的内容</h2>
+<p>原检索词包括 <code>double descent</code>、<code>epoch-wise double descent</code>、<code>sample-wise double descent</code>、<code>benign overfitting</code>、<code>label noise</code>、<code>early stopping</code>、<code>optimal stopping time</code>、<code>shape of learning curves</code>、<code>effective model complexity</code>、<code>noise accumulation</code>。原记录注明引用条目经 arXiv/OpenAlex 返回信息核对，判断基于标题、作者、年份与摘要。本次文字修订未重新核验文献。未核验全文，也<b>不构成新颖性结论</b>：「未找到直接前作」只说明原检索没有找到直接对应的研究。</p>
 <p>词义提醒：文献里的 double descent 通常以模型复杂度或 epoch 为横轴，D2 以累计训练量 $U=\eta t$ 为横轴、且只关注第一个回升起点与回升支的幂律；两者对象与构造不同。D2 的 $\sigma^2$ 应映射到 label noise 方差这一族。D2 结论只覆盖四维高斯输入、目标 $x_0+0.5x_0x_1$、宽度 128 的冻结特征、全批量梯度下降、平方损失与所列 $n$、$\sigma^2$ 格点，属 development，不外推 learn features、分类、交叉熵、小批量或非线性读出。</p>
 
-<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+<div class="stamp">摘要级文献对照首版 2026-10-11（北京时间）· 尚未逐篇精读全文 · 网页在 prototype 仓库内维护</div>
 </main></body></html>
