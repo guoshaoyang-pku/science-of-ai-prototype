@@ -1,23 +1,24 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>D7：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<title>D7：训练改善与测试风险变化的已有研究对照</title><link rel="stylesheet" href="style.css">
 <script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D7_train_gain_test_harm.html">D7 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D7_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
-<h1>D7：命题 × 文献状态对照（深度确认）</h1>
+<body><main><div class="nav"><a href="index.html">← 研究总览</a> · <a href="D7_train_gain_test_harm.html">D7 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D7_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D7：训练改善与测试风险变化的已有研究对照</h1>
+<p class="bg"><b>先看结论：</b>训练误差更低不保证测试表现更好，这是已知问题。本报告进一步区分模型之间的差距、噪声使差距增大，以及同一模型继续训练后的风险上升；它们不能互相替代。部分具体对照未找到直接前作，不等于新颖性确认，也尚无只看训练信息的前瞻信号。本页是摘要级文献对照，沿用原检索记录，本次仅修改文字。</p>
 <p class="bg">本页把 D7 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 arXiv API 与 OpenAlex（2026-10-11），判定基于论文标题、作者、年份与摘要，<b>尚未逐篇精读全文</b>。重要提醒：D7 的核心对象是两个容易混淆的量——<b>相对损害</b> $H=L_{test}(\text{real})-L_{test}(\text{tangent})$（真实网络减切线模型）与 <b>绝对损害</b> $C=L_{test}(512)-L_{test}(128)$（同一模型两时点的风险差）。文献里的「泛化差距」「双下降」「标签噪声鲁棒性」各自只覆盖其中一部分，不能直接等同。</p>
-<p class="bg">「疑似新」只表示本轮检索<b>未找到直接前作</b>，不等于学术上不存在；判定随检索范围变化。D7 的对照对象是 d5 Gaussian、train32/test256、两层 hidden SiLU、全批量 SGD、CPU float64 的 development 实验，不外推真实网络、小批量或封存 OOD。</p>
+<p class="bg">「未找到直接前作」仅指原检索范围内没有找到直接对应的研究，<b>不等于新颖性确认</b>；扩大检索或阅读全文后，判断可能改变。D7 的对照对象是 d5 Gaussian、train32/test256、两层 hidden SiLU、全批量 SGD、CPU float64 的 development 实验，不外推真实网络、小批量或封存 OOD。</p>
 
 <div class="legend">
 判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
 <span class="tag mix">部分已知</span>现象相同但对象或构造不同（例如文献报告一般泛化差距，D7 报告真实网络减切线的相对差距）·
-<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<span class="tag no">未找到直接前作</span>仅指原检索结果，不代表已确认新颖性 ·
 <b>—</b> 需读全文才能定论
 </div>
 
-<h2>总览</h2>
+<h2>哪些泛化问题已知，哪些具体噪声对照未找到前作</h2>
 <div class="table-wrap"><table>
 <thead>
 <tr><th>编号</th><th>D7 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
@@ -25,14 +26,14 @@
 <tbody>
 <tr><td>Q</td><td>训练误差降低不能判定继续训练是否提高 test；晚期损害 $C=L_{test}(512)-L_{test}(128)&gt;0$ 需事后看 test，尚无 train-only 前瞻信号</td><td><span class="tag mix">部分已知</span></td><td>Zhang 2017；Keskar 2016；Nakkiran 2021；Mahsereci 2017</td></tr>
 <tr><td>C1</td><td>人工标签噪声不是相对损害的必因（clean 来源 8/8 单元 train 增益 &gt;.05×初始 loss，其中 6/8 单元终点 test 差距均值为正）</td><td><span class="tag mix">部分已知</span></td><td>Zhang 2017；优化导致双下降 2023；Jacot 2018</td></tr>
-<tr><td>C2</td><td>H/D/G 三指标不可互相替代（$D&gt;0$ 不等于 $H&gt;0$，也不等于 $C&gt;0$）</td><td><span class="tag no">疑似新</span></td><td>Chaudhari 2016；Nakkiran 2021</td></tr>
+<tr><td>C2</td><td>H/D/G 三指标不可互相替代（$D&gt;0$ 不等于 $H&gt;0$，也不等于 $C&gt;0$）</td><td><span class="tag no">未找到直接前作</span></td><td>Chaudhari 2016；Nakkiran 2021</td></tr>
 <tr><td>C3</td><td>sigma=1 边界：三组条件均 4/4 单元通过正向判据；两 draw mean(D)=.287093–.800986 与 .127211–.466452；改 data7339 仍 4/4、12/12 $D&gt;0$</td><td><span class="tag mix">部分已知</span></td><td>Zeng 2023；Xue 2022；Zhang 2017</td></tr>
-<tr><td>C4</td><td>sigma=.5 半强度只在 3/4 单元通过正向判据（radial×8 = −.046567，仅 1/3 为正）</td><td><span class="tag no">疑似新</span></td><td>Xue 2022；Huh &amp; Rebeschini 2023</td></tr>
-<tr><td>C5</td><td>已测条件不支持连续强度缩放（$D(.5)&lt;D(1)$ 但不能给线性/二次规律）</td><td><span class="tag no">疑似新</span></td><td>Huh &amp; Rebeschini 2023；Xue 2022</td></tr>
+<tr><td>C4</td><td>sigma=.5 半强度只在 3/4 单元通过正向判据（radial×8 = −.046567，仅 1/3 为正）</td><td><span class="tag no">未找到直接前作</span></td><td>Xue 2022；Huh &amp; Rebeschini 2023</td></tr>
+<tr><td>C5</td><td>已测条件不支持连续强度缩放（$D(.5)&lt;D(1)$ 但不能给线性/二次规律）</td><td><span class="tag no">未找到直接前作</span></td><td>Huh &amp; Rebeschini 2023；Xue 2022</td></tr>
 <tr><td>C6</td><td>较低带噪 train 误差不保证晚期 test 继续下降（sigma=1 的 12 个终点 $H_1$ 为正；$G$ 均值 .433225–.573030、12/12 $G&gt;0$）</td><td><span class="tag mix">部分已知</span></td><td>Zhang 2017；Nakkiran 2021</td></tr>
-<tr><td>C7</td><td>$D&gt;0$ 也可仅缩小真实网络原有优势（radial×32：$D$ .075103–.185840 均正，$H_1$ −.151615 至 −.047987 均负，真实 $C$ −.198348 至 −.088044 均负）</td><td><span class="tag no">疑似新</span></td><td>Jacot 2018；Advani 2020</td></tr>
+<tr><td>C7</td><td>$D&gt;0$ 也可仅缩小真实网络原有优势（radial×32：$D$ .075103–.185840 均正，$H_1$ −.151615 至 −.047987 均负，真实 $C$ −.198348 至 −.088044 均负）</td><td><span class="tag no">未找到直接前作</span></td><td>Jacot 2018；Advani 2020</td></tr>
 <tr><td>C8</td><td>更换噪声向量推翻半强度正向判据的保持预测（通过率 3/4→1/4；新四 mean D=.086687、−.008957、−.013877、.003331）</td><td><span class="tag mix">部分已知</span></td><td>Arpit 2017；Liu &amp; Lu 2026</td></tr>
-<tr><td>C9</td><td>「不足 3/4 会再现」的预测被推翻（通过数 3/4、1/4、3/4；四 mean D = 0.206577/0.175632/−0.037836/0.054909）</td><td><span class="tag no">疑似新</span></td><td>—</td></tr>
+<tr><td>C9</td><td>「不足 3/4 会再现」的预测被推翻（通过数 3/4、1/4、3/4；四 mean D = 0.206577/0.175632/−0.037836/0.054909）</td><td><span class="tag no">未找到直接前作</span></td><td>—</td></tr>
 </tbody>
 </table></div>
 
@@ -57,13 +58,13 @@
 </ul>
 <p><b>判定：部分已知。</b>「损害可无噪声发生」与双下降、泛化差距文献一致；8/8 与 6/8 的受控计数是 D7 的复核，而非新机制。</p>
 
-<h3>C2. H/D/G 三指标不可互相替代</h3>
+<h3>C2. H/D/G 分别衡量模型差距、噪声影响与训练收益，不能互相替代</h3>
 <p>报告用三个指标：$H$ 是终点真实网络减切线的 test 误差，$D$ 是加噪后 $H$ 减不加噪 $H$，$G$ 是终点切线减真实网络的 train 误差。报告强调 $D&gt;0$ 既不等于 $H&gt;0$，也不等于 $C&gt;0$。</p>
 <ul class="refs">
 <li><a href="#ref-chaudhari2016">Chaudhari et al. (2016)</a>：训练损失与泛化的相对/绝对度量不是同一件事。</li>
 <li><a href="#ref-nakkiran2021">Nakkiran et al. (2021)</a>：train 与 test 曲线可以反向，训练侧的相对量不能替代绝对风险。</li>
 </ul>
-<p><b>判定：疑似新。</b>把「相对劣势（$H$）」与「绝对损害（$C$）」拆成三个互不等同的指标，未检索到同构前作。</p>
+<p><b>判定：未找到直接前作。</b>原检索未找到直接采用这套指标的前作。这里区分相对劣势（$H$）、噪声造成的差距变化与训练收益，另用绝对损害（$C$）衡量继续训练的影响；指标定义本身不是新发现。</p>
 
 <h3>C3. sigma=1 边界：三组条件均 4/4 通过</h3>
 <p>已测 sigma=1 边界在三组条件均通过 4/4 单元。noise733107 与 noise733123 各 4/4 单元满足 mean(D)$\ge$.02 且各 $\ge$2/3 init $D&gt;0$；两 draw 的 mean(D) 分别 .287093–.800986 与 .127211–.466452。相同 recipe 仅改 data 为 7339 仍 4/4 通过：mean(D)=.111892–.519513、12/12 $D&gt;0$。</p>
@@ -80,14 +81,14 @@
 <li><a href="#ref-xue2022">Xue et al. (2022)</a>：test loss 形状由 noise-to-sample-size 比决定，中等噪声可能不单调放大差距。</li>
 <li><a href="#ref-huh2023">Huh &amp; Rebeschini (2023)</a>：label noise SGD 的泛化界依赖噪声与条件，非无条件放大。</li>
 </ul>
-<p><b>判定：疑似新。</b>具体强度节点上「哪些函数×宽度单元通过」的单元计数未检索到前作；它与上述理论方向一致，但结论形式不同。</p>
+<p><b>判定：未找到直接前作。</b>原检索未找到在相同噪声强度下报告这些函数×宽度组合通过数的前作；它与上述理论方向一致，但结论形式不同。</p>
 
-<h3>C5. 已测条件不支持连续强度缩放</h3>
+<h3>C5. 已测噪声强度不足以确定连续变化规律</h3>
 <p>三个通过单元的 $D(.5)$ 都小于对应 $D(1)$，但不能据此给出线性、二次或连续强度规律。</p>
 <ul class="refs">
 <li><a href="#ref-huh2023">Huh &amp; Rebeschini (2023)</a>；<a href="#ref-xue2022">Xue et al. (2022)</a>：文献给出的是上界、比值阈值或渐近率，而非该离散格点上的连续律。</li>
 </ul>
-<p><b>判定：疑似新。</b>这是一个否证型结论（拒绝连续缩放），未检索到同构前作；且它只在 sigma $\in\{0,.5,1\}$ 三个格点上成立。</p>
+<p><b>判定：未找到直接前作。</b>原检索未找到直接对应的讨论。这里只测了 sigma $\in\{0,.5,1\}$ 三个格点，证据不足以确定连续缩放规律；这不等于证明所有连续规律都不成立。</p>
 
 <h3>C6. 较低带噪 train 误差不保证晚期 test 继续下降</h3>
 <p>data7339/noise733123、sigma=1 的 12 个终点 $H_1$ 为正；真实网络对带噪 train 标签的 $G$ 均值 .433225–.573030、12/12 $G&gt;0$。终点相对劣势仍不保证同模型晚期 test 上升。</p>
@@ -102,9 +103,9 @@
 <ul class="refs">
 <li><a href="#ref-jacot2018">Jacot et al. (2018)</a>；<a href="#ref-advani2020">Advani et al. (2020)</a>：真实网络相对切线的优势与绝对风险由谱-目标能量分别决定，二者可以反向。</li>
 </ul>
-<p><b>判定：疑似新。</b>「正 $D$ 伴随负 $H_1$ 且负 $C$」这一具体对照未检索到前作。</p>
+<p><b>判定：未找到直接前作。</b>「正 $D$ 伴随负 $H_1$ 且负 $C$」这一具体对照在原检索中未找到直接前作。</p>
 
-<h3>C8. 更换噪声向量推翻半强度正向判据的保持预测</h3>
+<h3>C8. 更换噪声向量后，半强度条件未保持原通过率</h3>
 <p>固定 data7339、sigma=.5 与同一训练条件，仅把 noise733123 换为 noise733131，原「至少 3/4 单元 mean D$\ge$.01 且各至少 2/3 init $D&gt;0$」预测通过率从 3/4 降为 1/4；新四单元 mean D 依次为 .086687、−.008957、−.013877、.003331。</p>
 <ul class="refs">
 <li><a href="#ref-arpit2017">Arpit et al. (2017)</a>：记忆与泛化行为对数据/噪声结构敏感。</li>
@@ -118,7 +119,7 @@
 <ul class="refs">
 <li>—：未检索到对同一判据跨噪声向量通过数序列的前作。</li>
 </ul>
-<p><b>判定：疑似新。</b>这是否证型序列（同一强度与训练条件下通过数不决定），未找到同构报告；同时它只描述已测向量，不能估计跨噪声概率。</p>
+<p><b>判定：未找到直接前作。</b>这些结果推翻了通过数会保持的预测：同一噪声强度与训练条件下，更换噪声向量仍会改变通过数。原检索未找到直接对应的报告；结果只描述已测向量，不能估计跨噪声概率。</p>
 
 <h2>相关文献</h2>
 <ol class="refs">
@@ -144,9 +145,9 @@
 <li id="ref-zhang2021">Zhang, C., et al. (2021). Understanding deep learning (still) requires rethinking generalization. <em>Communications of the ACM</em>. <a href="https://doi.org/10.1145/3446776">DOI:10.1145/3446776</a>（OpenAlex W2566079294）</li>
 </ol>
 
-<h2>方法与边界</h2>
+<h2>原检索范围与尚未核验的内容</h2>
 <p>检索词包括 <code>optimization / generalization / gradient descent</code>、<code>label noise / generalization</code>、<code>train test gap</code>、<code>optimization generalization gap early stopping</code>、<code>implicit bias gradient descent</code>、<code>understanding deep learning rethinking generalization</code>、<code>double descent test error model size</code>、<code>implicit regularization label noise memorization</code>。判定基于标题、作者、年份与摘要；引用条目均经 arXiv/OpenAlex 接口返回核对，未见虚构条目。注意两点边界：(1) arXiv 的短语检索 <code>"train test gap" AND "deep learning"</code> 返回 0 条，说明该字面短语不是文献惯用词，相关主题由 OpenAlex 的 <code>generalization gap</code> 族覆盖；(2) 本轮部分 arXiv 查询遇到 429 限流，这些主题改用 OpenAlex 覆盖。</p>
-<p>未核验全文，也<b>不构成新颖性结论</b>：标「疑似新」仅是本轮检索的负结果。D7 的结论只覆盖 d5 Gaussian、train32/test256、两层 hidden SiLU、全批量 SGD、CPU float64、所列函数/宽度/init/噪声向量与 sigma $\in\{0,.5,1\}$，属 development，不外推真实网络、小批量、其他 optimizer/归一化/深度或封存 OOD。文献里的「泛化差距」多是 train−test 的绝对差，D7 的 $H$ 是真实网络−切线的相对差、$C$ 是同模型两时点绝对差，三者不可互换。</p>
+<p>以上是原检索记录，本次文字修订未重新核验文献。未核验全文，也<b>不构成新颖性结论</b>：「未找到直接前作」仅指原检索范围。D7 的结论只覆盖 d5 Gaussian、train32/test256、两层 hidden SiLU、全批量 SGD、CPU float64、所列函数/宽度/init/噪声向量与 sigma $\in\{0,.5,1\}$，属 development，不外推真实网络、小批量、其他 optimizer/归一化/深度或封存 OOD。文献里的「泛化差距」多是 train−test 的绝对差，D7 的 $H$ 是真实网络−切线的相对差、$C$ 是同模型两时点绝对差，三者不可互换。</p>
 
-<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+<div class="stamp">摘要级文献对照首版 2026-10-11（北京时间）· 尚未逐篇精读全文 · 网页在 prototype 仓库内维护</div>
 </main></body></html>

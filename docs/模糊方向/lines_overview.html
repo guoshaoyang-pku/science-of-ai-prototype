@@ -1,30 +1,31 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KB 科学实验线总览 · 2026-10-06 21:15</title><link rel="stylesheet" href="style.css">
+<title>2026-10-06 阶段记录：各实验线进展 · 21:15</title><link rel="stylesheet" href="style.css">
 <script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/lines_overview.html">编辑此页</a></div>
-<h1>KB 科学实验线总览 · 2026-10-06 21:15</h1>
-<p>本页取代 panel_kb_science_lines.html（该 HTML 保留但不再维护）。数据来源：central/log.jsonl、central/kb.json、各方向 report.md、公开 kb_site index（built 2026-10-03）、v1/主线交接文档。</p>
-<h2>新线 science_program_v2（运行中）</h2>
+<h1>2026-10-06 阶段记录：各实验线进展 · 21:15</h1>
+<p>本页保存当时各实验线的进展、失败和账目。“运行中”和进程状态均指记录时刻。science_program_v2 已于 2026-10-08 19:39 暂停（parked）；D2 结论以 <a href="../../evidence/d2_scaling_20261009/report.md">2026-10-09 最新报告</a>为准，旧预测失败仍保留。当前状态见 <a href="../HANDOFF.md">交接说明</a>。</p>
+<p>本页在当时取代 panel_kb_science_lines.html（该 HTML 保留但不再维护）。数据来源：central/log.jsonl、central/kb.json、各方向 report.md、公开 kb_site index（built 2026-10-03）、v1/主线交接文档。</p>
+<h2>science_program_v2：当时运行进展</h2>
 <p>🤖 gpt-6.1-sol（Sol 6.1 Ultra） · 🧠 ultra · ⏱️ 轮超时 7200s · 📊 预算 3 轮×8 方向 · 🖥️ 本机 CPU · 🔒 沙箱可写工作区+.git，无网络</p>
-<p>现状一句话：16 轮完成、第 17 轮（D1）进行中；19:31 修复重启后 5 轮全部 ok；中心 KB 17 条 claim（15 measured/mixed + 2 refuted 保留）。</p>
+<p>截至当时：16 轮完成、第 17 轮（D1）进行中；19:31 修复重启后 5 轮运行状态全部为 ok；中心 KB 17 条主张（claim，15 measured/mixed + 2 refuted 保留）。本页轮次、预算、成本与条目数均保留当时账面口径，运行完成或条目增加不代表科学结论成立。</p>
 <div class="table-wrap"><table>
 <thead>
 <tr>
 <th>方向</th>
 <th>问题</th>
 <th>轮</th>
-<th>当前发现一句话</th>
+<th>当时结果与边界</th>
 <th>报告</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>D1</td>
-<td>等效训练时间 U 何时可信（含 mom=0 异常）</td>
+<td>等效训练时间 U 何时可信（含无动量 mom=0 的异常读数）</td>
 <td>2/3</td>
 <td>梯度范数只是单位换算，不改归一化轨迹（差 3e-15）；动量启动换算早期 4/4 准、晚期 6/10 失败（已登记 refuted）</td>
 <td>report（<code>../directions/D1_u_effective_time/report.md</code>）</td>
@@ -33,21 +34,21 @@
 <td>D2</td>
 <td>过拟合 U 型最低点、无标签早停</td>
 <td>2/3</td>
-<td>"同 n/σ² 严格折叠"被 4 反例推翻；n/σ² 幂律粗预测 57/60 在 2 倍内通过；无标签早停未建立</td>
+<td>"同 n/σ² 严格折叠"被 4 反例推翻；当时范围内 n/σ² 幂律粗预测 57/60 在 2 倍内通过；无标签早停未建立，扩域结论见 10-09 报告</td>
 <td>report（<code>../directions/D2_overfitting_u_curve/report.md</code>）</td>
 </tr>
 <tr>
 <td>D3</td>
-<td>容量与分辨率的描述参量</td>
+<td>哪些指标能描述容量与分辨率</td>
 <td>2/3</td>
-<td>匹配全部标量描述量（trace、有效秩、Rayleigh、初始损失）的两个目标，1% 损失预算仍差 2.9–8.9 倍；完整目标加权谱预测精确</td>
+<td>两个目标的所测标量指标（trace、有效秩、Rayleigh、初始损失）相同，降到 1% 损失所需步数仍差 2.9–8.9 倍；在所测固定特征条件下，完整目标加权谱预测精确</td>
 <td>report（<code>../directions/D3_capacity_resolution/report.md</code>）</td>
 </tr>
 <tr>
 <td>D4</td>
 <td>训练曲线的 sigmoid 描述与参数公式</td>
 <td>2/3</td>
-<td>log-time 单 sigmoid 适用边界=谱时间尺度分离度：比值 1/3/10 通过、30/100 失败；拟合参数≠真实半衰期（偏差 −9%~+72%）</td>
+<td>在当时目标与拟合协议下，对数时间轴上的单 sigmoid 在谱时间尺度比 1/3/10 通过、30/100 失败；拟合参数不等于真实半衰期（偏差 −9%~+72%）</td>
 <td>report（<code>../directions/D4_sigmoid_training_curve/report.md</code>）</td>
 </tr>
 <tr>
@@ -59,29 +60,29 @@
 </tr>
 <tr>
 <td>D6</td>
-<td>核漂移早期→晚期预测</td>
+<td>早期核变化能否预测晚期</td>
 <td>2/3</td>
 <td>前 32 步漂移方向在 3/4 recipe 保留到 256 步；mixed_sine×width8 反例 0/3 seed 保留</td>
 <td>report（<code>../directions/D6_kernel_drift/report.md</code>）</td>
 </tr>
 <tr>
 <td>D7</td>
-<td>train 增益 vs test 损害边界</td>
+<td>训练改善何时伴随测试变差</td>
 <td>2/3</td>
 <td>固定加噪使真实网络对线性化网络的 clean-test 差距 4/4 单元扩大（12/12 初始化）；"每个 seed 晚期都受损"不成立</td>
 <td>report（<code>../directions/D7_train_gain_test_harm/report.md</code>）</td>
 </tr>
 <tr>
 <td>D8</td>
-<td>激活通路结论在 bias 下的存活性</td>
+<td>加入偏置 bias 后，激活通路规律是否仍成立</td>
 <td>2/3</td>
-<td>解析+72 cell 实测：普通 bias 只改系数、能量比仍按 a²（测得 ~4.0 倍）；二阶导零点 b*=2.3994 处变 a⁶（测得 ~64.0 倍）；P1–P3 全过</td>
+<td>小输入尺度下，解析推导与 72 个实验单元实测支持：普通 bias 改系数，能量比仍按 a²（测得 ~4.0 倍）；二阶导零点 b*=2.3994 处变 a⁶（测得 ~64.0 倍）；当时 P1–P3 全过</td>
 <td>report（<code>../directions/D8_activation_pathway/report.md</code>）</td>
 </tr>
 </tbody>
 </table></div>
 <p>事故与修复（已完成）：① 沙箱默认拒写 .git，前 10 轮无法预注册 commit（8 failed、2 partial）；修复=writable_roots 加入本 repo .git，烟测+第 12 轮实证通过。② rounds_done 双重计数；修复=supervisor 从 log.jsonl 单源重建。修复 commit <code>205a9f4</code>；第 12 轮起每轮预注册 commit 早于训练（git log 可查 r012–r017）。</p>
-<h2>旧线整理（公开页：<a href="https://guoshaoyang-pku.github.io/blogs/kb_site/index.html#runs">kb_site index #runs</a>）</h2>
+<h2>旧实验线的历史结果（公开页：<a href="https://guoshaoyang-pku.github.io/blogs/kb_site/index.html#runs">kb_site index #runs</a>）</h2>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -89,7 +90,7 @@
 <th>模型</th>
 <th>规模</th>
 <th>结果一句话</th>
-<th>状态</th>
+<th>当时状态</th>
 </tr>
 </thead>
 <tbody>
@@ -161,7 +162,7 @@
 <td>gpt-6.1-sol</td>
 <td>15 epochs，143 条 KB，77 报告</td>
 <td>macro15（105 dev ranking×3）：KB 70.08% vs noKB 65.87%，<strong>+4.21±2.37pt</strong>；早期长 KB 曾 −8.1pt，改短 KB+工具检索后转正</td>
-<td>完成，publisher 存活（PID 15910）</td>
+<td>当时已完成，publisher 当时存活（PID 15910）</td>
 </tr>
 <tr>
 <td><strong>science_program_v1</strong></td>
@@ -172,8 +173,8 @@
 </tr>
 </tbody>
 </table></div>
-<p>旧线三点结论（2026-10-03 阶段验收，仍是当前共识）：闭环全自动跑通；有提升但不稳（单次评测噪声 ±5pt 量级）；提升主要来自筛选而非新科学——这是转向 v1/v2 受控小实验的原因。</p>
-<h2>文件索引</h2>
+<p>旧线三点阶段判断（2026-10-03 验收口径）：自动研究流程已跑通；所测评估有提升但不稳（单次评测噪声 ±5pt 量级）；当时提升主要来自条目筛选，尚不能归因于新发现——这是当时转向 v1/v2 受控小实验的原因。</p>
+<h2>当时使用的文件索引</h2>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -183,7 +184,7 @@
 </thead>
 <tbody>
 <tr>
-<td>各方向科学报告（8 份，活文档）</td>
+<td>各方向科学报告（当时 8 份，持续更新）</td>
 <td><code>../directions/D*/report.md</code></td>
 </tr>
 <tr>

@@ -1,24 +1,25 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>D12：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<title>D12：双段 sigmoid 近似与已有研究的对照</title><link rel="stylesheet" href="style.css">
 <script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D12_cascade_sigmoid.html">D12 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D12_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
-<h1>D12：命题 × 文献状态对照（深度确认）</h1>
+<body><main><div class="nav"><a href="index.html">← 研究总览</a> · <a href="D12_cascade_sigmoid.html">D12 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D12_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D12：双段 sigmoid 近似与已有研究的对照</h1>
+<p class="bg"><b>先看结论：</b>双模态损失的精确解与半衰期计算属于已知解析方法。本报告检验由谱量直接给出的双段近似在哪些条件下足够准确；具体通过格点及不等权反例未找到直接前作，不等于新颖性确认。对数时间上的拟合成功也不证明发生了延迟泛化。本页是摘要级文献对照，沿用原检索记录，本次仅修改文字。</p>
 <p class="bg">本页把 D12 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 arXiv API 与 OpenAlex（2026-10-11）；<b>arXiv API 本轮持续返回 HTTP 429（限流）</b>，故实际引用条目全部来自 OpenAlex 接口的返回，判定基于论文标题、年份与摘要，<b>尚未逐篇精读全文</b>。</p>
 <p class="bg">D12 的对象是<b>固定特征的双模态二次损失</b>（$n=d=2$、float64、half-MSE、全批量 SGD、$\eta=0.1$、momentum=0、无 weight decay、$\lambda_s=0.01$、$\lambda_f=r\lambda_s$、平台 1/0），它问的是：谱分离时损失曲线能否分解为「两段 logistic 在 log 时间上的级联」。因此与文献对照的关键词是 <code>timescale separation</code>、<code>two-stage learning curve</code>、<code>grokking / delayed generalization</code>、<code>exact solutions of deep linear networks</code>。报告自己已声明：对数时间上的双段近似<b>不能</b>当作原时间轴 S 形或 grokking 延迟泛化的证据。</p>
-<p class="bg">「疑似新」只表示本轮检索<b>未找到直接前作</b>，不等于学术上不存在；判定随检索范围变化。D12 的结论只覆盖上述受控双模态 recipe 与所列离散谱比/占比格点，不外推 learned features、momentum、小批量、非线性网络或真实任务。</p>
+<p class="bg">「未找到直接前作」仅指原检索范围内没有找到直接对应的研究，<b>不等于新颖性确认</b>；扩大检索或阅读全文后，判断可能改变。D12 的结论只覆盖上述受控双模态训练配置与所列离散谱比/占比格点，不外推 learned features、momentum、小批量、非线性网络或真实任务。</p>
 
 <div class="legend">
 判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
 <span class="tag mix">部分已知</span>现象相同但对象或构造不同（例如文献用真实网络的延迟泛化，D12 用固定特征双模态的 log-时间双段）·
-<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<span class="tag no">未找到直接前作</span>仅指原检索结果，不代表已确认新颖性 ·
 <b>—</b> 需读全文才能定论
 </div>
 
-<h2>总览</h2>
+<h2>已知的双模态公式与双段近似的适用边界</h2>
 <div class="table-wrap"><table>
 <thead>
 <tr><th>编号</th><th>D12 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
@@ -27,11 +28,11 @@
 <tr><td>P1</td><td>逐模态时间标度 $h_i=\log2/[-2\log(1-\eta\lambda_i)]$ 与陡度 $b=2\log2$ 由局部半幅度/斜率匹配给出</td><td><span class="tag ok">已知</span>（基本）</td><td>Saxe et al. 2014；Jacot et al. 2018</td></tr>
 <tr><td>P2</td><td>不等初始损失时精确递推 $f_\alpha=\alpha e^{-a_s t}+(1-\alpha)e^{-a_f t}$，$\alpha=L_s(0)/L(0)$</td><td><span class="tag ok">已知</span></td><td>Saxe et al. 2014；Exact learning dynamics … prior knowledge 2023</td></tr>
 <tr><td>P3</td><td>等权双段 logistic 拟合在 $r=12/15/20/25$ 均通过（RMSE 0.013446–0.015873，max 0.021608–0.031214），且比单段更准</td><td><span class="tag mix">部分已知</span></td><td>Power et al. 2022；The complexity dynamics of grokking 2025</td></tr>
-<tr><td>P4</td><td>单段 logistic 在 $r=12/15$ 通过、$r=20/25$ 失败；边界只在 15 与 20 两格点之间，无连续临界值</td><td><span class="tag mix">部分已知</span>（现象）／<span class="tag no">疑似新</span>（该对照）</td><td>Grokking phase transitions … 2022；Liu et al. 2022</td></tr>
-<tr><td>P5</td><td>无拟合双段公式在 $r=3/10/12/15/20/25/30/100$ 八个离散格点均通过（最小余量 0.000403300/0.000638477）</td><td><span class="tag no">疑似新</span></td><td>Saxe et al. 2014；Power et al. 2022</td></tr>
-<tr><td>P6</td><td>等权通过不可推广到 $\alpha=0.25$：$r=100$ 时 RMSE=0.022740946$\le$0.03 但 max=0.053989623&gt;0.05，3/3 未通过</td><td><span class="tag no">疑似新</span></td><td>Liu et al. 2022（Omnigrok）；Saxe et al. 2014</td></tr>
-<tr><td>P7</td><td>$\alpha=0.75$ 时同公式 RMSE=0.027824997、max=0.049822548，3/3 通过，余量仅 0.000177452；两项注册预测被推翻</td><td><span class="tag no">疑似新</span></td><td>Liu et al. 2022（Omnigrok）</td></tr>
-<tr><td>P8</td><td>「接近纯模态即可通过」失败：$r=100$、慢损失占比 0.01 原单段拟合 max=0.06476095；纯快模态 max=0.07462910</td><td><span class="tag no">疑似新</span>（负结果）</td><td>Liu et al. 2022（Omnigrok）</td></tr>
+<tr><td>P4</td><td>单段 logistic 在 $r=12/15$ 通过、$r=20/25$ 失败；边界只在 15 与 20 两格点之间，无连续临界值</td><td><span class="tag mix">部分已知</span>（现象）／<span class="tag no">未找到直接前作</span>（该对照）</td><td>Grokking phase transitions … 2022；Liu et al. 2022</td></tr>
+<tr><td>P5</td><td>无拟合双段公式在 $r=3/10/12/15/20/25/30/100$ 八个离散格点均通过（最小余量 0.000403300/0.000638477）</td><td><span class="tag no">未找到直接前作</span></td><td>Saxe et al. 2014；Power et al. 2022</td></tr>
+<tr><td>P6</td><td>等权通过不可推广到 $\alpha=0.25$：$r=100$ 时 RMSE=0.022740946$\le$0.03 但 max=0.053989623&gt;0.05，3/3 未通过</td><td><span class="tag no">未找到直接前作</span></td><td>Liu et al. 2022（Omnigrok）；Saxe et al. 2014</td></tr>
+<tr><td>P7</td><td>$\alpha=0.75$ 时同公式 RMSE=0.027824997、max=0.049822548，3/3 通过，余量仅 0.000177452；两项注册预测被推翻</td><td><span class="tag no">未找到直接前作</span></td><td>Liu et al. 2022（Omnigrok）</td></tr>
+<tr><td>P8</td><td>「接近纯模态即可通过」失败：$r=100$、慢损失占比 0.01 原单段拟合 max=0.06476095；纯快模态 max=0.07462910</td><td><span class="tag no">未找到直接前作</span>（负结果）</td><td>Liu et al. 2022（Omnigrok）</td></tr>
 <tr><td>P9</td><td>「多段公式总更好」反例：$r=3/10/12$ 的双段公式两项误差均高于原单段拟合</td><td><span class="tag mix">部分已知</span>（模型选择常识）</td><td>Power et al. 2022</td></tr>
 <tr><td>P10</td><td>真实正权双指数在原时间轴严格凸；log 时间上的双段近似不能作为原时间轴 S 形或延迟泛化证据</td><td><span class="tag ok">已知</span>（解析）</td><td>Saxe et al. 2014</td></tr>
 </tbody>
@@ -40,7 +41,7 @@
 
 <h2>逐条对照</h2>
 
-<h3>P1. 逐模态时间标度与陡度公式（解析）</h3>
+<h3>P1. 各模态的半衰时间与曲线陡度可由公式计算</h3>
 <p>$h_i=\log2/[-2\log(1-\eta\lambda_i)]$、$b=2\log2$ 由「指数模态在半幅度点的值与斜率」做局部匹配得到。</p>
 <ul class="refs">
 <li><a href="#ref-saxe2014">Saxe, McClelland &amp; Ganguli (2014)</a>：给出固定特征、深层线性网络的逐模态指数衰减率 $a_i=-2\log(1-\eta\lambda_i)$ 与精确半衰期，是这类时间标度的经典来源。</li>
@@ -73,7 +74,7 @@
 <li><a href="#ref-omnigrok2022">Liu, Michaud &amp; Tegmark (2022)</a>：Omnigrok——延迟泛化由权重范数等量控制，可用单标量组织相图。</li>
 <li><a href="#ref-falsifiable2026">Grokking as a Falsifiable Finite-Size Transition (2026)</a>：把相变当作有限尺寸、可证伪的转变。</li>
 </ul>
-<p><b>判定：部分已知（现象）／疑似新（该对照）。</b>「时间尺度分离使单 sigmoid 不足以描述」是直观且与相变/延迟泛化文献方向一致；但把边界钉在 $r=15\!\to\!20$ 的受控离散格点对照，并明确「无连续临界值」，本轮未见直接前作。报告也强调不能把两格点外推为连续阈值。</p>
+<p><b>判定：部分已知（现象）／未找到直接前作（该对照）。</b>时间尺度分离时单 sigmoid 可能不足以描述，与相变/延迟泛化文献的讨论方向一致；但 $r=15\!\to\!20$ 的具体离散格点对照，原检索未找到直接前作。这里只有通过与失败的格点，不能把它们外推为连续临界值。</p>
 
 <h3>P5. 无拟合双段公式在八个离散谱比格点通过</h3>
 <p>用谱量直接给出的无拟合公式在 $r=3/10/12/15/20/25/30/100$ 八个已保存离散格点均通过；$r=20/25$ 的 RMSE=0.027321–0.027379，最大误差=0.049278–0.049362；最小通过余量 0.000403300/0.000638477。</p>
@@ -81,7 +82,7 @@
 <li><a href="#ref-saxe2014">Saxe, McClelland &amp; Ganguli (2014)</a>：谱模态时间标度决定曲线下降；是「参数由谱给出」的理论依据。</li>
 <li><a href="#ref-power2022">Power et al. (2022)</a>：多阶段下降的现象背景。</li>
 </ul>
-<p><b>判定：疑似新。</b>「不校准、直接用谱量给定的两段 logistic 参数，仍在八个离散谱比上同时通过 0.03/0.05」是本轮检索未见的同构结果。但它只覆盖这八个离散格点与单一 recipe，余量很小（最小 max 余量约 $6.4\times10^{-4}$），<b>不能外推连续区间</b>。</p>
+<p><b>判定：未找到直接前作。</b>直接用谱量确定两段 logistic 参数、不再校准，却在八个离散谱比上同时通过 0.03/0.05，原检索未找到直接对应的结果。它只覆盖这八个离散格点与单一训练配置，余量很小（最小 max 余量约 $6.4\times10^{-4}$），<b>不能外推连续区间</b>。</p>
 
 <h3>P6. 等权通过不可推广到 α=0.25</h3>
 <p>$r=100$、$\alpha=0.25$ 时加权双段公式 RMSE=0.022740946$\le$0.03，但最大误差=0.053989623&gt;0.05，三个坐标 seed 均未同时通过（0/3）。保持 $h/b$ 不变、只按保存初始损失改幅度后，同谱比仍不足以保证通过。</p>
@@ -89,14 +90,14 @@
 <li><a href="#ref-omnigrok2022">Liu, Michaud &amp; Tegmark (2022)</a>：Omnigrok 讨论权重范数等量如何控制延迟泛化，涉及不等权情形。</li>
 <li><a href="#ref-saxe2014">Saxe, McClelland &amp; Ganguli (2014)</a>：初始模态能量分配改变各模态的相对贡献。</li>
 </ul>
-<p><b>判定：疑似新。</b>「仅改初始损失分配就让 $\alpha=0.25$ 在 $r=100$ 失败、而 $\alpha=0.5$ 通过」这一受控反例未见直接前作。该反例不定位连续 $\alpha$ 临界值，也不改变等权八个格点的原判定。</p>
+<p><b>判定：未找到直接前作。</b>「仅改初始损失分配就让 $\alpha=0.25$ 在 $r=100$ 失败、而 $\alpha=0.5$ 通过」这一受控反例在原检索中未找到直接前作。它不能确定连续 $\alpha$ 临界值，也不改变等权八个格点的原判定。</p>
 
 <h3>P7. α=0.75 通过且距阈值极近；两项注册预测被推翻</h3>
 <p>同一公式在 $r=100$、$\alpha=0.75$ 时 RMSE=0.027824997、最大误差=0.049822548，3/3 通过，最大误差距阈值仅 0.000177452；此前注册的两项预测（max&gt;0.05、max$\in$[0.050,0.060]）均被 3/3 推翻。</p>
 <ul class="refs">
 <li><a href="#ref-omnigrok2022">Liu, Michaud &amp; Tegmark (2022)</a>：延迟泛化对权重/损失分配敏感，与「判别边界对 $\alpha$ 非单调」方向一致。</li>
 </ul>
-<p><b>判定：疑似新。</b>「$\alpha=0.75$ 通过且余量仅约 $1.8\times10^{-4}$，而 $\alpha=0.25$ 失败」这一具体的、非单调的判别边界事实未见前作。它只说明两个不等权格点不同，<b>不能推成连续、单调或唯一临界</b>。</p>
+<p><b>判定：未找到直接前作。</b>「$\alpha=0.75$ 通过且余量仅约 $1.8\times10^{-4}$，而 $\alpha=0.25$ 失败」这一具体对照在原检索中未找到直接前作。它只说明两个不等权格点不同，<b>不能推出连续规律、单调性或唯一临界值</b>。</p>
 
 <h3>P8. 「接近纯模态即可通过」失败</h3>
 <p>固定 $r=100$、慢损失占比 0.01 时，原单段拟合最大误差 0.06476095；纯快模态 0.07462910，两者均超 0.05。</p>
@@ -104,7 +105,7 @@
 <li><a href="#ref-omnigrok2022">Liu, Michaud &amp; Tegmark (2022)</a>：偏好简单（近纯模态）解未必对应曲线可拟合。</li>
 <li><a href="#ref-power2022">Power et al. (2022)</a>：曲线形状与现象阶段的背景。</li>
 </ul>
-<p><b>判定：疑似新（负结果）。</b>直觉上「越接近单时间尺度越易被单 sigmoid 描述」，但受控结果显示纯模态极限下单段反而更差。这一否证性结果未见前作，且报告明确「不能仅用谱比判断拟合能力」。</p>
+<p><b>判定：未找到直接前作（负结果）。</b>「越接近单时间尺度越容易被单 sigmoid 描述」的预期没有通过检验，纯模态下单段误差反而更大。原检索未找到直接对应的反例；报告也明确不能仅用谱比判断拟合能力。</p>
 
 <h3>P9. 「多段公式总更好」的反例</h3>
 <p>$r=3/10/12$ 的双段公式两项误差均高于原单段拟合（如 $r=12$ 相对单段差 +0.003130356/+0.003204821）。</p>
@@ -141,9 +142,9 @@
 <li id="ref-advani2020">Advani, M. S., Saxe, A. M., &amp; Sompolinsky, H. (2020). <em>High-dimensional dynamics of generalization error in neural networks</em>. <em>Neural Networks</em>, 132, 428–446. <a href="https://doi.org/10.1016/j.neunet.2020.08.022">DOI:10.1016/j.neunet.2020.08.022</a>（OpenAlex W2763894180）</li>
 </ol>
 
-<h2>方法与边界</h2>
-<p>检索词包括 <code>cascade sigmoid</code>、<code>multi-timescale loss</code>、<code>two-stage learning curve</code>、<code>piecewise logistic</code>、<code>grokking</code>、<code>phase transition</code>、<code>delayed generalization</code>、<code>exact solutions deep linear networks</code>、<code>timescale separation</code>。本轮 arXiv API 的查询<b>持续返回 HTTP 429（限流）</b>，故所有引用条目均来自实际执行的 OpenAlex 接口返回（含各条的 arXiv ID 或 DOI 与 OpenAlex work id），<b>未见虚构条目</b>。判定基于标题、年份与摘要；<b>未核验全文</b>，也<b>不构成新颖性结论</b>：标「疑似新」仅是本轮检索的负结果。</p>
+<h2>原检索范围与尚未核验的内容</h2>
+<p>原检索词包括 <code>cascade sigmoid</code>、<code>multi-timescale loss</code>、<code>two-stage learning curve</code>、<code>piecewise logistic</code>、<code>grokking</code>、<code>phase transition</code>、<code>delayed generalization</code>、<code>exact solutions deep linear networks</code>、<code>timescale separation</code>。原记录注明 arXiv API 查询<b>持续返回 HTTP 429（限流）</b>，引用条目来自 OpenAlex 返回信息（含各条的 arXiv ID 或 DOI 与 OpenAlex work id）。本次文字修订未重新核验文献。判断基于标题、年份与摘要；<b>未核验全文</b>，也<b>不构成新颖性结论</b>：「未找到直接前作」只说明原检索没有找到直接对应的研究。</p>
 <p>边界与对象提醒：D12 的结论<b>只覆盖固定特征的双模态二次损失</b>——$n=d=2$、float64、half-MSE、全批量 SGD、$\eta=0.1$、momentum=0、无 weight decay、平台 1/0，以及所列的离散谱比 $r$ 与初始损失占比 $\alpha$ 格点。它是 development 实验，不外推 learned features、momentum、小批量、非线性网络或真实任务。报告明确：<b>$\log$ 时间上的双段近似不等于原时间轴的 S 形，也不构成 grokking 式延迟泛化的证据</b>；「无 learned-features 延迟跃迁证据」是范围声明。通过判据（RMSE$\le$0.03 且 max$\le$0.05）是 D12 的注册定义，属约定而非文献发现。</p>
 
-<div class="stamp">深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+<div class="stamp">摘要级文献对照首版 2026-10-11（北京时间）· 尚未逐篇精读全文 · 网页在 prototype 仓库内维护</div>
 </main></body></html>

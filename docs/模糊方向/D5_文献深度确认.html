@@ -1,23 +1,24 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>D5：命题 × 文献状态对照（深度确认）</title><link rel="stylesheet" href="style.css">
+<title>D5：LayerNorm 收益及其解释与已有研究的对照</title><link rel="stylesheet" href="style.css">
 <script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="D5_ln_geometry.html">D5 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D5_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
-<h1>D5：命题 × 文献状态对照（深度确认）</h1>
+<body><main><div class="nav"><a href="index.html">← 研究总览</a> · <a href="D5_ln_geometry.html">D5 报告</a> · <a href="背景与文献.html">背景与文献</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D5_%E6%96%87%E7%8C%AE%E6%B7%B1%E5%BA%A6%E7%A1%AE%E8%AE%A4.html">编辑此页</a></div>
+<h1>D5：LayerNorm 收益及其解释与已有研究的对照</h1>
+<p class="bg"><b>先看结论：</b>归一化改善训练已有研究，但本报告测得的 LayerNorm 收益尚未被候选几何指标解释。初始化固定核对收益方向的预测与真实训练相反；这一具体对照未找到直接前作，原因仍未定位，也不等于新颖性确认。本页是摘要级文献对照，沿用原检索记录，本次仅修改文字。</p>
 <p class="bg">本页把 D5 报告「结论」节的<b>每条命题</b>逐条对照已有文献，给出「这条结论文献里是否已经讨论过」的判定。检索使用 arXiv API 与 OpenAlex（2026-10-11），判定基于论文标题、作者、年份与摘要，<b>尚未逐篇精读全文</b>。重要提醒：D5 全篇研究的是<b>固定宽度、固定 head、GELU、SGD</b> 的小 MLP 上「同宽度开 LN」的收益机制，用 <b>hidden Gram 条件数</b>与<b>固定初始化 Jacobian 核</b>做中介量；这与文献里主流的「normalization 平滑损失面 / 加速优化」是同一大主题，但中介量和对照构造不同。</p>
-<p class="bg">「疑似新」只表示本轮检索<b>未找到直接前作</b>，不等于学术上不存在；判定随检索范围变化。D5 的对照对象是四个 development（开发条件，未封存）函数和下列 recipe：width64、固定 head、GELU、SGD lr=.001/mom0/weight_decay1e-4、batch64、256步，属 development，不外推真实网络。</p>
+<p class="bg">「未找到直接前作」仅指原检索范围内没有找到直接对应的研究，<b>不等于新颖性确认</b>；扩大检索或阅读全文后，判断可能改变。D5 的对照对象是四个 development（开发条件，未封存）函数和下列训练配置：width64、固定 head、GELU、SGD lr=.001/mom0/weight_decay1e-4、batch64、256步，属 development，不外推真实网络。</p>
 
 <div class="legend">
 判断标签：<span class="tag ok">已知</span>文献已给出相同或近乎相同的结论 ·
 <span class="tag mix">部分已知</span>现象相同但对象或构造不同（例如文献用 BatchNorm 的 Hessian / Fisher 谱，D5 用 LN 的 hidden Gram 条件数）·
-<span class="tag no">疑似新</span>本轮检索未找到直接前作 ·
+<span class="tag no">未找到直接前作</span>仅指原检索结果，不代表已确认新颖性 ·
 <b>—</b> 需读全文才能定论
 </div>
 
-<h2>总览</h2>
+<h2>已知的归一化收益与尚未解释的预测冲突</h2>
 <div class="table-wrap"><table>
 <thead>
 <tr><th>编号</th><th>D5 命题（含关键数字）</th><th>文献状态</th><th>最近的文献</th></tr>
@@ -27,14 +28,14 @@
 <tr><td>C1</td><td>LN 相对 noLN 的真实 train chord 差值 20/20 为负（−0.288059215～−0.027001544）</td><td><span class="tag ok">已知</span></td><td>Ba et al. 2016；Santurkar et al. 2018；Kohler et al. 2018</td></tr>
 <tr><td>C2</td><td>LN 使终点 hidden Gram 条件数下降（12/12、54/60），但与 chord 差相关 $r=.420774419&lt;0.5$，不足以解释收益大小</td><td><span class="tag mix">部分已知</span></td><td>Santurkar et al. 2018；Karakida et al. 2019；Huang et al. 2020</td></tr>
 <tr><td>C3</td><td>目标 Rayleigh 商提高 83.831–368.100 倍（20/20），但收益相关 $r=.394664832$、去均值后 $-.076836549$；均值耦合反被放大 2,355.235–129,377.971 倍</td><td><span class="tag mix">部分已知</span></td><td>Shan &amp; Bordelon 2021；Cha et al. 2026</td></tr>
-<tr><td>C4</td><td>固定核（input+3 hidden Linear）一步/256 步预测 LN−noLN 均 20/20 为正，与真实 train 方向 0/20 匹配；延长步数未修正</td><td><span class="tag no">疑似新</span></td><td>Chizat et al. 2019；Geiger et al. 2020</td></tr>
+<tr><td>C4</td><td>固定核（input+3 hidden Linear）一步/256 步预测 LN−noLN 均 20/20 为正，与真实 train 方向 0/20 匹配；延长步数未修正</td><td><span class="tag no">未找到直接前作</span></td><td>Chizat et al. 2019；Geiger et al. 2020</td></tr>
 <tr><td>C5</td><td>补入 LN affine 的初始化 Jacobian 后，固定核 256 步仍 0/20 匹配，未达注册 16/20</td><td><span class="tag mix">部分已知</span></td><td>Xu et al. 2019；Zhao et al. 2024</td></tr>
 <tr><td>C6</td><td>固定核改用旧实际 batch64 顺序后方向匹配仍 0/20，$\Delta C$ 全正（+0.0144～+0.0428），相对全批量最大变化 0.000671323</td><td><span class="tag mix">部分已知</span></td><td>Masters &amp; Luschi 2018</td></tr>
-<tr><td>C7</td><td>固定核方向冲突仍未定位；核漂移与 weight decay 未区分，本次只区分了批次算子</td><td><span class="tag no">疑似新</span></td><td>Chizat et al. 2019；Boursier et al. 2025</td></tr>
+<tr><td>C7</td><td>固定核方向冲突仍未定位；核漂移与 weight decay 未区分，本次只区分了批次算子</td><td><span class="tag no">未找到直接前作</span></td><td>Chizat et al. 2019；Boursier et al. 2025</td></tr>
 </tbody>
 </table></div>
 
-<h2>逐条对照</h2>
+<h2>逐条对照：收益测到了，哪些解释没有通过检验</h2>
 
 <h3>Q. 核心命题：LN 同宽度收益的机制未确立</h3>
 <p>「normalization 为什么能帮优化」是长期开放且仍在争论的问题。D5 把问题收窄为：在固定宽度、固定 head 的受控 MLP 里，LN 相对 noLN 的真实收益由哪个初始化几何量中介——条件数、目标 Rayleigh 商、均值耦合，还是初始化 Jacobian 核。</p>
@@ -66,7 +67,7 @@
 </ul>
 <p><b>判定：部分已知。</b>「归一化 = 预条件、会改变曲率/条件数」已有文献；但「条件数下降与收益量的相关只有 .42、不足以解释收益大小」是一个负结果，未检索到同构对照。</p>
 
-<h3>C3. 目标 Rayleigh 商与均值耦合</h3>
+<h3>C3. 目标 Rayleigh 商升高，仍不足以解释收益；均值耦合反而增强</h3>
 <p>共享 hidden Linear 参数的初始化目标 Rayleigh 商在 20/20 配对中提高 83.831–368.100 倍；其收益相关 $r=.394664832$、函数去均值后 $-.076836549$，两项预注册判据均失败。LN 反而把均值到形状的耦合放大 2,355.235–129,377.971 倍。</p>
 <ul class="refs">
 <li><a href="#ref-shan2021">Shan &amp; Bordelon (2021)</a>：系统研究 NTK 与目标函数的 alignment（核-目标对齐）机制，说明「核向目标方向对齐」是训练中的常见结构性变化。</li>
@@ -81,7 +82,7 @@
 <li><a href="#ref-geiger2020">Geiger et al. (2020)</a>：在深度网络中区分 feature training 与 lazy training 两类动力学。</li>
 <li><a href="#ref-cha2026">Cha et al. (2026)</a>：weight Gram 矩阵捕捉逐层特征线性化，讨论固定核/线性化视角的适用范围。</li>
 </ul>
-<p><b>判定：疑似新。</b>「固定核/线性化预测会偏离真实训练」本身是已知的懒训练现象；但用一个固定初始化 Jacobian 核去预测<b>归一化收益的方向并系统性反号（0/20）</b>，本轮检索未找到直接前作。</p>
+<p><b>判定：未找到直接前作。</b>固定核或线性化预测可能偏离真实训练，这是已有研究讨论的问题；但用固定初始化 Jacobian 核预测<b>归一化收益的方向并系统性反号（0/20）</b>，原检索未找到直接前作。</p>
 
 <h3>C5. 补入 LN affine 不能单独修复方向冲突</h3>
 <p>把原训练可更新的 LN affine（scale 与 bias）Jacobian 加入固定核后，256 步预测仍与真实 train 方向 0/20 匹配，未达注册 16/20。</p>
@@ -91,7 +92,7 @@
 </ul>
 <p><b>判定：部分已知。</b>「LN 的 affine 参数重要」有文献支持；但「仅补齐 LN affine 的初始化 Jacobian 不足以修复固定核的方向冲突」是具体负结果，属对已知事实的受控限定。</p>
 
-<h3>C6. 更换批次算子不能修复方向</h3>
+<h3>C6. 按实际小批量顺序计算，仍未修正固定核的预测方向</h3>
 <p>固定共享 Linear+LN affine 核采用旧实际 batch64 顺序后，$\Delta C$ 仍全正（+0.014394736～+0.042791743），方向匹配 0/20；相对全批量最大变化 0.000671323，20/20 落在注册 0.005 容差内。</p>
 <ul class="refs">
 <li><a href="#ref-masters2018">Masters &amp; Luschi (2018)</a>：系统研究小批量/大批量对训练与泛化的影响，说明 batch 噪声本身是一类已知的系统性因素。</li>
@@ -99,13 +100,13 @@
 </ul>
 <p><b>判定：部分已知。</b>小批量与全批量的差异是已知研究方向；但「把批次算子从全批量换成真实 batch64 顺序几乎不改变该固定核预测、且不修复方向」是具体负结果，未检索到同构对照。</p>
 
-<h3>C7. 方向冲突仍未定位</h3>
+<h3>C7. 固定核为何预测反向，原因仍未确定</h3>
 <p>在上述 20 配对里补入 LN affine 仍为 0/20 匹配；核漂移（Jacobian 随训练变化）与 weight decay 仍未区分。本次只区分了固定核的批次算子，真实非线性训练中的小批量作用仍未知。</p>
 <ul class="refs">
 <li><a href="#ref-chizat2019">Chizat et al. (2019)</a>；<a href="#ref-geiger2020">Geiger et al. (2020)</a>：核漂移 / feature learning 的框架，说明为何固定核可能捕捉不到真实动力学。</li>
 <li><a href="#ref-boursier2025">Boursier et al. (2025)</a>：weight decay 让损失面更有利需要足够大的过参数化与初始化条件，说明 decay 与几何的关系对设定敏感。</li>
 </ul>
-<p><b>判定：疑似新。</b>这是一个「尚未定位、并列未区分因子」的开放负结果；各候选因子（核漂移、weight decay、小批量）本身有文献，但这个特定的未决对照未见前作。</p>
+<p><b>判定：未找到直接前作。</b>这个对照的失败原因仍未确定。核漂移、weight decay、小批量各自都有研究，但原检索未找到直接对应的对照；列出候选原因不等于解释了机制。</p>
 
 <h2>相关文献</h2>
 <ol class="refs">
@@ -132,9 +133,9 @@
 <li id="ref-zhao2024">Zhao, R., Morwani, D., Brandfonbrener, D., Vyas, N., &amp; Kakade, S. (2024). Deconstructing what makes a good optimizer for language models. <em>ICLR 2025</em>. <a href="https://arxiv.org/abs/2407.07972">arXiv:2407.07972</a></li>
 </ol>
 
-<h2>方法与边界</h2>
-<p>检索词包括 <code>LayerNorm optimization</code>、<code>batch normalization optimization</code>、<code>conditioning loss landscape</code>、<code>Gram matrix condition number</code>、<code>normalization gradient</code>、<code>target alignment neural tangent kernel</code>、<code>lazy training differentiable programming</code>、<code>mini-batch full-batch</code>、<code>weight decay loss landscape</code>。判定基于标题、作者、年份与摘要；引用条目均经 arXiv API / OpenAlex 接口返回核对，未见虚构条目。未核验全文，也<b>不构成新颖性结论</b>：标「疑似新」仅是本轮检索的负结果。</p>
+<h2>原检索范围与尚未核验的内容</h2>
+<p>原检索词包括 <code>LayerNorm optimization</code>、<code>batch normalization optimization</code>、<code>conditioning loss landscape</code>、<code>Gram matrix condition number</code>、<code>normalization gradient</code>、<code>target alignment neural tangent kernel</code>、<code>lazy training differentiable programming</code>、<code>mini-batch full-batch</code>、<code>weight decay loss landscape</code>。原记录注明引用条目经 arXiv API / OpenAlex 返回信息核对，判断基于标题、作者、年份与摘要。本次文字修订未重新核验文献。未核验全文，也<b>不构成新颖性结论</b>：「未找到直接前作」只说明原检索没有找到直接对应的研究。</p>
 <p>词义与对象提醒：文献主流研究的是 <b>BatchNorm</b> 的优化收益（Santurkar、Kohler、Wei、Lyu 等），或 LN 在 Transformer 中的位置/参数作用（Xiong、Xu、Ni 等）；D5 研究的是<b>固定宽度、固定 head 的小 MLP</b>上 LN 相对 noLN 的 chord 收益，并用 hidden Gram 条件数与固定初始化 Jacobian 核做中介量。因此「现象同、构造不同」被标为部分已知。尤其 Karakida et al. (2019) 明确报告 <b>LayerNorm 不能降低病理 sharpness</b>，与 D5「LN 降低 hidden Gram 条件数」读数构成需要进一步对齐的矛盾。D5 的结论只覆盖四个 development 函数与所列 recipe，不外推其他函数、width、优化器、小批量真实动力学或 sealed OOD（封存的分布外条件）。</p>
 
-<div class="stamp">D5 深度确认首版 2026-10-11（北京时间）· 摘要级对照，全文精读待续 · 网页在 prototype 仓库内维护</div>
+<div class="stamp">D5 摘要级文献对照首版 2026-10-11（北京时间）· 尚未逐篇精读全文 · 网页在 prototype 仓库内维护</div>
 </main></body></html>

@@ -1,16 +1,16 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>D7：train增益与test损害的机制边界</title><link rel="stylesheet" href="style.css">
+<title>D7：训练误差改善与泛化损害</title><link rel="stylesheet" href="style.css">
 <script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D7_train_gain_test_harm.html">编辑此页</a> · <a href="背景与文献.html">背景与文献</a> · <a href="D7_文献深度确认.html">命题×文献对照</a></div>
-<h1>D7：train增益与test损害的机制边界</h1>
+<body><main><div class="nav"><a href="index.html">← 研究总览</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D7_train_gain_test_harm.html">编辑此页</a> · <a href="背景与文献.html">背景与文献</a> · <a href="D7_文献深度确认.html">与已有文献的对照</a></div>
+<h1>D7：训练误差改善与泛化损害</h1>
 <h2>结论</h2>
-<p>训练误差降低，仍不能判定继续训练是否提高 test（未参与训练的样本）风险。晚期损害由 C=L_test(512)−L_test(128)&gt;0 描述；C 是同一模型两时点的风险差。这个判据需要事后查看 test。现有实验尚未建立只靠 train（训练样本）的前瞻信号，也未识别三种候选机制的比例。</p>
-<p>人工标签噪声不是相对损害的必要原因。确定性 clean（不加人工标签噪声）来源实验已有8/8函数×宽度×SGD单元的均值train增益&gt;.05×初始loss（误差）。其中6/8单元的终点test差距均值为正。这里的差距比较真实网络与切线模型（把网络在初始参数处线性化）。两种SGD（沿训练误差梯度更新参数）为η=.05/mom0与η=.005/mom.9；η是学习率，mom是动量系数。其他架构和数据规模相同。“6/8”不表示所有init（初始化编号）同号，也不表示区间均排除零。有限样本效应仍未排除。</p>
-<p>噪声效应使用三个不同指标：H是终点真实网络减切线的test误差，D是加噪后H减不加噪H，G是终点切线减真实网络的train误差。D&gt;0表示噪声扩大相对差距。它不等于H&gt;0，也不等于C&gt;0。</p>
+<p>不一定。本页比较真实网络与它在初始参数处线性化得到的切线模型：真实网络可以在训练样本上拟合得更好，却在未参与训练的测试样本上表现更差。但“终点比另一模型差”和“继续训练后自己变差”是两回事。后者用 C=L_test(512)−L_test(128)&gt;0 判断，需要事后查看测试误差。现有实验还不能只靠训练误差预警，也没有确定三种候选机制各占多大比例。</p>
+<p>即使不人为添加标签噪声，也出现了这种训练与测试表现的分歧。不加人工噪声的实验中，8/8个“目标函数×网络宽度×优化设置”组合的平均训练增益&gt;.05×初始损失；其中6/8组合的终点测试误差差距均值为正，即真实网络平均更差。两种梯度更新设置为η=.05/mom0与η=.005/mom.9；η是学习率，mom是动量系数，其他架构和数据规模相同。“6/8”不表示每次初始化都更差，也不表示各区间均排除零。有限样本效应仍未排除。</p>
+<p>下文把几种差异分开记录：H是终点真实网络减切线模型的测试误差；D是加噪后H减不加噪H，衡量噪声是否扩大相对差距；G是终点切线模型减真实网络的训练误差，衡量训练增益。D&gt;0不等于H&gt;0，也不等于C&gt;0：噪声可能只缩小原有优势，模型仍可能在继续训练时改善。</p>
 <p>已测的sigma=1边界在三组条件均通过4/4单元。sigma是归一化目标单位下的标签噪声标准差。条件为d5 Gaussian（五维标准高斯输入）、train32/test256（训练与test样本数）、mixed_sine/radial两函数×width（隐层神经元数）8/32、init11/29/47、data7331（数据生成编号）。训练使用SGD η=.05/mom0/nodecay（无权重衰减）/512步。noise733107与733123（噪声生成编号）各4/4单元满足mean(D)≥.02且各≥2/3 init D&gt;0。两draw（具体噪声向量）的mean(D)分别.287093–.800986与.127211–.466452。data7331/noise733123有三个95%init区间跨零。相同recipe（整套训练条件）和noise733123下，仅改data为7339仍4/4通过：mean(D)=.111892–.519513、12/12 D&gt;0。radial×8的95%初始化区间跨零。</p>
 <p>半强度噪声只在3/4单元通过正向判据。固定data7339/noise733123与原recipe，sigma=.5的D=H(.5)-H(0)在mixed_sine×8、mixed_sine×32、radial×32的均值分别为.125194、.229192、.060492。三个单元均为3/3初始化为正。radial×8为-.046567，只有1/3为正。预设的“至少3/4单元mean(D)&gt;=.01且各&gt;=2/3初始化为正”通过3/4单元。</p>
 <p>已测条件不支持连续强度缩放。三个通过单元的D(.5)都小于对应D(1)，但不能据此给出线性、二次或连续强度规律。</p>
@@ -18,14 +18,14 @@
 <p>D&gt;0也可以仅缩小真实网络原有优势。data7331/noise733123的radial×32，三init的D=.075103–.185840均正，H1=−.151615至−.047987均负，真实C=-0.198348至-0.088044均负。噪声使真实网络相对切线更差；它在终点仍优于切线，晚期test也仍下降。</p>
 <p>更换噪声向量推翻半强度正向判据的保持预测。固定data7339、σ=.5、含bias（可训练偏置）的两层hidden（隐层）SiLU（平滑非线性激活函数）、width8/32、init11/29/47、CPU float64（双精度）全批量SGD η=.05/mom0/nodecay/T512，仅把noise733123换为733131。原“至少3/4单元mean D≥.01且各至少2/3初始化D&gt;0”预测通过率从3/4降为1/4。新四单元mean D依次为.086687、−.008957、−.013877、.003331；正初始化数为3/3、2/3、2/3、2/3。固定噪声强度和recipe后，该判据仍依赖具体噪声向量。</p>
 <p>“不足3/4单元通过会再现”的预测被推翻。固定data7339、sigma=.5与同一训练条件，仅把noise733131换为预指定733139，原正向判据有3/4单元通过。mixed_sine×8/32与radial×32各3/3初始化D&gt;0；radial×8为0/3。四均值D依次为0.206577/0.175632/-0.037836/0.054909。三个半强度噪声向量的通过数为3/4、1/4、3/4，固定强度与训练条件仍不能决定判据是否通过。这个序列只描述已测向量，不能估计跨噪声概率。</p>
-<h2>Formulation</h2>
+<h2>公式与符号</h2>
 <p>L_A(m,σ,s,ν,ρ,t) = (1/2n_A) Σ_i∈A [f_m,σ,s,ν,ρ,t(x_i)−y_A,σ,ν,ρ,i]²。</p>
 <p>H_σ,s^(ν,ρ) = L_test(real,σ,s,ν,ρ,512)−L_test(tangent,σ,s,ν,ρ,512)；D_s^(ν,ρ)(σ) = H_σ,s^(ν,ρ)−H_0,s^(ν,ρ)；旧σ=1记作D，本轮σ=.5记作D(.5)。</p>
 <p>G_σ,s^(ν,ρ) = L_train(tangent,σ,s,ν,ρ,512)−L_train(real,σ,s,ν,ρ,512)；C_m,σ,s^(ν,ρ) = L_test(m,σ,s,ν,ρ,512)−L_test(m,σ,s,ν,ρ,128)。</p>
 <p>A∈{train,test}是样本集合，n_A是样本数，i是样本索引。m∈{real,tangent}分别是真实网络和完整初始Jacobian（输出对全部参数的导数）切线。σ∈{0,.5,1}是训练标签噪声标准差，单位为归一化目标。s是初始化seed，ν是噪声seed，ρ是data seed；seed是生成条件的固定整数编号，无量纲。ρ决定train/test输入与clean目标归一化。t是优化步数。</p>
 <p>x是无量纲Gaussian输入，f是模型输出。y_train,σ,ν,ρ=y_clean,ρ+σ ε_ν，其中ε_ν是独立标准Gaussian噪声向量。test目标始终为clean。clean目标按train均值和标准差归一化。L是半均方误差（halfMSE）；H、D、G、C的单位均为归一化目标平方。mean(D)是三个init的算术平均。H&gt;0表示终点真实网络相对切线较差。C&gt;0表示同模型晚期test风险上升。</p>
-<h2>成立程度</h2>
-<h3>data7339、sigma=.5：noise733139</h3>
+<h2>结果与适用范围</h2>
+<h3>半强度噪声的再次对照：data7339、sigma=.5、noise733139</h3>
 <div class="table-wrap"><table>
 <thead>
 <tr>
@@ -111,7 +111,7 @@
 </tbody>
 </table></div>
 <p>新四D区间均跨零；新−旧noise的radial×32配对区间排除零，其余三个跨零。该失败只约束已测noise733131，不能把1/4作为跨noise概率。</p>
-<h3>data7339：主判据</h3>
+<h3>更换数据后，噪声是否仍扩大差距：data7339</h3>
 <p>固定noise733123，更换data7339后，四个函数×宽度单元仍满足原.02、2/3、3/4判据。新旧data的四个D配对差区间全部跨零，结果只支持本次条件验证。更换data共同改变输入、clean目标与train归一化，不能拆出单一机制。</p>
 <div class="table-wrap"><table>
 <thead>
@@ -430,7 +430,7 @@
 <p>半强度噪声的 radial×8 是新增反例：mean D(.5)=-.046567，D(.5)&gt;0 仅 1/3；相对噪声敏感度的正向判据不覆盖全部函数×宽度单元。</p>
 <p>首次独立区间核验失败。解析df2区间与SciPy数值区间最大差异1.097433e−11，超过当时使用的1e−12容差。原错误/源码保留。仅独立区间比较容差放至1e−10；原分析、训练合同与科学判据保持。</p>
 <p>原设计的两次提交失败保留；当时未训练，预测未评估。两个旧终点差距与晚期风险分歧、第二噪声draw三个跨零区间与radial×8 init11增加.353716的反例均在上文保留。</p>
-<h2>未决问题</h2>
+<h2>尚未回答的问题</h2>
 <p>下一小问题仅development保持data7339/sigma=.5/全部四recipe/init/SGD/T512，换预指定noise733147，检验原正向判据是否至少3/4单元meanD&gt;=.01且各至少2/3 init D&gt;0。先注册明确方向、来源hash与pinned源码单一commit，再生成新噪声/训练；不能先算后称盲预测。 机制比例和train-only早停仍未建立；D7管损害机制边界，D2管U型曲线与早停。</p>
 <h2>证据</h2>
 <ul>

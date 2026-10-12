@@ -1,39 +1,40 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>背景与相关文献</title><link rel="stylesheet" href="style.css">
+<title>研究背景：13 个方向在问什么，已有研究说了什么</title><link rel="stylesheet" href="style.css">
 <script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<body><main><div class="nav"><a href="index.html">← 模糊方向</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/%E8%83%8C%E6%99%AF%E4%B8%8E%E6%96%87%E7%8C%AE.html">编辑此页</a></div>
-<h1>背景与相关文献</h1>
-<p class="bg">本页给 13 个模糊方向补上入门背景：每个方向「在问什么、为什么值得问、结论大致落在文献的哪个位置」，并给出 2–4 篇关键论文。引用采用作者-年份，完整条目在第 <a href="#refs">相关文献</a> 节。文献均经 arXiv 逐条核对（标题/作者/年份）；本页只做背景定位，不替代各方向 <code>report.md</code> 里的数字证据。</p>
+<body><main><div class="nav"><a href="index.html">← 研究总览</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/%E8%83%8C%E6%99%AF%E4%B8%8E%E6%96%87%E7%8C%AE.html">编辑此页</a></div>
+<h1>研究背景：13 个方向在问什么，已有研究说了什么</h1>
+<p class="bg">本页介绍 13 个研究方向的问题、已有理论背景和当前证据范围，每个方向列出 2–4 篇入门论文。引用采用作者-年份，完整条目见 <a href="#refs">相关文献</a>。原记录注明曾核对 arXiv 的标题、作者与年份；本次仅修订语言，未新增检索或重新核验文献。各方向的文献对照属于<b>摘要级文献对照</b>，不是全文综述；具体数字以各方向 <code>report.md</code> 和保存产物为准。</p>
+<p class="bg"><b>先看结论：</b>这些方向大多在已有的谱分析、核动力学、曲线拟合和泛化研究中检验具体预测。读到「已知」时，要区分已有原理与本报告的数值复核；读到「未找到直接前作」时，只能理解为原检索没有找到直接对应的研究，<b>不等于新颖性确认</b>。适用范围、失败和未测条件与成功结果同样重要。</p>
 
-<h2>共享背景</h2>
-<p class="bg">这 13 个方向都属同一个主题：<strong>小网络在全批量/小批量梯度下降下的训练动力学</strong>——损失如何随时间下降、何时回升、由什么量决定。下面六个概念是反复出现的地基。</p>
+<h2>读这些报告需要的共同背景</h2>
+<p class="bg">这 13 个方向围绕同一主题：<strong>小网络与固定特征模型在全批量/小批量梯度下降下的训练过程</strong>——损失如何随时间下降、测试风险何时回升，以及哪些量能预测这些变化。下面六个概念会在各报告中反复出现。</p>
 
-<h3>1. 有效训练时间与稳定性</h3>
+<h3>1. 学习率乘以步数，何时能代表训练进度</h3>
 <p class="bg">在二次损失、恒定梯度这类可解析的情形下，训练进度近似只取决于「学习率 × 步数」（$\eta T$）；动量把它缩放成 $\eta T/(1-\mu)$。但真实训练里学习率一旦大到越过稳定性边界（曲率 $\eta\lambda$ 接近 2），晚期损失会震荡而非平稳下降（<a href="#ref-cohen2021">Cohen et al., 2021</a>）。自适应方法（Adam 等）还会逐坐标重标定步长，使「时间」不再是一个与坐标无关的标量（<a href="#ref-wilson2017">Wilson et al., 2017</a>; <a href="#ref-loshchilov2019">Loshchilov & Hutter, 2019</a>）。这就是 D1 要划定的边界。</p>
 
-<h3>2. 双下降与过参数化</h3>
+<h3>2. 测试风险为什么可能先降、再升、再降</h3>
 <p class="bg">经典偏差-方差理论预测「模型越复杂、越多数据，风险越低」。但过参数化模型上出现了<strong>双下降</strong>：测试风险随模型/训练量先降、再升、再降，中间存在一个回升区（<a href="#ref-belkin2019">Belkin et al., 2019</a>; <a href="#ref-nakkiran2020">Nakkiran et al., 2020</a>）。线性回归在高维极限下也被完整刻画（<a href="#ref-hastie2022">Hastie et al., 2022</a>），并出现「benign overfitting」——完美插值仍可泛化（<a href="#ref-bartlett2020">Bartlett et al., 2020</a>）。D2、D7 研究回升起点能否预测、以及训练好是否等于测试好。</p>
 
-<h3>3. 核方法、lazy 区制与 rich 区制</h3>
-<p class="bg">无限宽的极限下，用梯度下降训练网络等价于一个固定的核（NTK）回归，网络不学特征（<a href="#ref-jacot2018">Jacot et al., 2018</a>; <a href="#ref-lee2019">Lee et al., 2019</a>）。当网络足够宽或初始化尺度足够大时，参数几乎不动（lazy training）（<a href="#ref-chizat2019">Chizat et al., 2019</a>）；反之进入「rich」区制，特征会随训练漂移（<a href="#ref-woodworth2020">Woodworth et al., 2020</a>）。D6 检验早期核漂移能否预测晚期，D11 则问宽度/样本量的标度何时从核区制转向特征学习区制。</p>
+<h3>3. 固定核近似与特征学习：lazy 和 rich 的区别</h3>
+<p class="bg">在相应的无限宽极限与参数化条件下，梯度下降训练可由固定核（NTK）描述，特征学习的作用消失（<a href="#ref-jacot2018">Jacot et al., 2018</a>; <a href="#ref-lee2019">Lee et al., 2019</a>）。网络足够宽或初始化尺度足够大时，可能接近这种线性化训练状态，称为 lazy training（<a href="#ref-chizat2019">Chizat et al., 2019</a>）；特征随训练明显变化的状态则称为 rich（<a href="#ref-woodworth2020">Woodworth et al., 2020</a>）。D6 检验早期核变化能否预测晚期读数。D11 的长期问题涉及两种状态的边界，但当前只测了固定特征维数与训练预算。</p>
 
-<h3>4. 谱、模态与线性网络动力学</h3>
+<h3>4. 不同特征方向为什么学得有快有慢</h3>
 <p class="bg">在固定特征或深度线性网络里，损失沿损失 Hessian 的特征方向（模态）逐条指数衰减，慢模态长期主导（<a href="#ref-saxe2014">Saxe et al., 2014</a>）。高维极限下，泛化误差曲线可由谱与目标能量分布解析给出（<a href="#ref-advani2020">Advani et al., 2020</a>）。这条「谱-模态」视角是 D3（容量如何测量）与 D10、D11（深度/宽度的动力学传播与标度）的共同语言。</p>
 
-<h3>5. 标度律</h3>
+<h3>5. 模型、数据与训练预算扩大后，误差怎样变化</h3>
 <p class="bg">经验上，损失随模型规模、数据量、算力呈幂律下降（<a href="#ref-hestness2017">Hestness et al., 2017</a>; <a href="#ref-kaplan2020">Kaplan et al., 2020</a>），并有理论解释把指数与数据/任务的谱性质联系起来（<a href="#ref-bahri2024">Bahri et al., 2024</a>）。D11、D13 检验具体的预算-维数幂律与相变时间是否可标定。</p>
 
-<h3>6. 训练-测试差距与随机噪声</h3>
+<h3>6. 训练误差降低，为什么不保证测试表现改善</h3>
 <p class="bg">训练误差降到零并不意味泛化好，网络可以记住随机标签（<a href="#ref-zhang2017">Zhang et al., 2017</a>）；而 SGD 的稳定性控制着泛化差距（<a href="#ref-hardt2016">Hardt et al., 2016</a>）。批量大小改变梯度噪声尺度，从而移动最优点与最终风险（<a href="#ref-mandt2017">Mandt et al., 2017</a>; <a href="#ref-smith2018">Smith et al., 2018</a>; <a href="#ref-mccandlish2018">McCandlish et al., 2018</a>; <a href="#ref-keskar2017">Keskar et al., 2017</a>）。D7、D9 分别在「train 好≠test 好」和「小批量噪声怎样移动最低点」上证伪或确认这些图景。</p>
 
-<h2>按方向</h2>
+<h2>逐方向阅读：问题、当前结果与入门文献</h2>
 
 <h3>D1：等效训练时间 $U$</h3>
-<p class="bg">问题：能否用一个标量「有效训练时间」概括不同优化器的训练进度？背景是 $\eta T$ 式的位移/时间标定（见共享背景 1）。本方向确认普通 SGD 的标定成立、动量必须扣除启动项，但「启动换算比稳态更准」在晚期被 6/10 配对推翻，且四类自适应优化器未实测。逐条命题的文献状态对照见 <a href="D1_文献深度确认.html">D1：命题 × 文献状态对照</a>。</p>
+<p class="bg">问题：能否用一个标量「有效训练时间」概括不同优化器的训练进度？背景是 $\eta T$ 式的位移/时间标定（见共同背景 1）。本方向在受控条件下复核普通 SGD 的标定，并检验动量启动修正；但「启动换算比稳态更准」在晚期被 6/10 配对推翻，四类自适应优化器也尚未实测。位移标定成立不等于能预测损失进度。逐条对照见 <a href="D1_文献深度确认.html">D1：等效训练时间与已有研究的对照</a>。</p>
 <ul class="refs">
 <li><a href="#ref-wilson2017">Wilson et al. (2017)</a>：自适应方法的泛化未必更好，步长被逐坐标重标定。</li>
 <li><a href="#ref-loshchilov2019">Loshchilov &amp; Hutter (2019)</a>：AdamW 的解耦权重衰减，说明「时间」需考虑参数衰减。</li>
@@ -41,7 +42,7 @@
 </ul>
 
 <h3>D2：风险何时回升、能否预测最低点</h3>
-<p class="bg">问题：在受控回归里，测试风险的最低点出现在哪里、能否由样本数 $n$ 与标签噪声 $\sigma^2$ 预测，回升后如何增长。对应双下降的「回升区」（见共享背景 2）。本方向发现最低点可用 $n/\sigma^2$ 预测（留出 57/60 在两倍内），但统一的跨任务指数不成立。</p>
+<p class="bg">问题：在受控回归里，能否用样本数 $n$ 与标签噪声 $\sigma^2$ 预测测试风险最低点，以及之后的回升幅度？这与早停、双下降中的风险回升有关（见共同背景 2）。原扫描用 $n/\sigma^2$ 预测最低点，留出 57/60 在两倍内；但扩大范围后，统一的跨任务指数不成立。原扫描的成功不能当作普适规律。</p>
 <ul class="refs">
 <li><a href="#ref-belkin2019">Belkin et al. (2019)</a>：双下降现象的提出。</li>
 <li><a href="#ref-nakkiran2020">Nakkiran et al. (2020)</a>：模型更大、数据更多反而变差的现象学。</li>
@@ -65,22 +66,22 @@
 <li><a href="#ref-hestness2017">Hestness et al. (2017)</a>：训练曲线的经验规律与拟合。</li>
 </ul>
 
-<h3>D5：LN 同宽度收益由什么中介</h3>
-<p class="bg">问题：LayerNorm 带来的收益，是否由「改善条件数/损失几何」中介？本方向测得收益成立，但候选几何量（Gram 条件数、目标 Rayleigh 商）的相关都未达预注册判据。文献背景见共享背景 8 的两条。</p>
+<h3>D5：同样宽度下，什么能解释 LayerNorm 的训练收益</h3>
+<p class="bg">问题：LayerNorm 带来的训练收益，能否用条件数或损失几何的变化解释？本方向在已测条件下观察到收益，但 Gram 条件数、目标 Rayleigh 商与收益的相关性均未达到预注册判据。归一化收益已有研究；这里的具体机制仍未确定。原文「共享背景 8」并无对应章节，相关背景见下列论文。</p>
 <ul class="refs">
 <li>Ba et al. (2016)：LayerNorm 原始工作。</li>
 <li><a href="#ref-santurkar2018">Santurkar et al. (2018)</a>：batch norm 的收益主要来自优化而非内部协变量偏移——本方向把同样的因果检查搬到 LayerNorm。</li>
 </ul>
 
 <h3>D6：早期核漂移能预测晚期吗</h3>
-<p class="bg">问题：有限宽网络在训练早期就离开初始核（NTK），早期漂移的方向/幅度能否预测晚期行为？本方向发现早期方向判据在 3/4 单元通过，但旧冻结公式跨新数据抽取只微弱改善。</p>
+<p class="bg">问题：有限宽网络的核（NTK）随训练变化，早期变化的方向和幅度能否预测晚期读数？本方向的早期方向判据在 3/4 单元通过，但原数据抽样上的预测收益没有在指定新抽样上保持。这里预测的是核读数，尚不能据此预测测试表现。</p>
 <ul class="refs">
 <li><a href="#ref-jacot2018">Jacot et al. (2018)</a>：NTK，无限宽极限的固定核图景。</li>
 <li><a href="#ref-fort2020">Fort et al. (2020)</a>：NTK 随训练演化（kernel learning），早期核与晚期核不同。</li>
 <li>Domingos (2020)：梯度下降得到的模型近似是核机器。</li>
 </ul>
 
-<h3>D7：train 增益与 test 损害的边界</h3>
+<h3>D7：训练误差改善，何时仍伴随测试风险受损</h3>
 <p class="bg">问题：训练误差持续下降时，测试风险何时开始受损？本方向用「真实网络相对初始切线」的干净 test 差距，测得噪声会放大该差距（4/4 单元），但差距为正不等于继续训练有害。</p>
 <ul class="refs">
 <li><a href="#ref-zhang2017">Zhang et al. (2017)</a>：训练可记住随机标签——训练好不等于泛化好。</li>
@@ -88,8 +89,8 @@
 <li><a href="#ref-nakkiran2020">Nakkiran et al. (2020)</a>：更多训练/数据可能变差。</li>
 </ul>
 
-<h3>D8：bias 与奇偶通路的规律能存活多远</h3>
-<p class="bg">问题：在对称输入、固定加性 bias 与单层激活下，哪些对称性决定了损失里出现的泰勒阶？本方向在短尺度测得偶/奇能量比按 $a^2$（b=0/1）与 $a^6$（二阶导零点）变化，偏离零点后失效。奇偶结构与置换群对称性正是「parity 学习」的核心（<a href="#ref-barak2022">Barak et al., 2022</a>）。</p>
+<h3>D8：偏置怎样改变奇偶特征，小尺度规律何时失效</h3>
+<p class="bg">问题：在对称输入、固定加性 bias 与单层激活下，Taylor 展开的哪些项决定奇偶特征的能量比？本方向在小尺度测得偶/奇能量比按 $a^2$（b=0/1）与 $a^6$（二阶导零点）变化；偏离零点后，需要考虑不同阶项及其交叉项，有限尺度下也有精度失败。这里的输入反射奇偶分解与「parity 学习」相关，但不是同一个问题（<a href="#ref-barak2022">Barak et al., 2022</a>）。</p>
 <ul class="refs">
 <li><a href="#ref-barak2022">Barak et al. (2022)</a>：SGD 学习 parity 的隐式进展与计算极限。</li>
 <li><a href="#ref-power2022">Power et al. (2022)</a>：parity/模运算上的 grokking。</li>
@@ -104,15 +105,15 @@
 <li><a href="#ref-keskar2017">Keskar et al. (2017)</a>：大批量导致尖锐极小值与泛化差距。</li>
 </ul>
 
-<h3>D10：深度中的动力学怎样传播</h3>
-<p class="bg">问题：增加深度时，拟合时间由哪一层/哪个时间尺度控制？本方向比较「最慢参数组」与「全核」两种候选，前者 12/12 超出两倍，后者 10/12 在两倍内但不随深度单调。</p>
+<h3>D10：网络加深后，哪种预测能估计训练时间</h3>
+<p class="bg">问题：增加深度时，哪种方法能预测损失减半所需的时间？本方向比较「最慢参数组」与「各层核相加得到的全核」：所列对照中，前者 12/12 高估超过两倍，后者 10/12 在两倍内。实际训练时间不随深度单调增加，不能只凭层数判断训练快慢。</p>
 <ul class="refs">
 <li><a href="#ref-lee2019">Lee et al. (2019)</a>：任意深度宽网络的线性化演化（层间时间尺度的理论起点）。</li>
 <li><a href="#ref-saxe2014">Saxe et al. (2014)</a>：深度线性网络的分层/分模态学习时间。</li>
 </ul>
 
-<h3>D11：宽度/样本标度与 lazy→rich 边界</h3>
-<p class="bg">问题：学习预算随维数如何标度，同 Rayleigh 商是否够？本方向测得 1% 预算约 $\approx d^{1.00}$，但同 Rayleigh 商下两目标仍有 1.94–2.0 倍预算差。区制划分背景见共享背景 3。</p>
+<h3>D11：固定特征维数增大，达标步数怎样变化</h3>
+<p class="bg">问题：学习预算随固定特征维数如何变化，仅知道 Rayleigh 商是否足够？在已测谱与目标下，1% 预算约 $\approx d^{1.00}$，但同 Rayleigh 商的两目标仍有 1.94–2.0 倍预算差。这里的维数不是真实网络宽度，也未测 lazy→rich 转变；两种训练状态的背景见共同背景 3。</p>
 <ul class="refs">
 <li><a href="#ref-chizat2019">Chizat et al. (2019)</a>：lazy training 区制。</li>
 <li><a href="#ref-woodworth2020">Woodworth et al. (2020)</a>：核区制与 rich 区制之间的过渡。</li>
@@ -120,15 +121,15 @@
 <li><a href="#ref-bahri2024">Bahri et al. (2024)</a>：从数据/任务性质解释标度指数。</li>
 </ul>
 
-<h3>D12：sigmoid 失败后能否分解为级联</h3>
-<p class="bg">问题：单 sigmoid 拟合失败，是否因为曲线由两个时间尺度叠加，拆成双段（级联）logistic 就能救回？本方向发现双段在谱比 12/25 全部通过（12/12），而单 sigmoid 同网格 20/25 失败。</p>
+<h3>D12：单段 sigmoid 不够准确时，双段近似是否更好</h3>
+<p class="bg">问题：单 sigmoid 不够准确时，用快、慢两个时间尺度的双段 logistic 近似是否更好？原概览将谱比范围简写为 12/25，双段拟合通过数为 12/12；其中单 sigmoid 在谱比 20/25 条件失败。具体格点见该方向逐条对照。双段拟合通过不代表无拟合公式总能通过，也不是延迟泛化的证据。</p>
 <ul class="refs">
 <li><a href="#ref-jastrzebski2020">Jastrzębski et al. (2020)</a>：优化轨迹的分阶段结构。</li>
 <li><a href="#ref-nakkiran2021">Nakkiran et al. (2021)</a>：deep bootstrap 的在线/离线两时间尺度。</li>
 <li><a href="#ref-power2022">Power et al. (2022)</a>：延迟跃迁（grokking）。</li>
 </ul>
 
-<h3>D13：Linear Flow World 的相变时间与有效深度</h3>
+<h3>D13：能否用损失下降时间换算网络的有效深度</h3>
 <p class="bg">问题：能否从架构与初始化预测相变时间，再换算出「有效深度」？本方向在线性流世界里发现无 skip 的时间轴标定失败；只把学习率从 .02 降到 .00125（保持 $\eta T$）就让 A/B 一致性 0/3→3/3，但固定时间轴后仍 0/3。</p>
 <ul class="refs">
 <li><a href="#ref-saxe2014">Saxe et al. (2014)</a>：深度线性网络的精确动力学与时间标度。</li>
@@ -170,5 +171,5 @@
 <li id="ref-woodworth2020">Woodworth, B., Gunasekar, S., Lee, J. D., Moroshko, E., Savarese, P., Golan, I., Soudry, D., &amp; Srebro, N. (2020). Kernel and rich regimes in overparametrized models. <em>COLT 2020</em>. <a href="https://arxiv.org/abs/2002.09277">arXiv:2002.09277</a></li>
 <li id="ref-zhang2017">Zhang, C., Bengio, S., Hardt, M., Recht, B., &amp; Vinyals, O. (2017). Understanding deep learning requires rethinking generalization. <em>ICLR 2017</em>. <a href="https://arxiv.org/abs/1611.03530">arXiv:1611.03530</a></li>
 </ol>
-<div class="stamp">文献经 arXiv 核对于 2026-10-11（北京时间）· Roy &amp; Vetterli (2007) 为会议论文，未在 arXiv 收录</div>
+<div class="stamp">原记录：arXiv 书目信息核对日期为 2026-10-11（北京时间）· 本次仅修订语言，未重新核验 · Roy &amp; Vetterli (2007) 为会议论文，未在 arXiv 收录</div>
 </main></body></html>
