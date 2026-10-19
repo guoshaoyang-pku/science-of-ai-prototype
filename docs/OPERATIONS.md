@@ -52,31 +52,3 @@ python3 -m http.server 8000 --directory docs
 ~~~
 
 本地打开 http://localhost:8000/模糊方向/ 检查页面、图片和公式。GitHub Pages 已设为从 main 分支的 /docs 发布；将网页改动推送 main 后自动更新，在 Actions 查看 pages build and deployment 的结果，再检查在线页。此流程不重新生成 HTML、不启动模型或实验；旧 publisher 与本页是不同发布入口，旧 v2 publisher 继续禁用。
-
-## 本地开发与首簇诊断
-
-本仓库的现有网页是研究报告浏览入口，题目平台的完整服务不包含在本仓库中。只浏览报告时，启动本机只读服务：
-
-~~~bash
-.venv/bin/python -m http.server 8765 --bind 127.0.0.1 --directory docs
-~~~
-
-打开 <http://127.0.0.1:8765/>，终端按 Ctrl-C 停止。服务仅绑定本机，不启动 solver、supervisor 或 publisher。
-
-若现有 `.venv` 缺少 pip，可用已安装的 uv 在该环境安装相同依赖；先确保 submodule 的 HEAD 与 `upstream.lock.json` 一致：
-
-~~~bash
-uv pip install --python .venv/bin/python -e external/ArchitectureIQ -e '.[dev,runtime,research,reports]'
-PYTHONPATH=src .venv/bin/python -m pytest -q
-.venv/bin/python tools/verify_handoff.py
-~~~
-
-[首簇试点合同](TASK_PLATFORM_PILOT.md)定义了独立的随机 teacher 开发诊断。运行前必须提交合同和源码；CLI 会核对两者与当前 commit 一致，用户的无关未跟踪文件不影响运行。配置外部数据根后运行一次，并从保存产物复算：
-
-~~~bash
-export AIQ_KB_DATA_ROOT=/absolute/path/to/AIQ_KB_DATA
-PYTHONPATH=src .venv/bin/python -m aiq_kb.task_pilot --run-name random-teacher-dev-20261019
-PYTHONPATH=src .venv/bin/python -m aiq_kb.task_pilot --verify random-teacher-dev-20261019
-~~~
-
-结果在 `$AIQ_KB_DATA_ROOT/runs/random-teacher-dev-20261019/`。成功记录通过 `--verify` 复核，不能为查看结果再次生成；同名目录拒绝覆盖。该开发诊断不代表候选训练或 solver 迁移收益，也不恢复旧研究轮。
