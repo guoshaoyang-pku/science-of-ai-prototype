@@ -108,6 +108,15 @@ def build(run, legacy):
                             f"缺失 {len(jobs)-len(predictions)}，未评分不是 0 分。状态：{', '.join(sorted(set(failures))) or load(run / 'status.json', {}).get('state', '未知')}。")
     data["summary"] = json.dumps({k: summary[k] for k in ("n_questions", "n_jobs", "arms", "comparisons") if k in summary}, ensure_ascii=False) if summary else "尚无完整评分与配对结论。"
     if summary:
+        data["uncertaintyNote"] = "本次为500道公开选择题；每题先平均3次，±为按dataset组聚类的1 SE；备注列给出组bootstrap 95%区间。"
+        data["evals"] = {arm: dict(n=len(questions), repeats=3, mean=summary["arms"][arm]["mean"],
+                                  note="冻结公开基准；完整分母") for arm in ARMS}
+        data["comparisons"] = []
+        for left, right in (("N", "F"), ("N", "L"), ("F", "L")):
+            comparison = summary["comparisons"][f"{left}_to_{right}"]
+            data["comparisons"].append(dict(label=f"{right} − {left}", n=len(questions), repeats=3,
+                mean=summary["arms"][right]["mean"], delta=comparison["delta"], se=comparison["cluster_se"],
+                note=f"group bootstrap 95% {comparison['bootstrap_95']}；公开题、历史曝光不完整"))
         overlap = set(load(run / "exposure.json", {}).get("historical_qid_overlap", []))
         per_question = rows(run / "per_question.jsonl")
         remaining = [r for r in per_question if r["qid"] not in overlap]

@@ -62,7 +62,7 @@ function overview() {
   const control=D.training_control;
   const pairTable=pairs?table(['配对比较','题数','重复','均分','得分差','备注'],pairs):'';
   const training=control?'<p>训练流：'+control.n+' 题，KB − 不带KB '+num(control.delta*100,2)+' ±'+num(control.se*100,2)+' pt。'+esc(control.note||'')+'</p>':'';
-  $('view').innerHTML=card(esc(D.run),'<p>'+esc(D.availability||'')+'</p>'+(D.summary?'<p>'+esc(D.summary)+'</p>':''))+card('流程','<div class="flow">'+flow.map(x=>'<div>'+esc(x)+'</div>').join('')+'</div>')+card('每个 epoch',table(['轮次','题数','训练题均分','KB 条数','结构操作','评审结果'],rows||'<tr><td colspan=6>未取得逐轮记录。</td></tr>'))+card('评测',pairTable+training+table(['快照 / 对照','题数','重复','均分','相对不带 KB','分题源 / 备注'],ev||'<tr><td colspan=6>尚无已完成评测。</td></tr>')+'<p class="note">得分包含排序题部分分；± 为题级配对 1 SE。</p>'+(D.evalNote?'<p class="note">'+esc(D.evalNote)+'</p>':''));
+  $('view').innerHTML=card(esc(D.run),'<p>'+esc(D.availability||'')+'</p>'+(D.summary?'<p>'+esc(D.summary)+'</p>':''))+card('流程','<div class="flow">'+flow.map(x=>'<div>'+esc(x)+'</div>').join('')+'</div>')+card('每个 epoch',table(['轮次','题数','训练题均分','KB 条数','结构操作','评审结果'],rows||'<tr><td colspan=6>未取得逐轮记录。</td></tr>'))+card('评测',pairTable+training+table(['快照 / 对照','题数','重复','均分','相对不带 KB','分题源 / 备注'],ev||'<tr><td colspan=6>尚无已完成评测。</td></tr>')+'<p class="note">'+esc(D.uncertaintyNote||'得分包含排序题部分分；± 为题级配对 1 SE。')+'</p>'+(D.evalNote?'<p class="note">'+esc(D.evalNote)+'</p>':''));
 }
 
 function detail(S,id) {
