@@ -142,6 +142,23 @@ class FrozenExecutionTests(unittest.TestCase):
             self.execute()
         self.assertEqual(observed, [1])
 
+    def test_explicit_v2_uses_its_own_archive_and_preserves_v1(self):
+        archive = self.run / "source/frozen_execution.py"
+        archive.write_bytes(b"original preregistered controller")
+        old_freeze = self.run / "execution-amendment.freeze.json"
+        old_status = self.run / "execution-amendment.status.json"
+        old_freeze.write_bytes(b"original freeze")
+        old_status.write_bytes(b"original status")
+        self.fixture.write_json("execution-amendment-v2.json", self.amendment)
+        execution.run_execution(self.run, amendment_filename="execution-amendment-v2.json",
+                                transport=lambda *a: (200, fixture_module.response()))
+        self.assertEqual(archive.read_bytes(), b"original preregistered controller")
+        self.assertEqual(old_freeze.read_bytes(), b"original freeze")
+        self.assertEqual(old_status.read_bytes(), b"original status")
+        self.assertTrue((self.run / "execution-amendment-v2.freeze.json").exists())
+        self.assertTrue((self.run / "execution-amendment-v2.status.json").exists())
+        self.assertTrue((self.run / "source/frozen_execution-execution-amendment-v2.py").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
