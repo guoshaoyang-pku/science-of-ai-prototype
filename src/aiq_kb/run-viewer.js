@@ -3,7 +3,7 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 const $ = id => document.getElementById(id);
 const snapBy = Object.fromEntries(D.snaps.map(s => [s.label, s]));
 const lab = e => "kb_" + String(e).padStart(4, "0");
-const scoreTag = s => `<span class="tag ${s >= 1 ? "ok" : s > 0 ? "mid" : "bad"}">得分 ${(+s).toFixed(2)}</span>`;
+const scoreTag = s => s == null || !Number.isFinite(+s) ? '<span class="tag">未评分</span>' : `<span class="tag ${s >= 1 ? "ok" : s > 0 ? "mid" : "bad"}">得分 ${(+s).toFixed(2)}</span>`;
 const linkC = s => esc(s).replace(/\bK\d{4}\b/g, m => `<a href="#" title="点击查看该条 claim 的演化（浮动窗口）" onclick="openClaim('${m}',event);return false">${m}</a>`);
 let state = {tab: "overview", epoch: 1, q: null, sub: "records", snap: D.snaps[D.snaps.length - 1].label};
 

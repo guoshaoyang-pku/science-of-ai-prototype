@@ -317,7 +317,7 @@ def render(data, output):
         data['snaps'] = [{'label': '未取得 KB 快照', 'epoch': 0, 'claims': [], 'render': '', 'complete': False, 'note': '未取得完整 KB 快照。'}]
     for key, val in [('texts', []), ('commits', []), ('epochs', []), ('evals', {}), ('prompts', {}), ('home', '../index.html'), ('config', {})]:
         data.setdefault(key, val)
-    blob = json.dumps(data, ensure_ascii=False).replace('<', '\u003c').replace('\u2028', '\u2028').replace('\u2029', '\u2029')
+    blob = json.dumps(data, ensure_ascii=False).replace('<', r'\u003c').replace('\u2028', r'\u2028').replace('\u2029', r'\u2029')
     head = (HERE / 'run-viewer-head.html').read_text()
     js = (HERE / 'run-viewer.js').read_text().replace('let claimId = "K0134";', 'let claimId = D.snaps.flatMap(s => s.claims)[0]?.[0] || "";')
     js = js.rsplit('render();', 1)[0]
