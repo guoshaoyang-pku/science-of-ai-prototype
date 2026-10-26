@@ -5,6 +5,7 @@ Usage: python -X utf8 tools/render_frozen_eval.py --run DIR --legacy-run DIR
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 import re
@@ -25,6 +26,62 @@ def rows(path):
 
 def save(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def runtime_budget(run, registration):
+    """Operational counts only; repaired primary usage is already included once."""
+    requests = sorted((run / "requests").glob("*/call_*/request.json"))
+    primary = {p.parent.relative_to(run).as_posix(): load(p.parent / "status.json", {}) for p in requests}
+    attempts = sorted((run / "recovery").glob("*/attempts/*/request.json"))
+    original_unknown = {}
+    for path in attempts:
+        before = load(path.parent / "before/status.json", {})
+        if before.get("state") == "unknown":
+            original_unknown[load(path)["target"]] = before
+    current_unknown = {key: status for key, status in primary.items() if status.get("state") == "unknown"}
+    history = {**original_unknown, **current_unknown}
+    resolved = {"success", "recovered_raw", "response_saved"}
+    limits, expected = registration.get("limits", {}), registration.get("expected", {})
+    continuation = registration.get("provenance", {}).get("continuation", {})
+    external = load(run / "recovery/external-budget.json", {})
+    parent_requests = external.get("requests", continuation.get("parent_requests", 0))
+    parent_reserved = external.get("reserved_completion_tokens", parent_requests * limits.get("max_tokens", 0))
+    checkpoint = load(run / "recovery-budget.json", {}).get("original_requests")
+    ceiling = continuation.get("total_experiment_request_ceiling_including_parent", limits.get("max_requests"))
+    known = [s.get("usage", {}).get("completion_tokens") for s in primary.values() if s.get("state") in resolved]
+    physical = len(requests) + len(attempts) + parent_requests
+    return {"as_of_utc": datetime.now(timezone.utc).isoformat(), "primary_request_slots": len(requests),
+            "extra_repair_attempts": len(attempts), "parent_requests": parent_requests,
+            "physical_requests_including_parent": physical, "physical_request_ceiling": ceiling,
+            "physical_requests_remaining": ceiling - physical if ceiling is not None else None,
+            "registered_primary_request_ceiling": limits.get("max_requests"),
+            "max_completion_tokens_per_solve": limits.get("max_tokens"),
+            "nominal_solve_completion_ceiling": expected.get("question_count", 0) * len(expected.get("arms", [])) * expected.get("repeats", 0) * limits.get("max_tokens", 0),
+            "known_completion_tokens": sum(value for value in known if type(value) is int and value >= 0),
+            "original_unknown_reserved_completion_tokens": sum(s.get("reserved_completion_tokens", 0) for s in original_unknown.values()),
+            "currently_unknown_reserved_completion_tokens": sum(s.get("reserved_completion_tokens", 0) for s in current_unknown.values()),
+            "parent_unknown_reserved_completion_tokens": parent_reserved,
+            "in_flight_reserved_completion_tokens": sum(s.get("reserved_completion_tokens", 0) for s in primary.values() if s.get("state") == "sent"),
+            "currently_unknown_primary_requests": len(current_unknown),
+            "historical_unknown_primary_requests": len(history),
+            "historical_primary_unknown_rate": len(history) / len(requests) if requests else None,
+            "recovery_checkpoint_primary_slots": checkpoint,
+            "recovery_checkpoint_unknown_requests": len(original_unknown),
+            "recovered_primary_requests": sum(primary.get(key, {}).get("state") in resolved for key in original_unknown),
+            "recovery_checkpoint_failure_rate": len(original_unknown) / checkpoint if checkpoint else None,
+            "note": "Known completion sums resolved primary statuses once, including repaired responses; original unknown and parent reservations are separate bounds, not measured usage. Counts are a live filesystem snapshot."}
+
+
+def sensitivity_summary(per_question, excluded, options):
+    """Remove entire questions from the complete cohort, independently per filter."""
+    if not set(excluded) <= {r["qid"] for r in per_question}:
+        raise ValueError("sensitivity exclusion is outside the complete question set")
+    remaining = [r for r in per_question if r["qid"] not in excluded]
+    return {"excluded_qids": sorted(excluded), "n_questions": len(remaining),
+            "scope": "entire_question_all_arms_all_repeats_excluded", "comparisons": {
+                f"{a}_to_{b}": paired_summary([(r["group"], r["means"][b]-r["means"][a]) for r in remaining],
+                    options.get("bootstrap_seed", 20261026), options.get("bootstrap_replicates", 10000))
+                for a, b in (("N", "F"), ("N", "L"), ("F", "L"))} if remaining else {}}
 
 
 def saved_calls(run, key):
@@ -79,7 +136,7 @@ def build(run, legacy):
     failures = []
     for path in (run / "requests").glob("*/call_*/status.json"):
         status = load(path, {})
-        if status.get("state") != "success":
+        if status.get("state") not in ("success", "recovered_raw", "response_saved"):
             failures.append(f"{status.get('state', '未知')} HTTP {status.get('http_status', '未知')}")
     for epoch, arm in enumerate(ARMS):
         records = []
@@ -102,10 +159,11 @@ def build(run, legacy):
             metrics["mean_score"] = statistics.mean(r["score"] for r in records)
         data["epochs"].append(dict(epoch=epoch, records=records, metrics=metrics, jobs=[], summarizer=[],
                                    science="公开冻结对照；无新研究、发现或 KB 修改。", scienceError="", research=[]))
-    complete = len(predictions) == len(jobs) and set(scores) == {j["key"] for j in jobs}
+    complete = set(predictions) == set(scores) == {j["key"] for j in jobs}
     summary = load(run / "summary.json") if complete else None
+    execution = load(run / "execution-amendment-v2.status.json", load(run / "execution-amendment.status.json", load(run / "status.json", {})))
     data["availability"] = (f"公开冻结比较；预测 {len(predictions)}/{len(jobs)}，评分 {len(scores)}/{len(jobs)}；"
-                            f"缺失 {len(jobs)-len(predictions)}，未评分不是 0 分。状态：{', '.join(sorted(set(failures))) or load(run / 'status.json', {}).get('state', '未知')}。")
+                            f"缺失 {len(jobs)-len(predictions)}，未评分不是 0 分。状态：{', '.join(sorted(set(failures))) or execution.get('state', '未知')}。")
     data["summary"] = json.dumps({k: summary[k] for k in ("n_questions", "n_jobs", "arms", "comparisons") if k in summary}, ensure_ascii=False) if summary else "尚无完整评分与配对结论。"
     if summary:
         data["uncertaintyNote"] = "本次为500道公开选择题；每题先平均3次，±为按dataset组聚类的1 SE；备注列给出组bootstrap 95%区间。"
@@ -119,17 +177,30 @@ def build(run, legacy):
                 note=f"group bootstrap 95% {comparison['bootstrap_95']}；公开题、历史曝光不完整"))
         overlap = set(load(run / "exposure.json", {}).get("historical_qid_overlap", []))
         per_question = rows(run / "per_question.jsonl")
-        remaining = [r for r in per_question if r["qid"] not in overlap]
-        if len(per_question) == len(questions) and remaining:
+        if len(per_question) == len(questions) and {r["qid"] for r in per_question} == set(questions):
             options = registration.get("grading", {})
-            sensitivity = {"excluded_known_qids": sorted(overlap), "n_questions": len(remaining), "comparisons": {
-                f"{a}_to_{b}": paired_summary([(r["group"], r["means"][b]-r["means"][a]) for r in remaining],
-                    options.get("bootstrap_seed", 20261026), options.get("bootstrap_replicates", 10000))
-                for a, b in (("N", "F"), ("N", "L"), ("F", "L"))}}
+            sensitivity = sensitivity_summary(per_question, overlap, options)
+            sensitivity["excluded_known_qids"] = sorted(overlap)
             save(run / "sensitivity.json", sensitivity)
-            data["summary"] += f"；排除已知 {len(overlap)} 道重叠题后剩 {len(remaining)} 题，配对敏感性见 sensitivity.json；不代表曝光已完整核实。"
+            data["summary"] += f"；排除已知 {len(overlap)} 道重叠题后剩 {sensitivity['n_questions']} 题，配对敏感性见 sensitivity.json；不代表曝光已完整核实。"
             data["summary"] += " " + "; ".join(f"{name}: delta={result['delta']:+.5f}, group SE={result['cluster_se']}, 95%={result['bootstrap_95']}"
                                                for name, result in sensitivity["comparisons"].items())
+            excluded = set(load(run / "recovery-budget.json", {}).get("strict_budget_excluded_qids", []))
+            if excluded:
+                strict = sensitivity_summary(per_question, excluded, options)
+                strict["exclusion_basis"] = "transport_only_recovery_registered_before_grading"
+                save(run / "strict-budget-sensitivity.json", strict)
+                data["strict_budget_sensitivity"] = strict
+                data["summary"] += f"；严格预算单独排除 {len(excluded)} 道重试题，保留 {strict['n_questions']} 题全部 arm/reps；该过滤不叠加历史重叠过滤。"
+                for name, result in strict["comparisons"].items():
+                    data["comparisons"].append(dict(label=f"严格预算 {name}", n=strict["n_questions"], repeats=3,
+                        delta=result["delta"], se=result["cluster_se"], note=f"整题排除重试；group bootstrap 95% {result['bootstrap_95']}"))
+    budget = data["runtime_budget"] = runtime_budget(run, registration)
+    data["summary"] += (f"；请求预算：主槽 {budget['primary_request_slots']} + 额外修复 {budget['extra_repair_attempts']} + 父请求 {budget['parent_requests']}"
+                        f" = {budget['physical_requests_including_parent']}/{budget['physical_request_ceiling']} 次物理请求；已知 completion {budget['known_completion_tokens']}，"
+                        f"原未知预留 {budget['original_unknown_reserved_completion_tokens']}、父请求未知预留 {budget['parent_unknown_reserved_completion_tokens']} 单列；"
+                        f"恢复点未知 {budget['recovery_checkpoint_unknown_requests']} / 主槽 {budget['recovery_checkpoint_primary_slots']}，已恢复 {budget['recovered_primary_requests']}，"
+                        f"该点失败率 {budget['recovery_checkpoint_failure_rate']}；当前未知 {budget['currently_unknown_primary_requests']}。")
     data = public_value(data)
     save(run / "viewer-data.json", data)
     render(data, run / "viewer.html")
