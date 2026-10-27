@@ -161,7 +161,8 @@ def build(run, legacy):
                                    science="公开冻结对照；无新研究、发现或 KB 修改。", scienceError="", research=[]))
     complete = set(predictions) == set(scores) == {j["key"] for j in jobs}
     summary = load(run / "summary.json") if complete else None
-    execution = load(run / "execution-amendment-v2.status.json", load(run / "execution-amendment.status.json", load(run / "status.json", {})))
+    latest_phase = max(run.glob("execution-amendment*.status.json"), key=lambda p: (p.stat().st_mtime_ns, p.name), default=None)
+    execution = load(latest_phase, {}) if latest_phase else load(run / "status.json", {})
     data["availability"] = (f"公开冻结比较；预测 {len(predictions)}/{len(jobs)}，评分 {len(scores)}/{len(jobs)}；"
                             f"缺失 {len(jobs)-len(predictions)}，未评分不是 0 分。状态：{', '.join(sorted(set(failures))) or execution.get('state', '未知')}。")
     data["summary"] = json.dumps({k: summary[k] for k in ("n_questions", "n_jobs", "arms", "comparisons") if k in summary}, ensure_ascii=False) if summary else "尚无完整评分与配对结论。"
