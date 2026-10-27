@@ -1,4 +1,4 @@
-"""Explicit scheduling amendment; frozen model inputs and request budgets stay intact.
+"""Explicit scheduling/timeout amendment; model inputs and request budgets stay intact.
 
 Stop the original runner with its STOP file and wait for its lock to release.
 Preregister execution-amendment.json, then explicitly remove STOP before running
@@ -30,7 +30,7 @@ def run_execution(run_dir, *, transport=None, amendment_filename="execution-amen
         registration, jobs, lookups, freeze_hash = ev._contract(run)
         raw = (run / amendment_filename).read_bytes()
         amendment = json.loads(raw)
-        if not isinstance(amendment, dict) or set(amendment) != FIELDS:
+        if not isinstance(amendment, dict) or set(amendment) not in (FIELDS, FIELDS | {"timeout_seconds"}):
             raise ValueError("execution amendment fields permit only a scheduling revision")
         if type(amendment["schema_version"]) is not int or amendment["schema_version"] != 1:
             raise ValueError("unsupported execution amendment schema")
@@ -47,6 +47,10 @@ def run_execution(run_dir, *, transport=None, amendment_filename="execution-amen
         workers = amendment["workers"]
         if type(workers) is not int or not 1 <= workers <= 64:
             raise ValueError("amended workers must be an integer from 1 to 64")
+        original_timeout = registration["limits"].get("timeout_seconds", 180)
+        timeout = amendment.get("timeout_seconds", original_timeout)
+        if "timeout_seconds" in amendment and (type(timeout) is not int or not 180 <= timeout <= 900):
+            raise ValueError("amended timeout_seconds must be an integer from 180 to 900")
         frozen = {**hashes, "amendment_sha256": ev.digest(raw)}
         freeze_path = run / f"{stem}.freeze.json"
         if freeze_path.exists() and ev._json(freeze_path) != frozen:
@@ -57,9 +61,15 @@ def run_execution(run_dir, *, transport=None, amendment_filename="execution-amen
         if not freeze_path.exists():
             ev._write(freeze_path, frozen)
             ev._atomic(run / "source" / f"frozen_execution-{stem}.py", Path(__file__).read_bytes())
-        runner = ev._Runner(run, registration, jobs, lookups, freeze_hash, transport or ev.http_transport)
+        send = transport or ev.http_transport
+        if "timeout_seconds" in amendment:
+            original_send = send
+            def send(endpoint, payload, key, original_timeout_argument):
+                return original_send(endpoint, payload, key, timeout)
+        runner = ev._Runner(run, registration, jobs, lookups, freeze_hash, send)
         status = {**frozen, "state": "running", "actual_worker_limit": workers,
                   "original_worker_limit": registration["limits"]["workers"],
+                  "original_timeout_seconds": original_timeout, "actual_timeout_seconds": timeout,
                   "completed_before": len(predictions), "requests_before": runner.requests}
         status_path = run / f"{stem}.status.json"
         ev._write(status_path, status)

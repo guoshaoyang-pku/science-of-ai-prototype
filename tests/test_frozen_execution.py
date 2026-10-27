@@ -159,6 +159,60 @@ class FrozenExecutionTests(unittest.TestCase):
         self.assertTrue((self.run / "execution-amendment-v2.status.json").exists())
         self.assertTrue((self.run / "source/frozen_execution-execution-amendment-v2.py").exists())
 
+    def test_timeout_amendment_changes_only_transport_timeout(self):
+        self.amendment["timeout_seconds"] = 600
+        self.fixture.write_json("execution-amendment-v4.json", self.amendment)
+        registration_before = (self.run / "registration.json").read_bytes()
+        cached_raw = next((self.run / "requests").glob("*/call_*/response.raw"))
+        cached_before = cached_raw.read_bytes()
+        observed = []
+        def send(endpoint, payload, key, timeout):
+            observed.append((endpoint, payload, key, timeout))
+            return 200, fixture_module.response()
+        status = execution.run_execution(self.run, amendment_filename="execution-amendment-v4.json", transport=send)
+        self.assertEqual(len(observed), 17)
+        self.assertTrue(all(call[3] == 600 for call in observed))
+        self.assertTrue(all(call[0] == self.fixture.registration["model"]["endpoint"] for call in observed))
+        self.assertTrue(all(call[2] == "synthetic-not-a-key" for call in observed))
+        # The transmitted payload is exactly the payload frozen by the original runner.
+        stored = [ev._json(p)["payload"] for p in (self.run / "requests").glob("*/call_*/request.json")]
+        self.assertTrue(all(payload in stored for _, payload, _, _ in observed))
+        self.assertTrue(all("timeout_seconds" not in payload for _, payload, _, _ in observed))
+        self.assertEqual(status["original_timeout_seconds"], 180)
+        self.assertEqual(status["actual_timeout_seconds"], 600)
+        self.assertEqual((self.run / "registration.json").read_bytes(), registration_before)
+        self.assertEqual(cached_raw.read_bytes(), cached_before)
+
+    def test_absent_timeout_amendment_preserves_original_default(self):
+        observed = []
+        status = self.execute(transport=lambda endpoint, payload, key, timeout:
+            (observed.append(timeout) or (200, fixture_module.response())))
+        self.assertEqual(set(observed), {180})
+        self.assertEqual(status["actual_timeout_seconds"], 180)
+
+    def test_invalid_timeout_amendments_refuse_before_transport(self):
+        for value in (179, 901, 0, -1, True, "600", 600.0, None):
+            with self.subTest(value=value):
+                self.amendment["timeout_seconds"] = value
+                self.write_amendment()
+                with self.assertRaisesRegex(ValueError, "timeout"):
+                    self.execute(transport=lambda *a: self.fail("invalid timeout sent"))
+
+    def test_v4_preserves_all_previously_archived_controller_versions(self):
+        preserved = {}
+        for version in ("v2", "v3"):
+            for relative in (f"execution-amendment-{version}.freeze.json", f"execution-amendment-{version}.status.json",
+                             f"source/frozen_execution-execution-amendment-{version}.py"):
+                path = self.run / relative
+                path.write_bytes(("previous " + relative).encode())
+                preserved[path] = path.read_bytes()
+        self.amendment["timeout_seconds"] = 900
+        self.fixture.write_json("execution-amendment-v4.json", self.amendment)
+        execution.run_execution(self.run, amendment_filename="execution-amendment-v4.json",
+                                transport=lambda *a: (200, fixture_module.response()))
+        self.assertTrue(all(path.read_bytes() == raw for path, raw in preserved.items()))
+        self.assertTrue((self.run / "source/frozen_execution-execution-amendment-v4.py").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
