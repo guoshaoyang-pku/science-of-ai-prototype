@@ -1,0 +1,56 @@
+% Figure 2: the full state space — states, operators, invariants
+\documentclass[tikz,border=8pt]{standalone}
+\input{preamble}
+\begin{document}
+\begin{tikzpicture}[
+  font=\small,
+  box/.style={draw=MetaPurple, rounded corners=3pt, line width=0.8pt, fill=white, align=center, inner sep=5pt},
+  op/.style={draw=MetaInk, rounded corners=2pt, line width=0.7pt, fill=MetaGray, align=center, inner sep=4pt, minimum height=8mm},
+  arb/.style={-{Stealth[length=2mm]}, line width=0.7pt, MetaInk},
+  ard/.style={-{Stealth[length=2mm]}, line width=0.6pt, MetaMidGray, dashed},
+  elab/.style={font=\scriptsize, text=MetaMidGray},
+]
+% universe strip (three lines, fits the box)
+\node[box, text width=14.2cm, fill=MetaGray] (omega) at (0,5.6) {%
+  \textbf{experimental universe}\; $\universe = \mathcal{T}\times\mathcal{A}\times\mathcal{H}\times\mathcal{D}\times\mathcal{B}$\\[1pt]
+  \scriptsize tasks $\times$ designs/DSL $\times$ hyperparameters $\times$ data $\times$ budgets\\[1pt]
+  \scriptsize cell $\cell$ = fully specified experiment;\; oracle $R(\cell)\to o$: metrics, curves, observables\\[1pt]
+  \scriptsize each query costs one training run --- the expensive-oracle property of ML};
+% central state (align=left lines, no tabular)
+\node[box, text width=6.8cm, align=left] (state) at (0,2.4) {%
+  \centering\textbf{\textcolor{MetaPurple}{state}} $S=(\kb, \mathcal{H}, \Pi, B)$\\[2pt]
+  \scriptsize $\kb$: claims $(\varphi, C, E, \sigma, \ell)$ with level $\ell \in \{\Lk,\Ll,\Ls\}$,\\
+  \scriptsize\hphantom{$\kb$:} status $\sigma$: proposed $\to$ probationary $\to$ verified $\to$\\
+  \scriptsize\hphantom{$\kb$:} narrowed / merged / refuted / withdrawn\\[1pt]
+  \scriptsize $\mathcal{H}$: append-only experiment log, refutations included\\
+  \scriptsize $\Pi$: solve / discover / synthesize / propose policies\\
+  \scriptsize $B$: budget ledger (runs, tokens, research rounds)};
+% operators
+\node[op, text width=2.7cm] (solve) at (-6.4,3.5) {\Op{Solve}$(\cell)$\\[-1pt]\scriptsize predict using $\kb$ only};
+\node[op, text width=2.7cm] (disc) at (6.4,3.5) {\Op{Discover}$(\cell, o)$\\[-1pt]\scriptsize surprise $\to$ pre-registered claim};
+\node[op, text width=2.7cm] (ver) at (6.4,1.2) {\Op{Verify}$(k)$\\[-1pt]\scriptsize fresh cells; statistical gates};
+\node[op, text width=2.7cm] (syn) at (-6.4,1.2) {\Op{Synthesize}$(\kb)$\\[-1pt]\scriptsize merge $\cdot$ promote $\Lk\!\to\!\Ll\!\to\!\Ls$};
+\node[op, text width=3.2cm] (prop) at (0,-1.1) {\Op{Propose}$(\kb,\mathcal{H})$\\[-1pt]\scriptsize random $\cdot$ evidence-targeted $\cdot$ discriminating};
+% main chain: over the top, down the right, under the bottom, left, then back to the universe
+\draw[arb] (solve.north) -- (-6.4,4.32) -| (disc.north) node[pos=0.25, below, elab]{failures \& surprises};
+\draw[arb] (disc.south) -- (ver.north) node[midway, right=2pt, elab]{claims};
+\draw[arb] (ver.south) -- (6.4,0.0) -| (syn.south);
+\draw[arb] (syn.west) -- (-7.7,1.2) |- (prop.west) node[pos=0.72, above, elab]{consolidated $\kb$};
+\draw[arb] (prop.east) -- (8.4,-1.1) |- (omega.east) node[pos=0.6, right=2pt, elab, rotate=90, anchor=south]{next cells};
+\node[elab] at (3.6,-0.30) {verified / refuted / narrowed};
+% universe feeds solve
+\draw[arb] (omega.south -| solve) -- (solve.north);
+% knowledge interactions with the state
+\draw[ard] (state.north west) -- (solve.south east) node[midway, above, elab]{read};
+\draw[ard] (ver.south west) -- (state.south east);
+\node[elab] at (5.5,0.32) {status updates};
+\draw[ard] (syn.south east) -- (state.south west) node[midway, below, elab]{rewrites};
+% invariants footer
+\node[font=\scriptsize, text=MetaMidGray, align=left, text width=13.4cm] at (0,-3.0) {%
+  \textbf{\textcolor{MetaCoral}{discipline invariants}} (each checkable from the state):\quad
+  \textbf{(i) freshness} --- verify only on cells created after registration;\quad
+  \textbf{(ii) pre-registration} --- predictions committed before runs;\quad
+  \textbf{(iii) sealed sets} --- held-out viewed once, then development;\quad
+  \textbf{(iv) evidence immortality} --- refutations and failed predictions retained};
+\end{tikzpicture}
+\end{document}

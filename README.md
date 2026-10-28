@@ -6,6 +6,14 @@
 
 研究网页：[模糊方向](https://guoshaoyang-pku.github.io/science-of-ai-prototype/模糊方向/)。网页实体在 [docs/模糊方向/](docs/模糊方向/)；协作者可直接编辑 HTML、样式、图片和证据附件，推送 main 后由 GitHub Pages 自动发布。
 
+
+## The SAI Taxonomy and Survey (English)
+
+This repository's experiments instantiate a broader framework. Two new English entry points:
+
+- **[taxonomy/](taxonomy/)** — the SAI taxonomy: a machine-checkable classification of ML research into three epistemic levels (knowledge / law / science), the five-operator research loop that climbs them, metrics (equivalent compute, compression ratio, SAI Index), milestones M0–M6 with a heroes table, and the ten research families. Includes anonymized prototype measurements from the campaigns archived here.
+- **[survey/](survey/)** — the companion literature survey: 932 papers and 872 concepts across RL, pre-training, and interpretability, each tagged by epistemic level with an explicit scope boundary and review-depth record.
+
 ## 安装与检查
 
 Python 3.10+，macOS 或 Linux；Windows 使用 WSL。
