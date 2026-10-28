@@ -36,6 +36,13 @@
 <div class="equation">\[L(w)=\frac{1}{2n}\lVert Xw-y\rVert^2\]</div>
 <p>这是一个二次函数。因为 \(X\) 固定，Hessian \(H=X^\top X/n\) 也固定。把参数误差投影到 \(H\) 的特征方向后，损失变成各方向平方误差项之和，不同方向间没有交叉项，因此总损失比可写成：</p>
 <div class="equation">\[\frac{L_t}{L_0}=\sum_i \alpha_i r_i(t)^2,\qquad \alpha_i=\frac{L_{i,0}}{L_0},\qquad \sum_i\alpha_i=1.\]</div>
+
+
+<p>\(L_{i,0}\) 是第 \(i\) 个方向在初始时的损失量，\(\alpha_i\) 是它占初始总损失的比例；\(r_i(t)\) 是训练 \(t\) 步后该方向的误差相对于初始误差的比例，故 \(r_i(0)=1\)。也就是说，各方向剩下的误差平方，按它们起初对总损失的贡献加权求和，就是总损失。</p>
+<p class="model-scope">这套分解依赖固定特征和平方损失构成的二次模型。在本实验中，Hessian矩阵满秩，所以可以特征拟合，没有不可约残差。</p></aside>
+
+<p><strong>3.1 控制快慢方向占比</strong> 如果损失由快慢两个方向组成，慢方向一开始占总损失的比例记为 $\alpha$，损失降到初始的多少记为 $q$。$\alpha$ 越小，慢方向越不重要。下表是谱 $[0.001,0.5]$、$q=0.01$ 的全部配对：</p>
+
 <figure class="experiment-chart alpha-chart" aria-labelledby="d1-alpha-chart-title">
 <figcaption id="d1-alpha-chart-title"><strong>3.1 慢方向损失份额与预测误差</strong><span>谱 \([0.001,0.5]\) · \(q=0.01\) · mom=0.9 持续到 \(T\) 的端点</span></figcaption>
 <div class="chart-scroll"><svg viewBox="0 0 800 390" role="img" aria-labelledby="d1-alpha-svg-title d1-alpha-svg-desc">
@@ -82,29 +89,6 @@
 <p class="chart-note">误差按 \(|t_{\mathrm{pred}}-t_{\mathrm{obs}}|/t_{\mathrm{obs}}\) 计算。数据来自保存的 r017 双方向实验：\(\alpha\) 表示慢方向在初始总损失中的份额；每个条件的 3 个坐标 seed 结果相同。图显示在这组固定谱和 \(q\) 下，低 \(\alpha\) 区间两种预测误差较大，高 \(\alpha\) 区间进入 5% 线内；这描述的是该二次模型的条件性结果。</p>
 </figure>
 
-<p>\(L_{i,0}\) 是第 \(i\) 个方向在初始时的损失量，\(\alpha_i\) 是它占初始总损失的比例；\(r_i(t)\) 是训练 \(t\) 步后该方向的误差相对于初始误差的比例，故 \(r_i(0)=1\)。也就是说，各方向剩下的误差平方，按它们起初对总损失的贡献加权求和，就是总损失。</p>
-<p class="model-scope">这套分解依赖固定特征和平方损失构成的二次模型。在本实验中，hession矩阵满秩，所以可以特征拟合，没有不可约残差。</p></aside>
-
-<p><strong>3.1 控制快慢方向占比</strong> 如果损失由快慢两个方向组成，慢方向一开始占总损失的比例记为 $\alpha$，损失降到初始的多少记为 $q$。$\alpha$ 越小，慢方向越不重要。下表是谱 $[0.001,0.5]$、$q=0.01$ 的全部配对：</p>
-<div class="table-wrap"><table>
-<thead><tr>
-<th>$\alpha$</th>
-<th style="text-align: right;">mom=0持续步数</th>
-<th style="text-align: right;">mom=0.9首次/持续步数</th>
-<th style="text-align: right;">稳态/启动预测</th>
-<th style="text-align: right;">稳态/启动误差</th>
-</tr></thead>
-<tbody>
-<tr><td>.001</td><td style="text-align: right;">46</td><td style="text-align: right;">7 / 44</td><td style="text-align: right;">5 / 11</td><td style="text-align: right;">88.6364% / 75.0000%</td></tr>
-<tr><td>.005</td><td style="text-align: right;">52</td><td style="text-align: right;">8 / 46</td><td style="text-align: right;">6 / 12</td><td style="text-align: right;">86.9565% / 73.9130%</td></tr>
-<tr><td>.009</td><td style="text-align: right;">67</td><td style="text-align: right;">22 / 59</td><td style="text-align: right;">7 / 14</td><td style="text-align: right;">88.1356% / 76.2712%</td></tr>
-<tr><td>.010</td><td style="text-align: right;">85</td><td style="text-align: right;">35 / 60</td><td style="text-align: right;">9 / 16</td><td style="text-align: right;">85.0000% / 73.3333%</td></tr>
-<tr><td>.011</td><td style="text-align: right;">477</td><td style="text-align: right;">63 / 74</td><td style="text-align: right;">48 / 57</td><td style="text-align: right;">35.1351% / 22.9730%</td></tr>
-<tr><td>.020</td><td style="text-align: right;">3466</td><td style="text-align: right;">353 / 353</td><td style="text-align: right;">347 / 356</td><td style="text-align: right;">1.6997% / .8499%</td></tr>
-<tr><td>.100</td><td style="text-align: right;">11513</td><td style="text-align: right;">1150 / 1150</td><td style="text-align: right;">1152 / 1161</td><td style="text-align: right;">.1739% / .9565%</td></tr>
-<tr><td>.500</td><td style="text-align: right;">19560</td><td style="text-align: right;">1947 / 1947</td><td style="text-align: right;">1956 / 1965</td><td style="text-align: right;">.4622% / .9245%</td></tr>
-</tbody>
-</table></div>
 <p>由实验可知：$\alpha=0.02/0.1/0.5$ 时，两种误差都 ≤5%（3/3），我们的预测（预测方式见第二节）是准的。然而$\alpha=0.001/0.005/0.009$ 时都 ≥50%（3/3），换算失效。</p>
 <p>边界不是固定的。把快方向从 0.5 改到 0.05，低 $\alpha$ 的失效判据变成 0/3（稳态 23.6842%–47.6190%，启动 47.3684%–69.0476%），高 $\alpha$ 仍 ≤5%。把 $q$ 降到 0.001，$\alpha=0.005$–0.5 的 5/5 进入 5%（稳态 0.091075%–0.680272%，启动 0.867410%–0.971817%）；但 $\alpha=q=0.001$ 启动误差 8.988764%。</p>
 <p><strong>暗示的结论：</strong> 预测是否成立由谱、$\alpha$、$q$ 共同决定</p>
