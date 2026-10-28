@@ -85,6 +85,9 @@ def save(fig, stem):
     for ext in ["png", "svg"]:
         fig.savefig(OUT / f"d2_20261028_{stem}.{ext}", dpi=180, facecolor="white",
                     metadata={"Date": None} if ext == "svg" else None)
+        if ext == "svg":
+            svg = OUT / f"d2_20261028_{stem}.{ext}"
+            svg.write_text("\n".join(line.rstrip() for line in svg.read_text().splitlines()) + "\n")
     plt.close(fig)
 
 
