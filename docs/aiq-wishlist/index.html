@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="选一个 AIQ 方向，从一个小问题开始，写下你的研究愿望。">
+  <title>AIQ 许愿池</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="content.js" defer></script>
+  <script src="directions.js" defer></script>
+  <script src="glyphs.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#workspace">跳到许愿区</a>
+  <header class="topbar">
+    <a class="brand" href="./index.html" aria-label="AIQ 许愿池首页"><span class="brand-symbol" aria-hidden="true">↗</span><span class="brand-name">AIQ <span>许愿池</span></span><span class="edition">PREVIEW</span></a>
+    <div class="header-actions"><button id="motion-toggle" class="motion-toggle" aria-pressed="true" aria-label="关闭装饰动效"><span class="motion-bars" aria-hidden="true"><i></i><i></i><i></i></span><span id="motion-label">动效开</span></button><a class="document-link" href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/blob/main/docs/AIQ_WISHLIST.md" target="_blank" rel="noopener">完整文档 ↗</a><button id="open-wishes" class="outline">我的愿望 <span id="wish-count">0</span></button></div>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <div class="hero-copy"><p class="eyebrow"><span class="live-dot" aria-hidden="true"></span> AIQ / QUESTION NOTEBOOK</p><h1 id="page-title"><span class="title-line">好问题，</span><span class="title-line">从这里</span><span class="title-line title-accent">开始。</span></h1><p class="lead">你希望 AIQ 学会什么？<br>选个方向，写下你的下一问。</p></div>
+      <div class="notebook-art" aria-hidden="true"><img src="notebook.svg" alt=""><span>先有问题，再找答案。</span></div>
+    </section>
+    <section id="workspace" class="workspace" aria-label="写下愿望">
+      <nav class="steps" aria-label="填写进度"><span class="step-indicator" aria-hidden="true"></span><button data-step="1" aria-current="step"><span>01</span>选方向</button><button data-step="2" disabled><span>02</span>找灵感</button><button data-step="3" disabled><span>03</span>写愿望</button></nav>
+      <section id="step-1" class="panel" aria-labelledby="choose-title">
+        <div class="section-heading"><div><p class="eyebrow">01 — PICK A DIRECTION</p><h2 id="choose-title" tabindex="-1">翻开你关心的那一页。</h2></div><p class="hint">8 个方向，选一个就好。</p></div>
+        <div id="aspect-grid" class="aspect-grid"></div>
+        <p class="quiet-note">8 个讨论入口 · 13 个已有研究问题，归类为建议。</p>
+      </section>
+      <section id="step-2" class="panel" aria-labelledby="inspiration-title" hidden>
+        <div class="section-heading"><div><p id="aspect-label" class="eyebrow"></p><h2 id="inspiration-title" tabindex="-1"></h2></div><button class="text-button" id="change-aspect">换个方向 ↗</button></div>
+        <div id="detail-glyph" class="detail-glyph" aria-hidden="true"></div><p id="aspect-explanation" class="explanation"></p>
+        <details id="research-examples" class="research-examples"><summary><span id="examples-label">看看已有研究例子</span><span aria-hidden="true">＋</span></summary><p id="examples-note" class="examples-note"></p><ul id="examples-list" class="examples-list"></ul><a id="open-research-overview" class="example-source" href="../模糊方向/index.html" target="_blank" rel="noopener">全部 13 个方向 · 研究总览 ↗</a></details>
+        <div class="idea-card"><span class="tag">候选愿望 · 建议</span><p id="suggested-wish"></p><div class="idea-actions"><button class="primary" id="use-suggestion">沿着这个想法写 <span aria-hidden="true">↗</span></button><button class="text-button" id="own-idea">我有别的想法 →</button></div></div>
+        <details id="evidence"><summary>已有进展与下一步 <span aria-hidden="true">＋</span></summary><div class="evidence-body"><p><b>已有材料</b><span id="current-evidence"></span></p><p><b>下一步建议</b><span id="next-step"></span></p><a id="source-link" href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/blob/main/docs/AIQ_WISHLIST.md" target="_blank" rel="noopener">查看完整解释与来源 ↗</a></div></details>
+      </section>
+      <section id="step-3" class="panel" aria-labelledby="write-title" hidden>
+        <div class="section-heading"><div><p id="writing-aspect" class="eyebrow"></p><h2 id="write-title" tabindex="-1">把你的好奇写下来。</h2></div><button class="text-button" id="back-to-idea">回看示例 ↗</button></div>
+        <form id="wish-form"><label class="field-label" for="wish-input">我希望 AIQ 能……</label><textarea id="wish-input" name="wish" rows="3" maxlength="180" required aria-describedby="wish-help"></textarea><div class="field-foot"><span id="wish-help">一句话就好，具体一点更容易讨论。</span><span><span id="char-count">0</span> / 180</span></div>
+          <details id="optional-fields"><summary>补充为什么，或举个例子 <span class="optional">选填</span></summary><label class="sr-only" for="why-input">为什么重要或具体例子</label><textarea id="why-input" name="why" rows="2" maxlength="300" placeholder="例如：我常常不知道该加大模型，还是多训练一会儿。"></textarea></details>
+          <div class="form-actions"><button class="primary" id="save-wish" type="submit">保存愿望 <span aria-hidden="true">↗</span></button><span class="storage-hint">仅存此浏览器 · 可导出分享</span><button id="cancel-edit" class="text-button" type="button" hidden>取消编辑</button></div>
+        </form>
+      </section>
+      <section id="step-done" class="panel success-panel" aria-labelledby="done-title" hidden><div class="wish-arrival" aria-hidden="true"><span class="success-icon"><svg viewBox="0 0 32 32" fill="none"><path d="m8 16 5 5 11-11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div><p class="eyebrow">一个好问题，已经开始</p><h2 id="done-title" tabindex="-1">愿望记下了。</h2><p id="saved-preview"></p><p class="hint">下次讨论，就从这句话开始。</p><div class="success-actions"><button class="primary" id="another-wish">再写一个 <span aria-hidden="true">↗</span></button><button class="outline" id="view-saved">查看我的愿望</button></div></section>
+    </section>
+    <footer><span>AIQ 许愿池 <span class="footer-dot">·</span> 让问题先发生</span><span>候选建议 ≠ 已验证结论</span></footer>
+  </main>
+  <div id="status" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="wishes-dialog" aria-labelledby="wishes-title"><div class="dialog-header"><div><p class="eyebrow">留给下一次讨论</p><h2 id="wishes-title">我的愿望</h2></div><button id="close-dialog" class="icon-button" aria-label="关闭我的愿望">×</button></div><div id="saved-list"></div><div class="dialog-footer"><span class="storage-hint">仅保存在当前浏览器</span><button class="primary" id="export-wishes">导出 Markdown ↓</button></div><div id="export-fallback" hidden><label class="field-label" for="export-text">也可以直接复制</label><textarea id="export-text" readonly rows="4"></textarea><button id="copy-export" class="outline">复制内容</button></div></dialog>
+  <dialog id="research-dialog" class="research-dialog" aria-labelledby="reader-title">
+    <header class="reader-header"><div><p class="eyebrow">研究阅读室</p><h2 id="reader-title">研究报告</h2></div><button id="close-reader" class="outline" autofocus>← 返回许愿池</button></header>
+    <div class="reader-toolbar"><div class="reader-switch" role="group" aria-label="阅读内容"><button id="reader-report" type="button" aria-pressed="true">研究报告</button><button id="reader-literature" type="button" aria-pressed="false">文献对照</button></div><a id="reader-full-page" href="../模糊方向/index.html" target="_blank" rel="noopener">单独打开 ↗</a></div>
+    <iframe id="research-frame" title="研究报告" referrerpolicy="no-referrer"></iframe>
+    <p class="reader-footnote">保留原报告的实验日期与证据边界。若未显示，可点“单独打开”。</p>
+  </dialog>
+  <noscript><p class="noscript">请启用 JavaScript 使用引导与保存功能，或阅读<a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/blob/main/docs/AIQ_WISHLIST.md">完整文档</a>。</p></noscript>
+</body>
+</html>
