@@ -2,8 +2,10 @@
 
 This is a presentation update, not a new experiment. It condenses the original
 D2 page and adds the saved diagonal-ablation and five-percent selection results.
-The default page text is reduced by about 30%; task-level results, formulas and
-historical failures remain available in disclosures and linked evidence.
+The reading order introduces overfitting and the prediction question first, then
+cross terms, evaluation criteria, a concrete example, and aggregate results.
+Headline metric cards are removed. Task-level results, formulas and historical
+failures remain available in disclosures and linked evidence.
 
 ## Rebuild
 
