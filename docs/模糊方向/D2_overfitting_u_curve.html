@@ -1,189 +1,90 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>D2：过拟合回升时间的预测与边界</title><link rel="stylesheet" href="style.css">
-<script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D2：什么时候停止训练？从简单公式到 5% 交叉项</title>
+<meta name="description" content="用公式表、实测 Pareto 对比和第 1 步与第 255 步的具体例子，解释固定特征回归中的过拟合、停止时间与交叉项压缩。">
+<link rel="stylesheet" href="style.css">
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)'],['$','$']],displayMath:[['\\[','\\]'],['$$','$$']]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<style>img{max-width:100%;height:auto} .table-wrap{overflow-x:auto}table{min-width:620px}body{overflow-wrap:break-word}mjx-container[display="true"]{max-width:100%;overflow-x:auto;overflow-y:hidden}</style></head>
-<body><main><div class="nav"><a href="index.html">← 研究总览</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D2_overfitting_u_curve.html">编辑此页</a> · <a href="背景与文献.html">背景与文献</a> · <a href="D2_文献深度确认.html">与已有文献的对照</a></div>
-<h1>D2：过拟合回升时间的预测与边界</h1>
-<h2>先说结果：样本数和噪声还不足以预测最低点</h2>
-<p>我们用合成回归数据，固定隐藏特征，只分析输出层在均方误差（MSE）和全批量梯度下降（GD）下的学习过程。3240 指根据特征谱计算并评价的轨迹数，不是文献篇数，也不是 3240 次端到端网络训练。扩大样本数、噪声和任务范围后，原来的最低点时间公式在 12/12 个任务与特征条件上未达到预设通过率。训练误差也不必先接近零，验证误差就可能回升；目前还不能据此给出只看训练误差的早停方法。下文“风险”指对训练标签噪声取平均后的验证误差，“回升时间”用窗口内最低点估计表示，不保证是第一次局部回升。</p>
-<p><strong>旧范围可以简写为 U_rise≈0.28·n/σ²；扩域后不能只为每个任务换一个系数。</strong> 原交互任务在 n=32/64/128、σ²=0.25–4 上，固定指数 1 的留出 n 预测为 57/60 在两倍内。新扫描把 n 扩到 16–1024、σ² 扩到 1/32–8；任务各拟合一个系数后，12/12 个任务与特征条件都未达到扩展格点 80% 通过率。U=ηt 是累计训练量，η=0.3，n 是训练样本数，σ² 是训练标签噪声方差。</p>
-<p><strong>单变量和多变量都能发生回升，但不能据此认定它们共有指数 1。</strong> 同一冻结特征下，4 维线性＋交互任务的校准指数为 0.99，单变量线性任务为 0.31。前者线性模型在校准范围 45/45 通过，扩展范围 139/225；后者仅 49/225 通过，换成自由幂律后为 224/225。这些是固定特征回归证据，尚不覆盖学习特征或分类。</p>
-<p><strong>验证误差尚在下降时，拟合噪声已经带来损害。</strong> 新扫描有 3137 个内部最低点；到半个最低点时间时，噪声风险已达到最低点时该项的 35%–100%，中位 77%。3137/3137 超过注册的 25% 判据。这里指噪声带来的那部分验证误差，不等于总验证误差已经上升。</p>
-<p><strong>验证误差回升，不要求训练误差先接近零。</strong> 最低点处，对训练噪声取平均后的训练均方误差保留初值的 0.5%–93%，中位 33%；仅 766/3137 低于初值的 10%。旧实际训练曲线则保留 11%–88%，中位 42%，0/60 低于 10%。因此当前证据推翻了“至少 90% 回升点必须先低于 10%”这一具体预测。</p>
-<p><strong>最低点是斜率转折，数学拐点通常更晚。</strong> 新扫描内部最低点 3137/3137 为正曲率；旧 60 条曲线的后续曲率换号在约 1.2–8.1 倍最低点时间。最低点局部是二次形状；旧上升支约 1.55 次方仅描述相对距离 0.1–1 的短段，尾部外推 78/78 失败。</p>
-<p><img alt="逻辑示意：上方为解析机制，下方为原保存曲线。噪声损害从回升前积累；最低点两种速度相等；train 无须接近零。" src="figs/d2_20261009_legacy_mechanism_logic.png" /></p>
-<h2>怎样定义风险和最低点</h2>
-<p>冻结特征与平方损失下，对训练标签噪声取条件期望，有精确分解：</p>
-<p>\[
-R_k(U)=B_k(U)+\sigma^2N(U),\qquad
-B_k'(U_*)+\sigma^2N'(U_*)=0.
-\]</p>
-<p>R 是独立 clean validation 样本上的期望均方误差。B 是没有训练标签噪声时的 validation 误差。N 是单位训练噪声方差造成的 validation 响应。k 标记任务；同输入与特征下换 scalar 目标只改变 B，N 不变。多输出结果对输出通道平均，单通道噪声独立。撇号表示对累计训练量 U 的变化率。这里的 validation 是新生成的合成审计样本，不是 benchmark test。</p>
-<p>最低点前若 −B′&gt;σ²N′，风险下降；最低点两种速度相等；其后噪声成本速度超过信号收益时风险回升。B 在新任务上未必始终下降，这个条件描述不能代替逐曲线检查。</p>
-<p>\[
-R(U)-R(U_*)\approx\tfrac12 R''(U_*)(U-U_*)^2.
-\]</p>
-<p>此式是光滑非退化最低点的局部解析展开。旧保存谱复算在相对偏移 0.001 时，60/60 曲线的实际增量与二次近似之比为 0.997–1.000。旧有限区间描述可保留为 C·[(U−U_*)/U_*]^1.55，其中 C 取两倍最低点时间处的实测增量；不是整个后期的渐近定律。稳定有限维冻结特征 GD 的风险最终趋向有限极限。</p>
-<p><strong>预先约定的目标与实际搜索范围。</strong> 注册目标是 0..262144 整数步窗口内第一个全局最低点；实际先搜索指定格点，再在附近精化到整数步，未证明遍历全部整数极值。本文 rise 指这个最低点估计，不保证是第一次局部回升。落在两端的 103 条曲线不算内部 rise，并在缩放检验中计失败。极低 train 定义为 noisy train MSE/初始 noisy train MSE≤0.1。曲率拐点指线性 U 坐标下二阶导换号，不是 log 时间图里的弯曲位置。两倍内定义为预测/实测在 [0.5,2]。以上阈值是约定。</p>
-<h2>旧公式在哪些范围通过，扩大范围后怎样</h2>
-<p>原报告的系数只是有限格点拟合。把指数固定为 1 后重新估系数，得到约 0.28。未舍入模型为 57/60、显示 0.28 模型为 58/60；两者都是原数据拟合。三次留出 n 的系数约 0.28/0.29/0.29，合计 57/60 通过，才是此处的交叉验证数。旧系数约 0.21/0.33/0.20，搭配各自指数；固定指数为 1 时不沿用旧通过率。完整精度只留在存档。</p>
-<p>新扫描只在 n=32/64/128、σ²=0.25/0.5/1/2/4 估系数；每任务 45 个 seed 条件。其余格点每任务 225 条作冻结模型的扩展验证；包括边界失败。自由幂律和对数候选也只用相同校准集拟合。</p>
-<div class="table-wrap"><table>
-<thead>
-<tr>
-<th>任务与特征条件</th>
-<th style="text-align: right;">固定指数 1 的 c</th>
-<th style="text-align: right;">校准通过</th>
-<th style="text-align: right;">扩展通过</th>
-<th style="text-align: right;">自由指数 b</th>
-<th style="text-align: right;">自由幂律扩展通过</th>
-<th style="text-align: right;">对数候选扩展通过</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>4 维 · 线性</td>
-<td style="text-align: right;">0.11</td>
-<td style="text-align: right;">28/45</td>
-<td style="text-align: right;">69/225</td>
-<td style="text-align: right;">0.40</td>
-<td style="text-align: right;">186/225</td>
-<td style="text-align: right;">174/225</td>
-</tr>
-<tr>
-<td>4 维 · 加性二次</td>
-<td style="text-align: right;">0.24</td>
-<td style="text-align: right;">41/45</td>
-<td style="text-align: right;">126/225</td>
-<td style="text-align: right;">0.85</td>
-<td style="text-align: right;">149/225</td>
-<td style="text-align: right;">174/225</td>
-</tr>
-<tr>
-<td>4 维 · 线性＋交互</td>
-<td style="text-align: right;">0.25</td>
-<td style="text-align: right;">45/45</td>
-<td style="text-align: right;">139/225</td>
-<td style="text-align: right;">0.99</td>
-<td style="text-align: right;">142/225</td>
-<td style="text-align: right;">150/225</td>
-</tr>
-<tr>
-<td>4 维 · 纯交互</td>
-<td style="text-align: right;">0.81</td>
-<td style="text-align: right;">31/45</td>
-<td style="text-align: right;">74/225</td>
-<td style="text-align: right;">0.61</td>
-<td style="text-align: right;">116/225</td>
-<td style="text-align: right;">138/225</td>
-</tr>
-<tr>
-<td>4 维 · 正弦</td>
-<td style="text-align: right;">0.089</td>
-<td style="text-align: right;">26/45</td>
-<td style="text-align: right;">69/225</td>
-<td style="text-align: right;">0.42</td>
-<td style="text-align: right;">166/225</td>
-<td style="text-align: right;">160/225</td>
-</tr>
-<tr>
-<td>4 维 · 双输出</td>
-<td style="text-align: right;">0.17</td>
-<td style="text-align: right;">43/45</td>
-<td style="text-align: right;">144/225</td>
-<td style="text-align: right;">0.81</td>
-<td style="text-align: right;">181/225</td>
-<td style="text-align: right;">201/225</td>
-</tr>
-<tr>
-<td>1 维 · 线性，无偏置</td>
-<td style="text-align: right;">0.024</td>
-<td style="text-align: right;">26/45</td>
-<td style="text-align: right;">49/225</td>
-<td style="text-align: right;">0.31</td>
-<td style="text-align: right;">224/225</td>
-<td style="text-align: right;">214/225</td>
-</tr>
-<tr>
-<td>1 维 · 二次，无偏置</td>
-<td style="text-align: right;">0.19</td>
-<td style="text-align: right;">22/45</td>
-<td style="text-align: right;">85/225</td>
-<td style="text-align: right;">0.73</td>
-<td style="text-align: right;">84/225</td>
-<td style="text-align: right;">123/225</td>
-</tr>
-<tr>
-<td>1 维 · 线性，有偏置</td>
-<td style="text-align: right;">0.028</td>
-<td style="text-align: right;">30/45</td>
-<td style="text-align: right;">129/225</td>
-<td style="text-align: right;">0.58</td>
-<td style="text-align: right;">107/225</td>
-<td style="text-align: right;">117/225</td>
-</tr>
-<tr>
-<td>1 维 · 二次，有偏置</td>
-<td style="text-align: right;">0.4</td>
-<td style="text-align: right;">33/45</td>
-<td style="text-align: right;">143/225</td>
-<td style="text-align: right;">1.08</td>
-<td style="text-align: right;">155/225</td>
-<td style="text-align: right;">143/225</td>
-</tr>
-<tr>
-<td>1 维 · 正弦，有偏置</td>
-<td style="text-align: right;">2.2</td>
-<td style="text-align: right;">19/45</td>
-<td style="text-align: right;">37/225</td>
-<td style="text-align: right;">0.56</td>
-<td style="text-align: right;">72/225</td>
-<td style="text-align: right;">68/225</td>
-</tr>
-<tr>
-<td>4 维 · 线性＋交互，有偏置</td>
-<td style="text-align: right;">0.37</td>
-<td style="text-align: right;">41/45</td>
-<td style="text-align: right;">168/225</td>
-<td style="text-align: right;">1.21</td>
-<td style="text-align: right;">126/225</td>
-<td style="text-align: right;">168/225</td>
-</tr>
-</tbody>
-</table></div>
-<p>同一系数跨任务的模型为 970/2700 通过；每任务一个系数提高到 1232/2700；自由指数为 1708/2700；对数候选为 1830/2700。后两者多一个参数，改善说明简单线性不足，不确立普适替代式。</p>
-<p><img alt="原交互任务的扩展格点。颜色区分样本数；右图标出边界最低点，原公式在低噪声与大样本区弯折。" src="figs/d2_20261009_expanded_scaling.png" /></p>
-<p><img alt="跨任务的系数、指数与扩展验证。自由指数和对数候选均只在校准集估参；虚线是注册的 80% 门槛。" src="figs/d2_20261009_cross_task_laws.png" /></p>
-<h2>3240 条轨迹是怎样计算的</h2>
-<p>本轮 12 个任务与特征 recipe、90 个 n×σ² 条件、3 个 seed，共 3240 次有限样本谱轨迹评价；其中 3137 个内部最低点、103 个边界最低点。12 个 recipe 包含同任务的特征偏置对照，不是 12 类互不相关的现实任务。数据与特征 draw 为 120 个。计算为 CPU 闭式轨迹扫描，无模型 API、solver 或 GPU；新曲线计算约 54 秒。</p>
-<p>输入为 1 或 4 维标准 Gaussian，train 使用 nested 正负配对样本；独立 validation 为 2048 行。ReLU 隐藏特征固定，宽度 128，输出 head 从零开始。目标按分布均方根归一化：线性 x₀；二次 x₀+0.5(x₀²−1)；加性 x₀+0.5(x₁²−1)；交互 x₀+0.5x₀x₁；纯乘积 x₀x₁；正弦；双输出为线性与交互的组合。特征按 train 的均值与整体尺度归一化。隐藏偏置作为单独协议。全批量 GD、η=0.3、无动量或衰减、float64、MSE，每通道按因子 2 更新。</p>
-<p>整数 0..256 全记录；之后保存 4096 个对数格点至 262144，并在每个粗网格最小点附近求整数最低点。导数来自稳定离散 GD 因子的连续谱插值。小于最大特征值 1e−12 的特征值按零处理；本轮不宣称找出全部连续时间极值。</p>
-<p><strong>单次训练曲线与噪声平均曲线要分开看。</strong> 图中分别展示带噪声的训练误差（noisy train）、无噪声和带噪声的验证误差（clean val、noisy val），以及对训练噪声取平均后的无噪声验证风险（clean risk）。独立同方差 noisy-val 的期望只比 clean risk 多 σ²，但一次具体噪声抽样就可能改变曲线形状。原 60 cell 中，单次 clean-val 最低点/期望风险最低点为 0.24–86.72 倍，中位 1.37，不能把期望比例系数直接用于单次早停。</p>
-<p><img alt="新扫描的 train/val、信号与噪声及速率平衡。实线为训练噪声期望，细虚线为同一次噪声实现。示例 n64、σ²=0.5、seed6101；最低点处 train 保留初值 26%，半时噪声已累积 74%。" src="figs/d2_20261009_train_val_shapes.png" /></p>
-<p><img alt="旧实际 train/val 与噪声期望风险；两种最低点分开显示。" src="figs/d2_20261009_legacy_train_val.png" /></p>
-<p><img alt="最低点的局部二次形状与旧有限区间 1.55 次方描述。" src="figs/d2_20261009_legacy_local_shape.png" /></p>
-<h2>失败与反例</h2>
-<ol>
-<li><strong>统一线性外推失败。</strong> 原交互任务在 n128→n256→n512、σ²=1、seed6101 时，最低点 139→173→209 步；样本数每次加倍而时间没有加倍。其线性模型在 n512 和 n1024 的全部噪声格点仅 10/27、8/27 通过。该描述属于扩域后的 development，不是另一次盲预测。</li>
-<li><strong>单变量模型有容量退化。</strong> 无偏置 ReLU 在一维中只提供正半轴、负半轴及常数三个方向，本轮所有 n 的秩均为 3。它仍会回升，但时间主要缓慢增长。加入隐藏偏置后秩与形状改变；偏置协议本身不恢复普适指数 1。</li>
-<li><strong>按总体分布归一化后，系数差异减半的预测仍然失败。</strong> 跨 n 起点系数极差 0.0158→0.0741、增至 4.68 倍；单 seed 则 3/4 缩小，seed414 增大。部分 seed 的改善不能替代预先约定的聚合结果；剩余差异尚未通过特征谱干预确定原因。</li>
-<li><strong>旧上升支的尾部外推失败。</strong> 1.55 次方描述延伸至窗口末时，78/78 超出两倍误差，不能称完整上升支定律。</li>
-<li><strong>train 极低的必要条件预测失败。</strong> 只 766/3137 达到注册 10% 阈值，未达到至少 90%。这些计数并不估计跨现实任务概率。</li>
-</ol>
-<h2>还不能预测什么</h2>
-<p>目前更可信的跨任务结构是“信号误差变化与噪声风险变化的速率平衡”，而非统一 n/σ² 时间律。任务改变信号在快慢学习方向上的分布，因而既可改系数，也可改指数和曲线形状；这个解释有冻结特征代数基础，尚无学习特征干预。</p>
-<p>下一步应针对任务的谱能量建立可预测的 B 与 N 描述，再检验共同函数 U*=F(σ²/n;任务谱)。若 B≈A·U^−a、nN≈D·U^b，只在这段条件下得到 U*≈[(aA/bD)·n/σ²]^(1/(a+b))；共有指数 1 要求 a+b≈1。这是待检验机制候选，不是本轮发现。分类、交叉熵、小批量、Adam、学习特征及 train-only 早停均未验证。</p>
-<p><img alt="单模态逻辑示意，非测量数据：最低点是速率平衡，曲率拐点更晚。共享噪声形状不自动推出共享时间指数。" src="figs/d2_20261009_d2_logic.png" /></p>
-<h2>数据、源码与复核记录</h2>
-<ul>
-<li>本轮预注册（<a href="d2_evidence_20261009/preregistration.json">存档</a>）与源码：aiq_kb/research/d2_scaling_20261009/run.py；冻结 commit 07d79b7 早于本轮计算。</li>
-<li>新扫描：summary.json（<a href="d2_evidence_20261009/summary.json">存档</a>）、results/、execution.json；补充描述（<a href="d2_evidence_20261009/supplement_summary.json">存档</a>）。</li>
-<li>直接数值核验（<a href="d2_evidence_20261009/verification.json">存档</a>）。3360 个结果/data hash通过；8 个指定cell、0/1/16/64/256 步的独立GD/噪声响应最大差 1.4e−13；缩放分母含全部103边界。</li>
-<li>原曲线重建：summary.json（<a href="d2_evidence_20261009/legacy_summary.json">存档</a>）、analysis.py。原60 cell最小点差0；train重建差≤5.2e−13，val尾部直接预测差≤3.5e−12。</li>
-<li>历史 r113 的 summary 与原报告保持原路径只读。旧失败预测保留；本轮没有修轮账、改变旧supervisor预算或启动其研究会话。</li>
-</ul><p><a href="d2_evidence_20261009/report.md">下载 Markdown</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/tree/main/research/d2_scaling_20261009">重建源码</a></p>
-<div class="stamp">同步于 2026-10-09 18:27（北京时间）· 本页为研究快照，网页在 prototype 仓库内维护</div>
+<style>
+.mobile-hint{display:none}main{max-width:1040px;padding-top:36px}body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-size:16px;line-height:1.85}h1{font-size:clamp(25px,4vw,35px);max-width:830px}h2{margin-top:40px;font-size:22px}p{max-width:900px}.eyebrow{color:#7b6048;font-size:13px;letter-spacing:.08em}.lead{font-size:18px}.note,figcaption,small{font-size:13px;color:#625f58}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}.card{border:1px solid #ddd9cc;border-radius:12px;padding:15px 18px;background:#fffef9}.card strong{display:block;font-size:31px;color:#35685a;line-height:1.3}.card span{display:block;font-size:14px}.card small{display:block;margin-top:5px}.toc{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;margin:22px 0}.callout{background:#eeeee3;border-left:3px solid #788c5d;padding:12px 16px;border-radius:0 8px 8px 0}.warning{background:#f8eee7;border-left-color:#bf7454}table{min-width:640px;font-size:14px}th{color:#363a36;font-weight:600;background:#eeeee6}tbody th{background:transparent;font-weight:500}td small{display:block}figure{margin:24px 0}figure img{display:block;width:100%;border-radius:9px;border:1px solid #e5e1d5;background:#faf9f5}figcaption{margin-top:9px;line-height:1.7}details{margin:16px 0;border:1px solid #ddd9cc;border-radius:9px;padding:12px 16px}summary{font-weight:600;cursor:pointer;line-height:1.6}details[open]>summary{margin-bottom:14px}summary:focus-visible,a:focus-visible{outline:3px solid #6a9bcc;outline-offset:4px}.section-index{color:#8b887d;font-size:14px;margin-right:9px}.refs{font-size:14px}section{scroll-margin-top:20px}.stamp{color:#625f58;margin-top:35px}.formula-table td:nth-child(2){min-width:270px}@media(max-width:620px){.mobile-hint{display:block}main{padding:24px 16px 60px}.cards{gap:8px}.card{padding:12px 9px}.card strong{font-size:25px}.card span{font-size:12px}.card small{font-size:11px}h2{font-size:20px}.lead{font-size:17px}details{padding:11px}.nav{line-height:1.8}}
+</style></head><body><main>
+<nav class="nav" aria-label="站点导航"><a href="index.html">← 研究总览</a> · <a href="D1_u_effective_time.html">D1：训练时间</a> · <a href="D2_文献深度确认.html">文献对照</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D2_overfitting_u_curve.html">编辑此页</a></nav>
+<header><p class="eyebrow">D2 · 训练科学 · 更新于 2026-10-28</p><h1>什么时候停止训练？<br>从简单公式到 5% 交叉项</h1>
+<p class="lead"><strong>只知道样本数和噪声，还不够。</strong> 在这批固定特征回归实验里，把学习方向之间的相互作用全部删掉，停止预测会变差；有针对性地补回最多 5%，通常就能保住停止决策。</p>
+<div class="cards" aria-label="按变化保留最多5%的结果"><div class="card"><strong>97.0%</strong><span>停止时间在两倍以内</span><small>3043 / 3137 个内部最低点</small></div><div class="card"><strong>98.8%</strong><span>额外误差不超过初值的 1%</span><small>3200 / 3240 个条件</small></div><div class="card"><strong>23 / 465</strong><span>一个失败例子保留的交叉项</span><small>建议停止从第 1 步修正到第 255 步</small></div></div>
+<p class="note">这是已看过数据上的压缩结果（development）。按大小选也几乎一样好；尚未证明复杂任务、单次训练早停或计算加速。</p></header>
+<p class="note mobile-hint">手机上表格可左右滑动，点击图片可查看高清图。</p>
+<nav class="toc" aria-label="页内目录"><a href="#formulas">公式怎么读</a><a href="#results">效果与 Pareto 图</a><a href="#example">1 步与 255 步</a><a href="#method">实验怎么做</a><a href="#limits">失败与边界</a><a href="#evidence">证据</a></nav>
+<section id="formulas"><h2><span class="section-index">01</span>先把公式翻成人话</h2>
+<p>这里的“风险”是<strong>对训练标签噪声取平均后的验证均方误差</strong>。$t_*$ 是观察窗口内的最低点估计：它告诉我们何时停止较好，不保证是第一次局部回升。</p>
+<div class="table-wrap"><table class="formula-table"><caption class="note">固定隐藏特征，只训练输出层；$t$ 为步数，$U=\eta t$。</caption><thead><tr><th scope="col">想回答什么</th><th scope="col">公式</th><th scope="col">直观含义与结论</th></tr></thead><tbody>
+<tr><th scope="row">样本多，能否按比例晚停？</th><td>$U_*\approx c\,n/\sigma^2$</td><td>旧经验式。窄范围留出预测 57/60 通过；扩大范围后仅 1232/2700，不能只给每个任务换一个系数。</td></tr>
+<tr><th scope="row">误差来自哪里？</th><td>$R(t)=B(t)+\sigma^2N(t)$</td><td>无训练噪声时的误差，加上学习噪声带来的代价。这是本模型中的精确分解。</td></tr>
+<tr><th scope="row">最低点怎样出现？</th><td>$B'(t_*)+\sigma^2N'(t_*)=0$</td><td>连续插值的光滑内部最低点处，变化速度相抵；不要求两部分的数值相等，也不保证只有一个谷底。</td></tr>
+<tr><th scope="row">各方向能否分开算？</th><td>$R=R_{\rm diag}+\sum_{i&lt;j}C_{ij}$</td><td>还要算相互增强或抵消。$C_{ij}$ 就是两个学习方向的交叉项；全部删掉后只剩 $R_{\rm diag}$。</td></tr>
+<tr><th scope="row">能否只留少量交叉项？</th><td>$\widehat R_S=R_{\rm diag}+\sum_{(i,j)\in S}C_{ij}$</td><td>本轮检验的近似。$S$ 是保留名单；其余对角项、目标匹配项和噪声项都保持完整。</td></tr>
+</tbody></table></div>
+<p class="note">$n$：训练样本数；$\sigma^2$：标签噪声方差；$B$：无训练噪声时的验证误差；$N$：单位噪声方差的响应；撇号：随步数的变化率；$c$：拟合系数。最低点公式用于离散 GD 的连续谱插值。</p>
+<details><summary>交叉项到底是什么？一个算得出来的小例子</summary><p>两个学习方向分别贡献 $a$ 和 $b$，目标是 $y$，平方误差为 $(a+b-y)^2=a^2+b^2+2ab-2y(a+b)+y^2$。其中 $2ab$ 就是交叉项。</p><p>例如 $a=2,b=-1,y=1$，完整误差为 0；删掉 $2ab=-4$ 后，估计变成 4。方向之间的抵消被漏算了。这个手算例子只是解释代数；下面的第 1 步与第 255 步来自保存的实验数据。</p></details>
+</section>
+<section id="results"><h2><span class="section-index">02</span>保留多少，能保住多少停止效果？</h2>
+<p>横轴越小，保留的交叉项越少；纵轴越高，停止效果越好。<strong>Pareto 前沿</strong>指已测方法中，没有另一方法在“保留不更多、效果不更差”的同时，至少有一项更好的点。</p>
+<figure><a href="figs/d2_20261028_pareto.svg" aria-label="打开高清 Pareto 对比图"><img src="figs/d2_20261028_pareto.png" alt="实测 Pareto 对比：0%全删、最多5%按变化或大小及十次随机选择、100%完整参照；纵轴分别为时间和低额外风险通过率。" width="1600" height="800"></a><figcaption>只测了 0%、5%、100% 三档预算；中间比例没有实验，不能据此推断连续前沿。5% 为上限，实际向下取整。完整参照的 100% 通过率来自评价定义；横轴不代表运行时间或训练成本。</figcaption></figure>
+<div class="table-wrap"><table><thead><tr><th scope="col">方法</th><th scope="col">交叉项预算</th><th scope="col">时间在两倍以内</th><th scope="col">额外误差 ≤ 初值 1%</th><th scope="col">达标任务组</th></tr></thead><tbody><tr><th scope="row">全部删除</th><td>0%</td><td>2352/3137 <small>(75.0%)</small></td><td>2739/3240 <small>(84.5%)</small></td><td>6/12</td></tr><tr><th scope="row">按变化保留</th><td>≤5%</td><td>3043/3137 <small>(97.0%)</small></td><td>3200/3240 <small>(98.8%)</small></td><td>12/12</td></tr><tr><th scope="row">按大小保留</th><td>≤5%</td><td>3042/3137 <small>(97.0%)</small></td><td>3199/3240 <small>(98.7%)</small></td><td>12/12</td></tr><tr><th scope="row">随机保留（10 次）</th><td>≤5%</td><td>75.5%–76.5%</td><td>85.0%–86.3%</td><td>5–6/12</td></tr><tr><th scope="row">完整参照</th><td>100%</td><td>3137/3137 <small>(100.0%)</small></td><td>3240/3240 <small>(100.0%)</small></td><td>12/12</td></tr></tbody></table></div>
+<p><strong>变化法与大小法基本打平。</strong> 两者都通过 12 组，两个总体指标各只差 1 条，不能据此认定变化评分更优。随机法十次均明显较差；这些是同一批数据上的十份名单，不是十次独立数据实验。</p>
+<div class="callout"><strong>12/12 是什么意思？</strong> 每组有 270 个条件，必须同时满足：内部最低点中至少 80% 的时间预测在两倍以内；全部条件中至少 90% 的额外误差不超过初值的 1%。12/12 表示每组都过了这两个门槛，<strong>不表示 3240 条全部正确，也不表示覆盖了 12 类现实任务。</strong></div>
+<details><summary>查看十次随机选择的全部结果</summary><div class="table-wrap"><table><thead><tr><th>随机名单</th><th>时间通过</th><th>额外误差通过</th><th>达标组数</th></tr></thead><tbody><tr><td>01</td><td>2401/3137</td><td>2795/3240</td><td>6/12</td></tr><tr><td>02</td><td>2373/3137</td><td>2784/3240</td><td>6/12</td></tr><tr><td>03</td><td>2380/3137</td><td>2754/3240</td><td>6/12</td></tr><tr><td>04</td><td>2367/3137</td><td>2768/3240</td><td>6/12</td></tr><tr><td>05</td><td>2386/3137</td><td>2774/3240</td><td>6/12</td></tr><tr><td>06</td><td>2374/3137</td><td>2778/3240</td><td>6/12</td></tr><tr><td>07</td><td>2398/3137</td><td>2774/3240</td><td>6/12</td></tr><tr><td>08</td><td>2380/3137</td><td>2764/3240</td><td>6/12</td></tr><tr><td>09</td><td>2386/3137</td><td>2764/3240</td><td>5/12</td></tr><tr><td>10</td><td>2384/3137</td><td>2779/3240</td><td>6/12</td></tr></tbody></table></div></details>
+</section>
+<section id="example"><h2><span class="section-index">03</span>为什么会把第 255 步错认成第 1 步？</h2>
+<p>这个例子是一维正弦任务，有隐藏偏置，$n=32,\sigma^2=1$，seed=6103。完整风险在第 255 步更低；全删交叉项却建议第 1 步就停。31 个有效方向共有 465 对交叉项，补回 23 对后，变化法和大小法都选回第 255 步。</p>
+<figure><a href="figs/d2_20261028_focus.svg" aria-label="打开高清重点例子图"><img src="figs/d2_20261028_focus.png" alt="同一训练过程的风险估计对比：全删交叉项漏掉晚期谷底；保留23对后恢复第255步的低风险。" loading="lazy" width="1600" height="800"></a><figcaption>改变的是风险估计，不是重新训练模型。同一步的真实风险对所有方法都一样；额外误差始终由完整风险评价。</figcaption></figure>
+<div class="table-wrap"><table><thead><tr><th>同一时间的记账</th><th>第 1 步</th><th>第 255 步</th><th>怎么理解</th></tr></thead><tbody>
+<tr><th scope="row">删掉全部交叉项的估计</th><td>0.858</td><td>1.021</td><td>误以为继续训练更差</td></tr>
+<tr><th scope="row">完整交叉项的总贡献</th><td>−0.003</td><td>−0.769</td><td>晚期有很大的抵消作用</td></tr>
+<tr><th scope="row">完整风险</th><td>0.855</td><td>0.252</td><td>加回抵消项，晚期明显更好</td></tr>
+<tr><th scope="row">按变化保留 23 对后的估计</th><td>0.858 − 0.003 ≈ 0.855</td><td>1.021 − 0.769 ≈ 0.252</td><td>少数项近似恢复了净贡献</td></tr>
+</tbody></table></div>
+<p>全删和十次随机保留都选第 1 步，实际风险约 0.855；两种有针对性的选择都选第 255 步，实际风险约 0.252。修复的是一个已知开发例子，不能把它当作新任务盲测。表内短数经过舍入，完整精度见<a href="d2_evidence_20261028/focus_case.json">逐项记录</a>。</p>
+</section>
+<section id="method"><h2><span class="section-index">04</span>实验怎么做，12 组分别是什么？</h2>
+<p>沿用已有的 <strong>12 组任务与特征 × 10 档样本量 × 9 档噪声 × 3 个主种子 = 3240 条曲线</strong>。固定 128 个 ReLU 隐藏特征，只分析输出层的全批量梯度下降；本轮没有重新训练网络。</p>
+<ol><li><strong>先核验数据、再预注册。</strong> 重验旧数据与产物哈希，冻结选择规则与通过门槛，然后计算删项后的风险曲线。</li><li><strong>每组按同样的预算选项。</strong> 有效方向数为 $r$，可选对数 $M=r(r-1)/2$，保留 $K=\lfloor0.05M\rfloor$ 对；同一任务与数据的名单在九档噪声间共享。</li><li><strong>先用近似选时间，再用完整风险评分。</strong> $\Delta=[R(\hat t)-R(t_*)]/R(0)$。$\Delta\le1\%$ 才算额外误差小，不能拿近似模型自己的低估当成成功。</li></ol>
+<div class="table-wrap"><table><thead><tr><th>选择方法</th><th>评分或规则</th><th>通俗解释</th></tr></thead><tbody>
+<tr><th scope="row">按变化（主方案）</th><td>$s_{ij}=\max_{t\in\mathcal G}|(t+1)C'_{ij}(t)|$</td><td>优先保留沿训练进程变化显著的项</td></tr>
+<tr><th scope="row">按大小（对照）</th><td>$s_{ij}=|C_{ij}(262144)|$</td><td>优先保留窗口末绝对贡献大的项</td></tr>
+<tr><th scope="row">随机（对照）</th><td>等预算、不放回抽取；固定十次</td><td>检验有针对性的选择是否比运气更好</td></tr>
+</tbody></table></div>
+<details><summary>展开 12 组任务、目标形状及本轮逐组结果</summary><p>下面是<strong>归一化前的目标形状</strong>；实际每个输出通道按总体均方根归一化为 1。$a,b$ 是前两个输入坐标。四维目标不一定用到全部四个坐标；“有偏置”指 ReLU 内的阈值偏移。目标中的 $ab$ 与误差展开中的谱交叉项不是同一个对象。</p><div class="table-wrap"><table><thead><tr><th>任务与特征设置</th><th>目标形状</th><th>时间通过</th><th>额外误差通过</th></tr></thead><tbody><tr><th scope="row">1 维 · 有偏置<br>线性</th><td>$a$</td><td>270/270</td><td>270/270</td></tr><tr><th scope="row">1 维 · 有偏置<br>单变量二次</th><td>$a+0.5(a^2-1)$</td><td>269/270</td><td>270/270</td></tr><tr><th scope="row">1 维 · 有偏置<br>正弦</th><td>$\sin(2a)$</td><td>233/234</td><td>270/270</td></tr><tr><th scope="row">1 维 · 无偏置<br>线性</th><td>$a$</td><td>241/270</td><td>270/270</td></tr><tr><th scope="row">1 维 · 无偏置<br>单变量二次</th><td>$a+0.5(a^2-1)$</td><td>253/270</td><td>254/270</td></tr><tr><th scope="row">4 维 · 有偏置<br>线性＋交互</th><td>$a+0.5ab$</td><td>253/266</td><td>267/270</td></tr><tr><th scope="row">4 维 · 无偏置<br>加性二次</th><td>$a+0.5(b^2-1)$</td><td>247/263</td><td>264/270</td></tr><tr><th scope="row">4 维 · 无偏置<br>线性＋交互</th><td>$a+0.5ab$</td><td>261/266</td><td>268/270</td></tr><tr><th scope="row">4 维 · 无偏置<br>线性</th><td>$a$</td><td>267/267</td><td>270/270</td></tr><tr><th scope="row">4 维 · 无偏置<br>纯交互</th><td>$ab$</td><td>222/230</td><td>258/270</td></tr><tr><th scope="row">4 维 · 无偏置<br>正弦</th><td>$\sin a+0.5\sin(2b)$</td><td>263/264</td><td>270/270</td></tr><tr><th scope="row">4 维 · 无偏置<br>双输出</th><td>$(a,\ a+0.5ab)$</td><td>264/267</td><td>269/270</td></tr></tbody></table></div><p class="note">本表为按变化保留最多 5% 的结果。每组时间分母只含内部最低点；风险分母均为 270。</p></details>
+<details><summary>展开计算约定与精确谱公式</summary><p>输入为 1 或 4 维标准高斯；样本量 16–1024、噪声方差 1/32–8、独立干净验证样本 2048 个；输出层零初始化，MSE、学习率 $\eta=0.3$，无动量和权重衰减。120 个数据与特征抽样被任务和噪声条件复用，3240 条不是独立重复。</p><p>在训练协方差的特征方向中，$f_i(t)=[1-(1-2\eta\lambda_i)^t]/\lambda_i$；$\lambda_i$ 为有效特征值。$g_i$ 为训练目标投影，$H_{ij}$ 为验证特征在这组方向中的内积，$h_{ij}=H_{ij}\langle g_i g_j\rangle$，尖括号表示对输出通道平均。于是 $C_{ij}=2h_{ij}f_i f_j$。未保留项置零，系数不重新拟合。</p><p>评分格点 $\mathcal G$ 为整数 0–16 加 17–262144 的 128 个取整对数格点。找最低点则使用整数 0–256 加 4096 个取整对数格点，并在附近精化；没有穷举所有整数极值。全部 103 个窗口边界最低点保留在风险评价中，只退出时间倍数分母。</p><p>60/360 个任务与数据组合因低秩而保留 0 对；21/120 个数据与特征抽样有很接近的特征值，方向选择的稳健性还没有验证。变化和大小评分仍使用干净目标、验证几何，并检查全部交叉项。</p></details>
+</section>
+<section id="limits"><h2><span class="section-index">05</span>哪些失败仍然存在？</h2>
+<div class="callout warning"><strong>12/12 达标，不等于没有反例。</strong> 主方案仍有 94/3137 条时间未达标、40/3240 条额外误差未达标。最差一条把第 862 步选成第 32 步，实际风险从最低的 0.118 变成 0.255，多出初始风险的 12.8%。</div>
+<p>这个反例是四维无偏置的加性二次任务，$n=24,\sigma^2=1/32$，seed=6103。另有 252/3240 条近似无噪声误差为负、20/3240 条近似总风险为负；负误差是近似失效，不能当作更好效果。</p>
+<details><summary>旧 D2 的哪些结论仍然有用？</summary><div class="table-wrap"><table><thead><tr><th>问题</th><th>保存的证据</th><th>应怎样理解</th></tr></thead><tbody>
+<tr><th scope="row">能否只用样本数／噪声预测？</th><td>旧留出 n：57/60；扩展验证：1232/2700</td><td>每任务拟合系数仍有 12/12 组未过 80% 时间门槛；这与新稀疏方法的两项门槛不同。</td></tr>
+<tr><th scope="row">训练误差必须先接近零吗？</th><td>最低点处训练误差中位仍为初值的 33%；仅 766/3137 ≤ 10%</td><td>验证误差回升不要求先把训练误差压得很低。</td></tr>
+<tr><th scope="row">回升前就会学到噪声吗？</th><td>半个最低点时间处，噪声代价已达最低点时的中位 77%</td><td>总误差仍下降，不代表噪声尚未造成损害。</td></tr>
+<tr><th scope="row">最低点就是曲率拐点吗？</th><td>旧 60 条曲线的后续曲率换号约在最低点的 1.2–8.1 倍时间</td><td>斜率为零和曲率换号是两件事；局部谷底通常近似二次形状。</td></tr>
+<tr><th scope="row">旧尾部公式与归一化修正呢？</th><td>1.55 次方尾部外推 78/78 失败；旧 r113 归一化后系数极差增至 4.68 倍</td><td>有限区间拟合不能当成普适规律；部分种子变好不能覆盖总体失败。</td></tr>
+</tbody></table></div><p><a href="d2_evidence_20261009/report.md">2026-10-09 完整历史报告</a>保留原始细节。</p></details>
+</section>
+<section id="next"><h2><span class="section-index">06</span>现在能说到哪里，下一步验证什么？</h2>
+<p><strong>当前支持：这批固定特征回归条件中的停止决策，通常可以用少量有针对性的交叉项保留。</strong> 这不是“任意复杂任务只需 5%”，也不是“训练省了 95%”：选择时仍检查了所有交叉项。</p>
+<div class="table-wrap"><table><thead><tr><th>下一步问题（尚未运行）</th><th>为什么要测</th><th>通过后才能增加的结论</th></tr></thead><tbody>
+<tr><th scope="row">更多有效方向、交叉作用更分散</th><td>直接挑战“少数大项足够”的条件</td><td>对指定复杂任务仍能压缩，并能描述失败边界</td></tr>
+<tr><th scope="row">只用实际可获得的带噪标签</th><td>当前方法依赖干净目标和验证几何</td><td>不依赖理想信息，也能选出有用项</td></tr>
+<tr><th scope="row">单次轨迹与会学习特征的网络</th><td>噪声平均曲线不等于一次训练，学习方向也可能变化</td><td>才有机会成为实际训练的早停工具</td></tr>
+</tbody></table></div>
+<p class="note">分类、交叉熵、Adam、小批量和端到端特征学习均未在本研究中验证。旧 60 个条件里，单次轨迹最低点与噪声平均最低点之比为 0.24–86.72，不能直接混用。</p>
+</section>
+<section id="evidence"><h2><span class="section-index">07</span>数据与复核入口</h2>
+<p class="refs">本页只整理已保存结果，没有新增实验。两轮预注册均早于计算；本次发布前再次按结果清单校验导出文件。完整曲线重建最大归一化差为 7.8×10⁻¹¹；4320 个掩码已核对，另有 96 次独立特征空间核验。</p>
+<div class="table-wrap"><table><thead><tr><th>证据</th><th>直接查看</th></tr></thead><tbody>
+<tr><th scope="row">2026-10-09 原 D2</th><td><a href="d2_evidence_20261009/report.md">历史报告</a> · <a href="d2_evidence_20261009/summary.json">完整汇总</a></td></tr>
+<tr><th scope="row">2026-10-27 对角消融</th><td><a href="d2_evidence_20261028/diagonal_summary.json">完整汇总</a> · <a href="d2_evidence_20261028/diagonal_independent_audit.json">独立代理审计</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/tree/d2796a484712fc95268c2400a6d85d5cf121163c/research/d2_diagonal_20261027">预注册与源码</a></td></tr>
+<tr><th scope="row">2026-10-28 保留 5%</th><td><a href="d2_evidence_20261028/summary.json">完整汇总（含逐组／逐种子）</a> · <a href="d2_evidence_20261028/independent_audit.json">独立代理审计</a> · <a href="d2_evidence_20261028/numerical_verification.json">数值核验</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/tree/7dc745d2c4e21acb98ef4fa0a4534c2e5e707eda/research/d2_sparse_cross_20261028">预注册与源码</a></td></tr>
+<tr><th scope="row">第 1 步／255 步例子</th><td><a href="d2_evidence_20261028/focus_case.json">逐项计算</a> · <a href="d2_evidence_20261028/focus_curves.npz">保存的曲线数组</a></td></tr>
+<tr><th scope="row">网页与图表来源</th><td><a href="d2_evidence_20261028/export_manifest.json">原件哈希与发布清单</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/tree/main/research/d2_web_20261028">页面与绘图源码</a></td></tr>
+</tbody></table></div>
+</section><footer class="stamp">更新于 2026-10-28 · 固定特征回归 · 已观察数据上的研究结果 · 完整精度保留在 JSON 证据中</footer>
 </main></body></html>
