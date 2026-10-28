@@ -31,6 +31,59 @@
 <p>实验中我们对每个 $t_0$ 同时算两个预测：1. 稳态：$t_{\text{steady}}=\lceil t_0/10\rceil$，假设动量一开始就保持满速（这样就能直接套用上面的公式）；2. 启动：$t_{\text{startup}}=\min\{t\in\mathbb N:10t-90(1-.9^t)\ge t_0\}$，把前几步的加速期算进去。两个预测分别和 SGD(mom=0.9) 训练到相同损失比的实测步数 $t_{\text{obs}}$ 比，误差 $E=|t_{\text{pred}}-t_{\text{obs}}|/t_{\text{obs}}$。$E\le5\%$ 算成立，$E\ge50\%$ 算失效。</p>
 
 <h2>3. 实验</h2>
+<aside class="model-note"><strong>基础假设：损失分解</strong>
+<p>以下这两组实验围绕同一组理论假设展开：固定特征的线性模型，每个样本的特征向量组成矩阵 \(X\)，预测为 \(Xw\)，只训练权重 \(w\)。用平方误差时，</p>
+<div class="equation">\[L(w)=\frac{1}{2n}\lVert Xw-y\rVert^2\]</div>
+<p>这是一个二次函数。因为 \(X\) 固定，Hessian \(H=X^\top X/n\) 也固定。把参数误差投影到 \(H\) 的特征方向后，损失变成各方向平方误差项之和，不同方向间没有交叉项，因此总损失比可写成：</p>
+<div class="equation">\[\frac{L_t}{L_0}=\sum_i \alpha_i r_i(t)^2,\qquad \alpha_i=\frac{L_{i,0}}{L_0},\qquad \sum_i\alpha_i=1.\]</div>
+<figure class="experiment-chart alpha-chart" aria-labelledby="d1-alpha-chart-title">
+<figcaption id="d1-alpha-chart-title"><strong>3.1 慢方向损失份额与预测误差</strong><span>谱 \([0.001,0.5]\) · \(q=0.01\) · mom=0.9 持续到 \(T\) 的端点</span></figcaption>
+<div class="chart-scroll"><svg viewBox="0 0 800 390" role="img" aria-labelledby="d1-alpha-svg-title d1-alpha-svg-desc">
+<title id="d1-alpha-svg-title">慢方向初始损失占比与两种等效步数预测误差</title>
+<desc id="d1-alpha-svg-desc">横轴为对数刻度的慢方向初始损失份额 alpha，纵轴为稳态预测和启动修正预测的相对绝对误差。虚线标示百分之五和百分之五十判据。</desc>
+<rect x="0" y="0" width="800" height="390" fill="#fff"/>
+<g stroke="#e6eaf0" stroke-width="1">
+<line x1="100" y1="300" x2="720" y2="300"/><line x1="100" y1="252" x2="720" y2="252"/>
+<line x1="100" y1="204" x2="720" y2="204"/><line x1="100" y1="156" x2="720" y2="156"/>
+<line x1="100" y1="108" x2="720" y2="108"/><line x1="100" y1="60" x2="720" y2="60"/>
+</g>
+<g fill="#64748b" font-size="12" text-anchor="end">
+<text x="88" y="304">0%</text><text x="88" y="256">20%</text><text x="88" y="208">40%</text>
+<text x="88" y="160">60%</text><text x="88" y="112">80%</text><text x="88" y="64">100%</text>
+</g>
+<line x1="100" y1="288" x2="720" y2="288" stroke="#dc6b4a" stroke-width="2" stroke-dasharray="6 5"/>
+<text x="714" y="282" fill="#b44b31" font-size="12" text-anchor="end">5% 成立线</text>
+<line x1="100" y1="180" x2="720" y2="180" stroke="#8a6bb5" stroke-width="2" stroke-dasharray="6 5"/>
+<text x="714" y="174" fill="#76539f" font-size="12" text-anchor="end">50% 失效线</text>
+<g stroke="#cbd5e1" stroke-width="1">
+<line x1="100" y1="300" x2="100" y2="305"/><line x1="261" y1="300" x2="261" y2="305"/>
+<line x1="319" y1="300" x2="319" y2="305"/><line x1="330" y1="300" x2="330" y2="305"/>
+<line x1="339" y1="300" x2="339" y2="305"/><line x1="399" y1="300" x2="399" y2="305"/>
+<line x1="559" y1="300" x2="559" y2="305"/><line x1="720" y1="300" x2="720" y2="305"/>
+</g>
+<g fill="#64748b" font-size="11" text-anchor="middle">
+<text x="100" y="322">.001</text><text x="261" y="322">.005</text><text x="319" y="322">.009</text><text x="330" y="342">.010</text>
+<text x="339" y="322">.011</text><text x="399" y="322">.02</text><text x="559" y="322">.1</text><text x="720" y="322">.5</text>
+<text x="410" y="370" font-size="13">慢方向初始损失份额 \(\alpha\)（对数刻度）</text>
+</g>
+<polyline points="100,87.3 261,91.3 319,88.5 330,96 339,215.7 399,295.9 559,299.6 720,298.9" fill="none" stroke="#277da1" stroke-width="3" stroke-linejoin="round"/>
+<polyline points="100,120 261,122.6 319,117 330,124 339,244.9 399,298 559,297.7 720,297.8" fill="none" stroke="#f28e2b" stroke-width="3" stroke-linejoin="round"/>
+<g fill="#277da1" stroke="#fff" stroke-width="2">
+<circle cx="100" cy="87.3" r="5"/><circle cx="261" cy="91.3" r="5"/><circle cx="319" cy="88.5" r="5"/><circle cx="330" cy="96" r="5"/><circle cx="339" cy="215.7" r="5"/><circle cx="399" cy="295.9" r="5"/><circle cx="559" cy="299.6" r="5"/><circle cx="720" cy="298.9" r="5"/>
+</g>
+<g fill="#f28e2b" stroke="#fff" stroke-width="2">
+<circle cx="100" cy="120" r="5"/><circle cx="261" cy="122.6" r="5"/><circle cx="319" cy="117" r="5"/><circle cx="330" cy="124" r="5"/><circle cx="339" cy="244.9" r="5"/><circle cx="399" cy="298" r="5"/><circle cx="559" cy="297.7" r="5"/><circle cx="720" cy="297.8" r="5"/>
+</g>
+<g font-size="12">
+<line x1="246" y1="22" x2="272" y2="22" stroke="#277da1" stroke-width="3"/><circle cx="259" cy="22" r="4" fill="#277da1"/><text x="280" y="26" fill="#334155">稳态预测误差</text>
+<line x1="430" y1="22" x2="456" y2="22" stroke="#f28e2b" stroke-width="3"/><circle cx="443" cy="22" r="4" fill="#f28e2b"/><text x="464" y="26" fill="#334155">启动修正预测误差</text>
+</g>
+</svg></div>
+<p class="chart-note">误差按 \(|t_{\mathrm{pred}}-t_{\mathrm{obs}}|/t_{\mathrm{obs}}\) 计算。数据来自保存的 r017 双方向实验：\(\alpha\) 表示慢方向在初始总损失中的份额；每个条件的 3 个坐标 seed 结果相同。图显示在这组固定谱和 \(q\) 下，低 \(\alpha\) 区间两种预测误差较大，高 \(\alpha\) 区间进入 5% 线内；这描述的是该二次模型的条件性结果。</p>
+</figure>
+
+<p>\(L_{i,0}\) 是第 \(i\) 个方向在初始时的损失量，\(\alpha_i\) 是它占初始总损失的比例；\(r_i(t)\) 是训练 \(t\) 步后该方向的误差相对于初始误差的比例，故 \(r_i(0)=1\)。也就是说，各方向剩下的误差平方，按它们起初对总损失的贡献加权求和，就是总损失。</p>
+<p class="model-scope">这套分解依赖固定特征和平方损失构成的二次模型。在本实验中，hession矩阵满秩，所以可以特征拟合，没有不可约残差。</p></aside>
 
 <p><strong>3.1 控制快慢方向占比</strong> 如果损失由快慢两个方向组成，慢方向一开始占总损失的比例记为 $\alpha$，损失降到初始的多少记为 $q$。$\alpha$ 越小，慢方向越不重要。下表是谱 $[0.001,0.5]$、$q=0.01$ 的全部配对：</p>
 <div class="table-wrap"><table>
@@ -55,7 +108,27 @@
 <p>由实验可知：$\alpha=0.02/0.1/0.5$ 时，两种误差都 ≤5%（3/3），我们的预测（预测方式见第二节）是准的。然而$\alpha=0.001/0.005/0.009$ 时都 ≥50%（3/3），换算失效。</p>
 <p>边界不是固定的。把快方向从 0.5 改到 0.05，低 $\alpha$ 的失效判据变成 0/3（稳态 23.6842%–47.6190%，启动 47.3684%–69.0476%），高 $\alpha$ 仍 ≤5%。把 $q$ 降到 0.001，$\alpha=0.005$–0.5 的 5/5 进入 5%（稳态 0.091075%–0.680272%，启动 0.867410%–0.971817%）；但 $\alpha=q=0.001$ 启动误差 8.988764%。</p>
 <p><strong>暗示的结论：</strong> 预测是否成立由谱、$\alpha$、$q$ 共同决定</p>
-<p><strong>3.2 动量启动修正到晚期会反噬。</strong> 早期启动修正是非常准确的，但到 $q=0.01$、40000 步时，10 个配对里 6 个使用启动误差的组反而更差：$h=0.0001/0.001/0.005$ 实测 2290/217/37，稳态 2303/231/46，启动 2312/240/55；稳态误差 13/14/9 步，启动误差 22/23/18 步。</p>
+<p><strong>3.2 动量启动修正预测到晚期会失效。</strong> 早期启动修正是非常准确的，但到 $q=0.01$、40000 步时，10 个配对里 6 个使用启动误差的组反而更差：$h=0.0001/0.001/0.005$ 实测 2290/217/37，稳态 2303/231/46，启动 2312/240/55；稳态误差 13/14/9 步，启动误差 22/23/18 步。</p>
+<figure class="experiment-chart" aria-labelledby="d1-curvature-chart-title">
+<figcaption id="d1-curvature-chart-title"><strong>3.2 低曲率下的预测误差</strong><span>q=0.01 · 实测步数与两种预测的相对绝对误差</span></figcaption>
+<div class="chart-scroll"><svg viewBox="0 0 760 360" role="img" aria-labelledby="d1-svg-title d1-svg-desc">
+<title id="d1-svg-title">不同曲率下的动量步数预测相对绝对误差</title>
+<desc id="d1-svg-desc">稳态预测误差从 0.57% 上升至 24.32%；启动修正预测误差从 0.96% 上升至 48.65%。虚线为 5% 判据线。</desc>
+<rect x="0" y="0" width="760" height="360" fill="#fff"/>
+<g stroke="#e6eaf0" stroke-width="1"><line x1="88" y1="280" x2="710" y2="280"/><line x1="88" y1="236" x2="710" y2="236"/><line x1="88" y1="192" x2="710" y2="192"/><line x1="88" y1="148" x2="710" y2="148"/><line x1="88" y1="104" x2="710" y2="104"/><line x1="88" y1="60" x2="710" y2="60"/></g>
+<g fill="#64748b" font-size="12" text-anchor="end"><text x="77" y="284">0%</text><text x="77" y="240">10%</text><text x="77" y="196">20%</text><text x="77" y="152">30%</text><text x="77" y="108">40%</text><text x="77" y="64">50%</text></g>
+<line x1="88" y1="258" x2="710" y2="258" stroke="#dc6b4a" stroke-width="2" stroke-dasharray="6 5"/><text x="704" y="251" text-anchor="end" fill="#b44b31" font-size="12">5% 判据线</text>
+<g fill="#64748b" font-size="13" text-anchor="middle"><text x="190" y="307">0.0001</text><text x="399" y="307">0.001</text><text x="608" y="307">0.005</text><text x="399" y="338">&#27493;&#38271;&#215;&#26354;&#29575; h=&#951;&#955;</text></g>
+<g stroke="#fff" stroke-width="2"><rect x="158" y="277.5" width="28" height="2.5" rx="3" fill="#277da1"/><rect x="192" y="275.8" width="28" height="4.2" rx="3" fill="#f28e2b"/><rect x="367" y="251.6" width="28" height="28.4" rx="3" fill="#277da1"/><rect x="401" y="233.4" width="28" height="46.6" rx="3" fill="#f28e2b"/><rect x="576" y="173.0" width="28" height="107" rx="3" fill="#277da1"/><rect x="610" y="66.0" width="28" height="214" rx="3" fill="#f28e2b"/></g>
+<g fill="#334155" font-size="11" text-anchor="middle"><text x="172" y="266">0.57%</text><text x="206" y="263">0.96%</text><text x="381" y="244">6.45%</text><text x="415" y="226">10.60%</text><text x="590" y="165">24.32%</text><text x="624" y="58">48.65%</text></g>
+<g font-size="12"><rect x="208" y="18" width="12" height="12" rx="2" fill="#277da1"/><text x="226" y="28" fill="#334155">稳态预测</text><rect x="398" y="18" width="12" height="12" rx="2" fill="#f28e2b"/><text x="416" y="28" fill="#334155">启动修正预测</text></g>
+</svg></div>
+<p class="chart-note">图中为 q=0.01、g₀=0.003、持续达到 T 的结果；纵轴误差按 |预测步数 - 实测步数| / 实测步数 计算，数值与保存的 summary.json 一致。每个 h 下 3 个坐标 seed 的结果相同；按 5% 准则，h=0.0001 时两种预测都达标，h≥0.001 时均未达标。原研究 10 个配对条件中，6 个启动修正误差大于稳态预测误差。</p>
+</figure>
+<style>
+.experiment-chart{margin:1.5rem 0 2rem;padding:1.15rem 1.25rem;border:1px solid #e2e8f0;border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(15,23,42,.045)}
+.experiment-chart figcaption{display:flex;flex-wrap:wrap;gap:.35rem 1rem;align-items:baseline;margin-bottom:.8rem;color:#172033}.experiment-chart figcaption strong{font-size:1.06rem}.experiment-chart figcaption span,.chart-note{color:#64748b;font-size:.9rem}.chart-scroll{overflow-x:auto}.experiment-chart svg{display:block;width:100%;min-width:560px;height:auto}.chart-note{margin:.4rem 0 0;line-height:1.65}
+</style>
 <p><strong>暗示的结论：</strong> 我们提取的启动项是启发式的，只在早期有用，并不通用。</p>
 <p><strong>注：</strong> 自适应优化器还没有跑；表里那四行公式只是解析式。</p>
 
