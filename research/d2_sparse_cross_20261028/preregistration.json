@@ -1,0 +1,41 @@
+{
+  "study": "d2_sparse_cross_20261028",
+  "status_at_registration": "approved_not_started",
+  "authorization": "User explicitly authorized on 2026-10-28: preregister first, retain 5% key cross terms, compare against random and magnitude selection, examine the known step-1 versus step-255 failure, and write a plain-language report.",
+  "question": "In the existing D2 development conditions, can a fixed maximum-log-time-change ranking retain at most 5% of active spectral pairs and meet the preregistered stopping-time and regret criteria?",
+  "domain": "All 3240 conditions and the highlighted failure have already been inspected. This is development compression, not unseen data, a training intervention, a necessity proof, or a train-only method.",
+  "data_root": "/Users/mapleandrew/meta_circle/Science_of_AI_Textbook/AIQ_KB_DATA",
+  "input_root": "/Users/mapleandrew/meta_circle/Science_of_AI_Textbook/AIQ_KB_DATA/imports/d2_handoff_20261009",
+  "source_study": "evidence/d2_scaling_20261009/studies/n_sigma_tasks",
+  "previous_run": "runs/d2_diagonal_20261027",
+  "run_relative": "runs/d2_sparse_cross_20261028",
+  "counts": {"conditions": 3240, "draws": 120, "task_draws": 360, "recipes": 12, "interior": 3137, "boundary": 103, "new_methods": 12, "references": 2, "new_evaluations": 38880, "total_rows_including_references": 45360},
+  "selection": {
+    "pairs": "All i<j pairs of active eigenmodes under the original null threshold, lexicographic order. M=r(r-1)/2, K=(5*M)//100. Keep K even when zero; do not exclude zero-weight pairs from M or round up. Record rank,M,K,K/M.",
+    "score_grid": "Unique sorted integer steps 0..16 plus rounded 128 geomspace points from 17 to 262144; this is for ranking only, not minimum search.",
+    "change05": "Cij(t)=2*hij*fi(t)*fj(t). Score=max over score grid abs((t+1)*2*hij*(fi_prime*fj+fi*fj_prime)). fi_prime=-log(qi)*qi**t/lambda_i is derivative with respect to step t, not U. Largest K scores; stable ties use pair order.",
+    "magnitude05": "Largest K absolute Cij(262144). Each individual |Cij| is monotone under the inherited positive GD factors, so this is the maximum amplitude over the window. Same tie rule.",
+    "random05": "Ten masks, labels random05_00 through random05_09, each K distinct pair indices uniformly sampled without replacement. RNG seed is integer from the first 8 SHA256 bytes of study|data_relative_path|task|replicate. Sort selected indices. Do not use Python hash or choose the best replicate.",
+    "reuse": "One mask per task/draw/method, shared across all nine noise levels. Scores and masks never read saved t_star or evaluate stopping quality. Keep coefficients unchanged; only h off-diagonals are masked. Diagonal, linear, val_y2, noise response remain unchanged.",
+    "basis": "Use original numpy.linalg.eigh convention; save eigenvalues, eigenvectors, active mask and hashes for each draw. Flag min adjacent active spacing/max eigenvalue <=1e-10. Do not rotate, drop, or regroup near-degenerate modes after seeing results.",
+    "information": "Scores use clean targets and validation geometry and inspect all pairs. This tests retained representation size, not data availability or computational speedup."
+  },
+  "search": "Use the previous registered dense INTEGER grid 0..256 plus rounded 4096 geomspace points 257..262144, then the same select_integer bounded local refinement preserving coarse best and bracket endpoints. No saved fractional half-time points; no claim of exhaustive extrema. References reuse saved full t_star and saved diagonal predictions without refitting.",
+  "primary_rules": {
+    "method": "change05",
+    "time": "For EACH recipe, >=80% of original interior conditions have selected time/reference in [0.5,2]. Zero predictions on positive references fail. Reference boundary cases are outside time-ratio denominator but retained in other metrics.",
+    "risk": "For EACH recipe, >=90% of ALL conditions have (full risk at selected time - saved minimum risk)/R0 <=0.01.",
+    "overall": "All 12 recipes must pass both. Pooled average cannot substitute. magnitude/random are equal-budget controls, not replacements for a failed primary rule.",
+    "random_reporting": "Report all ten separate replicate outcomes and their median/min/max; do not pool them as independent data or select a best mask.",
+    "case": "Known failure: d1_biased/sine/n32/seed6103/sigma2=1, original optimum t=255 and prior diagonal t=1. Call stopping repaired only if both time within2 and regret/R0<=0.01. Show all ten random outcomes and separate risk-only improvement; success here does not prove cross-condition validity."
+  },
+  "validity": "Never clip sparse bias or risk. Separately flag min bias and min total on dense grid plus selected point below -1e-10*max(1,R0). Stopping quality and physical risk-model validity are separate, including in highlighted case.",
+  "verification": "Before computation recheck all 3528 D2 manifest files, the 3360 payload receipt pins, and all prior-run result-manifest hashes. Reconstruct full bias/noise on the common grid for all 360 task/draws and compare all 3240 saved curves within 1e-8*max(1,R0). Check original minimum and independently evaluate feature-space risk at selected times for the eight previous n64 seed6101 sigma2=1 gate conditions for all 12 methods. Check masked-matrix versus explicit selected-pair sums at steps 0/1/16/255/262144 for every mask; tolerance 1e-8*max(1,R0). Any nonfinite, mask budget error, source drift or real negative regret stops execution.",
+  "reference_regret": "Evaluate full risk at candidate times directly. Preserve raw regret; values below -1e-8*max(1,R0) trigger search-discrepancy stop. Only smaller negative roundoff becomes zero in nonnegative summaries.",
+  "uncertainty": "Only three master data seeds; report per-recipe, per-seed, recipe-by-seed, worst risk and >10% R0 harm counts. Ten random masks measure selection randomness, not ten additional data samples. Preserve low-rank zero budgets, all boundaries and near-degenerate cases.",
+  "secondary": "Known-case full and sparse curves, arithmetic breakdown at t=1,t=255 and selected times, signed full/retained/omitted cross sums; primary versus magnitude mask overlap and score relation as descriptive checks; no post-result mask adjustment.",
+  "budget": {"compute_wall_seconds": 1800, "model_api_calls": 0, "gpu": false, "new_training": false, "retention_percent": 5, "other_retention_levels": []},
+  "outputs": ["input_verification.json", "execution.json", "basis files and hashes", "scores and selected masks", "rows.jsonl", "summary.json", "numerical_verification.json", "focus_case.json and arrays", "plain-language report and figures"],
+  "failure_handling": "Preserve partial output; do not overwrite or adjust score, budget, thresholds, random seeds or basis after observing outcomes. Report incomplete on a gate/budget failure. Code bugs require an explicit recorded amendment before any resumed calculation.",
+  "publication": "New outputs only in external AIQ_KB_DATA_ROOT/runs. Source, preregistration and result pointers only committed in this repo. Do not modify historical studies, publisher, homepage, benchmark, solver or remote processes."
+}
