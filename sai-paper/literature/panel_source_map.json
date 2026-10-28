@@ -1,0 +1,1663 @@
+{
+  "metadata": {
+    "generated_utc": "2026-10-28T12:33:53.697690+00:00",
+    "panel_sha256": "875cc6a1f8db9a266a6c1d1105dec1849faf2732da7e28d24a6945d8c9e12cb4",
+    "rows": 53,
+    "source_references": 59,
+    "fully_matched_rows": 23,
+    "partially_matched_rows": 0,
+    "unmatched_rows": 30
+  },
+  "scope_note": "Panel rows only; source joins are not validation of claims, labels or field-wide coverage.",
+  "records": [
+    {
+      "row": 1,
+      "panel_work": "Kaplan 2020（Scaling Laws for Neural Language Models）",
+      "panel_family": "经验定律",
+      "panel_level": "L2",
+      "panel_claim": "loss 与参数量、数据量的幂律关系，拟合并外推",
+      "sources": [
+        {
+          "key": "kaplan2020scaling",
+          "title": "Scaling Laws for Neural Language Models",
+          "url": "https://arxiv.org/abs/2001.08361",
+          "ids": [
+            "arxiv:2001.08361"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "Scaling Laws for Neural Language Models",
+              "classification": "Law",
+              "claim": "拟合语言模型测试损失随非嵌入参数、数据量及训练计算变化的经验幂律。",
+              "scope": "三种拟合各有瓶颈条件：参数受限需充分数据并训练至收敛；数据受限使用早停；算力受限需指定批次和计算分配。系数受数据、训练和计算口径约束，非普适理论。",
+              "evidence": "§1.2 式(1.1)–(1.3)、图1、图4，§3 和 §6。",
+              "review_level": "selected_sections_checked; full_text_not_reviewed",
+              "claim_annotations": [
+                {
+                  "classification": "Law",
+                  "claim": "测试损失的幂律拟合",
+                  "scope": "论文 Transformer、数据与受限条件；非所有模型或损失。",
+                  "evidence": "§1.2、§3",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                },
+                {
+                  "classification": "Knowledge",
+                  "claim": "计算预算分配的具体建议",
+                  "scope": "作者使用非嵌入参数和早停训练配方；结果受后续算力口径和 warmup 对照影响。",
+                  "evidence": "§6；对照 https://arxiv.org/abs/2406.19146 §3",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                }
+              ],
+              "source_version": null,
+              "pdf_path": "papers/pretrain/2001.08361.pdf",
+              "url": "https://arxiv.org/abs/2001.08361",
+              "match_basis": [
+                "arxiv:2001.08361"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 2,
+      "panel_work": "Hoffmann 2022（Chinchilla）",
+      "panel_family": "经验定律",
+      "panel_level": "L2",
+      "panel_claim": "计算最优的参数量–数据量分配关系",
+      "sources": [
+        {
+          "key": "hoffmann2022chinchilla",
+          "title": "Training Compute-Optimal Large Language Models",
+          "url": "https://arxiv.org/abs/2203.15556",
+          "ids": [
+            "arxiv:2203.15556"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "Training Compute-Optimal Large Language Models",
+              "classification": "Law",
+              "claim": "在固定训练 FLOPs 下拟合损失最优模型参数与训练 token 的配置关系。",
+              "scope": "作者 Transformer、训练数据、损失、训练预算与按预算设置的余弦日程。§3.2 的等 FLOPs 方法给出指数约 0.49 和 0.51，非任意部署总成本或推理成本最优。",
+              "evidence": "§3.1–3.3、图2–4、表2–3、附录D.3。",
+              "review_level": "selected_sections_checked; full_text_not_reviewed",
+              "claim_annotations": [
+                {
+                  "classification": "Law",
+                  "claim": "等训练 FLOPs 下的参数和 token 最优关系",
+                  "scope": "给定损失、模型、数据及调度；数据和训练期计算主导口径。",
+                  "evidence": "§3.2 图3、表2",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                },
+                {
+                  "classification": "Knowledge",
+                  "claim": "Chinchilla 模型的具体训练与评测",
+                  "scope": "作者训练的具体模型和比较任务。",
+                  "evidence": "§4",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                },
+                {
+                  "classification": "Science（条件化数学推导）",
+                  "claim": "若损失是正系数可分幂律且计算量为参数数乘以训练 token 数，则连续正实数配置中存在唯一的计算最优点，最优参数和数据指数分别为 β/(α+β) 和 α/(α+β)。",
+                  "scope": "拟合函数、固定正系数、精确乘积约束、正实数无边界可行域；不证明经验拟合的普适性或部署成本最优。",
+                  "evidence": "v1 §3.3 式(3)–(4)；推导与范围见 literature/scaling_compute_scope.md",
+                  "review_level": "selected_sections_checked; independent_algebra_checked; full_text_not_reviewed"
+                }
+              ],
+              "source_version": null,
+              "pdf_path": "papers/pretrain/2203.15556.pdf",
+              "url": "https://arxiv.org/abs/2203.15556",
+              "match_basis": [
+                "arxiv:2203.15556"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 3,
+      "panel_work": "Muennighoff 2023（数据受限缩放）",
+      "panel_family": "经验定律",
+      "panel_level": "L2",
+      "panel_claim": "重复数据下的缩放律修正",
+      "sources": [
+        {
+          "key": "muennighoff2023dataconstrained",
+          "title": "Scaling Data-Constrained Language Models",
+          "url": "https://arxiv.org/abs/2305.16264",
+          "ids": [
+            "arxiv:2305.16264"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "Scaling Data-Constrained Language Models",
+              "classification": "Law",
+              "claim": "在数据受限语言模型实验中拟合重复数据价值衰减与计算分配的规模关系。",
+              "scope": "GPT-2 架构、C4 子集及指定预算：约4个 epoch 损失变化很小只是所测范围内观察，不是任意数据可安全重复四次的阈值。",
+              "evidence": "§3–6、图1–4。",
+              "review_level": "selected_sections_checked; full_text_not_reviewed",
+              "claim_annotations": null,
+              "source_version": null,
+              "pdf_path": "papers/pretrain/2305.16264.pdf",
+              "url": "https://arxiv.org/abs/2305.16264",
+              "match_basis": [
+                "arxiv:2305.16264"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 4,
+      "panel_work": "Yang 2022（μP / Tensor Programs 系列）",
+      "panel_family": "经验定律",
+      "panel_level": "L2",
+      "panel_claim": "超参随宽度零样本迁移",
+      "sources": [
+        {
+          "key": "yang2022tensorprograms5",
+          "title": "Tensor Programs V: Tuning Large Neural Networks via Zero-Shot Hyperparameter Transfer",
+          "url": "https://arxiv.org/abs/2203.03466",
+          "ids": [
+            "arxiv:2203.03466"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "Tensor Programs V: Tuning Large Neural Networks via Zero-Shot Hyperparameter Transfer",
+              "classification": "Science",
+              "claim": "用最大更新参数化控制宽度缩放下的特征更新量级，并以其宽度极限理论为动机提出 μTransfer；有限模型的近优超参数转移是另行测试的经验主张。",
+              "scope": "理论依赖模型、优化器及宽度缩放规则，部分依据来自 Tensor Programs 前作；表3和定义4.1是参数化规范，不能仅因公式存在就视作最优超参数必定转移的证明。正则化、深度和其他尺度不同于宽度极限；初始化跨深度与 post-LN 深度迁移存在限制。",
+              "evidence": "PDF 第3–8页，§2–6.1，表3、定义4.1、图3–5；完整理论来源含 https://arxiv.org/abs/2011.14522。",
+              "review_level": "selected_sections_checked; full_text_not_reviewed",
+              "claim_annotations": [
+                {
+                  "classification": "Science",
+                  "claim": "给定参数化下的宽度极限与特征更新量级",
+                  "scope": "条件性理论依赖 Tensor Programs 前作的模型与极限假设；本次核对参数化、解释与限制，未独立重证前作或附录J，也不把定义4.1当成迁移定理。",
+                  "evidence": "§2、§4–5，表3、定义4.1；前作 2011.14522。",
+                  "review_level": "selected_sections_checked; cited_theory_not_independently_audited"
+                },
+                {
+                  "classification": "Knowledge",
+                  "claim": "μTransfer 在所测模型中转移近优超参数",
+                  "scope": "Transformer、ResNet、指定尺度和训练设置；正则化不宜直接转移，跨深度等结论为实证且有反例范围。",
+                  "evidence": "§6.1、图4；本次 PDF 第7–8页。",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                }
+              ],
+              "source_version": null,
+              "pdf_path": "papers/pretrain/2203.03466.pdf",
+              "url": "https://arxiv.org/abs/2203.03466",
+              "match_basis": [
+                "arxiv:2203.03466"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "yang2021tensorprograms4",
+          "title": "Feature Learning in Infinite-Width Neural Networks",
+          "url": "https://arxiv.org/abs/2011.14522",
+          "ids": [
+            "arxiv:2011.14522"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "Feature Learning in Infinite-Width Neural Networks",
+              "classification": "Science",
+              "claim": "在论文的 abc 参数化及无限宽极限中，稳定且非平凡的训练动力学属于特征学习或核梯度下降两类。",
+              "scope": "定理针对文中固定输入维度、多层感知机、Gaussian 初始化与指定 SGD/损失条件，训练时间不随宽度增长；不证明任意有限宽网络、优化器或 Transformer 的全部行为。现实任务结果限定 Word2Vec 与 Omniglot。",
+              "evidence": "v3 §1–3，Theorems 3.3–3.8、Corollary 3.9、§2 的有限训练时间限制；定理证明未逐行审核。",
+              "review_level": "selected_sections_checked; full_text_not_reviewed",
+              "claim_annotations": null,
+              "source_version": null,
+              "pdf_path": "papers/pretrain/2011.14522.pdf",
+              "url": "https://arxiv.org/abs/2011.14522",
+              "match_basis": [
+                "arxiv:2011.14522"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": "系列中的理论、参数化方法与迁移实验应分开，不能只比较整篇主标签。"
+    },
+    {
+      "row": 5,
+      "panel_work": "Zhang 2017 / Belkin 2019（双下降）",
+      "panel_family": "经验定律",
+      "panel_level": "L2",
+      "panel_claim": "插值峰与双下降曲线",
+      "sources": [
+        {
+          "key": "zhang2017rethinking",
+          "title": "Understanding deep learning requires rethinking generalization",
+          "url": "https://arxiv.org/abs/1611.03530",
+          "ids": [
+            "arxiv:1611.03530"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "Understanding deep learning requires rethinking generalization",
+              "classification": "Knowledge",
+              "claim": "随机化实验显示所测网络能记忆无语义标签/输入：CIFAR-10设置可到零训练误差，而所报ImageNet随机标签top-1为95.20%，从而挑战仅凭模型容量或显式正则化解释泛化。",
+              "scope": "随机标签固定跨epoch，具体网络、CIFAR-10/ImageNet及训练协议；不能把全部设置概括成100%拟合，也不意味着真实标签不能泛化或所有泛化理论被否定。此条登记的是随机化/记忆证据，不是模型复杂度双下降的直接实验来源。",
+              "evidence": "arXiv v2 PDF 第1–2、4–5页，§1.1、§2.1与图1；ImageNet 95.20%在第5页正文。",
+              "review_level": "selected_sections_checked; full_text_not_reviewed",
+              "claim_annotations": null,
+              "source_version": null,
+              "pdf_path": "papers/pretrain/1611.03530.pdf",
+              "url": "https://arxiv.org/abs/1611.03530",
+              "match_basis": [
+                "arxiv:1611.03530"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "belkin2019reconciling",
+          "title": "Reconciling modern machine learning practice and the bias-variance trade-off",
+          "url": "https://arxiv.org/abs/1812.11118",
+          "ids": [
+            "arxiv:1812.11118"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "Reconciling modern machine learning practice and the bias-variance trade-off",
+              "classification": "Law",
+              "claim": "在随机特征、两层全连接网络与树集成的实验中，以插值阈值连接经典U形与过参数化后的第二次下降，提出双下降风险曲线。",
+              "scope": "Law候选对应所测数据与训练程序。随机特征用最小系数范数解；网络用SGD；树实验在阈值前后分别改变叶数和集成树数，并非统一参数旋钮。正则化、优化及采样分辨率会掩盖峰。小范数/平滑性是机制解释，不能据此推断任意分布或神经网络都必有双下降；附录A的特定无噪声理论未在本次独立审计。",
+              "evidence": "arXiv v2 PDF 第2–10页，§1–4、图1–5；随机特征最小范数规则见第4页，树复杂度控制和无bootstrap重采样见第10页。",
+              "review_level": "selected_sections_checked; full_text_not_reviewed",
+              "claim_annotations": [
+                {
+                  "classification": "Law",
+                  "claim": "插值阈值两侧的模型复杂度双下降经验曲线",
+                  "scope": "指定随机特征、两层网络、树模型与数据；正则化/优化/复杂度采样会改变可见形状，不是所有任务的无条件规律。",
+                  "evidence": "§2–3、图2、4–5，PDF第4–10页。",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                },
+                {
+                  "classification": "Knowledge",
+                  "claim": "更丰富函数类可找到更平滑或更小范数插值解的机制解释",
+                  "scope": "随机特征中显式选择最小系数范数；推广到实际网络依赖归纳偏置假说，不能把该解释当成普遍因果机制证明；附录A独立条件定理不由此条代替。",
+                  "evidence": "§1–2、§4，PDF第3–4、6–7、10页。",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                }
+              ],
+              "source_version": "arXiv:1812.11118v2 [stat.ML], 10 Sep 2019; PDF首页排版日期为12 Sep 2019；另列PNAS期刊题名别名，未冒称本地文件为期刊排版版。",
+              "pdf_path": "papers/pretrain/1812.11118.pdf",
+              "url": "https://arxiv.org/abs/1812.11118",
+              "match_basis": [
+                "arxiv:1812.11118"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": "随机标签/像素记忆和泛化限制不等于双下降证据；两篇来源应分开。"
+    },
+    {
+      "row": 6,
+      "panel_work": "Power 2022（grokking）",
+      "panel_family": "经验定律",
+      "panel_level": "L2",
+      "panel_claim": "延迟泛化的相变行为",
+      "sources": [
+        {
+          "key": "power2022grokking",
+          "title": "Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets",
+          "url": "https://arxiv.org/abs/2201.02177",
+          "ids": [
+            "arxiv:2201.02177"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets",
+              "classification": "Knowledge",
+              "claim": "在有限二元运算数据集上观察训练准确率已高而验证准确率经过长时间优化后才跃升。",
+              "scope": "小 Transformer、数学运算表、抽样数据比例、优化器和预算；不是对所有迟滞学习的普遍机制证明。",
+              "evidence": "§2、§3.1–3.2、Figure 1–2。",
+              "review_level": "selected_sections_checked; full_text_not_reviewed",
+              "claim_annotations": [
+                {
+                  "classification": "Knowledge",
+                  "claim": "指定二元运算表训练中，验证准确率在训练准确率已高之后才明显提高。",
+                  "scope": "小 Transformer、所测算法数据、训练划分和预算；并非所有任务的必然现象。",
+                  "evidence": "v1 §2–3.1、图1；见 literature/grokking_scope_case.md",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                },
+                {
+                  "classification": "Law（候选）",
+                  "claim": "在所测任务中，训练数据比例降低时，达到指定验证准确率所需优化步数快速增加。",
+                  "scope": "作者的运算、训练设置、阈值和预算；未达到阈值有截尾，不证明普遍或无限训练规律。",
+                  "evidence": "v1 §3.1.1、图1；见 literature/grokking_scope_case.md",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                }
+              ],
+              "source_version": null,
+              "pdf_path": "papers/pretrain/2201.02177.pdf",
+              "url": "https://arxiv.org/abs/2201.02177",
+              "match_basis": [
+                "arxiv:2201.02177"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": "延迟泛化是条件观察；跨条件经验关系可另列 Law 候选。"
+    },
+    {
+      "row": 7,
+      "panel_work": "Gao 2022（奖励过优化）",
+      "panel_family": "经验定律",
+      "panel_level": "L2",
+      "panel_claim": "代理奖励缺口与 KL（新旧策略散度）开方的函数关系",
+      "sources": [
+        {
+          "key": "gao2022overopt",
+          "title": "Scaling Laws for Reward Model Overoptimization",
+          "url": "https://arxiv.org/abs/2210.10760",
+          "ids": [
+            "arxiv:2210.10760"
+          ],
+          "matches": [
+            {
+              "domain": "rl",
+              "title": "Scaling Laws for Reward Model Overoptimization",
+              "classification": "Law",
+              "claim": "论文以 d=√D_KL(π∥π_init) 为变量，分别拟合合成 gold reward 随 best-of-n 与 PPO 优化的经验关系，研究系数随代理奖励模型规模变化。",
+              "scope": "固定 6B 合成 gold reward model、所测模型与数据、PPO 或 best-of-n；并未直接测真实人类偏好。作者提示 RL 拟合近原点可能不成立，拟合不能无条件外推。",
+              "evidence": "PDF 第 1–4 页 §1–2、§3.2 与图 3；已定向阅读，预测与覆盖未独立复现。",
+              "review_level": "targeted_method_and_empirical_sections",
+              "claim_annotations": null,
+              "source_version": "2210.10760v1",
+              "pdf_path": "papers/rl/arxiv_2210.10760.pdf",
+              "url": "https://arxiv.org/abs/2210.10760",
+              "match_basis": [
+                "arxiv:2210.10760"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 8,
+      "panel_work": "Hu 2025（RL 计算缩放的艺术）",
+      "panel_family": "经验定律",
+      "panel_level": "L2",
+      "panel_claim": "sigmoid 计算–表现曲线，40 万 GPU 小时",
+      "sources": [
+        {
+          "key": "artscaling2025",
+          "title": "The Art of Scaling Reinforcement Learning Compute for LLMs",
+          "url": "https://arxiv.org/abs/2510.13786",
+          "ids": [
+            "arxiv:2510.13786"
+          ],
+          "matches": [
+            {
+              "domain": "rl",
+              "title": "The Art of Scaling Reinforcement Learning Compute for LLMs",
+              "classification": "Law",
+              "claim": "将 RL 训练算力与同分布验证集平均通过率拟合为饱和 sigmoid 曲线，比较 RL 训练配方并测试外推。",
+              "scope": "Polaris-53K 同分布分割、每个验证提示 16 次生成、所测模型及训练预算；曲线在验证点上拟合，并非未参与拟合的最终测试。拟合渐近值不能作为任意任务性能上限。",
+              "evidence": "PDF 第 3–5 页 Figure 2–3、式 (1)、§2 的设置和验证；未独立复拟合或复现。",
+              "review_level": "targeted_method_or_empirical_sections_proofs_and_experiments_not_fully_checked",
+              "claim_annotations": null,
+              "source_version": "2510.13786v1",
+              "pdf_path": "papers/rl/arxiv_2510.13786.pdf",
+              "url": "https://arxiv.org/abs/2510.13786",
+              "match_basis": [
+                "arxiv:2510.13786"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": "原文首页作者为 Devvrit Khatri 等；panel 的 Hu 作者标记待修正。摘要报告超过 40 万 GPU 小时；本次核对该表述，未审计算力日志。"
+    },
+    {
+      "row": 9,
+      "panel_work": "本工作（有效时间 U 与过拟合起点）",
+      "panel_family": "经验定律",
+      "panel_level": "L2",
+      "panel_claim": "有效时间 U（学习率累积和）坍缩训练曲线；过拟合起点 U_c（临界累积更新量）正比于样本数/噪声方差，盲测后收窄",
+      "sources": [
+        {
+          "key": "soaprototype2026",
+          "title": "Science of AI Prototype: Fuzzy-Direction Automated Research Reports",
+          "url": "https://guoshaoyang-pku.github.io/science-of-ai-prototype/",
+          "ids": [],
+          "matches": []
+        }
+      ],
+      "note": "项目内研究报告；需要独立核对假设、测量与反例。"
+    },
+    {
+      "row": 10,
+      "panel_work": "Jacot 2018（NTK）",
+      "panel_family": "学习理论",
+      "panel_level": "L3",
+      "panel_claim": "宽极限下的收敛与泛化理论",
+      "sources": [
+        {
+          "key": "jacot2018ntk",
+          "title": "Neural Tangent Kernel: Convergence and Generalization in Neural Networks",
+          "url": "https://arxiv.org/abs/1806.07572",
+          "ids": [
+            "arxiv:1806.07572"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "Neural Tangent Kernel: Convergence and Generalization in Neural Networks",
+              "classification": "Science",
+              "claim": "证明论文全连接网络无限宽极限下初始化 NTK 收敛，并在附加条件下有限时间训练中趋于常核。",
+              "scope": "定理1要求 Lipschitz 激活；定理2另要求激活二次可微且二阶导有界、训练方向积分随机有界及隐藏层无限宽，附录 A.1–A.2 的证明表述为逐层顺序极限，不能径推任意联合宽度序列。§6 数值实验使用 ReLU，不直接满足定理2的二次可微假设；不能推广到一般有限宽 Transformer 及训练。",
+              "evidence": "§4.1 定理1、§4.2 定理2、附录 A.1–A.2 的 sequentially 量词、§6 数值实验；证明未逐行审计。",
+              "review_level": "selected_sections_checked; full_text_not_reviewed",
+              "claim_annotations": [
+                {
+                  "classification": "Science",
+                  "claim": "初始化与训练时的无限宽 NTK 极限",
+                  "scope": "有限时域、论文指定全连接模型及激活/训练方向条件；附录证明表述逐层顺序极限，不直接推出任意联合宽度序列。",
+                  "evidence": "§4.1–4.2 定理1–2、附录 A.1–A.2",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                },
+                {
+                  "classification": "Knowledge",
+                  "claim": "有限宽网络与极限的数值比较",
+                  "scope": "作者实验使用 ReLU，不直接满足定理2所要求的二次可微性；结果仅限作者网络、样本和参数配置。",
+                  "evidence": "§6、图1；与 §4.2 定理2 的假设对照",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                }
+              ],
+              "source_version": null,
+              "pdf_path": "papers/pretrain/1806.07572.pdf",
+              "url": "https://arxiv.org/abs/1806.07572",
+              "match_basis": [
+                "arxiv:1806.07572"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 11,
+      "panel_work": "Chizat 2019（lazy / rich）",
+      "panel_family": "学习理论",
+      "panel_level": "L3",
+      "panel_claim": "懒训练与富训练的二分",
+      "sources": [
+        {
+          "key": "chizat2019lazy",
+          "title": "On Lazy Training in Differentiable Programming",
+          "url": "https://arxiv.org/abs/1812.07956",
+          "ids": [
+            "arxiv:1812.07956"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "On Lazy Training in Differentiable Programming",
+              "classification": "Science",
+              "claim": "对 Fα(w)=R(αh(w))/α² 的连续梯度流，定理2.2在零初始输出与固定有限时间下给出非线性流与初始化线性化流的接近界。",
+              "scope": "Assumption 2.1 要求 h 可微且其微分局部 Lipschitz，R 的梯度 Lipschitz；定理2.2另需 h(w0)=0、固定 T、α→∞。有限时间输出差为 O(1/α)，常数可随 T 增长；不是任意有限宽、离散 SGD 或无限时间都 lazy。定理2.3的平方损失界另有尺度/邻域条件。",
+              "evidence": "PDF 第3–5页，§1.2 的充分而非必要尺度判据；§2.1 Assumption 2.1、式(2)–(5)；§2.2 定理2.2–2.3。",
+              "review_level": "selected_theorem_assumptions_checked; proof_not_independently_audited",
+              "claim_annotations": null,
+              "source_version": null,
+              "pdf_path": "papers/pretrain/1812.07956.pdf",
+              "url": "https://arxiv.org/abs/1812.07956",
+              "match_basis": [
+                "arxiv:1812.07956"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 12,
+      "panel_work": "Bahri 2023（缩放律的统计力学）",
+      "panel_family": "学习理论",
+      "panel_level": "L3",
+      "panel_claim": "从第一性原理解释缩放指数",
+      "sources": [
+        {
+          "key": "bahri2023explaining",
+          "title": "Explaining Neural Scaling Laws",
+          "url": "https://arxiv.org/abs/2102.06701",
+          "ids": [
+            "arxiv:2102.06701"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "Explaining Neural Scaling Laws",
+              "classification": "Science",
+              "claim": "在方差受限与分辨率受限模型中，给出损失随数据或模型规模变化的条件性界。",
+              "scope": "定理1要求输出集中及损失正则条件；定理2使用紧致数据流形、Lipschitz 条件、独立同分布采样及训练集插值。定理2是上界而非真实 LLM 幂指数严格等式；样本之外不能自动适用。",
+              "evidence": "§2.1 定理1、§2.2.1 定理2、§2.2.3。",
+              "review_level": "selected_sections_checked; full_text_not_reviewed",
+              "claim_annotations": [
+                {
+                  "classification": "Science",
+                  "claim": "光滑损失和集中变量下的期望损失界",
+                  "scope": "定理1的随机变量集中与损失正则条件。",
+                  "evidence": "§2.1 定理1",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                },
+                {
+                  "classification": "Science",
+                  "claim": "数据流形与插值下的分辨率上界",
+                  "scope": "仅给出 O(D^(-1/d)) 类型上界；作者另把更强的拟合速率表述为预期。",
+                  "evidence": "§2.2 定理2–3",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                },
+                {
+                  "classification": "Law",
+                  "claim": "观察到不同任务的近似幂律",
+                  "scope": "论文数值实验及经验数据；不等于定理已经证明真实任务成因。",
+                  "evidence": "§3 及图1",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                }
+              ],
+              "source_version": "2102.06701v2 [cs.LG], 29 Apr 2024",
+              "pdf_path": "papers/pretrain/2102.06701.pdf",
+              "url": "https://arxiv.org/abs/2102.06701",
+              "match_basis": [
+                "arxiv:2102.06701"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 13,
+      "panel_work": "Agarwal 2020（策略梯度理论）",
+      "panel_family": "学习理论",
+      "panel_level": "L3",
+      "panel_claim": "最优性、近似与分布偏移分析",
+      "sources": [
+        {
+          "key": "agarwal2020pgtheory",
+          "title": "On the Theory of Policy Gradient Methods: Optimality, Approximation, and Distribution Shift",
+          "url": "https://arxiv.org/abs/1908.00261",
+          "ids": [
+            "arxiv:1908.00261"
+          ],
+          "matches": [
+            {
+              "domain": "rl",
+              "title": "On the Theory of Policy Gradient Methods: Optimality, Approximation, and Distribution Shift",
+              "classification": "Science",
+              "claim": "Theorem 5.1 在满足条件的表格 softmax 策略优化中，给出逐状态价值向最优值收敛的充分条件。",
+              "scope": "所列主张限定有限折扣 MDP、[0,1] 有界奖励的表格 softmax、精确梯度更新、所有状态上 μ(s)>0、η≤(1−γ)^3/8；是 t→∞ 的逐状态价值结论，不等同有限样本神经 PG。v5 Remark 5.1 将去掉 μ 严格正性列为当时未解决的问题；不是声称后续文献仍未解决。其他参数化/NPG/函数逼近定理有各自条件，见关联概念。",
+              "evidence": "v5 PDF 第 18 页 §5.1、式 (11)、Theorem 5.1 与 Remark 5.1；本轮另分开核对第 13–15 页 Lemma 4.1/Theorem 4.1、第 22–23 页 Theorem 5.3、第 28–30 页 Assumptions 6.1–6.2/Theorem 6.1/Corollary 6.1、第 33–34 页 Assumptions 6.4–6.5/Theorem 6.2，分别记录到概念；不把全篇定理合并为无条件结论，完整证明未独立复核。",
+              "review_level": "theorem_statement_verified_proof_not_fully_checked",
+              "claim_annotations": null,
+              "source_version": "1908.00261v5",
+              "pdf_path": "papers/rl/arxiv_1908.00261.pdf",
+              "url": "https://arxiv.org/abs/1908.00261",
+              "match_basis": [
+                "arxiv:1908.00261"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 14,
+      "panel_work": "Watkins 1992（Q-learning）",
+      "panel_family": "学习理论",
+      "panel_level": "L3",
+      "panel_claim": "带假设的几乎必然收敛",
+      "sources": [
+        {
+          "key": "watkins1992qlearning",
+          "title": "Q-learning",
+          "url": "http://dx.doi.org/10.1007/BF00992698",
+          "ids": [
+            "doi:10.1007/bf00992698"
+          ],
+          "matches": [
+            {
+              "domain": "rl",
+              "title": "Q-learning",
+              "classification": "Science",
+              "claim": "有限表格 MDP 中，在原文所述有界奖励、反复访问及每个状态动作步长满足和发散、平方和收敛的条件下，Q 值几乎必然收敛到最优动作价值。",
+              "scope": "原文 §2 对折扣 MDP 假设 0<γ<1；适用表格状态动作，不是神经网络收敛或完整必要边界证明。",
+              "evidence": "PDF 第 2–4 页，定理在第 4 页（原页码 282）；已视觉核对公式，证明未完整审核。",
+              "review_level": "theorem_statement_verified_proof_not_fully_checked",
+              "claim_annotations": null,
+              "source_version": null,
+              "pdf_path": "papers/rl/watkins_dayan_1992.pdf",
+              "url": "https://link.springer.com/article/10.1007/BF00992698",
+              "match_basis": [
+                "doi:10.1007/bf00992698"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 15,
+      "panel_work": "Hyperball 2026 及其批评",
+      "panel_family": "优化器线程",
+      "panel_level": "L2→L3",
+      "panel_claim": "范数固定包装器；后续给出机制分解",
+      "sources": [
+        {
+          "key": "hyperball2026",
+          "title": "Fantastic Pretraining Optimizers and Where to Find Them II: Hyperball Optimization",
+          "url": "https://arxiv.org/abs/2606.16899",
+          "ids": [
+            "arxiv:2606.16899"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "Fantastic Pretraining Optimizers and Where to Find Them II: Hyperball Optimization",
+              "classification": "Science",
+              "claim": "以权重范数与角向学习率等基本量解释 Hyperball，并提出固定范数更新。",
+              "scope": "定理使用无限历史、独立各向同性高斯梯度、理想化 AdamW 与常超参数；递推是均方范数，角度量含期望构造的 proxy/ansatz；实证限 Qwen3 风格模型至 1.2B，不自动适用于任意随机轨迹。",
+              "evidence": "原文 v2 §4.2 假设 4.1–4.2、定理 4.6，§4.3 图 9–11；摘要报告模型至 1.2B",
+              "review_level": "selected_theorem_assumptions_and_empirical_sections_checked; full_text_not_reviewed",
+              "claim_annotations": null,
+              "source_version": null,
+              "pdf_path": "papers/pretrain/2606.16899.pdf",
+              "url": "https://arxiv.org/abs/2606.16899",
+              "match_basis": [
+                "arxiv:2606.16899"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "hyperballcritique2026",
+          "title": "Hyperball May Not Be a Free Lunch",
+          "url": "https://arxiv.org/abs/2607.22444",
+          "ids": [
+            "arxiv:2607.22444"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "Hyperball May Not Be a Free Lunch",
+              "classification": "Science",
+              "claim": "推导角向更新与径向／切向分解，并探讨 Hyperball 表现差异。",
+              "scope": "原文推导及指定模型中的启发式调度实验；对全部训练系统的唯一因果解释未证实。",
+              "evidence": "PDF 第 4 页 §2.3 的角有效学习率，第 5–6 页 §§3.1–3.2 的径向／切向分解及其单步作用，第 7–8 页 §§4.1–4.2 的学习率匹配实验设计；未独立审计推导或复现实验。",
+              "review_level": "selected_method_sections_checked; full_text_not_reviewed",
+              "claim_annotations": null,
+              "source_version": null,
+              "pdf_path": "papers/pretrain/2607.22444.pdf",
+              "url": "https://arxiv.org/abs/2607.22444",
+              "match_basis": [
+                "arxiv:2607.22444"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": "按用户口径，指定理论分析可列 Science；方法、实测及批评各有独立范围。"
+    },
+    {
+      "row": 16,
+      "panel_work": "Olsson 2022（induction heads）",
+      "panel_family": "可解释性",
+      "panel_level": "L2 碎片",
+      "panel_claim": "in-context 学习的电路机制",
+      "sources": [
+        {
+          "key": "olsson2022induction",
+          "title": "In-context Learning and Induction Heads",
+          "url": "https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html",
+          "ids": [],
+          "matches": [
+            {
+              "domain": "interp",
+              "title": "In-context Learning and Induction Heads",
+              "classification": "Knowledge（限定实证与机制假说）",
+              "claim": "研究重复序列匹配头及其与上下文学习的联系。",
+              "scope": "小型 attention-only 模型有直接干预；更大含 MLP 模型的主要证据为间接或相关，广泛 ICL 假说非结论。",
+              "evidence": "PDF 第 1–3 页：摘要、六条论据、小模型因果与更大模型相关性声明。",
+              "review_level": "局部精读 PDF 第 1–3 页；非全文审读",
+              "claim_annotations": null,
+              "source_version": null,
+              "pdf_path": "papers/interp/2209.11895.pdf",
+              "url": "https://arxiv.org/abs/2209.11895",
+              "match_basis": [
+                "normalized_title"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": "小模型干预证据与大模型普遍机制假说分开。"
+    },
+    {
+      "row": 17,
+      "panel_work": "Elhage 2022（叠加）",
+      "panel_family": "可解释性",
+      "panel_level": "L1–L2",
+      "panel_claim": "特征存储的几何",
+      "sources": [
+        {
+          "key": "elhage2022toy",
+          "title": "Toy Models of Superposition",
+          "url": "https://transformer-circuits.pub/2022/toy_models/index.html",
+          "ids": [],
+          "matches": [
+            {
+              "domain": "interp",
+              "title": "Toy Models of Superposition",
+              "classification": "Science（玩具理论候选）＋Knowledge",
+              "claim": "在稀疏特征玩具模型中研究叠加、相变与多面体几何。",
+              "scope": "小 ReLU 网络与稀疏合成特征；作者明确真实网络泛化未知，准确相变边界未核验。",
+              "evidence": "PDF 第 1–4 页：摘要、玩具模型与特征定义；具体相变推导及完整边界尚未核验。",
+              "review_level": "局部精读 PDF 第 1–4 页；非全文审读",
+              "claim_annotations": null,
+              "source_version": null,
+              "pdf_path": "papers/interp/2209.10652.pdf",
+              "url": "https://arxiv.org/abs/2209.10652",
+              "match_basis": [
+                "normalized_title"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": "玩具模型数学性质与实际网络的经验主张分开。"
+    },
+    {
+      "row": 18,
+      "panel_work": "Bricken 2023 / Templeton 2024（单义性）",
+      "panel_family": "可解释性",
+      "panel_level": "L1–L2",
+      "panel_claim": "字典学习特征，直至前沿规模",
+      "sources": [
+        {
+          "key": "bricken2023monosem",
+          "title": "Towards Monosemanticity: Decomposing Language Models With Dictionary Learning",
+          "url": "https://transformer-circuits.pub/2023/monosemantic-features/index.html",
+          "ids": [],
+          "matches": [
+            {
+              "domain": "interp",
+              "title": "Towards Monosemanticity: Decomposing Language Models With Dictionary Learning",
+              "classification": "Knowledge",
+              "claim": "在单层 Transformer 的 MLP 激活上训练稀疏自编码器，探索特征、分裂及跨模型相似性。",
+              "scope": "特定小模型、字典与人工/自动解释；作者指出多少模型行为被解释仍难回答，SAE 特征不是唯一真实分解的证明。",
+              "evidence": "原生文章 Using Sparse Autoencoders、The (one-layer) model we're studying、Feature Splitting、How much of the model does our interpretation explain?；局部核对。",
+              "review_level": "局部章节／图表核对；未全文审读",
+              "claim_annotations": null,
+              "source_version": null,
+              "pdf_path": null,
+              "url": "https://transformer-circuits.pub/2023/monosemantic-features/index.html",
+              "match_basis": [
+                "normalized_title"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "templeton2024scaling",
+          "title": "Scaling Monosemanticity: Extracting Interpretable Features from Claude 3 Sonnet",
+          "url": "https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html",
+          "ids": [],
+          "matches": [
+            {
+              "domain": "interp",
+              "title": "Scaling Monosemanticity: Extracting Interpretable Features from Claude 3 Sonnet",
+              "classification": "Knowledge",
+              "claim": "在 Claude 3 Sonnet 中用稀疏自编码器分解中间层残差流，展示特征激活和部分干预案例。",
+              "scope": "特定 Claude 模型、所训练字典、数据和选取案例；可解释特征存在不证明 SAE 分解唯一或模型整体已解释。",
+              "evidence": "PDF 第 2–4 页 Key Results、方法概述和安全相关特征讨论；未全面复核实验。",
+              "review_level": "局部核对原文指定章节；未全文审读",
+              "claim_annotations": null,
+              "source_version": null,
+              "pdf_path": "papers/interp/2605.29358.pdf",
+              "url": "https://arxiv.org/abs/2605.29358",
+              "match_basis": [
+                "normalized_title"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": "特征抽取方法/观测为 Knowledge；若有经验缩放关系，须单列关系及跨条件证据。"
+    },
+    {
+      "row": 19,
+      "panel_work": "Nanda 2023（grokking 机制）",
+      "panel_family": "可解释性",
+      "panel_level": "L3（域内）",
+      "panel_claim": "傅里叶电路解释 + 干预预测",
+      "sources": [
+        {
+          "key": "nanda2023grokking",
+          "title": "Progress measures for grokking via mechanistic interpretability",
+          "url": "https://arxiv.org/abs/2301.05217",
+          "ids": [
+            "arxiv:2301.05217"
+          ],
+          "matches": [
+            {
+              "domain": "interp",
+              "title": "Progress measures for grokking via mechanistic interpretability",
+              "classification": "Knowledge＋Science（局部机制候选）",
+              "claim": "在模加法小 Transformer 中追踪傅里叶算法和训练进展量。",
+              "scope": "主要设置为 mod 113、单层 ReLU Transformer、30% 样本、AdamW；其他架构只按原文附录另审。",
+              "evidence": "PDF 第 1–3 页：摘要、进展量及 §3 实验设置；详尽证明、全部附录和拓展实验未审。",
+              "review_level": "局部精读 PDF 第 1–3 页；非全文审读",
+              "claim_annotations": [
+                {
+                  "classification": "Knowledge",
+                  "claim": "在模加法网络中，频率相关权重和激活及频率消融支持傅里叶回路的条件化解释。",
+                  "scope": "主实验模113、单层 ReLU Transformer 和所测训练；不证明所有 grokking 采用同一机制。",
+                  "evidence": "v3 §3–4、图1–2；见 literature/grokking_scope_case.md",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                },
+                {
+                  "classification": "Knowledge（机制候选）",
+                  "claim": "用由关键频率构造的 restricted loss 和 excluded loss 跟踪该模型的训练进展。",
+                  "scope": "依赖已识别的频率与所研究的训练；不是所有模型的一般因果变量。",
+                  "evidence": "v3 第2页、§3–4；见 literature/grokking_scope_case.md",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                }
+              ],
+              "source_version": null,
+              "pdf_path": "papers/interp/2301.05217.pdf",
+              "url": "https://arxiv.org/abs/2301.05217",
+              "match_basis": [
+                "arxiv:2301.05217"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": "指定模块加法电路的证据，不等于已知所有 grokking 的适用边界。"
+    },
+    {
+      "row": 20,
+      "panel_work": "Shao 2024（GRPO / DeepSeekMath）",
+      "panel_family": "经验 ML",
+      "panel_level": "L1",
+      "panel_claim": "组相对优势在指定奖励下稳定训练",
+      "sources": [
+        {
+          "key": "shao2024deepseekmath",
+          "title": "DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models",
+          "url": "https://arxiv.org/abs/2402.03300",
+          "ids": [
+            "arxiv:2402.03300"
+          ],
+          "matches": [
+            {
+              "domain": "rl",
+              "title": "DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models",
+              "classification": "Knowledge",
+              "claim": "GRPO 对同一问题从旧策略采样多条回答，以组奖励构造相对优势，并用 token 级 clipped surrogate 更新；原文同时讨论 outcome 和 process 两种监督。",
+              "scope": "原文 §4.1.1–4.1.3：训练结果针对 DeepSeekMath-Instruct 7B、数学任务、奖励模型和给定超参数；不同变体不可一概而论。",
+              "evidence": "论文 PDF 第 12–14 页、§4.1.1–4.1.3、式 (3) 及 outcome/process 定义；已定向阅读。",
+              "review_level": "targeted_method_sections",
+              "claim_annotations": null,
+              "source_version": "2402.03300v3",
+              "pdf_path": "papers/rl/arxiv_2402.03300.pdf",
+              "url": "https://arxiv.org/abs/2402.03300",
+              "match_basis": [
+                "arxiv:2402.03300"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 21,
+      "panel_work": "Zheng 2025（GSPO）",
+      "panel_family": "经验 ML",
+      "panel_level": "L1",
+      "panel_claim": "序列级裁剪稳定 MoE 的 RL 训练",
+      "sources": [
+        {
+          "key": "zheng2025gspo",
+          "title": "Group Sequence Policy Optimization",
+          "url": "https://arxiv.org/abs/2507.18071",
+          "ids": [
+            "arxiv:2507.18071"
+          ],
+          "matches": [
+            {
+              "domain": "rl",
+              "title": "Group Sequence Policy Optimization",
+              "classification": "Knowledge",
+              "claim": "GSPO 使用按输出长度归一化的序列似然比（完整序列比值的 1/长度 次方）和序列级裁剪，结合组相对优势优化。",
+              "scope": "原文 §4–5 使用 Qwen3-30B-A3B 冷启动及数学/编程评测；AIME'24 报 32 次采样平均 Pass@1、LiveCodeBench 报 8 次。该实验表现和作者对稳定性机制的解释不能无条件推广到其他模型或实现。",
+              "evidence": "论文 PDF 第 2–5 页、§4.1 式 (5)–(7)、§5.1；已定向阅读。",
+              "review_level": "targeted_method_and_empirical_sections",
+              "claim_annotations": null,
+              "source_version": "2507.18071v2",
+              "pdf_path": "papers/rl/arxiv_2507.18071.pdf",
+              "url": "https://arxiv.org/abs/2507.18071",
+              "match_basis": [
+                "arxiv:2507.18071"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 22,
+      "panel_work": "Dao 2022（FlashAttention）",
+      "panel_family": "系统",
+      "panel_level": "L1",
+      "panel_claim": "IO 感知精确注意力的吞吐关系（声明者域内）",
+      "sources": [
+        {
+          "key": "dao2022flashattention",
+          "title": "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness",
+          "url": "https://arxiv.org/abs/2205.14135",
+          "ids": [
+            "arxiv:2205.14135"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness",
+              "classification": "Science",
+              "claim": "算法1计算数学上精确的注意力；在 HBM/SRAM 两层内存模型与 d≤M≤Nd 下，定理2给出 Θ(N²d²/M) 的 HBM 访问量。",
+              "scope": "N为序列长度、d为头维度、M为模型中的 SRAM 容量；界针对访存而非墙钟时间。固定 M、d 时该表达仍随 N 二次增长。命题3只排除对区间内所有 M 都渐近优于此界的算法，不证明每个固定 M 都点态最优。数学精确不等于浮点逐位一致；具体GPU加速另属实测。",
+              "evidence": "PDF 第4–6页，§3.1–3.2、算法1、定理1–2及命题3；图2为条件化实测。",
+              "review_level": "selected_theorem_assumptions_checked; proof_not_independently_audited",
+              "claim_annotations": [
+                {
+                  "classification": "Science",
+                  "claim": "精确注意力的算法正确性与条件 IO 界",
+                  "scope": "两层内存模型、Q/K/V∈R^(N×d)、d≤M≤Nd；定理1是数学输出等式，定理2为 Θ(N²d²/M) 访存量。命题3的量词是不存在对所有 M 均更优的算法，不能读成每个 M 的最优性。",
+                  "evidence": "§3.1–3.2，算法1、定理1–2、命题3，PDF 第5–6页。",
+                  "review_level": "selected_theorem_assumptions_checked; proof_not_independently_audited"
+                },
+                {
+                  "classification": "Knowledge",
+                  "claim": "tiling、重计算、CUDA融合的实现与指定配置下加速",
+                  "scope": "具体实现、GPU、头维度、序列长度和批大小；图2还显示大块时会出现其他瓶颈，IO 界不给所有硬件统一加速倍数。",
+                  "evidence": "§3.1 实现、图2及§4；本次定向复核 PDF 第4–6页。",
+                  "review_level": "selected_sections_checked; full_text_not_reviewed"
+                }
+              ],
+              "source_version": null,
+              "pdf_path": "papers/pretrain/2205.14135.pdf",
+              "url": "https://arxiv.org/abs/2205.14135",
+              "match_basis": [
+                "arxiv:2205.14135"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": "方法与性能实测可为 Knowledge；指定内存模型下的 IO 定理是不同的 Science 主张。"
+    },
+    {
+      "row": 23,
+      "panel_work": "Hu 2021（LoRA）",
+      "panel_family": "经验 ML",
+      "panel_level": "L1",
+      "panel_claim": "低秩适配在声明者任务上匹配全参微调",
+      "sources": [
+        {
+          "key": "hu2022lora",
+          "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+          "url": "https://arxiv.org/abs/2106.09685",
+          "ids": [
+            "arxiv:2106.09685"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+              "classification": "Knowledge",
+              "claim": "冻结预训练权重，以低秩矩阵乘积 BA 表示可训练权重增量，适配下游任务。",
+              "scope": "所测语言模型、更新层、秩、任务及训练配置；低秩更新有效不证明所有任务存在同样低秩的最优更新。",
+              "evidence": "PDF §4.1、式(3)、Figure 1；合并权重的推理性质依赖适配器能被预先合并。",
+              "review_level": "selected_method_sections_checked; full_text_not_reviewed",
+              "claim_annotations": null,
+              "source_version": null,
+              "pdf_path": "papers/pretrain/2106.09685.pdf",
+              "url": "https://arxiv.org/abs/2106.09685",
+              "match_basis": [
+                "arxiv:2106.09685"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 24,
+      "panel_work": "Shinn 2023（Reflexion）",
+      "panel_family": "智能体记忆",
+      "panel_level": "L1",
+      "panel_claim": "言语反思提升后续任务成功率",
+      "sources": [
+        {
+          "key": "shinn2023reflexion",
+          "title": "Reflexion: Language Agents with Verbal Reinforcement Learning",
+          "url": "https://arxiv.org/abs/2303.11366",
+          "ids": [
+            "arxiv:2303.11366"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 25,
+      "panel_work": "Wang 2023（Voyager）",
+      "panel_family": "智能体记忆",
+      "panel_level": "L1",
+      "panel_claim": "可执行技能库的自动积累",
+      "sources": [
+        {
+          "key": "wang2023voyager",
+          "title": "Voyager: An Open-Ended Embodied Agent with Large Language Models",
+          "url": "https://arxiv.org/abs/2305.16291",
+          "ids": [
+            "arxiv:2305.16291"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 26,
+      "panel_work": "Zhao 2023（ExpeL）",
+      "panel_family": "智能体记忆",
+      "panel_level": "L1",
+      "panel_claim": "跨任务洞察，带增删改投票",
+      "sources": [
+        {
+          "key": "zhao2023expel",
+          "title": "ExpeL: LLM Agents Are Experiential Learners",
+          "url": "https://arxiv.org/abs/2308.10144",
+          "ids": [
+            "arxiv:2308.10144"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 27,
+      "panel_work": "Wang 2024（Agent Workflow Memory）",
+      "panel_family": "智能体记忆",
+      "panel_level": "L1",
+      "panel_claim": "归纳工作流跨任务复用",
+      "sources": [
+        {
+          "key": "wang2024awm",
+          "title": "Agent Workflow Memory",
+          "url": "https://arxiv.org/abs/2409.07429",
+          "ids": [
+            "arxiv:2409.07429"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 28,
+      "panel_work": "Jiang 2025（G-Memory）",
+      "panel_family": "智能体记忆",
+      "panel_level": "L1",
+      "panel_claim": "多智能体层级记忆追踪",
+      "sources": [
+        {
+          "key": "jiang2025gmemory",
+          "title": "G-Memory: Tracing Hierarchical Memory for Multi-Agent Systems",
+          "url": "https://arxiv.org/abs/2506.07398",
+          "ids": [
+            "arxiv:2506.07398"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 29,
+      "panel_work": "Suzgun 2025（Dynamic Cheatsheet）",
+      "panel_family": "智能体记忆",
+      "panel_level": "L1",
+      "panel_claim": "测试时自适应记忆",
+      "sources": [
+        {
+          "key": "suzgun2025cheatsheet",
+          "title": "Dynamic Cheatsheet: Test-Time Learning with Adaptive Memory",
+          "url": "https://arxiv.org/abs/2504.07952",
+          "ids": [
+            "arxiv:2504.07952"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 30,
+      "panel_work": "Lu 2024（AI Scientist）",
+      "panel_family": "AI-scientist",
+      "panel_level": "L1 稿",
+      "panel_claim": "端到端生成 workshop 级稿件",
+      "sources": [
+        {
+          "key": "lu2024aiscientist",
+          "title": "The AI Scientist: Towards Fully Automated Open-Ended Scientific Discovery",
+          "url": "https://arxiv.org/abs/2408.06292",
+          "ids": [
+            "arxiv:2408.06292"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 31,
+      "panel_work": "Yamada 2025（AI Scientist v2）",
+      "panel_family": "AI-scientist",
+      "panel_level": "L1 稿",
+      "panel_claim": "agentic 树搜索，workshop 接收",
+      "sources": [
+        {
+          "key": "yamada2025aiscientist2",
+          "title": "The AI Scientist-v2: Workshop-Level Automated Scientific Discovery via Agentic Tree Search",
+          "url": "https://arxiv.org/abs/2504.08066",
+          "ids": [
+            "arxiv:2504.08066"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 32,
+      "panel_work": "Intology 2025（Zochi / Locus）",
+      "panel_family": "AI-scientist",
+      "panel_level": "L1 稿",
+      "panel_claim": "ACL 主会接收；RE-Bench 超人类专家",
+      "sources": [
+        {
+          "key": "zochi2025",
+          "title": "Zochi: Technical Report",
+          "url": "https://intology.ai/blog/zochi-tech-report",
+          "ids": [],
+          "matches": []
+        },
+        {
+          "key": "locus2025",
+          "title": "Locus: A Long-Horizon Artificial Scientist",
+          "url": "https://intology.ai/about",
+          "ids": [],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 33,
+      "panel_work": "Gottweis 2025（co-scientist）",
+      "panel_family": "AI-scientist",
+      "panel_level": "L2 假说",
+      "panel_claim": "给人类实验者的排序假说",
+      "sources": [
+        {
+          "key": "gottweis2025coscientist",
+          "title": "Accelerating scientific discovery with Co-Scientist",
+          "url": "https://arxiv.org/abs/2502.18864",
+          "ids": [
+            "arxiv:2502.18864"
+          ],
+          "matches": []
+        }
+      ],
+      "note": "排序假说不自动是 Law，需核对具体关系与跨条件证据。"
+    },
+    {
+      "row": 34,
+      "panel_work": "Schmidgall 2025（Agent Laboratory）",
+      "panel_family": "AI-scientist",
+      "panel_level": "L1",
+      "panel_claim": "人机协作研究流水线",
+      "sources": [
+        {
+          "key": "schmidgall2025agentlab",
+          "title": "Agent Laboratory: Using LLM Agents as Research Assistants",
+          "url": "https://arxiv.org/abs/2501.04227",
+          "ids": [
+            "arxiv:2501.04227"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 35,
+      "panel_work": "Ghareeb 2025（Robin）",
+      "panel_family": "AI-scientist",
+      "panel_level": "L2 假说",
+      "panel_claim": "生物医学发现战役",
+      "sources": [
+        {
+          "key": "robin2025",
+          "title": "Robin: A multi-agent system for automating scientific discovery",
+          "url": "https://arxiv.org/abs/2505.13400",
+          "ids": [
+            "arxiv:2505.13400"
+          ],
+          "matches": []
+        }
+      ],
+      "note": "系统产生的假说与实验支持的发现应逐条区分。"
+    },
+    {
+      "row": 36,
+      "panel_work": "Nam 2025: MLE-STAR（带搜索与定向精炼的 ML 工程智能体）",
+      "panel_family": "AI-scientist",
+      "panel_level": "L1",
+      "panel_claim": "在搜索与定向精炼下完成 ML 工程任务",
+      "sources": [
+        {
+          "key": "nam2025mlestar",
+          "title": "MLE-STAR: Machine Learning Engineering Agent via Search and Targeted Refinement",
+          "url": "https://arxiv.org/abs/2506.15692",
+          "ids": [
+            "arxiv:2506.15692"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 37,
+      "panel_work": "Romera-Paredes 2024（FunSearch）",
+      "panel_family": "程序搜索",
+      "panel_level": "L1 工件",
+      "panel_claim": "LLM 进化搜索产出新数学构造",
+      "sources": [
+        {
+          "key": "romeraparedes2024funsearch",
+          "title": "Mathematical discoveries from program search with large language models",
+          "url": "http://dx.doi.org/10.1038/s41586-023-06924-6",
+          "ids": [
+            "doi:10.1038/s41586-023-06924-6"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 38,
+      "panel_work": "DeepMind 2025（AlphaEvolve）",
+      "panel_family": "程序搜索",
+      "panel_level": "L1 工件",
+      "panel_claim": "编码智能体做算法发现",
+      "sources": [
+        {
+          "key": "deepmind2025alphaevolve",
+          "title": "AlphaEvolve: A coding agent for scientific and algorithmic discovery",
+          "url": "https://arxiv.org/abs/2506.13131",
+          "ids": [
+            "arxiv:2506.13131"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 39,
+      "panel_work": "Fawzi 2022（AlphaTensor）",
+      "panel_family": "程序搜索",
+      "panel_level": "L1 工件",
+      "panel_claim": "矩阵乘法算法",
+      "sources": [
+        {
+          "key": "fawzi2022alphatensor",
+          "title": "Discovering faster matrix multiplication algorithms with reinforcement learning",
+          "url": "http://dx.doi.org/10.1038/s41586-022-05172-4",
+          "ids": [
+            "doi:10.1038/s41586-022-05172-4"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 40,
+      "panel_work": "Langley 1987（BACON）",
+      "panel_family": "他域发现机",
+      "panel_level": "L2",
+      "panel_claim": "从数据表再发现经验定律",
+      "sources": [
+        {
+          "key": "langley1987",
+          "title": "Scientific Discovery: Computational Explorations of the Creative Processes",
+          "url": "",
+          "ids": [],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 41,
+      "panel_work": "King 2004 / 2009（Adam 机器人科学家）",
+      "panel_family": "他域发现机",
+      "panel_level": "L2–L3",
+      "panel_claim": "假说–实验闭环的机器人科学家",
+      "sources": [
+        {
+          "key": "king2004adam",
+          "title": "Functional genomic hypothesis generation and experimentation by a robot scientist",
+          "url": "http://dx.doi.org/10.1038/nature02236",
+          "ids": [
+            "doi:10.1038/nature02236"
+          ],
+          "matches": []
+        },
+        {
+          "key": "king2009automation",
+          "title": "The Automation of Science",
+          "url": "http://dx.doi.org/10.1126/science.1165620",
+          "ids": [
+            "doi:10.1126/science.1165620"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 42,
+      "panel_work": "Schmidt 2009（Eureqa）",
+      "panel_family": "他域发现机",
+      "panel_level": "L2",
+      "panel_claim": "从实验时序蒸馏符号定律",
+      "sources": [
+        {
+          "key": "schmidt2009eureqa",
+          "title": "Distilling Free-Form Natural Laws from Experimental Data",
+          "url": "http://dx.doi.org/10.1126/science.1165893",
+          "ids": [
+            "doi:10.1126/science.1165893"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 43,
+      "panel_work": "Udrescu 2020（AI Feynman）",
+      "panel_family": "他域发现机",
+      "panel_level": "L2",
+      "panel_claim": "物理启发的符号回归",
+      "sources": [
+        {
+          "key": "udrescu2020aifeynman",
+          "title": "AI Feynman: a Physics-Inspired Method for Symbolic Regression",
+          "url": "https://arxiv.org/abs/1905.11481",
+          "ids": [
+            "arxiv:1905.11481"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 44,
+      "panel_work": "Merchant 2023（GNoME）",
+      "panel_family": "他域发现机",
+      "panel_level": "L2",
+      "panel_claim": "220 万稳定晶体",
+      "sources": [
+        {
+          "key": "merchant2023gnome",
+          "title": "Scaling deep learning for materials discovery",
+          "url": "http://dx.doi.org/10.1038/s41586-023-06735-9",
+          "ids": [
+            "doi:10.1038/s41586-023-06735-9"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 45,
+      "panel_work": "Jumper 2021（AlphaFold）",
+      "panel_family": "他域发现机",
+      "panel_level": "L3（域内）",
+      "panel_claim": "蛋白质结构预测",
+      "sources": [
+        {
+          "key": "jumper2021alphafold",
+          "title": "Highly accurate protein structure prediction with AlphaFold",
+          "url": "http://dx.doi.org/10.1038/s41586-021-03819-2",
+          "ids": [
+            "doi:10.1038/s41586-021-03819-2"
+          ],
+          "matches": [
+            {
+              "domain": "pretrain",
+              "title": "Highly accurate protein structure prediction with AlphaFold",
+              "classification": "Knowledge",
+              "claim": "AlphaFold 2 用 Evoformer 处理多序列比对及残基对表示，再以结构模块预测三维结构，并用结构监督训练。",
+              "scope": "原文的数据库、训练截止、CASP14/CAMEO 等评估；序列检索、同源模板和目标属性决定表现；结构预测不等于模拟真实折叠时间过程或证明所有复杂体准确。",
+              "evidence": "期刊 PDF 第1–4页、Figure 1 与 Evoformer／structure module；未复现。",
+              "review_level": "selected_sections_checked; full_text_not_reviewed",
+              "claim_annotations": null,
+              "source_version": null,
+              "pdf_path": "papers/pretrain/alphafold2_2021.pdf",
+              "url": "https://doi.org/10.1038/s41586-021-03819-2",
+              "match_basis": [
+                "doi:10.1038/s41586-021-03819-2"
+              ]
+            }
+          ]
+        }
+      ],
+      "note": "结构预测方法及评测属于 Knowledge 主张；预测精度本身不证明第一性原理边界。"
+    },
+    {
+      "row": 46,
+      "panel_work": "Bernat 2026（Modelpedia）",
+      "panel_family": "策展",
+      "panel_level": "L1 组织",
+      "panel_claim": "从 ICLR 24–25 抽取千余条发现并编目",
+      "sources": [
+        {
+          "key": "modelpedia2026",
+          "title": "Modelpedia: A Catalog of Model Findings for the Meta-Science of AI",
+          "url": "https://arxiv.org/abs/2609.01090",
+          "ids": [
+            "arxiv:2609.01090"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 47,
+      "panel_work": "验证缺口调查 2026",
+      "panel_family": "策展",
+      "panel_level": "审计",
+      "panel_claim": "主张比代码更难验证：35 个系统七维审计",
+      "sources": [
+        {
+          "key": "verificationgap2026",
+          "title": "Autonomous Research Agents: A Survey of AI Scientists and the Verification Gap",
+          "url": "https://arxiv.org/abs/2608.05179",
+          "ids": [
+            "arxiv:2608.05179"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 48,
+      "panel_work": "Chan 2024（MLE-bench）",
+      "panel_family": "基准",
+      "panel_level": "L1 仪器",
+      "panel_claim": "Kaggle 奖牌",
+      "sources": [
+        {
+          "key": "chan2024mlebench",
+          "title": "MLE-bench: Evaluating Machine Learning Agents on Machine Learning Engineering",
+          "url": "https://arxiv.org/abs/2410.07095",
+          "ids": [
+            "arxiv:2410.07095"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 49,
+      "panel_work": "Aronovich 2024（RE-Bench）",
+      "panel_family": "基准",
+      "panel_level": "L1 仪器",
+      "panel_claim": "限时 ML 工程，对人类专家",
+      "sources": [
+        {
+          "key": "aronovich2024rebench",
+          "title": "RE-Bench: Evaluating frontier AI R&D capabilities of language model agents against human experts",
+          "url": "https://arxiv.org/abs/2411.15114",
+          "ids": [
+            "arxiv:2411.15114"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 50,
+      "panel_work": "Fajman 2025（PaperBench）",
+      "panel_family": "基准",
+      "panel_level": "L1 仪器",
+      "panel_claim": "复现论文结果",
+      "sources": [
+        {
+          "key": "fajman2025paperbench",
+          "title": "PaperBench: Evaluating AI's Ability to Replicate AI Research",
+          "url": "https://arxiv.org/abs/2504.01848",
+          "ids": [
+            "arxiv:2504.01848"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 51,
+      "panel_work": "METR 2025（长任务视野）",
+      "panel_family": "基准",
+      "panel_level": "L1 仪器",
+      "panel_claim": "可完成任务的时间视野",
+      "sources": [
+        {
+          "key": "metr2025longtasks",
+          "title": "Measuring AI Ability to Complete Long Software Tasks",
+          "url": "https://arxiv.org/abs/2503.14499",
+          "ids": [
+            "arxiv:2503.14499"
+          ],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 52,
+      "panel_work": "ArchitectureIQ 2026",
+      "panel_family": "基准",
+      "panel_level": "L1 仪器（最接近知识）",
+      "panel_claim": "判断真实训练run的胜负",
+      "sources": [
+        {
+          "key": "aiq2026bench",
+          "title": "ArchitectureIQ: A Benchmark for Judging Neural Network Training Outcomes",
+          "url": "https://architecture-iq.com/",
+          "ids": [],
+          "matches": []
+        }
+      ],
+      "note": ""
+    },
+    {
+      "row": 53,
+      "panel_work": "本工作（SAI-min）",
+      "panel_family": "本工作",
+      "panel_level": "L1→L2",
+      "panel_claim": "免训练闭环；+15.8 点；程序验收；预注册证伪",
+      "sources": [
+        {
+          "key": "kbsite2026",
+          "title": "Science of AI: Knowledge Base Loop Prototype",
+          "url": "https://guoshaoyang-pku.github.io/blogs/kb_site/",
+          "ids": [],
+          "matches": []
+        }
+      ],
+      "note": "配对性能、引用归因、独立真值核验是不同证据，不由来源匹配判定晋级。"
+    }
+  ]
+}

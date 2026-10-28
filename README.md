@@ -13,6 +13,7 @@ This repository's experiments instantiate a broader framework. Two new English e
 
 - **[taxonomy/](taxonomy/)** — the SAI taxonomy: a machine-checkable classification of ML research into three epistemic levels (knowledge / law / science), the five-operator research loop that climbs them, metrics (equivalent compute, compression ratio, SAI Index), milestones M0–M6 with a heroes table, and the ten research families. Includes anonymized prototype measurements from the campaigns archived here.
 - **[survey/](survey/)** — the companion literature survey: 932 papers and 872 concepts across RL, pre-training, and interpretability, each tagged by epistemic level with an explicit scope boundary and review-depth record.
+- **[sai-paper/](sai-paper/)** — the research corpus behind the survey: raw classification records (`literature/`, Chinese working annotations), coverage and boundary-case documents, catalog builders, exact counterexample scripts, and the merge handoff with state snapshot and merge inventory (`handoffs/`, including the original hand-drawn three-axis sketch). Public layer only — full-text PDFs, internal notes, and the frozen manuscript remain local.
 
 ## 安装与检查
 

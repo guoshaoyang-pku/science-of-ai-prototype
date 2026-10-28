@@ -10,3 +10,14 @@ Adds the English-language taxonomy and literature survey layer:
 - `README.md` — added an English entry section pointing at `taxonomy/` and `survey/`.
 
 No changes to code, evidence, or existing documentation. No internal codenames, provider names, cost figures, or local paths in the new material.
+
+## 2026-10-28 (later) — merged the parallel research line
+
+Per user instruction, merged the parallel session's prepared candidates into this branch under `sai-paper/`:
+
+- `sai-paper/handoffs/` — merge handoff (sanitized: internal Feishu doc links redacted, local absolute paths normalized), state snapshot, merge inventory, and the user's original hand-drawn three-axis sketch.
+- `sai-paper/literature/` — 38 corpus files: per-direction JSON records (interp 317 / RL 271 / pretrain 344 papers), generated catalogs and concept maps, coverage protocols, and 14 boundary-case documents.
+- `sai-paper/tools/` — `build_catalog.py`, `build_concept_map.py`, the four exact counterexample programs (all verified exit 0 by the parallel session), and `export_survey_public.py`. `build_panel_source_map.py` omitted: it depends on the frozen panel and `references.bib`, which are not migrated.
+- `sai-paper/README.md` / `.gitignore` — mirrored with a public-mirror note prepended.
+
+Not merged (per the handoff's own dispositions): the frozen manuscript and survey drafts, the Chinese panel (known P1 content issues, user has not approved the fixes), download/fetch scripts (network tools; one contains a contact email), `notes/` (internal meeting snapshots), `papers/` and `.cache/` (local-only source archives), and the superseded handoff snapshot.
