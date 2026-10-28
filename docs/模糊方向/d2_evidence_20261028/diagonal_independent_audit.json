@@ -1,0 +1,168 @@
+{
+  "audit_id": "d2_diagonal_20261027_independent_aggregation",
+  "actor": "/root/protocol_audit",
+  "actor_type": "agent",
+  "audited_at": "2026-10-27T12:05:20.719586+08:00",
+  "status": "passed",
+  "scope": "Read-only verification of saved outcomes; no new experiment, training or replacement of primary results.",
+  "source_contract_commit": "d2796a484712fc95268c2400a6d85d5cf121163c",
+  "audited_artifact_sha256": {
+    "rows.jsonl": "362452a7872c40c40ef55168fc7db7eb2d32a24f9c76d5deebd6cc55513467c4",
+    "summary.json": "6267405df4a675eff65297f94e3c9563d5c84b18f3c543628367ae2bdac737eb",
+    "execution.json": "41d82b6f878b069491c31a756f7118d434cd6850b63a1a518c02b57bfdfa035e",
+    "input_verification.json": "d8aeed004621ece707687cbef86b003ae66b08cf381f5c19c2b0b2fb1a4b5a4f",
+    "numerical_verification.json": "87fb9f8c1eef853b4eaacd963c9da3fb098d3c69bf5b6ed50c1971e8220d7130",
+    "preregistration.json": "1d93ba4bc34d733f8ca04304112be82631fa937a8d48489d91a2f8e04f370eb4"
+  },
+  "frozen_source_hashes_match": true,
+  "row_checks": {
+    "status": "passed",
+    "rows": 3240,
+    "unique_curves": 3240,
+    "unique_draws": 120,
+    "interior": 3137,
+    "boundary": 103,
+    "predicates": [
+      "time_factor",
+      "time_pass",
+      "regret_raw",
+      "regret_over_initial",
+      "risk_pass",
+      "invalid_bias",
+      "invalid_total"
+    ]
+  },
+  "aggregation_checks": {
+    "status": "passed",
+    "group_count": 52,
+    "composition": {
+      "overall": 1,
+      "recipe": 12,
+      "seed": 3,
+      "recipe_seed": 36
+    },
+    "verified_fields": [
+      "count",
+      "interior",
+      "boundary",
+      "time_pass",
+      "time_rate",
+      "risk_pass",
+      "risk_rate",
+      "stopping_pass",
+      "invalid_bias",
+      "invalid_total",
+      "valid_and_risk_pass",
+      "predicted_boundary",
+      "boundary_status_agreement",
+      "baseline_time_pass",
+      "baseline_risk_pass",
+      "baseline_clipped"
+    ],
+    "overall_quantiles_verified": [
+      "regret_over_initial",
+      "time_factor_positive_predictions"
+    ]
+  },
+  "primary_conclusion": {
+    "required_recipes_passing": 12,
+    "observed_recipes_passing": 6,
+    "status": "refuted_on_development",
+    "time_pass": 2352,
+    "time_denominator": 3137,
+    "risk_pass": 2739,
+    "risk_denominator": 3240
+  },
+  "validity_not_equivalent_to_stopping_quality": {
+    "invalid_bias": 693,
+    "invalid_bias_and_risk_pass": 642,
+    "invalid_total": 279,
+    "invalid_total_and_risk_pass": 253,
+    "worst_regret_has_valid_bias_and_total": true,
+    "worst_regret_example": {
+      "protocol": "d1_biased",
+      "task": "sine",
+      "n": 32,
+      "seed": 6103,
+      "sigma2": 1,
+      "t_reference": 255,
+      "t_diagonal": 1,
+      "risk_reference": 0.25205198134278284,
+      "full_risk_at_diagonal": 0.8546996829218976,
+      "regret_over_initial": 0.5884719854443935
+    }
+  },
+  "seed_results": [
+    {
+      "seed": 6101,
+      "time_pass": 854,
+      "interior": 1044,
+      "time_rate": 0.8180076628352491,
+      "risk_pass": 1007,
+      "count": 1080,
+      "risk_rate": 0.9324074074074075,
+      "recipes_passing_both": 8
+    },
+    {
+      "seed": 6102,
+      "time_pass": 742,
+      "interior": 1045,
+      "time_rate": 0.7100478468899522,
+      "risk_pass": 878,
+      "count": 1080,
+      "risk_rate": 0.812962962962963,
+      "recipes_passing_both": 2
+    },
+    {
+      "seed": 6103,
+      "time_pass": 756,
+      "interior": 1048,
+      "time_rate": 0.7213740458015268,
+      "risk_pass": 854,
+      "count": 1080,
+      "risk_rate": 0.7907407407407407,
+      "recipes_passing_both": 4
+    }
+  ],
+  "recipes_passing_all_three_seeds": [
+    {
+      "protocol": "d4_homogeneous",
+      "task": "sine"
+    }
+  ],
+  "negative_raw_regret": {
+    "count": 295,
+    "minimum": -1.1823007850519929e-14,
+    "maximum": -8.673617379884035e-19,
+    "all_within_registered_roundoff_tolerance": true,
+    "genuine_search_discrepancies": 0
+  },
+  "tail_summary": {
+    "regret_over_initial": {
+      "min": 0.0,
+      "p25": 5.022656878452566e-06,
+      "median": 0.0006741145240927659,
+      "p75": 0.00433111782786417,
+      "p90": 0.017794652241004592,
+      "p95": 0.03421647762662494,
+      "max": 0.5884719854443935
+    },
+    "time_factor_positive_predictions": {
+      "min": 1.0,
+      "p25": 1.050840025846949,
+      "median": 1.2595108695652173,
+      "p75": 2.0,
+      "p90": 8.039615846338535,
+      "p95": 26.15219473264166,
+      "max": 1584.6785714285713
+    },
+    "zero_time_predictions_excluded_from_factor_quantiles": 6
+  },
+  "interpretation_limits": [
+    "Development data only.",
+    "693 negative signal-risk curves do not imply 693 bad stopping choices.",
+    "6/12 pooled recipe successes do not mean six recipes passed for each seed.",
+    "No binomial confidence interval over correlated curves; only three independent master seeds.",
+    "Near-degenerate eigenbasis convention remains a registered sensitivity limitation."
+  ]
+}

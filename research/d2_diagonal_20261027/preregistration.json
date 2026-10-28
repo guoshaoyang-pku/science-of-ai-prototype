@@ -1,0 +1,31 @@
+{
+  "study": "d2_diagonal_20261027",
+  "status_at_registration": "approved_not_started",
+  "authorization": "User explicitly authorized retrieval, integrity verification, preregistration, one diagonal spectral ablation round, and a plain-language report on 2026-10-27 in this chat.",
+  "question": "Can the fixed-feature risk model discard off-diagonal entries of the signal quadratic form h without materially harming stopping-time predictions on the existing D2 development conditions?",
+  "domain": "All 3240 previously inspected conditions are development; this is a deterministic model ablation, not new data or a causal intervention on training.",
+  "source_study": "evidence/d2_scaling_20261009/studies/n_sigma_tasks",
+  "data_root": "/Users/mapleandrew/meta_circle/Science_of_AI_Textbook/AIQ_KB_DATA",
+  "input_root": "/Users/mapleandrew/meta_circle/Science_of_AI_Textbook/AIQ_KB_DATA/imports/d2_handoff_20261009",
+  "run_relative": "runs/d2_diagonal_20261027",
+  "expected_counts": {"curves": 3240, "draws": 120, "recipes": 12, "interior": 3137, "boundary": 103},
+  "intervention": "Replace h by diag(diag(h)) in f.T h f only. Preserve linear=g*vg, val_y2, the exact unit noise response, eta=0.3, eigenvalue null threshold, target definitions and all input data. Never clip the diagonal signal or total risk.",
+  "information_boundary": "Clean train and validation targets plus validation feature geometry remain available. This is not a train-only predictor. Full original risk is an oracle reference, not a new discovery.",
+  "search": "Rebuild the original integer base grid: 0..256 and unique rounded 4096 geomspace points from 257 to 262144. Choose the first coarse minimum, refine between its neighbors with bounded minimize_scalar xatol=.05, then compare floor(refined)-2 through floor(refined)+3 plus coarse best and both bracket endpoints. Keep boundaries. Never use the saved half-minimum fractional point as an integer stopping candidate. No claim of exhaustive integer extrema.",
+  "reference": "Use saved full-model integer t_star and risk_minimum. Evaluate full risk at the new selected integer time directly. If regret is below -1e-8*max(1,R0), stop as search-discrepancy; do not silently improve the oracle. Smaller negative roundoff is recorded raw and zeroed only for nonnegative regret summaries.",
+  "baseline": "Use saved linear_prediction_U without fitting. Time-factor metric uses that original U. For baseline risk evaluate round(U/eta) clipped to [0,262144], recording clipping. Coefficients were task-specific legacy calibration fits; no held-out claim.",
+  "primary_rules": {
+    "time": "For EACH recipe, at least 80% of saved interior-minimum cells must have diagonal prediction/reference in [0.5,2]. Boundary-reference cells are not in this ratio denominator; all are retained and boundary/interior prediction agreement is reported.",
+    "risk": "For EACH recipe, at least 90% of ALL its cells must have full-risk regret / R0 <= 0.01 at the selected diagonal time.",
+    "overall": "The stopping surrogate passes only if both rules pass for all 12 recipes. Report raw stopping performance separately from risk-model validity; invalid curves are never silently excluded."
+  },
+  "validity": "Separately flag min diagonal signal bias and min diagonal total risk below -1e-10*max(1,R0), over the base grid and refined selected point. Record minimum values. Such cells fail the physical risk-model validity gate even if stopping metrics happen to pass; report valid-and-accurate counts separately.",
+  "verification": "Validate all D2 git/release manifest file hashes before computation. Recompute full bias/noise on the common grid for every task/draw and compare to saved arrays within 1e-8*max(1,R0); check saved t_star risk similarly. Independently evaluate raw feature-space predictions and noise-response Frobenius norm for the eight original n64 seed6101 sigma2=1 selected cells at diagonal-selected and original t_star times. Maximum normalized error must be <=1e-8. Unit tests use invented tiny matrices only.",
+  "uncertainty": "Only seeds 6101,6102,6103 are independent master repeats. Report per-seed paired aggregate and per-recipe outcomes and their range, not binomial CIs over 3240 correlated curves. The n prefixes, tasks and noise levels share data/features.",
+  "basis_sensitivity": "Use the original numpy.linalg.eigh convention, record runtime versions and minimum relative spacing of active eigenvalues; flag <=1e-10 spacings. Diagonal ablation is basis-dependent within degenerate eigenspaces. Do not switch to block-diagonal after seeing outcomes.",
+  "secondary_descriptive": ["baseline comparison", "signed omitted-cross-term size relative to R0", "boundary prediction confusion", "invalid signal/total counts", "time-factor quantiles", "regret quantiles", "worst-regret example and median-regret example per recipe"],
+  "budget": {"model_api_calls": 0, "gpu": false, "new_training": false, "compute_wall_seconds": 1800, "download_scope": "D2 archive only; no v1/v2 benchmark payloads"},
+  "stop_rules": "Stop on changed source/input hashes, denominator mismatch, nonfinite numerics, verification failure, genuine negative reference regret, or compute budget. Preserve partial artifacts and label incomplete; do not change thresholds or start another hypothesis.",
+  "outputs": ["input_verification.json", "execution.json", "rows.jsonl", "summary.json", "numerical_verification.json", "descriptive example curves", "plain-language report and figures"],
+  "report_limits": "Explain omitted terms as interactions between learning directions, not physical network components. No claim about learned features, classification, Adam, single-run early stopping, or independent confirmation. Preserve all failures and denominators."
+}
