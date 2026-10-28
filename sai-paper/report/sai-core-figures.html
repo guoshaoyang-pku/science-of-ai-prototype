@@ -1,0 +1,1243 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ML 的产出大多停在「知识」层：缺的是可验证的定律与科学</title>
+<style>
+  :root {
+    --dark: #141413; --light: #faf9f5; --mid: #b0aea5; --soft: #e8e6dc;
+    --muted: #5e5d59; --orange: #d97757; --blue: #6a9bcc; --green: #788c5d;
+    --head: "Poppins", "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", Arial, sans-serif;
+    --body: "Lora", "Noto Serif CJK SC", "Songti SC", Georgia, serif;
+    --mono: "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--light); color: var(--dark); font: 17px/1.8 var(--body); }
+  main { max-width: 760px; margin: 0 auto; padding: 72px 24px 96px; }
+  h1, h2, h3 { font-family: var(--head); font-weight: 600; line-height: 1.35; letter-spacing: -0.01em; }
+  h1 { font-size: 30px; margin: 0 0 16px; }
+  h2 { font-size: 21px; margin: 60px 0 12px; }
+  p { margin: 0 0 16px; }
+  .lede { font-size: 19px; }
+  a { color: inherit; text-decoration: underline; text-decoration-color: var(--orange); text-underline-offset: 3px; }
+  code, .id { font-family: var(--mono); font-size: 0.86em; background: var(--soft); padding: 1px 5px; border-radius: 4px; }
+  .settings { display: flex; flex-wrap: wrap; gap: 8px 20px; list-style: none; padding: 0; margin: 24px 0 0;
+              font: 14px/1.6 var(--head); color: var(--muted); }
+  .settings li { display: inline-flex; align-items: center; gap: 6px; }
+  .settings svg { width: 15px; height: 15px; stroke: var(--dark); fill: none; stroke-width: 1.6;
+                  stroke-linecap: round; stroke-linejoin: round; }
+  .settings b { color: var(--dark); font-weight: 500; }
+  figure { margin: 28px 0; padding: 20px; background: #fff; border: 1px solid var(--soft); border-radius: 10px; }
+  figure img, figure svg.chart { display: block; width: 100%; height: auto; }
+  figcaption { margin-top: 12px; font: 14px/1.6 var(--head); color: var(--muted); }
+  .warn { border-left: 3px solid var(--orange); padding: 4px 0 4px 16px; margin: 24px 0; }
+  .warn strong { font-family: var(--head); }
+  details { margin: 16px 0; }
+  summary { cursor: pointer; font: 15px var(--head); color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font: 13.5px/1.6 var(--head); margin: 16px 0; }
+  th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--soft); vertical-align: top; }
+  th { font-weight: 500; color: var(--muted); }
+  footer { margin-top: 80px; font: 13px var(--head); color: var(--mid); }
+</style>
+</head>
+<body>
+<main>
+
+<h1>ML 的产出大多停在「知识」层：缺的不是更大的模型，而是可验证的定律与科学</h1>
+<p class="lede">我们用误差、代价、不适用测度三根轴衡量一条主张，按边界怎样得知把主张分成知识、定律、科学三层，并把一批代表性工作定位到这张地图上；一个零训练的原型（SAI-min，即 Science of AI 最小闭环：解题–发现–总结）已经从知识爬到了候选定律。</p>
+<ul class="settings">
+  <li><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></svg>测试床 <b>ArchitectureIQ</b>（判断多个真实训练配置谁赢的题库，500 题）</li>
+  <li><svg viewBox="0 0 24 24"><path d="M4 19l5-7 4 4 7-10"/></svg>原型 <b>SAI-min</b>（解题–发现–总结三段循环，零训练）</li>
+  <li><svg viewBox="0 0 24 24"><path d="M6 3v18M18 3v18M6 12h12"/></svg>旧稿审计 <b>RL 经典 51 篇</b>：43 知识 / 3 定律 / 5 科学（旧门槛）</li>
+  <li><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>引用 <b>108 条</b>，全部程序化核验</li>
+  <li><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><b>2026-10-28</b></li>
+</ul>
+
+<h2>一条主张好在哪里：误差、代价、不适用测度三个方向都要减小</h2>
+<p>SAI（Science of AI）研究 AI 系统在给定条件下会怎样，目标是以更小的误差、更低的代价、在更大的条件范围内预知结果。先固定一份合同：条件空间 Ω（任务 × 架构 × 超参 × 数据 × 预算的全部组合，一个元素是一次完整的训练设定）、Ω 上的权重 μ（关心哪些设定、各占多少）、要预测的量和容忍度 ε（答案允许偏离真值多少）。一条主张对每个设定要么给出答案，要么声明不适用。</p>
+<p>误差 e 是它作答的设定里超出 ε 的比例；代价 c 是得到答案所花的计算与试探，以直接把这次训练跑完为 1；不适用测度 u 是它不作答的设定在 μ 下的占比。三者都在 0 到 1 之间。直接训练位于 (e≈种子噪声, c=1, u=0)：精确、处处可用、最贵。科学的方向是从这里走向原点：用更少的试探得到同样的答案。原点是「万物理论」式的理想方向，不是已证的数学结论。</p>
+<figure>
+  <svg class="chart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" font-family="PingFang SC, Noto Sans CJK SC, Hiragino Sans GB, sans-serif">
+  <defs>
+    <marker id="ax" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#141413"/>
+    </marker>
+    <marker id="axo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d97757"/>
+    </marker>
+  </defs>
+
+  
+  <line x1="230" y1="270" x2="230" y2="38" stroke="#141413" stroke-width="1.4" marker-end="url(#ax)"/>
+  <line x1="230" y1="270" x2="560" y2="270" stroke="#141413" stroke-width="1.4" marker-end="url(#ax)"/>
+  <line x1="230" y1="270" x2="58" y2="377" stroke="#141413" stroke-width="1.4" marker-end="url(#ax)"/>
+  <text x="242" y="44" font-size="12" font-weight="600" fill="#141413">误差 e（0–1）</text>
+  <text x="566" y="274" font-size="12" font-weight="600" fill="#141413">代价 c（直接训练 = 1）</text>
+  <text x="70" y="396" font-size="12" font-weight="600" fill="#141413">不适用测度 u（0–1）</text>
+
+  
+  <line x1="224" y1="70" x2="236" y2="70" stroke="#141413" stroke-width="1"/>
+  <text x="216" y="74" font-size="10" fill="#5e5d59" text-anchor="end">1</text>
+  <line x1="520" y1="264" x2="520" y2="276" stroke="#141413" stroke-width="1"/>
+  <text x="520" y="290" font-size="10" fill="#5e5d59" text-anchor="middle">1</text>
+  <line x1="76" y1="360" x2="84" y2="370" stroke="#141413" stroke-width="1"/>
+  <text x="70" y="358" font-size="10" fill="#5e5d59" text-anchor="end">1</text>
+
+  
+  <path d="M 508,260 Q 380,214 246,260" fill="none" stroke="#d97757" stroke-width="1.6" marker-end="url(#axo)"/>
+  <text x="378" y="216" font-size="10.5" fill="#d97757" font-style="italic" text-anchor="middle">Science：用更少的试探得到同样的答案</text>
+
+  
+  <circle cx="520" cy="270" r="6" fill="#141413"/>
+  <text x="532" y="236" font-size="10.5" font-weight="600" fill="#141413">直接训练</text>
+  <text x="532" y="251" font-size="10" fill="#5e5d59">e≈种子噪声，c = 1，u = 0</text>
+
+  
+  <circle cx="230" cy="270" r="6" fill="#d97757"/>
+  <text x="244" y="292" font-size="10.5" font-weight="600" fill="#d97757">原点 (0, 0, 0)</text>
+  <text x="244" y="307" font-size="10" fill="#5e5d59">零误差、零代价、处处适用：</text>
+  <text x="244" y="321" font-size="10" fill="#5e5d59">「万物理论」式的理想方向，不是已证结论</text>
+
+  
+  <circle cx="266" cy="168" r="5" fill="#6a9bcc"/>
+  <text x="278" y="165" font-size="10.5" font-weight="600" fill="#141413">U：代价近 0、误差 &gt; 0</text>
+  <text x="278" y="180" font-size="10" fill="#5e5d59">便宜但不精确的候选规律</text>
+
+  
+  <circle cx="112" cy="334" r="5" fill="#b0aea5"/>
+  <text x="126" y="352" font-size="10.5" font-weight="600" fill="#141413">只测过少数设定的知识</text>
+  <text x="126" y="367" font-size="10" fill="#5e5d59">u 接近 1：未测设定记为未知</text>
+
+  
+  <rect x="586" y="24" width="160" height="186" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1"/>
+  <text x="598" y="44" font-size="10.5" font-weight="600" fill="#141413">先固定合同 (Ω, μ, ε)</text>
+  <text x="598" y="64" font-size="10" fill="#5e5d59">Ω：任务 × 架构 × 超参 ×</text>
+  <text x="598" y="79" font-size="10" fill="#5e5d59">数据 × 预算的全部组合</text>
+  <text x="598" y="97" font-size="10" fill="#5e5d59">μ：Ω 上声明的权重</text>
+  <text x="598" y="115" font-size="10" fill="#5e5d59">ε：误差容忍度</text>
+  <text x="598" y="137" font-size="10" fill="#5e5d59">e：作答处超出 ε 的比例</text>
+  <text x="598" y="155" font-size="10" fill="#5e5d59">c：得到答案的计算与试探</text>
+  <text x="598" y="173" font-size="10" fill="#5e5d59">u：不作答处的 μ 占比</text>
+  <text x="598" y="197" font-size="10" font-weight="600" fill="#d97757">三者都越小越好</text>
+</svg>
+  <figcaption>按用户手绘三轴图重绘。坐标都相对于合同 (Ω, μ, ε)；三个点的位置是示意，不是测量值。</figcaption>
+</figure>
+<p>边界已知很值钱。主张若说清自己在哪里不适用，那部分可以回退到直接训练：u 按单价 1 换成代价，坐标变为 ((1−u)e, (1−u)c+u, 0)。不知道边界的主张在未知位置出错，使用者挑不出该回退的条件。</p>
+<p class="warn"><strong>三点限制。</strong>u 依赖 μ：换一种权重，同一主张的 u 会变，两条主张只能在同一份合同下比较。有限实验只给估计和上界：100 个独立设定零失败，95% 单侧上限仍约 3%；未测的设定记为未知，不算成立。u=0 表示在 μ 下几乎处处适用，不等于逐点无例外。</p>
+
+<h2>三层的区别在于边界怎样得知：知识靠观察，定律靠系统扩展，科学靠从原理推出</h2>
+<p>分类的单位是一条主张，不是论文。知识是在一个或少数具体设定下观察到的现象，外延尚未展开，未测设定记为未知。定律是沿声明的条件轴系统扩展、尽量解除约束后仍保留的稳定关系，边界由观测到的失败定位，预算用完不等于到头。科学是从可独立检验的前提推出关系为何成立、边界在哪里，边界就是前提失效的地方；单条明确的条件推导即可，不要求同时推出多条定律。</p>
+<p>另外两件事分开记录。Scope 是适用范围有多大，即上一节的 u：窄域推导可以是科学，广域经验关系仍是定律。证据协议是坐标有多可信：预注册、盲测、程序裁决、独立复现提高可信度，但不改变层次。科学还要分开两问：推导在假设内是否正确；前提在真实系统中是否成立，后者要像定律一样用实验检验。锚点：GRPO、GSPO 是知识，scaling law 是定律，Hyperball 按主贡献是科学。</p>
+<figure>
+  <svg class="chart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 430" font-family="PingFang SC, Noto Sans CJK SC, Hiragino Sans GB, sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d97757"/>
+    </marker>
+    <marker id="ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b0aea5"/>
+    </marker>
+  </defs>
+
+  
+  <rect x="24" y="8" width="520" height="104" rx="8" fill="#e8e6dc" stroke="#b0aea5" stroke-width="1"/>
+  <text x="40" y="30" font-size="14" font-weight="600" fill="#141413">L3 科学（边界从原理推出）</text>
+  <text x="40" y="50" font-size="10.5" fill="#5e5d59">判据：从可独立检验的前提推出关系为何成立；边界 = 前提失效处；单条条件推导即可。</text>
+  <text x="40" y="65" font-size="10.5" fill="#5e5d59">分开两问：推导在假设内是否正确；前提在真实系统中是否成立（靠实验）</text>
+  <text x="40" y="86" font-size="10" fill="#141413">支撑工作：Hyperball（2026，尺度不变性推导）· NTK（Jacot 2018）· lazy/rich 训练（Chizat 2019）</text>
+  <text x="40" y="101" font-size="10" fill="#141413">· 缩放律的统计力学解释（Bahri 2023）· MDP（马尔可夫决策过程）/ Bellman 理论</text>
+
+  
+  <rect x="24" y="152" width="520" height="104" rx="8" fill="#faf9f5" stroke="#b0aea5" stroke-width="1"/>
+  <text x="40" y="174" font-size="14" font-weight="600" fill="#141413">L2 定律（边界靠系统扩展测出）</text>
+  <text x="40" y="194" font-size="10.5" fill="#5e5d59">判据：沿声明的条件轴系统扩展、尽量解除约束后仍保留的稳定关系；</text>
+  <text x="40" y="209" font-size="10.5" fill="#5e5d59">边界由观测到的失败定位，预算用完不等于到头；越界外推是新的待检主张</text>
+  <text x="40" y="230" font-size="10" fill="#141413">支撑工作：Kaplan 2020 缩放律 · Chinchilla 2022 · 数据受限缩放 2023 · μP（最大更新参数化）·</text>
+  <text x="40" y="245" font-size="10" fill="#141413">零样本迁移 2022 · 双下降 2019 · grokking 2022 · 奖励过优化定律 2022 · 有效时间 U（本工作）</text>
+
+  
+  <rect x="24" y="296" width="520" height="104" rx="8" fill="#ffffff" stroke="#b0aea5" stroke-width="1"/>
+  <text x="40" y="318" font-size="14" font-weight="600" fill="#141413">L1 知识（边界只在测过的点上观察到）</text>
+  <text x="40" y="338" font-size="10.5" fill="#5e5d59">判据：在一个或少数具体设定下观察到的现象；外延尚未展开，</text>
+  <text x="40" y="353" font-size="10.5" fill="#5e5d59">未测设定记为未知，不算成立</text>
+  <text x="40" y="374" font-size="10" fill="#141413">支撑工作：GRPO（DeepSeekMath 2024）· GSPO（序列级裁剪）2025 · FlashAttention 2022 · LoRA 2021 ·</text>
+  <text x="40" y="389" font-size="10" fill="#141413">Megatron-LM（分布式训练）2019 · ExpeL 2023 · Voyager 2023 · 绝大多数 RL / 系统论文</text>
+
+  
+  <line x1="264" y1="292" x2="264" y2="262" stroke="#d97757" stroke-width="1.6" marker-end="url(#ah)"/>
+  <text x="276" y="276" font-size="10.5" fill="#d97757" font-style="italic">晋升：沿条件轴扩展外延，记录支持 / 失败 / 未测</text>
+  <line x1="264" y1="148" x2="264" y2="118" stroke="#d97757" stroke-width="1.6" marker-end="url(#ah)"/>
+  <text x="276" y="132" font-size="10.5" fill="#d97757" font-style="italic">晋升：找到可独立检验的前提，推出关系与边界</text>
+
+  
+  <path d="M 28,116 C 6,132 6,136 28,150" fill="none" stroke="#b0aea5" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#ahg)"/>
+  <path d="M 28,260 C 6,276 6,280 28,294" fill="none" stroke="#b0aea5" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#ahg)"/>
+  <text x="14" y="230" font-size="10" fill="#b0aea5" transform="rotate(-90 14 230)" text-anchor="middle">降级：声明域内出现反例则收窄或撤回</text>
+
+  
+  <text x="560" y="24" font-size="10.5" font-weight="600" fill="#141413">分开记录三件事</text>
+  <text x="560" y="46" font-size="10.5" fill="#5e5d59">层次：边界怎样得知</text>
+  <text x="560" y="64" font-size="10.5" fill="#5e5d59">Scope：适用范围多大，</text>
+  <text x="560" y="80" font-size="10.5" fill="#5e5d59">即不适用测度 u</text>
+  <text x="560" y="98" font-size="10.5" fill="#5e5d59">证据协议：坐标多可信</text>
+  <text x="560" y="130" font-size="10.5" fill="#5e5d59">窄域推导可以是科学，</text>
+  <text x="560" y="146" font-size="10.5" fill="#5e5d59">广域经验关系仍是定律。</text>
+  <text x="560" y="178" font-size="10.5" fill="#5e5d59">预注册、盲测、程序裁决、</text>
+  <text x="560" y="194" font-size="10.5" fill="#5e5d59">机器可读提高可信度，</text>
+  <text x="560" y="210" font-size="10.5" fill="#5e5d59">但不决定层次。</text>
+  <text x="560" y="320" font-size="10.5" fill="#5e5d59">三层分类的对象是</text>
+  <text x="560" y="336" font-size="10.5" fill="#5e5d59">「主张」，不是期刊、</text>
+  <text x="560" y="352" font-size="10.5" fill="#5e5d59">作者或系统：一篇论文</text>
+  <text x="560" y="368" font-size="10.5" fill="#5e5d59">可以同时含三层的主张。</text>
+  <text x="560" y="392" font-size="10.5" fill="#5e5d59">层次不是价值排名：广、</text>
+  <text x="560" y="408" font-size="10.5" fill="#5e5d59">准、便宜的定律可能比</text>
+  <text x="560" y="424" font-size="10.5" fill="#5e5d59">窄域科学更有用。</text>
+</svg>
+  <figcaption>左：三层的判据、晋升与降级。右栏：层次、Scope、证据协议分开记录；一篇论文可以同时含三层的主张。</figcaption>
+</figure>
+
+<h2>知识的生产是一个五算子闭环，四条纪律保证主张可以被证伪</h2>
+<p>任何生产知识的系统，都可以写成五个算子在「实验宇宙」（任务 × 架构 × 超参 × 数据 × 预算的全空间）上的循环：解题、发现、核验、总结、出题。现有系统的差别，在于实现了哪几个算子、核验有多硬。四条纪律让循环诚实：预测先预注册再跑实验；核验只用注册后生成的新题；封存测试集看一次就降级；证伪记录永不删除。</p>
+<figure>
+  <svg class="chart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330" font-family="PingFang SC, Noto Sans CJK SC, Hiragino Sans GB, sans-serif">
+  <defs>
+    <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#141413"/>
+    </marker>
+    <marker id="ah2g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b0aea5"/>
+    </marker>
+  </defs>
+
+  
+  <g stroke="#141413" stroke-width="1" fill="#faf9f5">
+    <rect x="50" y="36" width="150" height="52" rx="6"/>
+    <rect x="400" y="36" width="150" height="52" rx="6"/>
+    <rect x="560" y="140" width="150" height="52" rx="6"/>
+    <rect x="40" y="140" width="150" height="52" rx="6"/>
+    <rect x="300" y="240" width="170" height="48" rx="6"/>
+  </g>
+  <g font-size="12" fill="#141413" text-anchor="middle">
+    <text x="125" y="57" font-weight="600">解题 Solve</text>
+    <text x="125" y="74" font-size="10" fill="#5e5d59">只用知识库作答</text>
+    <text x="475" y="57" font-weight="600">发现 Discover</text>
+    <text x="475" y="74" font-size="10" fill="#5e5d59">错题与意外 → 新主张</text>
+    <text x="635" y="161" font-weight="600">核验 Verify</text>
+    <text x="635" y="178" font-size="10" fill="#5e5d59">新题上程序裁决 + 统计门槛</text>
+    <text x="115" y="161" font-weight="600">总结 Synthesize</text>
+    <text x="115" y="178" font-size="10" fill="#5e5d59">合并 · 晋升 L1→L2→L3</text>
+    <text x="385" y="260" font-weight="600">出题 Propose</text>
+    <text x="385" y="276" font-size="10" fill="#5e5d59">随机 / 补证据 / 区分竞争理论</text>
+  </g>
+
+  
+  <rect x="300" y="118" width="170" height="66" rx="8" fill="#ffffff" stroke="#d97757" stroke-width="1.4"/>
+  <text x="385" y="140" font-size="12" font-weight="600" fill="#d97757" text-anchor="middle">知识库 K（主张库）</text>
+  <text x="385" y="157" font-size="10" fill="#5e5d59" text-anchor="middle">L1 → L2 → L3 · 状态 · 谱系 · 信用</text>
+  <text x="385" y="172" font-size="10" fill="#5e5d59" text-anchor="middle">反例与证伪记录永久保留</text>
+
+  
+  <line x1="200" y1="62" x2="396" y2="62" stroke="#141413" stroke-width="1.4" marker-end="url(#ah2)"/>
+  <text x="298" y="54" font-size="10" fill="#5e5d59" text-anchor="middle">看到错题与意外</text>
+  <line x1="500" y1="88" x2="610" y2="136" stroke="#141413" stroke-width="1.4" marker-end="url(#ah2)"/>
+  <text x="575" y="106" font-size="10" fill="#5e5d59">主张（先预注册）</text>
+  <path d="M 560,178 H 196" fill="none" stroke="#141413" stroke-width="1.4" marker-end="url(#ah2)"/>
+  <text x="378" y="196" font-size="10" fill="#5e5d59" text-anchor="middle">验证 / 证伪 / 收窄</text>
+  <line x1="90" y1="192" x2="300" y2="252" stroke="#141413" stroke-width="1.4" marker-end="url(#ah2)"/>
+  <text x="165" y="206" font-size="10" fill="#5e5d59">合并后的知识库</text>
+  <path d="M 300,264 H 24 V 62 H 44" fill="none" stroke="#141413" stroke-width="1.4" marker-end="url(#ah2)"/>
+  <text x="18" y="240" font-size="10" fill="#5e5d59" transform="rotate(-90 18 240)" text-anchor="middle">下一批题目</text>
+
+  
+  <line x1="330" y1="118" x2="180" y2="92" stroke="#b0aea5" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#ah2g)"/>
+  <text x="238" y="98" font-size="9.5" fill="#b0aea5">读取</text>
+  <line x1="560" y1="152" x2="474" y2="150" stroke="#b0aea5" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#ah2g)"/>
+  <text x="500" y="142" font-size="9.5" fill="#b0aea5">更新状态</text>
+  <line x1="190" y1="152" x2="296" y2="150" stroke="#b0aea5" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#ah2g)"/>
+  <text x="216" y="142" font-size="9.5" fill="#b0aea5">改写</text>
+
+  
+  <text x="40" y="316" font-size="10" fill="#5e5d59">纪律：预注册（先提交预测再跑实验）· 新题新鲜性（只用注册后生成的题核验）· 封存测试集（看一次即降为开发集）· 证据不删除（证伪也入账）</text>
+</svg>
+  <figcaption>五算子闭环与知识库的状态流转。虚线是知识库的读与写。</figcaption>
+</figure>
+
+<h2>现有工作的重心在知识层：旧稿审计的 51 篇 RL 论文里 43 篇是知识、3 篇是定律、5 篇是科学</h2>
+<p>把十个家族放进「谁生产 × 产出在哪层」的平面：经验 ML 与系统论文、智能体记忆、AI-scientist 系统都停在知识层；缩放律一族是少数定律岛；NTK 与统计力学是脱离前沿实践的科学飞地；FunSearch、AlphaEvolve 有最强的核验却不沉淀主张；Eureqa、GNoME、AlphaFold 证明机器在他域能爬到定律和科学，因为那里的 oracle（判定对错的裁判）便宜。图中所列基准都只测第一层的任务表现。51 篇是论文草稿的旧样本，按旧门槛分类，不代表全领域比例。</p>
+<figure>
+  <svg class="chart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 430" font-family="PingFang SC, Noto Sans CJK SC, Hiragino Sans GB, sans-serif">
+  <defs>
+    <marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#141413"/>
+    </marker>
+    <marker id="ah3o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d97757"/>
+    </marker>
+  </defs>
+
+  
+  <rect x="34" y="40" width="700" height="70" fill="#e8e6dc" opacity="0.30"/>
+  <rect x="34" y="140" width="700" height="70" fill="#e8e6dc" opacity="0.45"/>
+  <rect x="34" y="240" width="700" height="70" fill="#e8e6dc" opacity="0.65"/>
+  <g font-size="11" font-weight="600" fill="#5e5d59" text-anchor="middle">
+    <text x="16" y="75" transform="rotate(-90 16 75)">L3 科学</text>
+    <text x="16" y="175" transform="rotate(-90 16 175)">L2 定律</text>
+    <text x="16" y="275" transform="rotate(-90 16 275)">L1 知识</text>
+  </g>
+
+  
+  <g font-size="9.5" fill="#5e5d59">
+    <circle cx="452" cy="16" r="5" fill="#6a9bcc" opacity="0.5" stroke="#6a9bcc"/>
+    <text x="462" y="20">机器可验证</text>
+    <circle cx="530" cy="16" r="5" fill="#e8e6dc" stroke="#b0aea5"/>
+    <text x="540" y="20">评审 / 成功率验证</text>
+    <circle cx="640" cy="16" r="5" fill="#d97757" opacity="0.35" stroke="#d97757"/>
+    <text x="650" y="20">本工作</text>
+  </g>
+
+  
+  <circle cx="95" cy="75" r="26" fill="#e8e6dc" stroke="#b0aea5"/>
+  <text x="130" y="68" font-size="9.5" fill="#141413">学习理论：NTK · lazy 训练 ·</text>
+  <text x="130" y="82" font-size="9.5" fill="#141413">统计力学 · 策略梯度理论</text>
+  <circle cx="660" cy="75" r="28" fill="#6a9bcc" opacity="0.45" stroke="#6a9bcc"/>
+  <text x="622" y="68" font-size="9.5" fill="#141413" text-anchor="end">他域发现机：BACON（从数据表发现定律）· Adam ·</text>
+  <text x="622" y="82" font-size="9.5" fill="#141413" text-anchor="end">Eureqa · AI Feynman · GNoME · AlphaFold</text>
+
+  
+  <circle cx="150" cy="175" r="26" fill="#6a9bcc" opacity="0.45" stroke="#6a9bcc"/>
+  <text x="150" y="132" font-size="9.5" fill="#141413" text-anchor="middle">经验定律：Kaplan 2020 · Chinchilla · μP ·</text>
+  <text x="150" y="145" font-size="9.5" fill="#141413" text-anchor="middle">双下降 · grokking · 奖励过优化</text>
+  <ellipse cx="300" cy="175" rx="18" ry="52" fill="#e8e6dc" stroke="#b0aea5"/>
+  <text x="326" y="158" font-size="9.5" fill="#141413">可解释性（碎片）：</text>
+  <text x="326" y="172" font-size="9.5" fill="#141413">induction heads · 叠加 ·</text>
+  <text x="326" y="186" font-size="9.5" fill="#141413">单义性</text>
+
+  
+  <circle cx="95" cy="275" r="32" fill="#e8e6dc" stroke="#b0aea5"/>
+  <text x="135" y="262" font-size="9.5" fill="#141413">经验 ML 与系统：GRPO · GSPO ·</text>
+  <text x="135" y="276" font-size="9.5" fill="#141413">FlashAttention · LoRA（体量最大）</text>
+  <circle cx="330" cy="275" r="20" fill="#e8e6dc" stroke="#b0aea5"/>
+  <text x="330" y="322" font-size="9.5" fill="#141413" text-anchor="middle">策展与元科学：Modelpedia · 验证缺口调查</text>
+  <circle cx="430" cy="275" r="24" fill="#6a9bcc" opacity="0.45" stroke="#6a9bcc"/>
+  <circle cx="545" cy="275" r="22" fill="#e8e6dc" stroke="#b0aea5"/>
+  <circle cx="655" cy="275" r="26" fill="#e8e6dc" stroke="#b0aea5"/>
+
+  
+  <circle cx="445" cy="232" r="15" fill="#d97757" opacity="0.35" stroke="#d97757" stroke-width="1.4"/>
+  <text x="465" y="228" font-size="10" fill="#d97757" font-weight="600">SAI-min（本工作）</text>
+  <line x1="452" y1="222" x2="492" y2="188" stroke="#d97757" stroke-width="1.6" marker-end="url(#ah3o)"/>
+  <line x1="496" y1="184" x2="528" y2="152" stroke="#d97757" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#ah3o)"/>
+
+  
+  <line x1="40" y1="340" x2="730" y2="340" stroke="#141413" stroke-width="1.2" marker-end="url(#ah3)"/>
+  <g font-size="9.5" fill="#5e5d59">
+    <text x="80" y="334">人类</text>
+    <text x="360" y="334">人类 + 机器</text>
+    <text x="676" y="334">机器</text>
+  </g>
+  <text x="40" y="358" font-size="9.5" fill="#141413">程序搜索 / NAS（强验证）：FunSearch · AlphaEvolve · AlphaTensor · OpenEvolve　　智能体记忆：Reflexion · Voyager · ExpeL · AWM（工作流记忆）· SkillRL</text>
+  <text x="40" y="374" font-size="9.5" fill="#141413">AI-scientist 系统：AI Scientist v1/v2 · Zochi · Locus · co-scientist · Robin · Agent Laboratory（验证靠评审，不靠复跑）</text>
+
+  
+  <rect x="40" y="388" width="690" height="28" rx="6" fill="none" stroke="#d97757" stroke-dasharray="5 4"/>
+  <text x="385" y="406" font-size="9.5" fill="#d97757" text-anchor="middle">基准与评测：MLE-bench · RE-Bench · PaperBench · DSBench · MLGym · SWE-bench · METR · ArchitectureIQ —— 所列基准只测 level-1 的任务表现</text>
+</svg>
+  <figcaption>气泡大小示意产出体量；蓝色 = 机器可验证，灰色 = 评审或成功率验证，橙色 = 本工作。箭头是 SAI-min 的爬升轨迹。</figcaption>
+</figure>
+
+<h2>在 ArchitectureIQ 闭卷协议下，每个前沿模型的知识都不值试探训练预算的十分之一</h2>
+<p>等价算力 ρ*（知识值多少：花每个候选训练预算的百分之几做「各训一段、选当前领先者」的试探，就能追平该模型的闭卷准确率）给出统一标价。只用 10% 预算的试探选对 79.4%，超过全部闭卷前沿模型；最强的 Frontier-1 也只值 8.5%。在胜负到训练后期才分的难题上，试探掉到 44–53%，而所有模型只有 41–53%：知识最值钱的地方，正是模型最没知识的地方。</p>
+<figure>
+  <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg class="chart" xmlns:xlink="http://www.w3.org/1999/xlink"   viewBox="0 0 470.023281 261.311312" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-28T23:41:30.815219</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.9, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 261.311312 
+L 470.023281 261.311312 
+L 470.023281 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 61.063281 223.416 
+L 462.823281 223.416 
+L 462.823281 7.2 
+L 61.063281 7.2 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <defs>
+       <path id="m0393e3de60" d="M 0 0 
+L 0 3.5 
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#m0393e3de60" x="61.063281" y="223.416" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_1">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="61.063281" y="237.579437" transform="rotate(-0 61.063281 237.579437)">0</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_2">
+      <g>
+       <use xlink:href="#m0393e3de60" x="125.344881" y="223.416" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_2">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="125.344881" y="237.579437" transform="rotate(-0 125.344881 237.579437)">2</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_3">
+      <g>
+       <use xlink:href="#m0393e3de60" x="189.626481" y="223.416" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="189.626481" y="237.579437" transform="rotate(-0 189.626481 237.579437)">4</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_4">
+      <g>
+       <use xlink:href="#m0393e3de60" x="253.908081" y="223.416" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_4">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="253.908081" y="237.579437" transform="rotate(-0 253.908081 237.579437)">6</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_5">
+      <g>
+       <use xlink:href="#m0393e3de60" x="318.189681" y="223.416" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_5">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="318.189681" y="237.579437" transform="rotate(-0 318.189681 237.579437)">8</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_6">
+      <g>
+       <use xlink:href="#m0393e3de60" x="382.471281" y="223.416" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_6">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="382.471281" y="237.579437" transform="rotate(-0 382.471281 237.579437)">10</text>
+     </g>
+    </g>
+    <g id="xtick_7">
+     <g id="line2d_7">
+      <g>
+       <use xlink:href="#m0393e3de60" x="446.752881" y="223.416" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_7">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="446.752881" y="237.579437" transform="rotate(-0 446.752881 237.579437)">12</text>
+     </g>
+    </g>
+    <g id="text_8">
+     <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #141413" x="261.943281" y="251.820687" transform="rotate(-0 261.943281 251.820687)">等价算力 ρ*：花每个候选训练预算的百分之几做试探，就能追平该模型的闭卷准确率</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_8">
+      <path d="M 61.063281 23.362054 
+L 462.823281 23.362054 
+" clip-path="url(#pbb767ea8d9)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_9">
+      <defs>
+       <path id="me8b0180a87" d="M 0 0 
+L -3.5 0 
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#me8b0180a87" x="61.063281" y="23.362054" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_9">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="54.063281" y="26.943773" transform="rotate(-0 54.063281 26.943773)">Frontier-1</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_10">
+      <path d="M 61.063281 43.794486 
+L 462.823281 43.794486 
+" clip-path="url(#pbb767ea8d9)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_11">
+      <g>
+       <use xlink:href="#me8b0180a87" x="61.063281" y="43.794486" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_10">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="54.063281" y="47.376205" transform="rotate(-0 54.063281 47.376205)">Frontier-2</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_12">
+      <path d="M 61.063281 64.226919 
+L 462.823281 64.226919 
+" clip-path="url(#pbb767ea8d9)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_13">
+      <g>
+       <use xlink:href="#me8b0180a87" x="61.063281" y="64.226919" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_11">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="54.063281" y="67.808638" transform="rotate(-0 54.063281 67.808638)">Frontier-3</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_14">
+      <path d="M 61.063281 84.659351 
+L 462.823281 84.659351 
+" clip-path="url(#pbb767ea8d9)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_15">
+      <g>
+       <use xlink:href="#me8b0180a87" x="61.063281" y="84.659351" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_12">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="54.063281" y="88.24107" transform="rotate(-0 54.063281 88.24107)">Frontier-4</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_16">
+      <path d="M 61.063281 105.091784 
+L 462.823281 105.091784 
+" clip-path="url(#pbb767ea8d9)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_17">
+      <g>
+       <use xlink:href="#me8b0180a87" x="61.063281" y="105.091784" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_13">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="54.063281" y="108.673503" transform="rotate(-0 54.063281 108.673503)">Frontier-5</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_18">
+      <path d="M 61.063281 125.524216 
+L 462.823281 125.524216 
+" clip-path="url(#pbb767ea8d9)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_19">
+      <g>
+       <use xlink:href="#me8b0180a87" x="61.063281" y="125.524216" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_14">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="54.063281" y="129.105935" transform="rotate(-0 54.063281 129.105935)">Frontier-6</text>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_20">
+      <path d="M 61.063281 145.956649 
+L 462.823281 145.956649 
+" clip-path="url(#pbb767ea8d9)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_21">
+      <g>
+       <use xlink:href="#me8b0180a87" x="61.063281" y="145.956649" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_15">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="54.063281" y="149.538367" transform="rotate(-0 54.063281 149.538367)">Frontier-7</text>
+     </g>
+    </g>
+    <g id="ytick_8">
+     <g id="line2d_22">
+      <path d="M 61.063281 166.389081 
+L 462.823281 166.389081 
+" clip-path="url(#pbb767ea8d9)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_23">
+      <g>
+       <use xlink:href="#me8b0180a87" x="61.063281" y="166.389081" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_16">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="54.063281" y="169.9708" transform="rotate(-0 54.063281 169.9708)">Frontier-8</text>
+     </g>
+    </g>
+    <g id="ytick_9">
+     <g id="line2d_24">
+      <path d="M 61.063281 186.821514 
+L 462.823281 186.821514 
+" clip-path="url(#pbb767ea8d9)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_25">
+      <g>
+       <use xlink:href="#me8b0180a87" x="61.063281" y="186.821514" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_17">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="54.063281" y="190.403232" transform="rotate(-0 54.063281 190.403232)">Frontier-9</text>
+     </g>
+    </g>
+    <g id="ytick_10">
+     <g id="line2d_26">
+      <path d="M 61.063281 207.253946 
+L 462.823281 207.253946 
+" clip-path="url(#pbb767ea8d9)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_27">
+      <g>
+       <use xlink:href="#me8b0180a87" x="61.063281" y="207.253946" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_18">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="54.063281" y="210.835665" transform="rotate(-0 54.063281 210.835665)">Frontier-10</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 61.063281 223.416 
+L 61.063281 7.2 
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 61.063281 223.416 
+L 462.823281 223.416 
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 61.063281 29.696108 
+L 334.260081 29.696108 
+L 334.260081 17.028 
+L 61.063281 17.028 
+z
+" clip-path="url(#pbb767ea8d9)" style="fill: #b0aea5; stroke: #b0aea5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 61.063281 50.128541 
+L 286.048881 50.128541 
+L 286.048881 37.460432 
+L 61.063281 37.460432 
+z
+" clip-path="url(#pbb767ea8d9)" style="fill: #b0aea5; stroke: #b0aea5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 61.063281 70.560973 
+L 205.696881 70.560973 
+L 205.696881 57.892865 
+L 61.063281 57.892865 
+z
+" clip-path="url(#pbb767ea8d9)" style="fill: #b0aea5; stroke: #b0aea5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 61.063281 90.993405 
+L 189.626481 90.993405 
+L 189.626481 78.325297 
+L 61.063281 78.325297 
+z
+" clip-path="url(#pbb767ea8d9)" style="fill: #b0aea5; stroke: #b0aea5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 61.063281 111.425838 
+L 173.556081 111.425838 
+L 173.556081 98.75773 
+L 61.063281 98.75773 
+z
+" clip-path="url(#pbb767ea8d9)" style="fill: #b0aea5; stroke: #b0aea5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 61.063281 131.85827 
+L 157.485681 131.85827 
+L 157.485681 119.190162 
+L 61.063281 119.190162 
+z
+" clip-path="url(#pbb767ea8d9)" style="fill: #b0aea5; stroke: #b0aea5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 61.063281 152.290703 
+L 141.415281 152.290703 
+L 141.415281 139.622595 
+L 61.063281 139.622595 
+z
+" clip-path="url(#pbb767ea8d9)" style="fill: #b0aea5; stroke: #b0aea5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 61.063281 172.723135 
+L 109.274481 172.723135 
+L 109.274481 160.055027 
+L 61.063281 160.055027 
+z
+" clip-path="url(#pbb767ea8d9)" style="fill: #b0aea5; stroke: #b0aea5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 61.063281 193.155568 
+L 109.274481 193.155568 
+L 109.274481 180.487459 
+L 61.063281 180.487459 
+z
+" clip-path="url(#pbb767ea8d9)" style="fill: #b0aea5; stroke: #b0aea5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 61.063281 213.588 
+L 93.204081 213.588 
+L 93.204081 200.919892 
+L 61.063281 200.919892 
+z
+" clip-path="url(#pbb767ea8d9)" style="fill: #b0aea5; stroke: #b0aea5; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #5e5d59" x="340.045425" y="25.771273" transform="rotate(-0 340.045425 25.771273)">8.5%（闭卷 77.6%）</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #5e5d59" x="291.834225" y="46.203705" transform="rotate(-0 291.834225 46.203705)">7.0%（闭卷 76.0%）</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #5e5d59" x="211.482225" y="66.636138" transform="rotate(-0 211.482225 66.636138)">4.5%（闭卷 70.4%）</text>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #5e5d59" x="195.411825" y="87.06857" transform="rotate(-0 195.411825 87.06857)">4.0%（闭卷 68.3%）</text>
+   </g>
+   <g id="text_23">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #5e5d59" x="179.341425" y="107.501003" transform="rotate(-0 179.341425 107.501003)">3.5%（闭卷 67.8%）</text>
+   </g>
+   <g id="text_24">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #5e5d59" x="163.271025" y="127.933435" transform="rotate(-0 163.271025 127.933435)">3.0%（闭卷 66.8%）</text>
+   </g>
+   <g id="text_25">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #5e5d59" x="147.200625" y="148.365867" transform="rotate(-0 147.200625 148.365867)">2.5%（闭卷 65.4%）</text>
+   </g>
+   <g id="text_26">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #5e5d59" x="115.059825" y="168.7983" transform="rotate(-0 115.059825 168.7983)">1.5%（闭卷 60.2%）</text>
+   </g>
+   <g id="text_27">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #5e5d59" x="115.059825" y="189.230732" transform="rotate(-0 115.059825 189.230732)">1.5%（闭卷 59.4%）</text>
+   </g>
+   <g id="text_28">
+    <text style="font-size: 8.5px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #5e5d59" x="98.989425" y="209.663165" transform="rotate(-0 98.989425 209.663165)">1.0%（闭卷 55.8%）</text>
+   </g>
+   <g id="text_29">
+    <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; fill: #d97757" transform="translate(266.303399 159.524688)">只用 10% 预算试探训练：</text>
+    <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; fill: #d97757" transform="translate(242.823242 170.182376)">选对 79.4%，超过全部闭卷模型</text>
+   </g>
+   <g id="line2d_28">
+    <path d="M 382.471281 223.416 
+L 382.471281 7.2 
+" clip-path="url(#pbb767ea8d9)" style="fill: none; stroke-dasharray: 6.66,2.88; stroke-dashoffset: 0; stroke: #d97757; stroke-width: 1.8"/>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pbb767ea8d9">
+   <rect x="61.063281" y="7.2" width="401.76" height="216.216"/>
+  </clipPath>
+ </defs>
+</svg>
+  <figcaption>横条：各模型的等价算力 ρ*（括号内为闭卷准确率）。橙色虚线：10% 预算的无知识试探基线。</figcaption>
+</figure>
+
+<h2>经核验的知识最多提 15.8 点；按探索奖励排序只取前 20 条时反而扣 3.3 点</h2>
+<p>SAI-min 的三段循环在配对臂上把准确率从 0.454 提到 0.596（架构题，+14.2 点）；按置信度（被引用后答对答错的拉普拉斯平滑比率）排序取前 40 条并留 10 个新主张试用槽，+15.8 点。按 PUCT（一种给未验证主张加探索奖励的排序公式）排序时，结果取决于上屏条数：取前 40 条仍提 3.3 点（0.492→0.525）；取前 20 条（旧管线默认）扣 3.3 点（0.450→0.417），低于不带知识库，因为探索项让未验证的新主张持续轮换上屏。76 条新假说里 34 条在后续新题上验证、9 条被证伪淘汰。上屏规则应按核验后的正确率排序，新主张只给有限的试用槽。</p>
+<figure>
+  <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg class="chart" xmlns:xlink="http://www.w3.org/1999/xlink"   viewBox="0 0 449.901719 229.778687" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-28T23:41:30.879563</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.9, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 229.778687 
+L 449.901719 229.778687 
+L 449.901719 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 40.941719 195.696 
+L 442.701719 195.696 
+L 442.701719 7.2 
+L 40.941719 7.2 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 85.737803 195.696 
+L 85.737803 7.2 
+" clip-path="url(#p9ac0f5d451)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2">
+      <defs>
+       <path id="md44871e77f" d="M 0 0 
+L 0 3.5 
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#md44871e77f" x="85.737803" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_1">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; fill: #5e5d59" transform="translate(67.737803 209.859437)">混合题型</text>
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; fill: #5e5d59" transform="translate(68.237021 220.517125)">150 题次</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 163.779761 195.696 
+L 163.779761 7.2 
+" clip-path="url(#p9ac0f5d451)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4">
+      <g>
+       <use xlink:href="#md44871e77f" x="163.779761" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_2">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; fill: #5e5d59" transform="translate(150.279761 209.859437)">架构题</text>
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; fill: #5e5d59" transform="translate(146.278979 220.517125)">240 题次</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 241.821719 195.696 
+L 241.821719 7.2 
+" clip-path="url(#p9ac0f5d451)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6">
+      <g>
+       <use xlink:href="#md44871e77f" x="241.821719" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; fill: #5e5d59" transform="translate(218.826719 209.859437)">置信度前40</text>
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; fill: #5e5d59" transform="translate(225.824219 220.517125)">+试用槽</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_7">
+      <path d="M 319.863677 195.696 
+L 319.863677 7.2 
+" clip-path="url(#p9ac0f5d451)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_8">
+      <g>
+       <use xlink:href="#md44871e77f" x="319.863677" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_4">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="319.863677" y="209.859437" transform="rotate(-0 319.863677 209.859437)">PUCT 前40</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_9">
+      <path d="M 397.905635 195.696 
+L 397.905635 7.2 
+" clip-path="url(#p9ac0f5d451)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_10">
+      <g>
+       <use xlink:href="#md44871e77f" x="397.905635" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_5">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #5e5d59" x="397.905635" y="209.859437" transform="rotate(-0 397.905635 209.859437)">PUCT 前20</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_11">
+      <path d="M 40.941719 195.696 
+L 442.701719 195.696 
+" clip-path="url(#p9ac0f5d451)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_12">
+      <defs>
+       <path id="m750164c400" d="M 0 0 
+L -3.5 0 
+" style="stroke: #5e5d59; stroke-width: 0.8"/>
+      </defs>
+      <g>
+       <use xlink:href="#m750164c400" x="40.941719" y="195.696" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_6">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.941719" y="199.277719" transform="rotate(-0 33.941719 199.277719)">0.0</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_13">
+      <path d="M 40.941719 171.529846 
+L 442.701719 171.529846 
+" clip-path="url(#p9ac0f5d451)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_14">
+      <g>
+       <use xlink:href="#m750164c400" x="40.941719" y="171.529846" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_7">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.941719" y="175.111565" transform="rotate(-0 33.941719 175.111565)">0.1</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_15">
+      <path d="M 40.941719 147.363692 
+L 442.701719 147.363692 
+" clip-path="url(#p9ac0f5d451)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_16">
+      <g>
+       <use xlink:href="#m750164c400" x="40.941719" y="147.363692" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_8">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.941719" y="150.945411" transform="rotate(-0 33.941719 150.945411)">0.2</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_17">
+      <path d="M 40.941719 123.197538 
+L 442.701719 123.197538 
+" clip-path="url(#p9ac0f5d451)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_18">
+      <g>
+       <use xlink:href="#m750164c400" x="40.941719" y="123.197538" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_9">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.941719" y="126.779257" transform="rotate(-0 33.941719 126.779257)">0.3</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_19">
+      <path d="M 40.941719 99.031385 
+L 442.701719 99.031385 
+" clip-path="url(#p9ac0f5d451)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_20">
+      <g>
+       <use xlink:href="#m750164c400" x="40.941719" y="99.031385" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_10">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.941719" y="102.613103" transform="rotate(-0 33.941719 102.613103)">0.4</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_21">
+      <path d="M 40.941719 74.865231 
+L 442.701719 74.865231 
+" clip-path="url(#p9ac0f5d451)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_22">
+      <g>
+       <use xlink:href="#m750164c400" x="40.941719" y="74.865231" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_11">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.941719" y="78.44695" transform="rotate(-0 33.941719 78.44695)">0.5</text>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_23">
+      <path d="M 40.941719 50.699077 
+L 442.701719 50.699077 
+" clip-path="url(#p9ac0f5d451)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_24">
+      <g>
+       <use xlink:href="#m750164c400" x="40.941719" y="50.699077" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_12">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.941719" y="54.280796" transform="rotate(-0 33.941719 54.280796)">0.6</text>
+     </g>
+    </g>
+    <g id="ytick_8">
+     <g id="line2d_25">
+      <path d="M 40.941719 26.532923 
+L 442.701719 26.532923 
+" clip-path="url(#p9ac0f5d451)" style="fill: none; stroke: #e8e6dc; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_26">
+      <g>
+       <use xlink:href="#m750164c400" x="40.941719" y="26.532923" style="fill: #5e5d59; stroke: #5e5d59; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_13">
+      <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: end; fill: #5e5d59" x="33.941719" y="30.114642" transform="rotate(-0 33.941719 30.114642)">0.7</text>
+     </g>
+    </g>
+    <g id="text_14">
+     <text style="font-size: 10px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #141413" x="15.159375" y="101.448" transform="rotate(-90 15.159375 101.448)">准确率（同题同种子配对）</text>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 40.941719 195.696 
+L 40.941719 7.2 
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 40.941719 195.696 
+L 442.701719 195.696 
+" style="fill: none; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 59.203537 195.696 
+L 85.737803 195.696 
+L 85.737803 36.199385 
+L 59.203537 36.199385 
+z
+" clip-path="url(#p9ac0f5d451)" style="fill: #e8e6dc; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 137.245495 195.696 
+L 163.779761 195.696 
+L 163.779761 85.981662 
+L 137.245495 85.981662 
+z
+" clip-path="url(#p9ac0f5d451)" style="fill: #e8e6dc; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 215.287453 195.696 
+L 241.821719 195.696 
+L 241.821719 85.015015 
+L 215.287453 85.015015 
+z
+" clip-path="url(#p9ac0f5d451)" style="fill: #e8e6dc; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 293.329411 195.696 
+L 319.863677 195.696 
+L 319.863677 76.798523 
+L 293.329411 76.798523 
+z
+" clip-path="url(#p9ac0f5d451)" style="fill: #e8e6dc; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 371.371369 195.696 
+L 397.905635 195.696 
+L 397.905635 86.948308 
+L 371.371369 86.948308 
+z
+" clip-path="url(#p9ac0f5d451)" style="fill: #e8e6dc; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 85.737803 195.696 
+L 112.272068 195.696 
+L 112.272068 21.699692 
+L 85.737803 21.699692 
+z
+" clip-path="url(#p9ac0f5d451)" style="fill: #d97757; stroke: #d97757; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 163.779761 195.696 
+L 190.314026 195.696 
+L 190.314026 51.665723 
+L 163.779761 51.665723 
+z
+" clip-path="url(#p9ac0f5d451)" style="fill: #d97757; stroke: #d97757; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 241.821719 195.696 
+L 268.355984 195.696 
+L 268.355984 46.590831 
+L 241.821719 46.590831 
+z
+" clip-path="url(#p9ac0f5d451)" style="fill: #d97757; stroke: #d97757; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 319.863677 195.696 
+L 346.397943 195.696 
+L 346.397943 68.823692 
+L 319.863677 68.823692 
+z
+" clip-path="url(#p9ac0f5d451)" style="fill: #d97757; stroke: #d97757; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 397.905635 195.696 
+L 424.439901 195.696 
+L 424.439901 94.923138 
+L 397.905635 94.923138 
+z
+" clip-path="url(#p9ac0f5d451)" style="fill: #d97757; stroke: #d97757; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_15">
+    <text style="font-weight: 700; font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #d97757" x="85.737803" y="16.866462" transform="rotate(-0 85.737803 16.866462)">+6.0 点</text>
+   </g>
+   <g id="text_16">
+    <text style="font-weight: 700; font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #d97757" x="163.779761" y="46.832492" transform="rotate(-0 163.779761 46.832492)">+14.2 点</text>
+   </g>
+   <g id="text_17">
+    <text style="font-weight: 700; font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #d97757" x="241.821719" y="41.7576" transform="rotate(-0 241.821719 41.7576)">+15.8 点</text>
+   </g>
+   <g id="text_18">
+    <text style="font-weight: 700; font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #d97757" x="319.863677" y="63.990462" transform="rotate(-0 319.863677 63.990462)">+3.3 点</text>
+   </g>
+   <g id="text_19">
+    <text style="font-weight: 700; font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #6a9bcc" x="397.905635" y="82.115077" transform="rotate(-0 397.905635 82.115077)">−3.3 点</text>
+   </g>
+   <g id="legend_1">
+    <g id="patch_15">
+     <path d="M 285.201719 22.463437 
+L 303.201719 22.463437 
+L 303.201719 16.163437 
+L 285.201719 16.163437 
+z
+" style="fill: #e8e6dc; stroke: #b0aea5; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </g>
+    <g id="text_20">
+     <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="310.401719" y="22.463437" transform="rotate(-0 310.401719 22.463437)">不带知识库</text>
+    </g>
+    <g id="patch_16">
+     <path d="M 373.401719 22.463437 
+L 391.401719 22.463437 
+L 391.401719 16.163437 
+L 373.401719 16.163437 
+z
+" style="fill: #d97757; stroke: #d97757; stroke-linejoin: miter"/>
+    </g>
+    <g id="text_21">
+     <text style="font-size: 9px; font-family: 'Noto Sans CJK SC', 'Poppins', 'Arial', 'Hiragino Sans GB', 'Arial Unicode MS', 'DejaVu Sans', sans-serif; text-anchor: start; fill: #141413" x="398.601719" y="22.463437" transform="rotate(-0 398.601719 22.463437)">带知识库</text>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p9ac0f5d451">
+   <rect x="40.941719" y="7.2" width="401.76" height="188.496"/>
+  </clipPath>
+ </defs>
+</svg>
+  <figcaption>同题同种子配对：不带 / 带知识库的准确率。橙色为带知识库（主结果）。</figcaption>
+</figure>
+
+<h2>对着里程碑梯子打分：还没有系统通过「机器验证的科学生产」</h2>
+<p>里程碑梯子有七级：M0 = 知识提分、M1 = 发现规律、M2 = 出人意料、M3 = 提升前沿模型、M4 = 解释全部题目、M5 = 机器验证的科学、M6 = 论文级科学。记忆系统过 M0；发现机在本域过 M1–M2；AI-scientist 靠评审摸到 M6 但跳过验证梯；M5 在 ML 域内至今空缺。SAI-min 过 M0–M2，M5 partial：它的机制假说被自己的盲测杀死过，这恰恰是它与「产稿系统」的区别。</p>
+
+<table>
+<tr><th>系统（具体工作）</th><th>M0 知识提分</th><th>M1 发现规律</th><th>M2 出人意料</th><th>M3 提升前沿</th><th>M4 解释全部</th><th>M5 机器验证的科学</th><th>M6 论文级科学</th></tr>
+<tr><td>智能体记忆（ExpeL、Voyager、AWM、SkillRL、Dynamic Cheatsheet）</td><td>过</td><td>部分</td><td>未过</td><td>未过</td><td>未过</td><td>未过</td><td>未过</td></tr>
+<tr><td>程序搜索（FunSearch、AlphaEvolve、OpenEvolve）</td><td>—</td><td>部分</td><td>过†</td><td>未过</td><td>未过</td><td>未过</td><td>未过</td></tr>
+<tr><td>AI Scientist v1/v2、Agentic Scientist</td><td>未过</td><td>部分</td><td>部分</td><td>未过</td><td>未过</td><td>未过</td><td>部分*</td></tr>
+<tr><td>Zochi / Locus</td><td>未过</td><td>部分</td><td>部分</td><td>未过</td><td>未过</td><td>未过</td><td>部分*</td></tr>
+<tr><td>AI co-scientist</td><td>未过</td><td>部分</td><td>过†</td><td>未过</td><td>未过</td><td>未过</td><td>未过</td></tr>
+<tr><td>Robin（生物医学）</td><td>未过</td><td>部分</td><td>过†</td><td>未过</td><td>未过</td><td>未过</td><td>未过</td></tr>
+<tr><td>他域定律发现机（Eureqa、AI Feynman）</td><td>—</td><td>过†</td><td>过†</td><td>—</td><td>—</td><td>部分†</td><td>未过</td></tr>
+<tr><td><b>SAI-min（本工作，ML 域内）</b></td><td><b>过</b></td><td><b>过</b></td><td><b>过</b></td><td>未过</td><td>未过</td><td>部分</td><td>未过</td></tr>
+</table>
+<p style="font:13px/1.7 var(--head);color:var(--muted)">「过」= 通过且有可复查证据；「部分」= 部分通过；「未过」= 未通过；— = 不适用。† 在该系统的非 ML 本域内。* 由同行评审授予（workshop / 主会接收），没有机器验证的证据链：这是社会学意义上的 M6，不是预注册预测意义上的 M6。SAI-min 的证据：M0 配对提升 +14.2 / +15.8 点；M1 有 34 条假说在新题上验证、9 条被证伪；M2 有与前沿模型先验矛盾且验证成立的发现；M5 为预注册机制检验并记录证伪、经人工审计，尚未达到「确认的新理论」。</p>
+
+
+<details>
+<summary>具体工作支撑清单（53 条）</summary>
+<table>
+<tr><th>工作</th><th>家族</th><th>层级</th><th>它提供什么（一句话）</th></tr>
+<tr><td>Kaplan 2020（Scaling Laws for Neural Language Models）</td><td>经验定律</td><td>L2</td><td>loss 与参数量、数据量的幂律关系，拟合并外推</td></tr>
+<tr><td>Hoffmann 2022（Chinchilla）</td><td>经验定律</td><td>L2</td><td>计算最优的参数量–数据量分配关系</td></tr>
+<tr><td>Muennighoff 2023（数据受限缩放）</td><td>经验定律</td><td>L2</td><td>重复数据下的缩放律修正</td></tr>
+<tr><td>Yang 2022（μP / Tensor Programs 系列）</td><td>经验定律</td><td>L2</td><td>超参随宽度零样本迁移</td></tr>
+<tr><td>Zhang 2017 / Belkin 2019（双下降）</td><td>经验定律</td><td>L2</td><td>插值峰与双下降曲线</td></tr>
+<tr><td>Power 2022（grokking）</td><td>经验定律</td><td>L2</td><td>延迟泛化的相变行为</td></tr>
+<tr><td>Gao 2022（奖励过优化）</td><td>经验定律</td><td>L2</td><td>代理奖励缺口与 KL（新旧策略散度）开方的函数关系</td></tr>
+<tr><td>Hu 2025（RL 计算缩放的艺术）</td><td>经验定律</td><td>L2</td><td>sigmoid 计算–表现曲线，40 万 GPU 小时</td></tr>
+<tr><td>本工作（有效时间 U 与过拟合起点）</td><td>经验定律</td><td>L2</td><td>有效时间 U（学习率累积和）坍缩训练曲线；过拟合起点 U_c（临界累积更新量）正比于样本数/噪声方差，盲测后收窄</td></tr>
+<tr><td>Jacot 2018（NTK）</td><td>学习理论</td><td>L3</td><td>宽极限下的收敛与泛化理论</td></tr>
+<tr><td>Chizat 2019（lazy / rich）</td><td>学习理论</td><td>L3</td><td>懒训练与富训练的二分</td></tr>
+<tr><td>Bahri 2023（缩放律的统计力学）</td><td>学习理论</td><td>L3</td><td>从第一性原理解释缩放指数</td></tr>
+<tr><td>Agarwal 2020（策略梯度理论）</td><td>学习理论</td><td>L3</td><td>最优性、近似与分布偏移分析</td></tr>
+<tr><td>Watkins 1992（Q-learning）</td><td>学习理论</td><td>L3</td><td>带假设的几乎必然收敛</td></tr>
+<tr><td>Hyperball 2026 及其批评</td><td>优化器线程</td><td>L3</td><td>从尺度不变性推导范数与角向步长，在理想化假设内成立；批评文给出竞争解释</td></tr>
+<tr><td>Olsson 2022（induction heads）</td><td>可解释性</td><td>L2</td><td>in-context 学习的电路机制（证据零散）</td></tr>
+<tr><td>Elhage 2022（叠加）</td><td>可解释性</td><td>L1–L2</td><td>特征存储的几何</td></tr>
+<tr><td>Bricken 2023 / Templeton 2024（单义性）</td><td>可解释性</td><td>L1–L2</td><td>字典学习特征，直至前沿规模</td></tr>
+<tr><td>Nanda 2023（grokking 机制）</td><td>可解释性</td><td>L3</td><td>傅里叶电路解释 + 干预预测（限于所研究的模运算任务）</td></tr>
+<tr><td>Shao 2024（GRPO / DeepSeekMath）</td><td>经验 ML</td><td>L1</td><td>组相对优势在指定奖励下稳定训练</td></tr>
+<tr><td>Zheng 2025（GSPO）</td><td>经验 ML</td><td>L1</td><td>序列级裁剪稳定 MoE 的 RL 训练</td></tr>
+<tr><td>Dao 2022（FlashAttention）</td><td>系统</td><td>L1</td><td>IO 感知精确注意力的吞吐关系（声明者域内）</td></tr>
+<tr><td>Hu 2021（LoRA）</td><td>经验 ML</td><td>L1</td><td>低秩适配在声明者任务上匹配全参微调</td></tr>
+<tr><td>Shinn 2023（Reflexion）</td><td>智能体记忆</td><td>L1</td><td>言语反思提升后续任务成功率</td></tr>
+<tr><td>Wang 2023（Voyager）</td><td>智能体记忆</td><td>L1</td><td>可执行技能库的自动积累</td></tr>
+<tr><td>Zhao 2023（ExpeL）</td><td>智能体记忆</td><td>L1</td><td>跨任务洞察，带增删改投票</td></tr>
+<tr><td>Wang 2024（Agent Workflow Memory）</td><td>智能体记忆</td><td>L1</td><td>归纳工作流跨任务复用</td></tr>
+<tr><td>Jiang 2025（G-Memory）</td><td>智能体记忆</td><td>L1</td><td>多智能体层级记忆追踪</td></tr>
+<tr><td>Suzgun 2025（Dynamic Cheatsheet）</td><td>智能体记忆</td><td>L1</td><td>测试时自适应记忆</td></tr>
+<tr><td>Lu 2024（AI Scientist）</td><td>AI-scientist</td><td>L1</td><td>端到端生成 workshop 级稿件；产出为评审稿件</td></tr>
+<tr><td>Yamada 2025（AI Scientist v2）</td><td>AI-scientist</td><td>L1</td><td>agentic 树搜索，workshop 接收；产出为评审稿件</td></tr>
+<tr><td>Intology 2025（Zochi / Locus）</td><td>AI-scientist</td><td>L1</td><td>ACL 主会接收；RE-Bench 超人类专家；产出为评审稿件</td></tr>
+<tr><td>Gottweis 2025（co-scientist）</td><td>AI-scientist</td><td>L2（候选）</td><td>给人类实验者的排序假说，尚未系统扩展检验</td></tr>
+<tr><td>Schmidgall 2025（Agent Laboratory）</td><td>AI-scientist</td><td>L1</td><td>人机协作研究流水线</td></tr>
+<tr><td>Ghareeb 2025（Robin）</td><td>AI-scientist</td><td>L2（候选）</td><td>生物医学发现战役；产出为待检假说</td></tr>
+<tr><td>Nam 2025: MLE-STAR（带搜索与定向精炼的 ML 工程智能体）</td><td>AI-scientist</td><td>L1</td><td>在搜索与定向精炼下完成 ML 工程任务</td></tr>
+<tr><td>Romera-Paredes 2024（FunSearch）</td><td>程序搜索</td><td>L1</td><td>LLM 进化搜索产出新数学构造；产出为可执行工件</td></tr>
+<tr><td>DeepMind 2025（AlphaEvolve）</td><td>程序搜索</td><td>L1</td><td>编码智能体做算法发现；产出为可执行工件</td></tr>
+<tr><td>Fawzi 2022（AlphaTensor）</td><td>程序搜索</td><td>L1</td><td>矩阵乘法算法；产出为可执行工件</td></tr>
+<tr><td>Langley 1987（BACON）</td><td>他域发现机</td><td>L2</td><td>从数据表再发现经验定律</td></tr>
+<tr><td>King 2004 / 2009（Adam 机器人科学家）</td><td>他域发现机</td><td>L2–L3</td><td>假说–实验闭环的机器人科学家</td></tr>
+<tr><td>Schmidt 2009（Eureqa）</td><td>他域发现机</td><td>L2</td><td>从实验时序蒸馏符号定律</td></tr>
+<tr><td>Udrescu 2020（AI Feynman）</td><td>他域发现机</td><td>L2</td><td>物理启发的符号回归</td></tr>
+<tr><td>Merchant 2023（GNoME）</td><td>他域发现机</td><td>L2</td><td>220 万稳定晶体</td></tr>
+<tr><td>Jumper 2021（AlphaFold）</td><td>他域发现机</td><td>L3</td><td>蛋白质结构预测（限于该域；本清单未拆具体主张）</td></tr>
+<tr><td>Bernat 2026（Modelpedia）</td><td>策展</td><td>L1</td><td>从 ICLR 24–25 抽取千余条发现并编目</td></tr>
+<tr><td>验证缺口调查 2026</td><td>策展</td><td>—</td><td>元研究审计：主张比代码更难验证，35 个系统七维审计</td></tr>
+<tr><td>Chan 2024（MLE-bench）</td><td>基准</td><td>—</td><td>Kaggle 奖牌；测量仪器，测 L1 任务表现</td></tr>
+<tr><td>Aronovich 2024（RE-Bench）</td><td>基准</td><td>—</td><td>限时 ML 工程，对人类专家；测量仪器</td></tr>
+<tr><td>Fajman 2025（PaperBench）</td><td>基准</td><td>—</td><td>复现论文结果；测量仪器</td></tr>
+<tr><td>METR 2025（长任务视野）</td><td>基准</td><td>—</td><td>可完成任务的时间视野；测量仪器</td></tr>
+<tr><td>ArchitectureIQ 2026</td><td>基准</td><td>—</td><td>判断真实训练 run 的胜负；测量仪器，最接近知识</td></tr>
+<tr><td>本工作（SAI-min）</td><td>本工作</td><td>L1→L2</td><td>免训练闭环；+15.8 点；程序验收；预注册证伪</td></tr>
+</table>
+</details>
+
+<footer>定义全文：<code>sai-paper/SAI_definition.md</code> · 来源：论文草稿 <code>sai-paper/main.pdf</code> · ArchitectureIQ 与 知识库循环原型站点 · 周会与交接文档 · 2026-10-28</footer>
+</main>
+</body>
+</html>

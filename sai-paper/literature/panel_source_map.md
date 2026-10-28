@@ -22,11 +22,11 @@
 | Bahri 2023（缩放律的统计力学） [L3] | [Explaining Neural Scaling Laws](https://arxiv.org/abs/2102.06701)<br>pretrain：Science | 需结合原记录的 scope 和阅读深度核对本行主张。 |
 | Agarwal 2020（策略梯度理论） [L3] | [On the Theory of Policy Gradient Methods: Optimality, Approximation, and Distribution Shift](https://arxiv.org/abs/1908.00261)<br>rl：Science | 需结合原记录的 scope 和阅读深度核对本行主张。 |
 | Watkins 1992（Q-learning） [L3] | [Q-learning](http://dx.doi.org/10.1007/BF00992698)<br>rl：Science | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| Hyperball 2026 及其批评 [L2→L3] | [Fantastic Pretraining Optimizers and Where to Find Them II: Hyperball Optimization](https://arxiv.org/abs/2606.16899)<br>pretrain：Science<br><br>[Hyperball May Not Be a Free Lunch](https://arxiv.org/abs/2607.22444)<br>pretrain：Science | 按用户口径，指定理论分析可列 Science；方法、实测及批评各有独立范围。 |
-| Olsson 2022（induction heads） [L2 碎片] | [In-context Learning and Induction Heads](https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html)<br>interp：Knowledge（限定实证与机制假说） | 小模型干预证据与大模型普遍机制假说分开。 |
+| Hyperball 2026 及其批评 [L3] | [Fantastic Pretraining Optimizers and Where to Find Them II: Hyperball Optimization](https://arxiv.org/abs/2606.16899)<br>pretrain：Science<br><br>[Hyperball May Not Be a Free Lunch](https://arxiv.org/abs/2607.22444)<br>pretrain：Science | 按用户口径，指定理论分析可列 Science；方法、实测及批评各有独立范围。 |
+| Olsson 2022（induction heads） [L2] | [In-context Learning and Induction Heads](https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html)<br>interp：Knowledge（限定实证与机制假说） | 小模型干预证据与大模型普遍机制假说分开。 |
 | Elhage 2022（叠加） [L1–L2] | [Toy Models of Superposition](https://transformer-circuits.pub/2022/toy_models/index.html)<br>interp：Science（玩具理论候选）＋Knowledge | 玩具模型数学性质与实际网络的经验主张分开。 |
 | Bricken 2023 / Templeton 2024（单义性） [L1–L2] | [Towards Monosemanticity: Decomposing Language Models With Dictionary Learning](https://transformer-circuits.pub/2023/monosemantic-features/index.html)<br>interp：Knowledge<br><br>[Scaling Monosemanticity: Extracting Interpretable Features from Claude 3 Sonnet](https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html)<br>interp：Knowledge | 特征抽取方法/观测为 Knowledge；若有经验缩放关系，须单列关系及跨条件证据。 |
-| Nanda 2023（grokking 机制） [L3（域内）] | [Progress measures for grokking via mechanistic interpretability](https://arxiv.org/abs/2301.05217)<br>interp：Knowledge＋Science（局部机制候选） | 指定模块加法电路的证据，不等于已知所有 grokking 的适用边界。 |
+| Nanda 2023（grokking 机制） [L3] | [Progress measures for grokking via mechanistic interpretability](https://arxiv.org/abs/2301.05217)<br>interp：Knowledge＋Science（局部机制候选） | 指定模块加法电路的证据，不等于已知所有 grokking 的适用边界。 |
 | Shao 2024（GRPO / DeepSeekMath） [L1] | [DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models](https://arxiv.org/abs/2402.03300)<br>rl：Knowledge | 需结合原记录的 scope 和阅读深度核对本行主张。 |
 | Zheng 2025（GSPO） [L1] | [Group Sequence Policy Optimization](https://arxiv.org/abs/2507.18071)<br>rl：Knowledge | 需结合原记录的 scope 和阅读深度核对本行主张。 |
 | Dao 2022（FlashAttention） [L1] | [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135)<br>pretrain：Science | 方法与性能实测可为 Knowledge；指定内存模型下的 IO 定理是不同的 Science 主张。 |
@@ -37,31 +37,31 @@
 | Wang 2024（Agent Workflow Memory） [L1] | [Agent Workflow Memory](https://arxiv.org/abs/2409.07429)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
 | Jiang 2025（G-Memory） [L1] | [G-Memory: Tracing Hierarchical Memory for Multi-Agent Systems](https://arxiv.org/abs/2506.07398)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
 | Suzgun 2025（Dynamic Cheatsheet） [L1] | [Dynamic Cheatsheet: Test-Time Learning with Adaptive Memory](https://arxiv.org/abs/2504.07952)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| Lu 2024（AI Scientist） [L1 稿] | [The AI Scientist: Towards Fully Automated Open-Ended Scientific Discovery](https://arxiv.org/abs/2408.06292)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| Yamada 2025（AI Scientist v2） [L1 稿] | [The AI Scientist-v2: Workshop-Level Automated Scientific Discovery via Agentic Tree Search](https://arxiv.org/abs/2504.08066)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| Intology 2025（Zochi / Locus） [L1 稿] | [Zochi: Technical Report](https://intology.ai/blog/zochi-tech-report)<br>三线目录未匹配；本表未新增原文审阅<br><br>[Locus: A Long-Horizon Artificial Scientist](https://intology.ai/about)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| Gottweis 2025（co-scientist） [L2 假说] | [Accelerating scientific discovery with Co-Scientist](https://arxiv.org/abs/2502.18864)<br>三线目录未匹配；本表未新增原文审阅 | 排序假说不自动是 Law，需核对具体关系与跨条件证据。 |
+| Lu 2024（AI Scientist） [L1] | [The AI Scientist: Towards Fully Automated Open-Ended Scientific Discovery](https://arxiv.org/abs/2408.06292)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
+| Yamada 2025（AI Scientist v2） [L1] | [The AI Scientist-v2: Workshop-Level Automated Scientific Discovery via Agentic Tree Search](https://arxiv.org/abs/2504.08066)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
+| Intology 2025（Zochi / Locus） [L1] | [Zochi: Technical Report](https://intology.ai/blog/zochi-tech-report)<br>三线目录未匹配；本表未新增原文审阅<br><br>[Locus: A Long-Horizon Artificial Scientist](https://intology.ai/about)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
+| Gottweis 2025（co-scientist） [L2（候选）] | [Accelerating scientific discovery with Co-Scientist](https://arxiv.org/abs/2502.18864)<br>三线目录未匹配；本表未新增原文审阅 | 排序假说不自动是 Law，需核对具体关系与跨条件证据。 |
 | Schmidgall 2025（Agent Laboratory） [L1] | [Agent Laboratory: Using LLM Agents as Research Assistants](https://arxiv.org/abs/2501.04227)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| Ghareeb 2025（Robin） [L2 假说] | [Robin: A multi-agent system for automating scientific discovery](https://arxiv.org/abs/2505.13400)<br>三线目录未匹配；本表未新增原文审阅 | 系统产生的假说与实验支持的发现应逐条区分。 |
+| Ghareeb 2025（Robin） [L2（候选）] | [Robin: A multi-agent system for automating scientific discovery](https://arxiv.org/abs/2505.13400)<br>三线目录未匹配；本表未新增原文审阅 | 系统产生的假说与实验支持的发现应逐条区分。 |
 | Nam 2025: MLE-STAR（带搜索与定向精炼的 ML 工程智能体） [L1] | [MLE-STAR: Machine Learning Engineering Agent via Search and Targeted Refinement](https://arxiv.org/abs/2506.15692)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| Romera-Paredes 2024（FunSearch） [L1 工件] | [Mathematical discoveries from program search with large language models](http://dx.doi.org/10.1038/s41586-023-06924-6)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| DeepMind 2025（AlphaEvolve） [L1 工件] | [AlphaEvolve: A coding agent for scientific and algorithmic discovery](https://arxiv.org/abs/2506.13131)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| Fawzi 2022（AlphaTensor） [L1 工件] | [Discovering faster matrix multiplication algorithms with reinforcement learning](http://dx.doi.org/10.1038/s41586-022-05172-4)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
+| Romera-Paredes 2024（FunSearch） [L1] | [Mathematical discoveries from program search with large language models](http://dx.doi.org/10.1038/s41586-023-06924-6)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
+| DeepMind 2025（AlphaEvolve） [L1] | [AlphaEvolve: A coding agent for scientific and algorithmic discovery](https://arxiv.org/abs/2506.13131)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
+| Fawzi 2022（AlphaTensor） [L1] | [Discovering faster matrix multiplication algorithms with reinforcement learning](http://dx.doi.org/10.1038/s41586-022-05172-4)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
 | Langley 1987（BACON） [L2] | Scientific Discovery: Computational Explorations of the Creative Processes（书目未提供直接链接）<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
 | King 2004 / 2009（Adam 机器人科学家） [L2–L3] | [Functional genomic hypothesis generation and experimentation by a robot scientist](http://dx.doi.org/10.1038/nature02236)<br>三线目录未匹配；本表未新增原文审阅<br><br>[The Automation of Science](http://dx.doi.org/10.1126/science.1165620)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
 | Schmidt 2009（Eureqa） [L2] | [Distilling Free-Form Natural Laws from Experimental Data](http://dx.doi.org/10.1126/science.1165893)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
 | Udrescu 2020（AI Feynman） [L2] | [AI Feynman: a Physics-Inspired Method for Symbolic Regression](https://arxiv.org/abs/1905.11481)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
 | Merchant 2023（GNoME） [L2] | [Scaling deep learning for materials discovery](http://dx.doi.org/10.1038/s41586-023-06735-9)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| Jumper 2021（AlphaFold） [L3（域内）] | [Highly accurate protein structure prediction with AlphaFold](http://dx.doi.org/10.1038/s41586-021-03819-2)<br>pretrain：Knowledge | 结构预测方法及评测属于 Knowledge 主张；预测精度本身不证明第一性原理边界。 |
-| Bernat 2026（Modelpedia） [L1 组织] | [Modelpedia: A Catalog of Model Findings for the Meta-Science of AI](https://arxiv.org/abs/2609.01090)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| 验证缺口调查 2026 [审计] | [Autonomous Research Agents: A Survey of AI Scientists and the Verification Gap](https://arxiv.org/abs/2608.05179)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| Chan 2024（MLE-bench） [L1 仪器] | [MLE-bench: Evaluating Machine Learning Agents on Machine Learning Engineering](https://arxiv.org/abs/2410.07095)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| Aronovich 2024（RE-Bench） [L1 仪器] | [RE-Bench: Evaluating frontier AI R&D capabilities of language model agents against human experts](https://arxiv.org/abs/2411.15114)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| Fajman 2025（PaperBench） [L1 仪器] | [PaperBench: Evaluating AI's Ability to Replicate AI Research](https://arxiv.org/abs/2504.01848)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| METR 2025（长任务视野） [L1 仪器] | [Measuring AI Ability to Complete Long Software Tasks](https://arxiv.org/abs/2503.14499)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
-| ArchitectureIQ 2026 [L1 仪器（最接近知识）] | [ArchitectureIQ: A Benchmark for Judging Neural Network Training Outcomes](https://architecture-iq.com/)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
+| Jumper 2021（AlphaFold） [L3] | [Highly accurate protein structure prediction with AlphaFold](http://dx.doi.org/10.1038/s41586-021-03819-2)<br>pretrain：Knowledge | 结构预测方法及评测属于 Knowledge 主张；预测精度本身不证明第一性原理边界。 |
+| Bernat 2026（Modelpedia） [L1] | [Modelpedia: A Catalog of Model Findings for the Meta-Science of AI](https://arxiv.org/abs/2609.01090)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
+| 验证缺口调查 2026 [—] | [Autonomous Research Agents: A Survey of AI Scientists and the Verification Gap](https://arxiv.org/abs/2608.05179)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
+| Chan 2024（MLE-bench） [—] | [MLE-bench: Evaluating Machine Learning Agents on Machine Learning Engineering](https://arxiv.org/abs/2410.07095)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
+| Aronovich 2024（RE-Bench） [—] | [RE-Bench: Evaluating frontier AI R&D capabilities of language model agents against human experts](https://arxiv.org/abs/2411.15114)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
+| Fajman 2025（PaperBench） [—] | [PaperBench: Evaluating AI's Ability to Replicate AI Research](https://arxiv.org/abs/2504.01848)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
+| METR 2025（长任务视野） [—] | [Measuring AI Ability to Complete Long Software Tasks](https://arxiv.org/abs/2503.14499)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
+| ArchitectureIQ 2026 [—] | [ArchitectureIQ: A Benchmark for Judging Neural Network Training Outcomes](https://architecture-iq.com/)<br>三线目录未匹配；本表未新增原文审阅 | 需结合原记录的 scope 和阅读深度核对本行主张。 |
 | 本工作（SAI-min） [L1→L2] | [Science of AI: Knowledge Base Loop Prototype](https://guoshaoyang-pku.github.io/blogs/kb_site/)<br>三线目录未匹配；本表未新增原文审阅 | 配对性能、引用归因、独立真值核验是不同证据，不由来源匹配判定晋级。 |
 
 完整匹配记录及证据字段见 [panel_source_map.json](panel_source_map.json)；文件核查见 [audit.json](audit.json)。本表只是 panel 的证据入口，不替代逐条原文审阅。
 
-Panel SHA-256：875cc6a1f8db9a266a6c1d1105dec1849faf2732da7e28d24a6945d8c9e12cb4。生成时间：2026-10-28T12:33:53.697690+00:00。
+Panel SHA-256：9b5627cd12056da97e320b3764bb3beb3620acbcbc4a48a296adb5ab9752834e。生成时间：2026-10-28T15:41:30.605143+00:00。

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" font-family="PingFang SC, Noto Sans CJK SC, Hiragino Sans GB, sans-serif">
+  <defs>
+    <marker id="ax" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#141413"/>
+    </marker>
+    <marker id="axo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d97757"/>
+    </marker>
+  </defs>
+
+  <!-- axes: origin (230,270) -->
+  <line x1="230" y1="270" x2="230" y2="38" stroke="#141413" stroke-width="1.4" marker-end="url(#ax)"/>
+  <line x1="230" y1="270" x2="560" y2="270" stroke="#141413" stroke-width="1.4" marker-end="url(#ax)"/>
+  <line x1="230" y1="270" x2="58" y2="377" stroke="#141413" stroke-width="1.4" marker-end="url(#ax)"/>
+  <text x="242" y="44" font-size="12" font-weight="600" fill="#141413">误差 e（0–1）</text>
+  <text x="566" y="274" font-size="12" font-weight="600" fill="#141413">代价 c（直接训练 = 1）</text>
+  <text x="70" y="396" font-size="12" font-weight="600" fill="#141413">不适用测度 u（0–1）</text>
+
+  <!-- unit ticks -->
+  <line x1="224" y1="70" x2="236" y2="70" stroke="#141413" stroke-width="1"/>
+  <text x="216" y="74" font-size="10" fill="#5e5d59" text-anchor="end">1</text>
+  <line x1="520" y1="264" x2="520" y2="276" stroke="#141413" stroke-width="1"/>
+  <text x="520" y="290" font-size="10" fill="#5e5d59" text-anchor="middle">1</text>
+  <line x1="76" y1="360" x2="84" y2="370" stroke="#141413" stroke-width="1"/>
+  <text x="70" y="358" font-size="10" fill="#5e5d59" text-anchor="end">1</text>
+
+  <!-- science arrow: from train back to origin -->
+  <path d="M 508,260 Q 380,214 246,260" fill="none" stroke="#d97757" stroke-width="1.6" marker-end="url(#axo)"/>
+  <text x="378" y="216" font-size="10.5" fill="#d97757" font-style="italic" text-anchor="middle">Science：用更少的试探得到同样的答案</text>
+
+  <!-- train point -->
+  <circle cx="520" cy="270" r="6" fill="#141413"/>
+  <text x="532" y="236" font-size="10.5" font-weight="600" fill="#141413">直接训练</text>
+  <text x="532" y="251" font-size="10" fill="#5e5d59">e≈种子噪声，c = 1，u = 0</text>
+
+  <!-- origin -->
+  <circle cx="230" cy="270" r="6" fill="#d97757"/>
+  <text x="244" y="292" font-size="10.5" font-weight="600" fill="#d97757">原点 (0, 0, 0)</text>
+  <text x="244" y="307" font-size="10" fill="#5e5d59">零误差、零代价、处处适用：</text>
+  <text x="244" y="321" font-size="10" fill="#5e5d59">「万物理论」式的理想方向，不是已证结论</text>
+
+  <!-- U point: cheap, imprecise -->
+  <circle cx="266" cy="168" r="5" fill="#6a9bcc"/>
+  <text x="278" y="165" font-size="10.5" font-weight="600" fill="#141413">U：代价近 0、误差 &gt; 0</text>
+  <text x="278" y="180" font-size="10" fill="#5e5d59">便宜但不精确的候选规律</text>
+
+  <!-- knowledge point: tested at few settings -->
+  <circle cx="112" cy="334" r="5" fill="#b0aea5"/>
+  <text x="126" y="352" font-size="10.5" font-weight="600" fill="#141413">只测过少数设定的知识</text>
+  <text x="126" y="367" font-size="10" fill="#5e5d59">u 接近 1：未测设定记为未知</text>
+
+  <!-- contract legend -->
+  <rect x="586" y="24" width="160" height="186" rx="8" fill="#faf9f5" stroke="#e8e6dc" stroke-width="1"/>
+  <text x="598" y="44" font-size="10.5" font-weight="600" fill="#141413">先固定合同 (Ω, μ, ε)</text>
+  <text x="598" y="64" font-size="10" fill="#5e5d59">Ω：任务 × 架构 × 超参 ×</text>
+  <text x="598" y="79" font-size="10" fill="#5e5d59">数据 × 预算的全部组合</text>
+  <text x="598" y="97" font-size="10" fill="#5e5d59">μ：Ω 上声明的权重</text>
+  <text x="598" y="115" font-size="10" fill="#5e5d59">ε：误差容忍度</text>
+  <text x="598" y="137" font-size="10" fill="#5e5d59">e：作答处超出 ε 的比例</text>
+  <text x="598" y="155" font-size="10" fill="#5e5d59">c：得到答案的计算与试探</text>
+  <text x="598" y="173" font-size="10" fill="#5e5d59">u：不作答处的 μ 占比</text>
+  <text x="598" y="197" font-size="10" font-weight="600" fill="#d97757">三者都越小越好</text>
+</svg>

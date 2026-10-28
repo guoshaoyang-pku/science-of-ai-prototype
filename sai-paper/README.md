@@ -1,4 +1,4 @@
-> **Public mirror note (2026-10-28, branch `sai-taxonomy`).** This directory is the public layer of a larger local research workspace. Present here: `handoffs/` (merge handoff, state snapshot, inventory, original three-axis sketch), `literature/` (932 paper records, 872 concepts, coverage/case documents), `tools/` (catalog builders, exact counterexample scripts, public survey exporter). Intentionally local-only: `papers/` (full-text PDFs), `.cache/`, `notes/` (internal meeting snapshots), `report/` (Chinese panel — known content issues, pending revision), and the frozen manuscript (`main.tex`/`main.pdf`/`sections/`/`figures/`/`references.bib`, not to be published or extended). Links to those materials below refer to the local workspace and are dead ends in this mirror. `tools/build_panel_source_map.py` is not mirrored because it depends on the frozen panel and `references.bib`.
+> **Public mirror note (2026-10-28, branch `sai-taxonomy`).** This directory is the public layer of a larger local research workspace. Present here: `handoffs/` (merge handoff, state snapshot, inventory, original three-axis sketch), `literature/` (932 paper records, 872 concepts, coverage/case documents), `tools/` (catalog builders, exact counterexample scripts, public survey exporter). Intentionally local-only: `papers/` (full-text PDFs), `.cache/`, `notes/` (internal meeting snapshots), and the frozen manuscript (`main.tex`/`main.pdf`/`sections/`/`figures/`/`references.bib`, not to be published or extended). Links to those materials below refer to the local workspace and are dead ends in this mirror. `report/` (Chinese panel, P1 issues fixed; built with `SAI_PUBLIC=1`, which anonymizes model identities as Frontier-1…10; chart regeneration needs the external `panel_style.py`, see `PANEL_STYLE_DIR` in `gen_charts.py`) and `SAI_definition.md` (full SAI definition) were added in a later commit. `tools/build_panel_source_map.py` is not mirrored because it depends on the frozen panel and `references.bib`.
 
 # Science of AI 文献与概念图谱
 
@@ -7,6 +7,7 @@
 ## 核心入口
 
 - **[中文汇报 panel](report/sai-core-figures.html)**：对人汇报、续作讨论、向外介绍 SAI 的第一阅读面。其证据与分类仍需逐条核查，不能把交接中的“已核对”视为全部结论已获独立验证。
+- **[SAI 定义](SAI_definition.md)**：三层、三轴与分开记录项的定义全文；panel 前两节是它的压缩版。
 - **[当前状态与合并交接](handoffs/SAI当前状态与合并交接_2026-10-28.md)**：保存用户定义、932 条文献／872 个概念的快照、panel 未修问题、11 个主 PDF 缺口及恢复步骤。目标为 `guoshaoyang-pku/science-of-ai-prototype`；按用户最新指令，等待另一条线后再 merge。
 - [文件合并清单](handoffs/merge_inventory_2026-10-28.json)与[状态快照](handoffs/state_2026-10-28.json)：仅为本地准备，没有暂存、commit 或 push。改动 panel 后仍须重跑生成、自检并目检图形。
 - [Panel 来源对照](literature/panel_source_map.md)：将支撑清单的 53 行、59 个来源引用关联到现有三领域目录，保留分类差异、未匹配来源和审阅范围。来源匹配不代表主张验证。
