@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>D4：单 sigmoid 的拟合边界</title><link rel="stylesheet" href="style.css">
+<title>D4：什么时候训练曲线是sigmoid函数</title><link rel="stylesheet" href="style.css">
 <script>window.MathJax={"tex":{"inlineMath":[["\\(","\\)"],["$","$"]],"displayMath":[["\\[","\\]"],["$$","$$"]]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
@@ -11,7 +11,7 @@
 </style>
 </head>
 <body><main><div class="nav"><a href="index.html">← 研究总览</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D4_sigmoid_training_curve.html">编辑此页</a> · <a href="背景与文献.html">背景与文献</a> · <a href="D4_文献深度确认.html">与已有文献的对照</a></div>
-<h1>D4：sigmoid 拟合训练曲线的边界</h1>
+<h1>D4：什么时候训练曲线是sigmoid函数</h1>
 <h2>背景介绍</h2>
 <p>关于训练损失曲线，我们有一些经验性认识。例如，深度网络的 train loss 常被描述为“先慢、后快、再慢”：初期下降较缓，随后快速下降，最后逐渐趋稳。如何描述并预测这样的变化，是研究训练动力学的重要问题，也是 D4 的出发点。</p>
 <p>本方向沿用 D1 讨论的理论假设：在固定特征和平方损失下，总损失可沿 Hessian 的特征方向分解，各方向的损失贡献相加。相关背景和直观解释见<a href="https://guoshaoyang-pku.github.io/science-of-ai-prototype/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D1_u_effective_time.html">D1：等效训练时间的适用范围</a>。D4 将模型限制为一个慢方向和一个快方向，以便控制训练曲线的组成。</p>
