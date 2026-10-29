@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D14：架构选择规则的全条目实验检验</title><link rel="stylesheet" href="../style.css">
+</head>
+<body><main><div class="nav"><a href="../index.html">← 模糊方向</a> · <a href="D14_architecture_selection.html">D14 报告</a> · <a href="D14_文献深度确认.html">文献深度确认</a> · 实验检验</div>
+<h1>D14：架构选择规则的全条目实验检验</h1>
+<div class="legend"><strong>材料与证据范围：</strong>本组三页于 2026-10-29 整合，保留原报告的实验数字与核验结论；本次仅做网页整理，未重新运行实验或独立复算。原文引用的 KB 条目、预注册与 JSON/JSONL 产物未随这三份 HTML 提供，下文保留其文件名作为来源标识，暂不提供下载链接。</div>
+<p class="bg"><b>先看结论：</b>D14 的条目不能一概称为“已验证定律”。本次逐条对照原始 JSONL 复算已有实验，已覆盖的不重复训练；对主结论中缺少直接对照的部分另做补测。多数核心数字能够复现，但也发现了学习率点数、配对计数、近零 median 和适用范围过宽等问题。弱先验、观察性冲突和整包组合建议不会被冒充为严格的单因子因果规则。</p>
+<p class="bg">审计日期为 2026-10-28。数据来源为 <code>Science of AI Textbook/experiments</code> 下 tabular、spiral、xor、bigram、univar、mvar 的原始结果，以及本目录此前的预注册补测。全程不读取 architecture-only 题包，不用答案选择实验条件。状态表示“当前写明范围内的实验支持程度”，不是未来数据上的保证。</p>
+<div class="legend"><span class="tag ok">通过</span>数字与边界均复现 · <span class="tag mix">部分通过</span>方向或部分数字成立，但范围、混杂或证据等级有限 · <span class="tag no">未通过</span>原始结果与表述矛盾 · <b>未检验</b>没有直接实验；保留未知或弱先验，不补写成定律。</div>
+
+<h2>检验总览</h2>
+<div id="audit-summary"><p>共审计 <strong>74 个条目</strong>：<strong>44 项通过、24 项部分通过、1 项未通过、5 项未检验</strong>。这里的“未检验”是保留未知，不算失败；“部分通过”必须连同所在行的范围与混杂限制阅读。新增 216 次训练全部完成，0 failed，累计训练计时 303.199 秒。</p></div>
+<h3>已直接修正的问题</h3>
+<ul>
+<li>spiral 的 deep_wide 规则是 Adam 在 1e-5…3e-3 的 <strong>6 个</strong>学习率点均第一，不是把 1e-2 也算入后的 7 点。</li>
+<li>spiral 的 noLN 2.5–14 倍、LN 位置约 1.6 倍、激活约 1.2 倍均只能限定到对应子网格；全网格存在超出或反例。</li>
+<li>bigram 的整包比较确为 12:12，但 median(CE_B−CE_A) 复算约为 <strong>+0.000428</strong>，不是严格等于零；输出不确定仍然合理。</li>
+<li>univar 的 E8 数字改按严格单属性配对复算：低 lr 深度/宽度为 27:0、45:9；三个高 lr 语境为 6:3、12:6、2:4。它们仍是单数据集观察证据。</li>
+<li>mvar_648def 在三个 Adam 配方中均是 nLN0 最佳，因此“有 LN 胜于无 LN”已降为均值倾向，不再写成逐实例硬规则。</li>
+</ul>
+
+<h2>一、tabular：核心网格可复现，跨 lr 借用需单独补测</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>条目</th><th>独立复算与范围</th><th>状态</th></tr></thead>
+<tbody>
+<tr><td>Adam 3e-4 偏 w128–256</td><td>w16/32/64/128/256＝0.4511/0.3310/0.1745/0.1095/0.0996；4 实例×3 seeds</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>Adam 1e-3 偏 w64–128</td><td>对应值 0.2150/0.1209/0.1024/0.1110/0.1243；w64 在 4/4 实例最佳</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>Adam 3e-3 偏 w16–32，非硬淘汰</td><td>w32=0.0955，w256=0.1408；差 0.0453，逐实例差 0.0142–0.0724</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>Adam 3e-4 偏 d2–3</td><td>d1/2/3/5＝0.1935/0.1095/0.1078/0.1296</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>Adam 1e-3/3e-3 偏 d1</td><td>两档 d1 均 4/4 最佳、d5 均 4/4 最差；CE 分别约 0.0916/0.1429 与 0.1014/0.1645</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>RMSprop 3e-3 偏 w16–32</td><td>w16/32/64/128/256＝0.1043/0.1067/0.1234/0.1317/0.1527</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>RMSprop 不能永远写成偏窄</td><td>低 lr 严格配对很少；已有两个配对方向 1:1，只足以支持“符号不稳”</td><td data-status="partial"><span class="tag mix">部分通过</span></td></tr>
+<tr><td>LN 窄网收益大、宽网减弱</td><td>去重后 w32：71/72、0.07049；w128：29/36、0.02619；w192：20/36、0.00413</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>last/all-LN 略优 first</td><td>all0/first/last/all1＝0.2088/0.1674/0.1655/0.1650；last−all1 仅 0.000456，不能逐格硬套</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>residual：d1近零、d2倾向、d5有益、d3随 steps 翻转</td><td>Adam 1e-3 网格逐项复现；d2 在 512 步 4/4 胜，d5 两档均 4/4 胜</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>激活总体弱排序与 activation×width</td><td>历史 rank 聚合支持弱排序；w16 的 GELU 改善 0.05475，w128 仅 0.00404</td><td data-status="partial"><span class="tag mix">部分通过</span>（总体 rank 非全部严格 OFAT）</td></tr>
+<tr><td>Adam 3e-4 主表的 d2 residual 建议</td><td>新增对照中 residual 仅 1/4 获胜，mean(no-res−res)=−0.0103，达到预注册负收益门槛；主表已改为不统一开启</td><td data-status="fail"><span class="tag no">原建议未通过</span></td></tr>
+<tr><td>Adam 3e-4 主表的 d3 residual 建议</td><td>residual 为 3/4 获胜，但平均改善仅 0.00394，未达到 0.005 门槛；保持不确定</td><td data-status="partial"><span class="tag mix">部分通过</span></td></tr>
+<tr><td>Adam 3e-3 主表的开 LN、GELU 建议</td><td>新增 d1,w32,res 对照中，LN 对两种激活均 4/4 改善；no-LN 下 GELU 也 4/4 优于 ReLU，平均差 0.00897</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>E1：RMSprop 深度方向</td><td>d1/2/3/5＝0.1153/0.1350/0.1451/0.1744；d1 胜 d5 4/4，平均差 0.0591，达到预注册门槛</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>E1 边界</td><td>d1 实际为 3/4 实例最佳；d2 在 q_64516e 略优；没有 d1+w16 的联合整包实验</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>多因子决策流程本身的命中率</td><td>OFAT 网格不验证“灾难过滤→深宽→res/LN→位置/激活”的整包算法</td><td data-status="untested"><b>未检验</b>，仅作操作启发式</td></tr>
+</tbody></table></div>
+
+<h2>二、spiral：主结果成立，若干范围措辞原先过宽</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>条目</th><th>独立复算与处理</th><th>状态</th></tr></thead>
+<tbody>
+<tr><td>deep_wide 默认第一</td><td>≤3e-3 为 6 个 lr 点、两实例 12/12 第一；steps 6/6、bs 5/5、所列其它 opt 6/6 第一。原文“7 点”已修正</td><td data-status="partial"><span class="tag mix">原表述部分通过</span></td></tr>
+<tr><td>Adam 1e-2 难实例改中等容量</td><td>deep_wide/mid＝0.132938/0.002616＝50.82×；winner 为 ln2_left</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>RMSprop 不必最大宽度</td><td>deep_narrow/deep_wide＝0.0001463/0.0001928，比值 0.7589；三 seed 同向但仍是弱偏好</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>弱 SGD 先保证 residual</td><td>noRes/mid＝0.601756/0.186451＝3.227×；不能外推 SGD 0.01+mom0.9</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>noLN 差 2.5–14 倍</td><td>仅在 KB A5 枚举子集成立；全网格有 0.729、0.958 等反例及更大比值，已限定范围</td><td data-status="partial"><span class="tag mix">原表述部分通过</span></td></tr>
+<tr><td>LN 左端最多约 1.6 倍优</td><td>指定易实例 Adam 四点最大 1.631×；全网格可达 2.772×，且存在右端略优，已限定范围</td><td data-status="partial"><span class="tag mix">原表述部分通过</span></td></tr>
+<tr><td>成功区激活只差约 1.2 倍</td><td>d4w64 指定成功点 max/min=1.20574；不能作为所有成功区上限</td><td data-status="partial"><span class="tag mix">部分通过</span></td></tr>
+<tr><td>d1 是默认主网格强瓶颈</td><td>默认深宽网格支持；但这是联合架构结果，不是任意浅网禁令</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>d1w24 胜 d2w16 的反例</td><td>仅为题对齐观察，同时改变 d/w/res；未作为 OFAT 证据使用</td><td data-status="untested"><b>未独立检验</b>，保留观察性边界</td></tr>
+</tbody></table></div>
+
+<h2>三、XOR：主表和预算交互均能复现</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>条目</th><th>独立复算</th><th>状态</th></tr></thead>
+<tbody>
+<tr><td>SGD mom0、lr≤3e-3 需要 LN/res</td><td>3e-3 时 d4w128+LN/plain＝0.1041；3e-4 为 0.4933</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>SGD 3e-2 避深窄</td><td>d4w128/d4w32＝0.1758；d2w128 与 d1w64lnres 为已测优选</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>Adam 3e-4 需要中小容量</td><td>d1w32=0.15246；最佳 d2w64lnresGELU=0.050128</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>Adam 1e-3 偏 d2w32</td><td>d2w128/d2w32＝1.3757；前列差距小，不硬排近似并列</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>Adam 3e-3 偏浅小，res 可有害</td><td>d1w32=0.053748；d4w128res/plain＝1.5606</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>RMSprop 3e-3 偏 d1w32</td><td>d1w128/d1w32＝1.7197；d4w128res/plain＝1.2695</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>Adagrad 3e-2 偏 d2 中小模型</td><td>d2w32=0.04292，d4w128res=0.086515</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>Adagrad 3e-3 的 d2w96 弱补充</td><td>只有题对齐观察，没有受控 w96 扫描；已保留“弱补充”</td><td data-status="untested"><b>未独立检验</b></td></tr>
+<tr><td>另一 Adam 3e-4 基线的 OFAT</td><td>加宽/加深/LN有益；res=1.17995–1.30881×，SiLU=1.34030–1.47007×</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>steps×架构与 CE 噪声边界</td><td>Adam d4w128 的 4096/512＝2.5798；小 CE 差常见逐 seed 方向不一致，支持谨慎门槛</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+</tbody></table></div>
+
+<h2>四、bigram：数值多能复现，但训练语境混杂不可省略</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>条目</th><th>独立复算与限制</th><th>状态</th></tr></thead>
+<tbody>
+<tr><td>w128 vs w64，低/中 lr</td><td>3e-5、1e-4、1e-3 切片均 100%；1e-3 仅 n=8、两个 ds×ctx 且全为 SGD×2048</td><td data-status="partial"><span class="tag mix">部分通过</span>（小样本/单语境）</td></tr>
+<tr><td>lr=3e-4 的 w128 刀刃</td><td>合计 8/16、median −0.05997；Adam×256 为 8/8，AdamW×1024 为 0/8，是两个相反语境的合成</td><td data-status="partial"><span class="tag mix">部分通过</span>（完全混杂）</td></tr>
+<tr><td>w64 vs w32，lr=3e-3</td><td>合计 8/24、median −0.3294；Adam/AdamW 0/16，SGD 却 8/8</td><td data-status="partial"><span class="tag mix">部分通过</span>（优化器间方向冲突）</td></tr>
+<tr><td>w128 vs w64，lr=3e-3</td><td>18/24、median +0.08616；Adam 内仅 4/8，不能写成高 lr 普遍选宽</td><td data-status="partial"><span class="tag mix">部分通过</span></td></tr>
+<tr><td>dff256 vs 64，低 lr/256 步</td><td>低 lr 95–100%、256 步 58/60；steps 切片混合 lr/optimizer，不是纯 steps OFAT</td><td data-status="partial"><span class="tag mix">部分通过</span></td></tr>
+<tr><td>dff256 vs 64，lr=3e-3</td><td>9/30、median −0.16783；512 步 0/20，联合 256 步却 9/10</td><td data-status="partial"><span class="tag mix">部分通过</span></td></tr>
+<tr><td>d4 vs d2</td><td>低 lr 36/36，高 lr 3/18；配对内架构字段受控</td><td data-status="pass"><span class="tag ok">通过</span>（按原切片）</td></tr>
+<tr><td>d3 vs d1，lr=3e-3</td><td>0/6、median −0.35796；n=6 小样本</td><td data-status="partial"><span class="tag mix">部分通过</span></td></tr>
+<tr><td>h2 vs h4，lr=3e-3</td><td>44/54、median +0.15137；Adam/AdamW 36/36，SGD 不支持同一方向</td><td data-status="pass"><span class="tag ok">通过</span>（含原文例外）</td></tr>
+<tr><td>SGD/Adagrad 的 heads 例外</td><td>SGD 16/35、Adagrad 8/18，median 近零，支持“不写 2 头通用更好”</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>TF vs GRU</td><td>高 lr GRU 4/6，低 lr TF 8/12；n 小、未匹配参数量，且不是 kind-only OFAT</td><td data-status="partial"><span class="tag mix">部分通过</span>，只作弱规则</td></tr>
+<tr><td>lr=3e-3×steps=256 冲突</td><td>联合格只有 SGD/mom0.9、两个数据语境；dff 与 depth 方向不同，支持停止单因子硬选</td><td data-status="partial"><span class="tag mix">部分通过</span></td></tr>
+<tr><td>整包 12:12、median=0</td><td>12:12 正确；median 实际约 +0.000428，已改为近零。不确定结论保留</td><td data-status="partial"><span class="tag mix">原精确等零未通过</span></td></tr>
+<tr><td>100 题命中率</td><td>E8 架构配对不能证明题对齐命中率，本报告也未据此作保证</td><td data-status="untested"><b>未检验</b></td></tr>
+</tbody></table></div>
+
+<h2>五、univar：强 OFAT 与单数据集观察必须分开</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>条目</th><th>独立复算与限制</th><th>状态</th></tr></thead>
+<tbody>
+<tr><td>低 lr 更深、更宽</td><td>严格单属性 E8 为 27:0、45:9；residual_probe 为 93:3、81:15。原 KB 计数口径不同，已改文</td><td data-status="partial"><span class="tag mix">方向通过，原计数部分通过</span></td></tr>
+<tr><td>高 lr 主效应减弱</td><td>三个 E8 语境为 6:3、12:6、2:4；仅单数据集，原计数已改</td><td data-status="partial"><span class="tag mix">部分通过</span></td></tr>
+<tr><td>低 lr 更多 LN</td><td>residual_probe 的全 0/全 1 mask 配对为 91:5，平均收益 0.14467</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>不能指定普遍最佳 LN mask</td><td>E8/probe 的等 LN 数量位置配对为零；其它实测也稀疏，支持保留未知</td><td data-status="pass"><span class="tag ok">通过</span>（作为否定规则）</td></tr>
+<tr><td>residual×LN</td><td>无 LN 36:12、+0.022896；d3 全 LN 3:13、−0.009398；d5 全 LN 4:12、−0.023196</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>optimizer 的深度×LN 优先级</td><td>新增两数据集直接对照：SGD/Adagrad 均 2/2 LN-first，相对优势 17.4%/20.7%；Adam/AdamW/RMSprop 未达门槛。只覆盖 w128、no-res、ReLU、512×32</td><td data-status="pass"><span class="tag ok">通过</span>（限定配方）</td></tr>
+<tr><td>AdamW 3e-3 浅宽点状最优</td><td>d2,w192,noLN,noRes,GELU＝0.004197，38 候选第一</td><td data-status="pass"><span class="tag ok">通过</span>（点状整包）</td></tr>
+<tr><td>AdamW 3e-4 深网点状最优</td><td>d5,w128,nLN1,Leaky,noRes＝0.012708</td><td data-status="pass"><span class="tag ok">通过</span>（点状整包）</td></tr>
+<tr><td>SGD 1e-4 点状最优</td><td>d5,w128,nLN3,res,ReLU＝0.33077</td><td data-status="pass"><span class="tag ok">通过</span>（点状整包）</td></tr>
+<tr><td>SGD 3e-3+mom0.9 点状最优</td><td>同架构＝0.056886</td><td data-status="pass"><span class="tag ok">通过</span>（点状整包）</td></tr>
+<tr><td>独立激活总排序</td><td>没有跨配方独立激活 OFAT；D14 未给出排序</td><td data-status="untested"><b>未检验</b>，保持未知</td></tr>
+</tbody></table></div>
+
+<h2>六、mvar：单因子规则较强，组合整包不是全因子证明</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>条目</th><th>独立复算与限制</th><th>状态</th></tr></thead>
+<tbody>
+<tr><td>Adam 3e-4 配方行</td><td>w256、d5、nLN/res 各 OFAT 数字通过；更深 56/60，但组合整包未系统检验</td><td data-status="partial"><span class="tag mix">部分通过</span></td></tr>
+<tr><td>Adam 1e-3 配方行</td><td>w256、d3–5、nLN/res 单因子通过；d2 很接近，整包未检验</td><td data-status="partial"><span class="tag mix">部分通过</span></td></tr>
+<tr><td>Adam 3e-3 配方行</td><td>更宽 22/36；w64、d2 也有竞争力，不能硬拼唯一赢家</td><td data-status="partial"><span class="tag mix">部分通过</span></td></tr>
+<tr><td>Adam 1e-2 不默认最宽</td><td>更宽 16/36；w32 均值第一，w256 仍在 2/6 数据集最佳；其余字段保持弱先验</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>RMSprop 1e-3 偏 w64–128</td><td>更宽 11/36；w128 均值最佳。其它架构轴仍未检验</td><td data-status="pass"><span class="tag ok">通过</span>（宽度）</td></tr>
+<tr><td>SGD 3e-3+mom0.9 配方行</td><td>w256、d2、nLN1、res 单因子结果复现；res 改善 0.09475，整包未检验</td><td data-status="partial"><span class="tag mix">部分通过</span></td></tr>
+<tr><td>Adagrad 1e-2 偏 w64–128</td><td>w64 均值第一且 5/6 最佳；其它字段保持弱先验</td><td data-status="pass"><span class="tag ok">通过</span>（宽度）</td></tr>
+<tr><td>LN 有胜于无</td><td>均值倾向成立，但 mvar_648def 在三个 Adam 配方均是 nLN0 最佳，已降为倾向</td><td data-status="partial"><span class="tag mix">原硬表述部分通过</span></td></tr>
+<tr><td>residual 22/24</td><td>四核心配方胜场 6+4+6+6；范围为 d4全LN/w64/ReLU</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+<tr><td>激活排序</td><td>四核心配方均值均复现；SiLU 为 21/24 格最差，不是逐格绝对规则</td><td data-status="pass"><span class="tag ok">通过</span>（配方均值）</td></tr>
+<tr><td>batch×宽度</td><td>bs32/64 偏 w256，bs16 均值 w128 第一；逐实例最优并不完全一致</td><td data-status="pass"><span class="tag ok">通过</span>（均值）</td></tr>
+<tr><td>LN 位置弱</td><td>first2 胜 last2 为 7/10，仅 Adam 1e-3 一条基座，支持弱证据定位</td><td data-status="pass"><span class="tag ok">通过</span>（弱证据）</td></tr>
+<tr><td>E2 深度×LN</td><td>A/B/C/D 均值与 A-vs-D 胜场复现；未达预注册门槛，保持 undecided</td><td data-status="pass"><span class="tag ok">通过</span></td></tr>
+</tbody></table></div>
+
+<h2>七、新增直接对照实验</h2>
+<div id="new-validation-results"><p>预注册的 216 次训练全部完成，0 failed。逐 seed 数据见 <span title="源路径：validation/validation_results.jsonl；原始文件未随本页提供">validation_results.jsonl（源文件未附）</span>，聚合见 <span title="源路径：validation/validation_summary.json；原始文件未随本页提供">validation_summary.json（源文件未附）</span>，代码与判定门槛见 <span title="源路径：validation/preregistration.json；原始文件未随本页提供">预注册（源文件未附）</span>。</p>
+<h3>T1：tabular、Adam 3e-4 的 residual</h3>
+<p>固定 w128、full LN、GELU、256×32。d2 的 residual 仅在 1/4 数据集改善，mean(no-res−res)=<strong>−0.01032</strong>，达到预注册的 residual_harm 判据；d3 为 3/4 改善，但均值仅 <strong>+0.00394</strong>，未达到 0.005，保持 undecided。原先从 Adam 1e-3 借来的“d≥2 倾向残差”因此不能成立。</p>
+<h3>T2：tabular、Adam 3e-3 的 LN 与激活</h3>
+<p>固定 d1,w32,res、256×32。no-LN/LN 在 GELU 下的平均 CE 为 0.10504/0.08582，在 ReLU 下为 0.11401/0.09483；LN 对两种激活都在 4/4 数据集改善。no-LN 下 GELU 也在 4/4 优于 ReLU，平均改善 0.00897，支持该点的 LN+GELU 建议。</p>
+<h3>U1：univar 的深度×LN 冲突</h3>
+<p>固定两个数据集、w128、no-res、ReLU、512×32。SGD 和 Adagrad 的浅+全 LN 都在 2/2 数据集击败深+1 LN，平均相对优势分别为 <strong>17.37% 和 20.66%</strong>，达到 LN-first 门槛；Adam/AdamW 的两个数据集方向相反，RMSprop 也未达门槛，均保持 undecided。Adam 与 AdamW 在 wd=0 时结果相同，符合优化器定义，不构成独立两份证据。</p></div>
+
+<h2>八、哪些内容不能被“再做一次实验”变成通用定律</h2>
+<ul>
+<li>已有实验多为少量开发实例和 3 seeds；复算成功只说明规则在原范围内成立，不等于封存 OOD 验证。</li>
+<li>观察性整包赢家、OFAT 单因子结果和跨字段组合建议必须分开；把多个最优单因子拼在一起，不构成整包实测。</li>
+<li>bigram 的 optimizer×steps 混杂、univar 的单数据集 E8、spiral/XOR 的题对齐反例，不能用原数据顺便“证明”未控制的因果关系。</li>
+<li>对当前标为未知的 LN 位置、univar 激活排序、mvar 非核心配方其它字段，本报告选择保留未知，而不是为了条目齐全强行给答案。</li>
+<li>本次不追求“全部通过”。实验检验的正当结果包括通过、部分通过、未通过和仍未检验。</li>
+</ul>
+<div class="stamp">D14 全条目实验审计 · 已有结果复算与预注册补测 · 2026-10-28</div>
+</main></body></html>

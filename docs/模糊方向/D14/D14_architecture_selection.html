@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>固定训练语境下怎样选择神经网络架构</title><link rel="stylesheet" href="../style.css">
+</head>
+<body><main><div class="nav"><a href="../index.html">← 模糊方向</a> · <a href="D14_文献深度确认.html">文献深度确认</a> · <a href="D14_实验检验.html">实验检验</a> · 基于 Science of AI Textbook knowledge_base 的受控实验结论</div>
+<h1>固定训练语境下，怎样选择神经网络架构</h1>
+<div class="legend"><strong>材料与证据范围：</strong>本组三页于 2026-10-29 整合，保留原报告的实验数字与核验结论；本次仅做网页整理，未重新运行实验或独立复算。原文引用的 KB 条目、预注册与 JSON/JSONL 产物未随这三份 HTML 提供，下文保留其文件名作为来源标识，暂不提供下载链接。</div>
+<p><strong>方向定位：</strong>这是从“固定训练语境下怎样选择架构”这一宽泛问题出发形成的条件经验规则集。具体配对已成为可检验的小问题，但目前尚未形成统一解释或预测规律。候选下一问是：哪些因素决定残差收益由正转负，能否在新条件下提前预测？这只是候选问题，尚未开展检验。</p>
+<p>这是神经网络架构选择中“同一任务与训练预算下，深度、宽度、LayerNorm、残差和激活怎样影响最终测试表现”的问题。答案是：<strong>没有跨任务通用的最佳架构；先按任务族和训练配方路由，再用该条件下的配对实验排序。</strong>只固定优化器名称仍不够，学习率、步数、批量、动量以及其它架构字段都可能改变最优选择。</p>
+<p>本页把 knowledge_base 中 tabular、spiral、XOR、bigram、univar、mvar 的受控结果整理成可操作规则。除“补充实验”一节外，数字均来自已有 KB；这里做的是证据整合，不把跨任务归纳写成新的实测定律。KB 原始实验多数为 3 seeds，部分 univar 探针为 5 seeds。</p>
+
+<h2>先说怎么用：选择顺序比单个开关更重要</h2>
+<ol>
+<li><strong>先固定任务、模型族和指标。</strong>分类 test CE 与回归 test MSE 分开；bigram 的 TF/GRU 规则不能用于 MLP。</li>
+<li><strong>再匹配完整训练配方。</strong>至少核对 optimizer、lr、steps、batch size、momentum、weight decay。下面的“好”均指同数据、同其它字段下的相对测试表现。</li>
+<li><strong>整包直接对照优先于单因子规则。</strong>若候选恰好命中受控整包比较，直接用整包结果；否则才用深度、宽度、LN、残差、激活的局部规则。</li>
+<li><strong>先容量和训练稳定性，后位置与激活。</strong>深宽、是否有 LN/残差通常是主效应；LN 位置、GELU 与 SiLU 等细排名常是弱项。</li>
+<li><strong>接近噪声底线时不硬选。</strong>spiral 的 CE 比小于 1.5、XOR 的 CE 差小于约 0.02、mvar 只有个位数百分比 MSE 差时，应加 seeds 或标为不确定。</li>
+</ol>
+<blockquote>“更深、更宽、更多 LN、加残差、换 SiLU”都不是全局正项。尤其是残差：tabular 深网中常有益，XOR 高有效学习率下可能有害，univar 全 LN 时也可能有害。</blockquote>
+
+<h2>一、tabular 二分类：最优容量随学习率移动</h2>
+<p>适用于 ArchitectureIQ MLP、test CE、4 个合成实例、3 seeds。深度/宽度主表默认 steps=256、bs=32、full LN、residual、GELU；改变这些字段时须看后面的交互规则。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>训练语境</th><th>优先选择</th><th>避免或降权</th><th>直接证据</th></tr></thead>
+<tbody>
+<tr><td>Adam 3e-4，256 步</td><td>d=2–3，w=128–256；开 LN；residual 按深度与配方单独判断</td><td>d=1、w=16–32；不要统一给 d≥2 加残差</td><td>w256 CE=0.100，w16=0.451；d2/d3≈0.109/0.108，d1=0.194；新对照中 d2 开残差反而有害</td></tr>
+<tr><td>Adam 1e-3，256 步</td><td>d=1（可放宽到 d=2），w=64–128；至少 last-LN</td><td>d=5、w=16</td><td>d1 CE=0.092，d5=0.143；w64=0.102，w16=0.215</td></tr>
+<tr><td>Adam 3e-3，256 步</td><td>d=1，w=16–32，开 LN，GELU</td><td>d=5、w=256</td><td>d1=0.101，d5=0.164；w32=0.095，w256=0.141</td></tr>
+<tr><td>RMSprop 3e-3，256 步</td><td>w=16–32；w128 深度扫描中优先 d1</td><td>w=256；该扫描中避免 d5</td><td>原宽度网格 w16=0.104，w32=0.107，w256=0.153；新深度网格 d1=0.115，d5=0.174</td></tr>
+</tbody></table></div>
+<p>学习率 3e-3 的宽度差只有约 0.04 CE，应视为偏好而非硬淘汰。RMSprop 的宽度规则不能写成“永远偏窄”，其低学习率区符号不稳。</p>
+<h3>LN、残差和激活怎样决胜</h3>
+<ul>
+<li><strong>LN：</strong>w≤32 几乎必须开，any-LN 对 no-LN 胜率 98.6%、平均改善 0.071 CE；w≈128 胜率 80.6%、改善约 0.026；w≥192 收益接近零。last/all-LN 略优于 first，但 last 与 all 接近。</li>
+<li><strong>残差：</strong>在 w128、full LN、GELU、Adam 1e-3 下，d1 接近零收益；d2 倾向开启，512 步 4/4 数据集获胜、平均改善约 0.014；d5 在 256/512 步均 4/4 胜、改善约 0.03。d3 的方向随步数翻转，不写死。新增 Adam 3e-4 对照中，d2 的 residual 仅 1/4 获胜、mean(no-res−res)=−0.0103，达到预注册的负收益判据；d3 则为 3/4 获胜但平均仅 +0.00394，保持不确定，不能跨 lr 借用残差规则。</li>
+<li><strong>激活：</strong>总体倾向 GELU≈SiLU &gt; LeakyReLU &gt; ReLU，但属于二阶因子。w16 时 GELU 相对 ReLU 改善约 0.055；w128 时仅约 0.004，不能强行决胜。新增 Adam 3e-3、d1,w32,res 对照中，LN 对 GELU/ReLU 都在 4/4 数据集改善；no-LN 下 GELU 也在 4/4 优于 ReLU，平均差 0.00897，支持该点的 LN+GELU 建议。</li>
+</ul>
+<p class="bg">来源：<span title="源路径：../../Science of AI Textbook/knowledge_base/tabular/C10-arch-fine-rules.md；原始文件未随本页提供">tabular C10（源文件未附）</span> 的 R1–R6；范围外不保证。多因子同时变化时，先用灾难配方过滤，再看深宽、d≥2 的残差、LN 有无，最后才看 LN 位置和激活。</p>
+
+<h2>二、spiral 二分类：默认深宽，但高学习率和 RMSprop 是例外</h2>
+<p>适用于 spiral MLP、test CE、指定 10 架构库、3 seeds。主网格默认 steps=256、bs=32、wd=0，主要实例为 spiralcls_8585ec；学习率网格另含 spiralcls_fa00ef。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>训练语境</th><th>优先架构</th><th>边界与证据</th></tr></thead>
+<tbody>
+<tr><td>Adam 1e-5…3e-3；以及已测 steps/bs 网格</td><td><code>deep_wide</code>：d5、w256、全 LN、残差、SiLU</td><td>在 Adam 的 6 个 lr 点、steps 64…2048、bs 8…128，以及所列其它 optimizer 语境中均为第一；1e-2 不在此规则内</td></tr>
+<tr><td>Adam 1e-2，难实例 fa00ef</td><td>改选中等容量 <code>mid</code>（d3,w64）或 <code>ln2_left</code></td><td>deep_wide CE=0.133，mid=0.0026，约 51 倍；不能继续选最大模型</td></tr>
+<tr><td>RMSprop 1e-3</td><td>深网即可，不必最大宽度；<code>deep_narrow</code> 可作候选</td><td>d5,w32 与 deep_wide 接近且略优，但差小于通常种子噪声；准确表述是“加宽无收益”</td></tr>
+<tr><td>SGD 3e-3，mom=0</td><td>首先保证 residual，再谈深宽</td><td>noRes CE=0.60，同骨架 mid=0.19；该规则不外推 SGD 0.01+mom0.9</td></tr>
+</tbody></table></div>
+<ul>
+<li><strong>不要全无 LN：</strong>在 KB A5 明确枚举的语境中，d3,w64,SiLU,res 骨架的 noLN 相对有 LN 差 2.5–14 倍；全网格存在反例，不能扩成所有条件。</li>
+<li><strong>LN 位置是后序弱项：</strong>在易实例、Adam、lr=1e-4…3e-3 四点，d3,w64 下左端略优于右端，最大约 1.63 倍；范围外不以 1.6 倍封顶。</li>
+<li><strong>成功区别过度解释激活：</strong>在 d4,w64、全 LN、res、Adam 1e-3、256×32 的已测成功点，SiLU/GELU/LeakyReLU/ReLU 的 max/min≈1.206；“浅网+ReLU 差”是联合架构结果，不能全归因于 ReLU。</li>
+<li><strong>d1 是强瓶颈而非绝对禁令：</strong>默认主网格中浅网差，但已有 d1,w24 胜 d2,w16 的题对齐反例；极低 lr 或极窄网时应降级为强负项。</li>
+</ul>
+<p class="bg">来源：<span title="源路径：../../Science of AI Textbook/knowledge_base/spiral/fine-arch-selection.md；原始文件未随本页提供">spiral fine-arch-selection（源文件未附）</span>、<span title="源路径：../../Science of AI Textbook/knowledge_base/spiral/C03-depth-width.md；原始文件未随本页提供">C03（源文件未附）</span>、<span title="源路径：../../Science of AI Textbook/knowledge_base/spiral/C04-layernorm-position.md；原始文件未随本页提供">C04（源文件未附）</span>。</p>
+
+<h2>三、XOR 二分类：中低有效学习率补容量，高有效学习率缩小模型</h2>
+<p>适用于两个 XOR 实例、MLP、test CE、3 seeds。下表的细网格主要为 steps=1024、bs=32、wd=0；训练预算变化时另看 steps 交互。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>训练语境</th><th>优先架构</th><th>避免与定量证据</th></tr></thead>
+<tbody>
+<tr><td>SGD mom0，lr≤3e-3</td><td>d4,w128,LN+res，或至少 LN</td><td>plain 深网常卡在 CE 先验附近；SGD 3e-3 时 LN 可将 d4w128 CE 变为约 0.10×</td></tr>
+<tr><td>SGD 3e-2</td><td>d2,w128，或 d1,w64,LN+res</td><td>避免 d4,w32 深窄网；d4w128/d4w32 CE 比为 0.18</td></tr>
+<tr><td>Adam 3e-4</td><td>d2,w64,LN+res,GELU，或 d3,w64–128</td><td>d1,w32 CE=0.152，最佳组合 0.050；小模型容量不足</td></tr>
+<tr><td>Adam 1e-3</td><td>d2,w32 一级的小模型</td><td>避免大宽深网；d2w128/d2w32=1.38，扩宽反而变差</td></tr>
+<tr><td>Adam 3e-3</td><td>d1,w32，或 d2,w32–64</td><td>d1w32=0.054，d4w128res=0.125；d4w128 加 residual 后 CE 变为 1.56×</td></tr>
+<tr><td>RMSprop 3e-3</td><td>d1,w32</td><td>d1w32=0.049，d1w128=0.083；避免宽网+res</td></tr>
+<tr><td>Adagrad 3e-2；3e-3 仅弱补充</td><td>d2,w32–96 级中小模型</td><td>Adagrad 3e-2 时 d2w32=0.043，d4w128res=0.087</td></tr>
+</tbody></table></div>
+<p>在 Adam 3e-4、steps=512、bs=32 的另一基线上，w48→128、d2→3、加两层 LN 都有益，但 residual 和 SiLU 分别使 CE 变为约 1.18–1.31×、1.34–1.47×。这进一步说明不能给 residual/SiLU 固定加分。</p>
+<p><strong>预算交互：</strong>Adam 3e-3 的 d4,w128 在 512 步后恶化，4096 步 CE 从约 0.075 升到 0.195；若被迫选大模型，应限制预算。SGD 则可能需要更长训练。</p>
+<p class="bg">来源：<span title="源路径：../../Science of AI Textbook/knowledge_base/xor/F01-architecture-selection.md；原始文件未随本页提供">XOR F01（源文件未附）</span>、<span title="源路径：../../Science of AI Textbook/knowledge_base/xor/K04_architecture.md；原始文件未随本页提供">K04（源文件未附）</span>。仅两个实例，CE 差小于约 0.02 时可能翻转。</p>
+
+<h2>四、bigram：稳定区偏大，高学习率区按具体配对反转</h2>
+<p>这一族使用 TF/GRU 的 kind、depth、d_model、dff、heads，不是 MLP 的 LN/residual/activation 规则。指标为 test CE。配对内部保持数据、训练语境和其它架构字段一致；但不同 lr/steps 切片常同时改变 optimizer、steps 和 batch，不能把切片胜率当作纯粹的学习率因果效应。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>比较与语境</th><th>选择</th><th>证据与例外</th></tr></thead>
+<tbody>
+<tr><td>w128 vs w64，lr=3e-5/1e-4/1e-3</td><td>偏 w128</td><td>切片胜率 100%；但 lr=3e-4 只有 50%，属于刀刃</td></tr>
+<tr><td>w64 vs w32，lr=3e-3</td><td>偏 w32</td><td>w64 胜率仅 33%，median 劣势约 0.33 CE</td></tr>
+<tr><td>dff256 vs 64，lr≤1e-4 或 steps=256</td><td>偏大 dff</td><td>低 lr 胜率 95–100%；steps=256 为 97%</td></tr>
+<tr><td>dff256 vs 64，lr=3e-3</td><td>偏小 dff</td><td>256 胜率仅 30%，median 劣势 0.17</td></tr>
+<tr><td>d4 vs d2，lr≤1e-4</td><td>偏深</td><td>切片胜率 100%</td></tr>
+<tr><td>d4 vs d2 或 d3 vs d1，lr=3e-3</td><td>偏浅</td><td>d4 胜率 17%；d3 为 0/6 胜</td></tr>
+<tr><td>h2 vs h4，lr=3e-3</td><td>强偏 2 头</td><td>胜率 82%，median 优势 0.151；SGD/Adagrad 下不要套此规则</td></tr>
+<tr><td>TF vs GRU</td><td>只作弱后序规则</td><td>高 lr 偏 GRU，低 lr/短步数偏 TF，但样本小且未匹配参数量</td></tr>
+</tbody></table></div>
+<p><strong>不要把高学习率简化成“越窄越好”：</strong>w128 vs w64 在 lr=3e-3 仍有 75% 选 w128。lr=3e-3 与 steps=256 同时出现时，lr 规则偏浅/小 dff，而 steps 规则偏深/大 dff；应停止单因子硬选，改比整包。</p>
+<p>若整包精确命中已知对照，整包优先。例如 <code>tf,d1,w128,dff256,h2</code> 与 <code>tf,d4,w128,dff128,h4</code> 是 12:12，median(CE_B−CE_A)≈+0.00043，仍应输出不确定。bigram 尚无题对齐 100 题命中率保证。</p>
+<p class="bg">来源：<span title="源路径：../../Science of AI Textbook/knowledge_base/bigram/11-arch-by-training-context.md；原始文件未随本页提供">bigram 11（源文件未附）</span>、<span title="源路径：../../Science of AI Textbook/knowledge_base/bigram/09-architecture-numeric.md；原始文件未随本页提供">09（源文件未附）</span>。</p>
+
+<h2>五、univar 回归：低学习率偏深宽和 LN，残差必须看 LN</h2>
+<p>指标为 test MSE，不能与前面的 CE 数字混用。主要证据包括单数据集 12 语境×38 架构、以及两个数据集上的 96 个 residual 配对。</p>
+<ul>
+<li><strong>深度与宽度：</strong>lr≤1e-3 时，同语境更深、更宽通常更好。本次按严格单属性口径复算 E8，深度/宽度分别为 27:0、45:9；residual_probe 控制 LN 后为 93:3、81:15。E8 是单数据集观察配对，不能由此推出“深窄必胜浅宽”。</li>
+<li><strong>高学习率：</strong>在 E8 三个 lr=3e-3 语境中，严格单属性复算为更深 6:3、更宽 12:6、more-LN 2:4，主效应较低 lr 减弱；这只是单数据集证据。</li>
+<li><strong>LN 数量：</strong>lr≤1e-3 时更多 LN 通常更好，residual_probe 为 91:5；但等数量不同位置的样本稀疏，不能指定普遍最佳 mask。</li>
+<li><strong>残差×LN：</strong>在两套 Adam 配方中，无 LN 时 residual 36:12 胜、mean Δ=+0.023；d3 全 LN 时 residual 3:13 胜、mean Δ=−0.009；d5 全 LN 时 4:12 胜、mean Δ=−0.023。这里 Δ=MSE(no-res)−MSE(res)，正值才表示 residual 更好。</li>
+<li><strong>深度与 LN 冲突：</strong>E8 未控制其它字段的冲突对曾显示 SGD/Adagrad 偏 LN、RMSprop 略偏 LN、Adam/AdamW 接近。新增两数据集、w128、no-res、ReLU、512×32 直接对照中，SGD/Adagrad 均为 2/2 LN-first，平均相对优势 17.4%/20.7%；Adam/AdamW/RMSprop 未达判定门槛。该结果只覆盖所测配方，不能升格为所有 optimizer 的通用优先级。</li>
+<li><strong>激活：</strong>没有独立跨配方总排序，不能从 mvar 或 tabular 借来。</li>
+</ul>
+<div class="table-wrap"><table>
+<thead><tr><th>点状配方</th><th>已测优选</th><th>限制</th></tr></thead>
+<tbody>
+<tr><td>AdamW 3e-3，1024×32</td><td>d2,w192,no-LN,no-res,GELU，MSE≈0.004</td><td>只限该点，不能推广到邻近 lr/steps</td></tr>
+<tr><td>AdamW 3e-4，1024×16</td><td>d5,w128,nLN1,LeakyReLU，MSE≈0.013</td><td>与上一行共同说明配方会改变深浅偏好</td></tr>
+<tr><td>SGD 1e-4，256×64，mom0</td><td>d5,w128,nLN3,res,ReLU，MSE≈0.33</td><td>残差在此有益，与 Adam 全 LN 反例不冲突</td></tr>
+<tr><td>SGD 3e-3，512×16，mom0.9</td><td>d5,w128,nLN3,res,ReLU，MSE≈0.057</td><td>点状配方规则</td></tr>
+</tbody></table></div>
+<p class="bg">来源：<span title="源路径：../../Science of AI Textbook/knowledge_base/univar/C03-depth-width.md；原始文件未随本页提供">univar C03（源文件未附）</span>、<span title="源路径：../../Science of AI Textbook/knowledge_base/univar/C04-layernorm.md；原始文件未随本页提供">C04（源文件未附）</span>、<span title="源路径：../../Science of AI Textbook/knowledge_base/univar/C05-residual-interaction.md；原始文件未随本页提供">C05（源文件未附）</span>、<span title="源路径：../../Science of AI Textbook/knowledge_base/univar/C09-architecture-by-training-context.md；原始文件未随本页提供">C09（源文件未附）</span>。</p>
+
+<h2>六、mvar 回归：Adam 低学习率偏深宽，激活偏好与 tabular 不同</h2>
+<p>主证据为 6 个实例、10 种训练配方、3 seeds、1872 行，指标为末步 test MSE。除宽度外，完整的深度/LN/residual/activation 直接扫描主要集中在四个核心配方。下表是不同基座上的单因子建议汇总，不是这些字段组合后的联合整包实测排名。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>配方</th><th>优先架构</th><th>证据边界</th></tr></thead>
+<tbody>
+<tr><td>Adam 3e-4，256×32</td><td>w256，偏深 d5，nLN3–4；d4 全 LN 开 res；Leaky/ReLU</td><td>更深胜 56/60；d1/w≤32 倾向较差；nLN0 均值较差但有实例反例</td></tr>
+<tr><td>Adam 1e-3，256×32</td><td>w256（128 也可），d3–5，nLN1–2；开 res；Leaky/ReLU</td><td>d1/SiLU 倾向较差；nLN0 有实例反例；d2…5 差距较小</td></tr>
+<tr><td>Adam 3e-3，256×32</td><td>w128–256，d3–4，约 2 层 LN；开 res；Leaky/ReLU</td><td>更宽胜率降至 61%，不要迷信 d5 或最宽</td></tr>
+<tr><td>Adam 1e-2，256×32</td><td>不默认最宽；其余仅弱先验</td><td>只有宽度在该配方直接扫描</td></tr>
+<tr><td>RMSprop 1e-3，256×32，mom0</td><td>w64–128，避 256</td><td>更宽胜率 31%；深度/LN/res/act 只有弱先验</td></tr>
+<tr><td>SGD 3e-3，512×32，mom0.9</td><td>w256 可用，d2–4，至少 1 LN，开 res；Leaky/ReLU</td><td>避免 d5 全 LN、nLN0；res 平均改善约 0.095</td></tr>
+<tr><td>Adagrad 1e-2，512×32</td><td>w64–128，避 w32</td><td>其余架构字段只有弱先验</td></tr>
+</tbody></table></div>
+<ul>
+<li><strong>LN：</strong>均值上有胜于无，但 mvar_648def 在三个 Adam 配方中均是 nLN0 最佳，因此只能作倾向；Adam 1e-3/3e-3 下继续增加 LN 的胜率只有 53–55%，通常 1–2 层已够。低 lr Adam 才更支持继续增加。</li>
+<li><strong>残差：</strong>d4、全 LN、w64、ReLU 下，四个核心配方 residual 在 22/24 个数据×配方格更好。这与 univar 全 LN 下 residual 有害的方向相反。</li>
+<li><strong>激活：</strong>四个核心配方均为 LeakyReLU≲ReLU &lt; GELU &lt; SiLU（按 MSE 从好到差）。Leaky/ReLU/GELU 差距小，只作弱 tie-break；SiLU 是稳定负项。</li>
+<li><strong>batch 交互：</strong>Adam 1e-3、256 步时，bs32/64 偏 w256；bs16 则 w128 第一，不能只看 optimizer/lr。</li>
+</ul>
+<p class="bg">来源：<span title="源路径：../../Science of AI Textbook/knowledge_base/mvar/C10-architecture-by-recipe.md；原始文件未随本页提供">mvar C10（源文件未附）</span>、<span title="源路径：../../Science of AI Textbook/knowledge_base/mvar/C03-activation.md；原始文件未随本页提供">C03（源文件未附）</span>、<span title="源路径：../../Science of AI Textbook/knowledge_base/mvar/C04-layernorm.md；原始文件未随本页提供">C04（源文件未附）</span>。</p>
+
+<h2>七、跨任务不能迁移的规则</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>架构变化</th><th>可以成立的局部方向</th><th>反例或限制</th></tr></thead>
+<tbody>
+<tr><td>加残差</td><td>tabular 深网、mvar d4 全 LN、spiral 弱 SGD 中有益</td><td>XOR 高 lr Adam、univar 全 LN 中可能有害</td></tr>
+<tr><td>增加 LN</td><td>spiral、univar 低 lr、多数 tabular 窄网中有益</td><td>mvar 中 1–2 层常已够；高 lr univar 方向接近对半</td></tr>
+<tr><td>偏 SiLU/GELU</td><td>tabular 窄网偏 GELU/SiLU；spiral 默认包用 SiLU</td><td>mvar 中 SiLU 稳定偏差，XOR 某些基线也如此；spiral 成功区激活差很小</td></tr>
+<tr><td>更深/更宽</td><td>spiral 默认、mvar/univar 低 lr、XOR Adam 3e-4 中需要容量</td><td>tabular/XOR/bigram 高 lr 常偏浅或小模型；RMSprop 多族不偏好最大宽度</td></tr>
+<tr><td>LN 放哪里</td><td>tabular 偏 last；spiral 部分对照偏 left</td><td>mvar 位置效应弱，univar 位置证据不足</td></tr>
+</tbody></table></div>
+<p>因此，不能建立一个全局固定的“+深度 +宽度 +LN +残差 +GELU”打分器。可行的是每个任务族单独保存条件表，并把冲突配对标成未知或低置信。</p>
+
+<h2>八、补充实验：只补会改变选择的空缺</h2>
+<p>新增实验不读取 architecture-only 题包，不根据答案选条件。实验前已冻结代码、数据、seeds 和判定门槛，见 <span title="源路径：evidence/preregistration.json；原始文件未随本页提供">preregistration.json（源文件未附）</span>；训练入口复用 KB 对应的受控协议，新增结果只写入本目录。</p>
+<div id="supplemental-results"><p>两组实验共完成 40 cells、120 次训练，0 failed，累计训练计时 124.414 秒。逐 seed 结果和聚合见 <span title="源路径：evidence/supplemental_results.jsonl；原始文件未随本页提供">supplemental_results.jsonl（源文件未附）</span> 与 <span title="源路径：evidence/supplemental_summary.json；原始文件未随本页提供">supplemental_summary.json（源文件未附）</span>。</p>
+<h3>E1：tabular 的 RMSprop 深度方向——支持偏浅</h3>
+<p>固定 4 个 tabular 实例、RMSprop 3e-3、256×32、w128、full LN、res、GELU，3 seeds。d1/d2/d3/d5 的四数据集平均 test CE 分别为 <strong>0.1153/0.1350/0.1451/0.1744</strong>。d1 在 4/4 数据集优于 d5，平均 d5−d1=0.0591，达到预注册的“至少 3/4 同向且差距≥0.03”门槛。</p>
+<p>因此，<strong>在该 w128 配方下优先 d1、避免 d5</strong>。d2 在一个数据集略优于 d1，所以不能把“d1 在每个实例都第一”写成结论；也不能把 w128 的深度扫描与 d2 基座上的宽度扫描拼成已经实测的 d1+w16 整包。</p>
+<h3>E2：mvar 的深度×LN 冲突——仍为刀刃</h3>
+<p>固定 6 个 mvar 实例、Adam 3e-4、256×32、w64、res、ReLU，3 seeds。浅+全 LN（A）、浅+1 LN（B）、深+全 LN（C）、深+1 LN（D）的平均 test MSE 分别为 <strong>0.6069/0.6280/0.5603/0.6006</strong>。</p>
+<p>主对照 A vs D 中，A 只在 2/6 数据集获胜，D 在 4/6 获胜；A 的平均相对优势为 −1.04%，既没有达到 LN-first，也没有达到 depth-first 的预注册门槛。因此，<strong>不能在这条配方上给出统一的“深度优先”或“LN 优先”规则</strong>。C 的四架构均值最低只是描述性结果，不足以把 C 升格为跨数据稳定赢家。</p></div>
+
+<h2>九、仍然不能可靠回答什么</h2>
+<ul>
+<li>超出已测任务、模型族和超参网格的“全局最佳架构”；</li>
+<li>同时改变多个架构字段时，任意候选包的精确排名——优先需要整包对照；</li>
+<li>univar 的最佳 LN 位置、独立激活总排序，以及高 lr 的通用规则；</li>
+<li>mvar 非核心配方中深度/LN/residual/activation 的强规则；</li>
+<li>bigram 中小样本 TF/GRU 或 heads 规则的确定性外推；</li>
+<li>用 3 seeds 分辨小于种子噪声的细微差距。</li>
+</ul>
+<p>实际使用时，应输出“候选 + 命中的配方 + 直接证据/弱先验 + 不确定性”，而不是只给一个脱离语境的架构名称。</p>
+<div class="stamp">KB 证据整合与两组预注册补充实验完成于 2026-10-28 · 所有规则均带任务与配方边界</div>
+</main></body></html>
