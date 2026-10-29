@@ -33,3 +33,11 @@ Not merged (per the handoff's own dispositions): the frozen manuscript and surve
 
 - `sai-paper/report/sai-vision.html` — new. A self-contained one-page introduction (Chinese, light/dark, no external assets): headline slogan, the three axes, the three levels as three ways of knowing a boundary, why a known boundary matters (fallback to direct training), and the long-range direction, with four inline SVG diagrams. It restates `SAI_definition.md` and adds no new claims; the origin is labeled as a direction, not a result.
 - `sai-paper/README.md` — entry for the one-pager.
+
+## 2026-10-29 (later) — SAI illustrated guide
+
+- `sai-paper/SAI_illustrated.md` — new. A Chinese illustrated guide to the definition, organized around the user's core idea: measure a scientist's intuition; equivalent compute is the only quantitative criterion so far, and most of the work is how knowledge is produced and where it holds. Fifteen figures: the core idea, an overview, a claim on its condition space, a 100-cell worked example of e, c, u and fallback, the three-axis space in the orientation of the user's sketch, the value of a known boundary, equivalent compute, zero-failure upper bounds, the three levels, axis-by-axis law records, premises and inner bounds for science, promotion and demotion, the four separate records, the SAI system, and the outlook. Figures marked 示意 are illustrations, not measurements. Adds no claims beyond the definition.
+- `sai-paper/illustrated/` — new. `build_figs.py` and the 15 static SVGs it generates: each carries its own light surface and uses CJK system fonts; colors were checked for color-vision deficiency, and status cells are also marked ✓ × ○ ?.
+- `sai-paper/SAI_definition.md` — §0 records the user's core idea and maps it onto the existing sections.
+- `sai-paper/report/sai-vision.html` — headline and lede rewritten around measuring intuition; the three-axis figure redrawn in the sketch's orientation (error up, cost right, non-applicability toward the reader); the outlook curve relabeled as cost per answer after fallback, with a caption saying it is not a ranking of levels; a caption that was clipped at its figure's right edge fixed.
+- `sai-paper/README.md`, handoff §4.1 — entries for the guide.

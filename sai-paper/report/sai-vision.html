@@ -67,9 +67,9 @@ svg text{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Noto Sans C
 <main>
 
 <p class="kicker">SCIENCE OF AI · SAI</p>
-<h1 class="serif">不跑完，<br>也<em>知道</em>。</h1>
-<p class="lede">SAI 研究 AI 的训练、模型和智能体在给定条件下会得到什么结果。目标是用更小的误差、更低的代价，在更大的条件范围内<b>提前知道结果</b>，并说清<b>为什么会这样、在什么条件下不再成立</b>。</p>
-<p class="en">Know before you train — and know where you can’t.</p>
+<h1 class="serif">衡量科学家的<br><em>直觉</em>。</h1>
+<p class="lede">直觉是不把实验跑完就判断结果的能力。SAI 定量衡量它，目前唯一定量的判据是<b>等价算力</b>：这份判断值多少训练算力。更多的工作是研究<b>知识怎样产生、在什么范围内成立</b>。</p>
+<p class="en">Measure a scientist’s intuition — and where knowledge holds.</p>
 
 <!-- ============ 1. 三把尺 ============ -->
 <section>
@@ -77,57 +77,53 @@ svg text{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Noto Sans C
   <p class="tag">评价对象是一条具体主张，不是一篇论文。比较前要先约定在哪些条件、按什么权重、多大误差算错。</p>
 
   <figure>
-  <svg viewBox="0 0 720 380" role="img" aria-label="三轴图：误差、代价、不适用测度；直接训练位于代价为1处，科学箭头指向原点">
+  <svg viewBox="0 0 720 448" role="img" aria-label="三轴图：误差向上、代价向右、不适用测度朝向读者；直接训练在代价为 1 处，科学箭头从直接训练指向原点">
     <defs>
       <marker id="arrA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" class="s-clay"/></marker>
       <marker id="arrM" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" class="s-muted"/></marker>
     </defs>
-    <!-- cube frame: O(140,320) e->(+330,0) c->(0,-240) u->(+170,-100) -->
-    <g fill="none" class="st-grid" stroke-width="1" stroke-dasharray="3 4">
-      <path d="M140,80 L470,80 L470,320"/>
-      <path d="M140,320 L310,220 L640,220 L470,320"/>
-    </g>
-    <!-- axes -->
+    <!-- unit cube: (e, c, u) -> (250 + 330c - 140u, 290 - 200e + 100u), oriented as the hand-drawn sketch -->
+    <path d="M250,90 L580,90 L580,290 M250,90 L110,190 L110,390 L440,390 L580,290 M580,90 L440,190 L110,190 M440,190 L440,390" fill="none" class="st-grid" stroke-width="1"/>
     <g class="st-muted" stroke-width="1.4" fill="none" marker-end="url(#arrM)">
-      <line x1="140" y1="320" x2="490" y2="320"/>
-      <line x1="140" y1="320" x2="140" y2="60"/>
-      <line x1="140" y1="320" x2="330" y2="208"/>
+      <line x1="250" y1="290" x2="250" y2="66"/>
+      <line x1="250" y1="290" x2="619" y2="290"/>
+      <line x1="250" y1="290" x2="94" y2="401"/>
     </g>
-    <text x="496" y="325" font-size="14" class="s-ink" font-weight="700">误差 e</text>
-    <text x="496" y="343" font-size="12" class="s-muted">错得少</text>
-    <text x="150" y="58" font-size="14" class="s-ink" font-weight="700">代价 c</text>
-    <text x="150" y="40" font-size="12" class="s-muted">花得少（直接训练 = 1）</text>
-    <text x="336" y="204" font-size="14" class="s-ink" font-weight="700">不适用 u</text>
-    <text x="336" y="222" font-size="12" class="s-muted">管得宽（越小越宽）</text>
+    <text x="238" y="72" font-size="14" class="s-ink" font-weight="700" text-anchor="end">误差 e</text>
+    <text x="238" y="90" font-size="12" class="s-muted" text-anchor="end">错得少</text>
+    <text x="628" y="295" font-size="14" class="s-ink" font-weight="700">代价 c</text>
+    <text x="628" y="313" font-size="12" class="s-muted">直接训练 = 1</text>
+    <text x="108" y="420" font-size="14" class="s-ink" font-weight="700">不适用 u</text>
+    <text x="108" y="438" font-size="12" class="s-muted">管得宽：越小越宽</text>
+
+    <!-- science arrow: from direct training back to the origin, as in the sketch -->
+    <path d="M568,280 Q415,248 266,283" fill="none" class="st-clay" stroke-width="3.2" marker-end="url(#arrA)"/>
+    <text x="417" y="250" font-size="14" class="s-clay" font-weight="800" text-anchor="middle">科学：更少的试探，同样的答案</text>
 
     <!-- direct training -->
-    <circle cx="150" cy="80" r="9" class="s-ink"/>
-    <text x="168" y="104" font-size="14" class="s-ink" font-weight="700">直接训练</text>
-    <text x="168" y="121" font-size="12" class="s-muted">处处可用、只差种子噪声，但最贵</text>
-
-    <!-- science arrow -->
-    <path d="M150,92 C158,180 156,250 145,306" fill="none" class="st-clay" stroke-width="3.2" marker-end="url(#arrA)"/>
-    <text x="70" y="200" font-size="15" class="s-clay" font-weight="800">科学</text>
-    <text x="48" y="218" font-size="12" class="s-clay">更少试探</text>
-    <text x="48" y="233" font-size="12" class="s-clay">同样答案</text>
+    <circle cx="580" cy="286" r="8" class="s-ink"/>
+    <text x="566" y="336" font-size="14" class="s-ink" font-weight="700">直接训练</text>
+    <text x="566" y="353" font-size="12" class="s-muted">处处可用，只差种子噪声</text>
+    <text x="566" y="370" font-size="12" class="s-muted">但最贵</text>
 
     <!-- origin -->
-    <circle cx="140" cy="320" r="9" fill="none" class="st-clay" stroke-width="2.5"/>
-    <circle cx="140" cy="320" r="3.5" class="s-clay"/>
-    <text x="40" y="350" font-size="14" class="s-ink" font-weight="700">原点 (0,0,0)</text>
-    <text x="40" y="367" font-size="12" class="s-muted">万物理论：理想方向，不是已证结论</text>
+    <circle cx="250" cy="290" r="8.5" fill="none" class="st-clay" stroke-width="2.5"/>
+    <circle cx="250" cy="290" r="3.3" class="s-clay"/>
+    <text x="236" y="270" font-size="14" class="s-ink" font-weight="700" text-anchor="end">原点 (0,0,0)</text>
+    <text x="236" y="287" font-size="12" class="s-muted" text-anchor="end">万物理论：理想方向</text>
 
-    <!-- cheap guess U -->
-    <circle cx="420" cy="314" r="7" class="s-blue"/>
-    <text x="392" y="298" font-size="13" class="s-ink" font-weight="700">便宜的猜测</text>
-    <text x="392" y="283" font-size="12" class="s-muted">代价近 0，误差大</text>
+    <!-- U: cheap but imprecise -->
+    <circle cx="263" cy="230" r="6.5" class="s-blue"/>
+    <text x="276" y="211" font-size="13" class="s-ink" font-weight="700">U：代价近 0、误差大于 0</text>
+    <text x="276" y="228" font-size="12" class="s-muted">便宜但不精确的候选规律</text>
 
-    <!-- law point -->
-    <circle cx="228" cy="298" r="7" class="s-green"/>
-    <text x="242" y="294" font-size="13" class="s-ink" font-weight="700">好定律</text>
-    <text x="242" y="310" font-size="12" class="s-muted">便宜、准，限测过的范围</text>
+    <!-- knowledge tested at few settings -->
+    <circle cx="148" cy="371" r="6" class="s-green"/>
+    <line x1="156" y1="367" x2="182" y2="360" class="st-muted" stroke-width="1"/>
+    <text x="186" y="356" font-size="13" class="s-ink" font-weight="700">只测过少数设定的知识</text>
+    <text x="186" y="373" font-size="12" class="s-muted">u 接近 1：未测的设定记为未知</text>
   </svg>
-  <figcaption>三个坐标都在 0 到 1 之间，越小越好。e 是答错的比例，c 是相对“把训练直接跑完”的代价，u 是主张声明不作答的条件比例。</figcaption>
+  <figcaption>三个坐标都在 0 到 1 之间，越小越好。轴向沿用手绘图：误差向上，代价向右，不适用测度朝向读者。原点是理想方向，不是已证结论。</figcaption>
   </figure>
 </section>
 
@@ -254,7 +250,7 @@ svg text{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Noto Sans C
       <rect x="350" y="196" width="14" height="14" class="s-red"/><text x="370" y="208" class="s-muted">主张作答，答错</text>
       <rect x="480" y="196" width="14" height="14" class="s-ink" opacity=".75"/><text x="500" y="208" class="s-muted">回退：把训练直接跑完</text>
     </g>
-    <text x="220" y="236" font-size="12" class="s-muted">两条横条都表示全部条件。两种方法在同样多的条件上不灵，差别只在于是否知道是哪些条件。</text>
+    <text x="20" y="236" font-size="12" class="s-muted">两条横条都表示全部条件。两种方法在同样多的条件上不灵，差别只在于是否知道是哪些条件。</text>
   </svg>
   <figcaption>已知的边界可以用代价换掉：不适用的部分回退到直接训练，误差不再藏在未知位置。所以 SAI 用“边界是怎么知道的”来分层。</figcaption>
   </figure>
@@ -281,7 +277,7 @@ svg text{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Noto Sans C
     <line x1="70" y1="270" x2="70" y2="30" class="st-muted" stroke-width="1.2" marker-end="url(#arrV)"/>
     <text x="64" y="52" font-size="12" class="s-muted" text-anchor="end">1</text>
     <text x="64" y="274" font-size="12" class="s-muted" text-anchor="end">0</text>
-    <text transform="translate(40,160) rotate(-90)" font-size="13" class="s-ink" font-weight="700" text-anchor="middle">得到一个答案的代价</text>
+    <text transform="translate(40,160) rotate(-90)" font-size="13" class="s-ink" font-weight="700" text-anchor="middle">回退后，平均每个答案的代价</text>
     <text x="690" y="292" font-size="12" class="s-muted" text-anchor="end">认识的成熟度 →</text>
     <line x1="70" y1="50" x2="690" y2="50" class="st-grid" stroke-dasharray="3 4"/>
 
@@ -312,7 +308,7 @@ svg text{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Noto Sans C
       <text x="690" y="232" font-size="12" class="s-muted" text-anchor="end">零误差、零代价、处处适用</text>
     </g>
   </svg>
-  <figcaption>每往前一步，同一个问题需要的试探就更少。原点是方向，不是可以宣称已经到达的终点。</figcaption>
+  <figcaption>示意同一个问题族上的典型路径：边界知道得越清楚，回退得越少，平均每个答案需要的试探就越少。这不是层次的价值排名，一条窄域的科学推导也可能不如广域的定律。原点是方向，不是可以宣称已经到达的终点。</figcaption>
   </figure>
 
   <div class="trio">
@@ -324,7 +320,7 @@ svg text{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Noto Sans C
   <p class="note">这三条是方向，不是现状。目前只有 ArchitectureIQ 接近共同条件基准，而它覆盖的条件还很窄。比较两条主张的坐标，前提是它们用同一组条件、同一套权重和同一个误差容忍度。</p>
 </section>
 
-<footer>定义全文见 <a href="../SAI_definition.md">SAI_definition.md</a> · 证据与案例见 <a href="sai-core-figures.html">中文汇报 panel</a></footer>
+<footer>逐节图解见 <a href="../SAI_illustrated.md">SAI_illustrated.md</a> · 定义全文见 <a href="../SAI_definition.md">SAI_definition.md</a> · 证据与案例见 <a href="sai-core-figures.html">中文汇报 panel</a></footer>
 </main>
 </body>
 </html>
