@@ -7,7 +7,8 @@
 <style>img{max-width:100%;height:auto} .table-wrap{overflow-x:auto}table{min-width:620px}body{overflow-wrap:break-word}mjx-container[display="true"]{max-width:100%;overflow-x:auto;overflow-y:hidden}</style></head>
 <body><main><div class="nav"><a href="index.html">← 研究总览</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D2_overfitting_u_curve_integrated.html">编辑此页</a> · <a href="背景与文献.html">背景与文献</a></div>
 <h1>D2：过拟合时间公式的扩域检验（历史整合版）</h1>
-<p><strong>阅读范围：</strong>本页保留历史整合入口，也已收录 10-09 的扩域对照。旧公式只描述原交互任务的 n=32/64/128、σ²=0.25–4 范围，不能作为当前跨任务结论。遇到表述差异，以 <code>evidence/d2_scaling_20261009/report.md</code> 的最新报告为准；下文将旧范围与后续扩域结果分开说明。</p>
+<p style="border-left:4px solid #b75c47;padding:12px 16px;background:#fbefe9"><strong>最新状态 · 2026-10-29：D2 原主张已被推翻。</strong> 原时间公式的跨任务、扩范围外推失败；后续 5% 交叉项实验检验的是风险计算压缩，不能用它的 12/12 达标恢复原公式。泛化恶化现象和固定特征下的风险分解仍保留。完整主张状态、失败与下一步见<a href="D2_overfitting_u_curve.html">最新 D2 详细报告</a>。</p>
+<p><strong>阅读范围：</strong>本页保留历史整合入口，也已收录 10-09 的扩域对照。旧公式只描述原交互任务的 n=32/64/128、σ²=0.25–4 范围，不能作为当前跨任务结论。遇到表述差异，以<a href="D2_overfitting_u_curve.html">最新 D2 详细报告</a>为准；下文将旧范围与后续扩域结果分开说明。</p>
 <h2>先说结果：旧范围拟合不错，扩大范围后预测失败</h2>
 <p>实验使用合成回归数据，固定隐藏特征，计算均方误差（MSE）和全批量梯度下降（GD）下的学习轨迹。3240 是根据特征谱计算并评价的轨迹数，不是文献篇数，也不是 3240 次端到端训练。原公式在扩大样本数、噪声和任务范围后，12/12 个任务与特征条件均未达到预设通过率；它不能直接作为通用早停规则。下文“风险”是对训练标签噪声取平均后的验证误差，“回升时间”指窗口内最低点估计，不保证是第一次局部回升。</p>
 <p><strong>旧范围可以简写为 U_rise≈0.28·n/σ²；扩域后不能只为每个任务换一个系数。</strong> 原交互任务在 n=32/64/128、σ²=0.25–4 上，固定指数 1 的留出 n 预测为 57/60 在两倍内。新扫描把 n 扩到 16–1024、σ² 扩到 1/32–8；任务各拟合一个系数后，12/12 个任务与特征条件都未达到扩展格点 80% 通过率。U=ηt 是累计训练量，η=0.3，n 是训练样本数，σ² 是训练标签噪声方差。</p>
