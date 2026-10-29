@@ -28,3 +28,8 @@ Not merged (per the handoff's own dispositions): the frozen manuscript and surve
 - `sai-paper/report/` — new in the mirror. The Chinese panel with the four P1 issues fixed: PUCT top-40 = +3.3 and top-20 = −3.3 points; level criteria separated from machine-checkability, pre-registration and blind tests; a new three-axis figure redrawn from the user's sketch; Science allows a single conditional derivation and separates in-model correctness from real-system mapping. Overbroad wording narrowed; the 51-paper RL tally labeled as the old draft's sample. Built with `SAI_PUBLIC=1`, which anonymizes model identities as Frontier-1…10; local builds keep the real names. `gen_charts.py` reads `PANEL_STYLE_DIR` instead of a hard-coded local path.
 - `sai-paper/literature/panel_source_map.*` — regenerated for the new panel level labels; counts unchanged (53 rows, 59 references, 23 fully matched, 30 unmatched). Its `panel_sha256` refers to the local, non-anonymized build.
 - `sai-paper/README.md`, handoff §4 — entry for the definition; status of the fixes and what remains open (whole-paper labels such as AlphaFold, M0–M6 progression, the "Hu 2025" author).
+
+## 2026-10-29 — SAI one-pager
+
+- `sai-paper/report/sai-vision.html` — new. A self-contained one-page introduction (Chinese, light/dark, no external assets): headline slogan, the three axes, the three levels as three ways of knowing a boundary, why a known boundary matters (fallback to direct training), and the long-range direction, with four inline SVG diagrams. It restates `SAI_definition.md` and adds no new claims; the origin is labeled as a direction, not a result.
+- `sai-paper/README.md` — entry for the one-pager.

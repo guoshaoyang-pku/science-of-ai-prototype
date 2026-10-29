@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAI 一页纸</title>
+<style>
+:root{
+  --bg:#FAF9F5; --paper:#F3F1EA; --ink:#141413; --muted:#6F6E69; --line:#D9D6CC;
+  --clay:#D97757; --clay-soft:#F2D9CD; --blue:#6A9BCC; --blue-soft:#DCE7F2;
+  --green:#788C5D; --green-soft:#E1E7D7; --red:#B5463A; --grid:#E8E5DC;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1F1E1D; --paper:#2A2927; --ink:#F5F3EC; --muted:#A6A39A; --line:#45433F;
+    --clay:#E08A6C; --clay-soft:#4A3329; --blue:#86B0DA; --blue-soft:#2C3A48;
+    --green:#9BAF7F; --green-soft:#343C2B; --red:#CF4F44; --grid:#34322F;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1F1E1D; --paper:#2A2927; --ink:#F5F3EC; --muted:#A6A39A; --line:#45433F;
+  --clay:#E08A6C; --clay-soft:#4A3329; --blue:#86B0DA; --blue-soft:#2C3A48;
+  --green:#9BAF7F; --green-soft:#343C2B; --red:#CF4F44; --grid:#34322F;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.75 -apple-system,"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+main{max-width:860px;margin:0 auto;padding:56px 16px 80px}
+.serif{font-family:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",Georgia,serif}
+.kicker{font-size:13px;letter-spacing:.08em;color:var(--clay);margin:0 0 10px}
+h1{font-size:clamp(40px,8vw,72px);line-height:1.1;margin:0 0 18px;font-weight:900;letter-spacing:.02em}
+h1 em{font-style:normal;color:var(--clay)}
+.lede{font-size:18px;max-width:640px;margin:0 0 8px}
+.en{color:var(--muted);font-size:14px;margin:0}
+section{margin-top:72px}
+h2{font-size:28px;line-height:1.3;margin:0 0 6px;font-weight:800}
+.tag{font-size:13px;color:var(--muted);margin:0 0 20px}
+.slogan{border-left:4px solid var(--clay);padding:4px 0 4px 16px;margin:20px 0 24px;font-size:22px;font-weight:700;line-height:1.5}
+figure{margin:24px 0;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto}
+figure svg{display:block;width:100%;min-width:560px;height:auto}
+figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:24px 0}
+.trio div{padding:16px 16px 16px 0}
+.trio div+div{padding-left:16px;border-left:1px solid var(--line)}
+.trio b{display:block;font-size:20px;margin-bottom:4px}
+.trio span{font-size:14px;color:var(--muted)}
+.note{font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:12px;margin-top:20px}
+footer{margin-top:80px;font-size:13px;color:var(--muted)}
+footer a{color:var(--clay)}
+/* svg tokens */
+.s-ink{fill:var(--ink)} .s-muted{fill:var(--muted)} .s-clay{fill:var(--clay)} .s-blue{fill:var(--blue)}
+.s-green{fill:var(--green)} .s-red{fill:var(--red)} .s-bg{fill:var(--bg)}
+.st-ink{stroke:var(--ink)} .st-muted{stroke:var(--muted)} .st-line{stroke:var(--line)} .st-clay{stroke:var(--clay)}
+.st-blue{stroke:var(--blue)} .st-green{stroke:var(--green)} .st-red{stroke:var(--red)} .st-grid{stroke:var(--grid)}
+svg text{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC",sans-serif}
+@media (max-width:600px){
+  main{padding-top:36px}
+  .trio{grid-template-columns:1fr}
+  .trio div,.trio div+div{padding:12px 0;border-left:none}
+  .trio div+div{border-top:1px solid var(--line)}
+  .slogan{font-size:19px}
+}
+</style>
+</head>
+<body>
+<main>
+
+<p class="kicker">SCIENCE OF AI · SAI</p>
+<h1 class="serif">不跑完，<br>也<em>知道</em>。</h1>
+<p class="lede">SAI 研究 AI 的训练、模型和智能体在给定条件下会得到什么结果。目标是用更小的误差、更低的代价，在更大的条件范围内<b>提前知道结果</b>，并说清<b>为什么会这样、在什么条件下不再成立</b>。</p>
+<p class="en">Know before you train — and know where you can’t.</p>
+
+<!-- ============ 1. 三把尺 ============ -->
+<section>
+  <h2>三把尺：错得少、花得少、管得宽</h2>
+  <p class="tag">评价对象是一条具体主张，不是一篇论文。比较前要先约定在哪些条件、按什么权重、多大误差算错。</p>
+
+  <figure>
+  <svg viewBox="0 0 720 380" role="img" aria-label="三轴图：误差、代价、不适用测度；直接训练位于代价为1处，科学箭头指向原点">
+    <defs>
+      <marker id="arrA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" class="s-clay"/></marker>
+      <marker id="arrM" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" class="s-muted"/></marker>
+    </defs>
+    <!-- cube frame: O(140,320) e->(+330,0) c->(0,-240) u->(+170,-100) -->
+    <g fill="none" class="st-grid" stroke-width="1" stroke-dasharray="3 4">
+      <path d="M140,80 L470,80 L470,320"/>
+      <path d="M140,320 L310,220 L640,220 L470,320"/>
+    </g>
+    <!-- axes -->
+    <g class="st-muted" stroke-width="1.4" fill="none" marker-end="url(#arrM)">
+      <line x1="140" y1="320" x2="490" y2="320"/>
+      <line x1="140" y1="320" x2="140" y2="60"/>
+      <line x1="140" y1="320" x2="330" y2="208"/>
+    </g>
+    <text x="496" y="325" font-size="14" class="s-ink" font-weight="700">误差 e</text>
+    <text x="496" y="343" font-size="12" class="s-muted">错得少</text>
+    <text x="150" y="58" font-size="14" class="s-ink" font-weight="700">代价 c</text>
+    <text x="150" y="40" font-size="12" class="s-muted">花得少（直接训练 = 1）</text>
+    <text x="336" y="204" font-size="14" class="s-ink" font-weight="700">不适用 u</text>
+    <text x="336" y="222" font-size="12" class="s-muted">管得宽（越小越宽）</text>
+
+    <!-- direct training -->
+    <circle cx="150" cy="80" r="9" class="s-ink"/>
+    <text x="168" y="104" font-size="14" class="s-ink" font-weight="700">直接训练</text>
+    <text x="168" y="121" font-size="12" class="s-muted">处处可用、只差种子噪声，但最贵</text>
+
+    <!-- science arrow -->
+    <path d="M150,92 C158,180 156,250 145,306" fill="none" class="st-clay" stroke-width="3.2" marker-end="url(#arrA)"/>
+    <text x="70" y="200" font-size="15" class="s-clay" font-weight="800">科学</text>
+    <text x="48" y="218" font-size="12" class="s-clay">更少试探</text>
+    <text x="48" y="233" font-size="12" class="s-clay">同样答案</text>
+
+    <!-- origin -->
+    <circle cx="140" cy="320" r="9" fill="none" class="st-clay" stroke-width="2.5"/>
+    <circle cx="140" cy="320" r="3.5" class="s-clay"/>
+    <text x="40" y="350" font-size="14" class="s-ink" font-weight="700">原点 (0,0,0)</text>
+    <text x="40" y="367" font-size="12" class="s-muted">万物理论：理想方向，不是已证结论</text>
+
+    <!-- cheap guess U -->
+    <circle cx="420" cy="314" r="7" class="s-blue"/>
+    <text x="392" y="298" font-size="13" class="s-ink" font-weight="700">便宜的猜测</text>
+    <text x="392" y="283" font-size="12" class="s-muted">代价近 0，误差大</text>
+
+    <!-- law point -->
+    <circle cx="228" cy="298" r="7" class="s-green"/>
+    <text x="242" y="294" font-size="13" class="s-ink" font-weight="700">好定律</text>
+    <text x="242" y="310" font-size="12" class="s-muted">便宜、准，限测过的范围</text>
+  </svg>
+  <figcaption>三个坐标都在 0 到 1 之间，越小越好。e 是答错的比例，c 是相对“把训练直接跑完”的代价，u 是主张声明不作答的条件比例。</figcaption>
+  </figure>
+</section>
+
+<!-- ============ 2. 三层 ============ -->
+<section>
+  <h2>三层：边界是怎么知道的</h2>
+  <p class="slogan serif">知识是看到的，定律是量出来的，科学是推出来的。</p>
+
+  <figure>
+  <svg viewBox="0 0 720 300" role="img" aria-label="知识、定律、科学三层对比：观察点、沿轴测量并在失败处定界、由前提推出边界">
+    <defs>
+      <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="6" class="st-grid" stroke-width="2"/>
+      </pattern>
+    </defs>
+    <!-- panel frames -->
+    <g>
+      <rect x="20"  y="40" width="200" height="160" rx="6" fill="url(#hatch)" class="st-line"/>
+      <rect x="260" y="40" width="200" height="160" rx="6" fill="url(#hatch)" class="st-line"/>
+      <rect x="500" y="40" width="200" height="160" rx="6" fill="url(#hatch)" class="st-line"/>
+    </g>
+    <text x="20"  y="28" font-size="16" class="s-ink" font-weight="800">知识 Knowledge</text>
+    <text x="260" y="28" font-size="16" class="s-ink" font-weight="800">定律 Law</text>
+    <text x="500" y="28" font-size="16" class="s-ink" font-weight="800">科学 Science</text>
+
+    <!-- knowledge: a few observed points with small halos -->
+    <g>
+      <circle cx="80" cy="110" r="18" class="s-bg" opacity=".9"/>
+      <circle cx="80" cy="110" r="6" class="s-clay"/>
+      <circle cx="104" cy="128" r="14" class="s-bg" opacity=".9"/>
+      <circle cx="104" cy="128" r="6" class="s-clay"/>
+      <text x="150" y="80" font-size="22" class="s-muted">?</text>
+      <text x="168" y="168" font-size="22" class="s-muted">?</text>
+      <text x="44" y="180" font-size="22" class="s-muted">?</text>
+    </g>
+
+    <!-- law: declared band along an axis, checks, failure x -->
+    <g>
+      <rect x="272" y="100" width="146" height="36" rx="18" class="s-bg" opacity=".95"/>
+      <rect x="272" y="100" width="146" height="36" rx="18" fill="none" class="st-green" stroke-width="2"/>
+      <g class="s-green">
+        <circle cx="290" cy="118" r="5"/><circle cx="318" cy="118" r="5"/><circle cx="346" cy="118" r="5"/>
+        <circle cx="374" cy="118" r="5"/><circle cx="400" cy="118" r="5"/>
+      </g>
+      <g class="st-red" stroke-width="3" stroke-linecap="round">
+        <line x1="432" y1="110" x2="446" y2="126"/><line x1="446" y1="110" x2="432" y2="126"/>
+      </g>
+      <line x1="424" y1="70" x2="424" y2="170" class="st-red" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <text x="300" y="88" font-size="12" class="s-muted">沿条件轴扩展 →</text>
+      <text x="398" y="188" font-size="12" class="s-red">失败处定界</text>
+    </g>
+
+    <!-- science: derived boundary curve enclosing region -->
+    <g>
+      <path d="M512,190 C540,90 600,60 690,52 L690,190 Z" class="s-bg" opacity=".95"/>
+      <path d="M512,190 C540,90 600,60 690,52" fill="none" class="st-blue" stroke-width="2.6"/>
+      <text x="606" y="132" font-size="13" class="s-blue" font-weight="700" text-anchor="middle">前提成立</text>
+      <text x="606" y="150" font-size="13" class="s-blue" text-anchor="middle">就能作答</text>
+      <text x="520" y="70" font-size="12" class="s-muted">前提失效</text>
+      <text x="610" y="214" font-size="12" class="s-blue" text-anchor="middle">← 边界由推导给出</text>
+    </g>
+
+    <!-- captions -->
+    <text x="20"  y="240" font-size="14" class="s-ink" font-weight="700">看到了</text>
+    <text x="20"  y="260" font-size="12" class="s-muted">在测过的设定上观察到结果；</text>
+    <text x="20"  y="277" font-size="12" class="s-muted">对新条件不作预言。例：GRPO、GSPO</text>
+
+    <text x="260" y="240" font-size="14" class="s-ink" font-weight="700">量出来</text>
+    <text x="260" y="260" font-size="12" class="s-muted">系统地改变条件，记下成立和失败；</text>
+    <text x="260" y="277" font-size="12" class="s-muted">外推是新主张。例：scaling law</text>
+
+    <text x="500" y="240" font-size="14" class="s-ink" font-weight="700">推出来</text>
+    <text x="500" y="260" font-size="12" class="s-muted">从可单独检验的前提推出关系与边界；</text>
+    <text x="500" y="277" font-size="12" class="s-muted">没测过的条件也能作答。例：Hyperball</text>
+  </svg>
+  <figcaption>阴影是全部条件空间 Ω，留白是主张愿意作答的范围。三层分别对应三种确定边界的方式，不代表价值高低：覆盖广、便宜又准确的定律，可能比一条窄域的科学推导更有用。</figcaption>
+  </figure>
+
+  <div class="trio">
+    <div><b>知识 → 定律</b><span>沿条件轴扩展外延，逐轴记下支持、失败和未测。</span></div>
+    <div><b>定律 → 科学</b><span>找到能独立检验的前提，推出关系和它的边界。</span></div>
+    <div><b>降级</b><span>出现反例先收窄范围；收窄后不再满足本层要求，就降一层。</span></div>
+  </div>
+</section>
+
+<!-- ============ 3. 意义 ============ -->
+<section>
+  <h2>意义：知道自己哪里不灵，才值得信</h2>
+  <p class="slogan serif">边界清楚时，失败只是回退，不是事故。</p>
+
+  <figure>
+  <svg viewBox="0 0 720 250" role="img" aria-label="两个方法都在30%条件上失败：不知道边界时误差为0.3；知道边界时拒答并回退到直接训练，误差为0">
+    <!-- row 1 -->
+    <text x="20" y="36" font-size="15" class="s-ink" font-weight="800">不知道边界</text>
+    <text x="20" y="54" font-size="12" class="s-muted">照常作答，错在哪里没人知道</text>
+    <g>
+      <rect x="220" y="22" width="380" height="40" rx="5" class="s-clay" opacity=".85"/>
+      <!-- scattered errors -->
+      <g class="s-red">
+        <rect x="236" y="22" width="22" height="40"/><rect x="300" y="22" width="14" height="40"/>
+        <rect x="352" y="22" width="26" height="40"/><rect x="430" y="22" width="18" height="40"/>
+        <rect x="486" y="22" width="20" height="40"/><rect x="560" y="22" width="14" height="40"/>
+      </g>
+    </g>
+    <text x="616" y="40" font-size="14" class="s-red" font-weight="800">e = 0.3</text>
+    <text x="616" y="57" font-size="12" class="s-muted">u = 0</text>
+
+    <!-- row 2 -->
+    <text x="20" y="126" font-size="15" class="s-ink" font-weight="800">知道边界</text>
+    <text x="20" y="144" font-size="12" class="s-muted">拒答那 30%，换成直接训练</text>
+    <g>
+      <rect x="220" y="112" width="266" height="40" rx="5" class="s-clay" opacity=".85"/>
+      <rect x="486" y="112" width="114" height="40" rx="5" class="s-ink" opacity=".75"/>
+      <line x1="486" y1="104" x2="486" y2="160" class="st-ink" stroke-width="2"/>
+      <text x="353" y="137" font-size="13" class="s-bg" font-weight="700" text-anchor="middle">70%：便宜地作答</text>
+      <text x="543" y="137" font-size="13" class="s-bg" font-weight="700" text-anchor="middle">30%：回退训练</text>
+    </g>
+    <text x="616" y="130" font-size="14" class="s-green" font-weight="800">e = 0</text>
+    <text x="616" y="147" font-size="12" class="s-muted">代价 0.7c + 0.3</text>
+
+    <!-- legend -->
+    <g font-size="12">
+      <rect x="220" y="196" width="14" height="14" class="s-clay" opacity=".85"/><text x="240" y="208" class="s-muted">主张作答，答对</text>
+      <rect x="350" y="196" width="14" height="14" class="s-red"/><text x="370" y="208" class="s-muted">主张作答，答错</text>
+      <rect x="480" y="196" width="14" height="14" class="s-ink" opacity=".75"/><text x="500" y="208" class="s-muted">回退：把训练直接跑完</text>
+    </g>
+    <text x="220" y="236" font-size="12" class="s-muted">两条横条都表示全部条件。两种方法在同样多的条件上不灵，差别只在于是否知道是哪些条件。</text>
+  </svg>
+  <figcaption>已知的边界可以用代价换掉：不适用的部分回退到直接训练，误差不再藏在未知位置。所以 SAI 用“边界是怎么知道的”来分层。</figcaption>
+  </figure>
+
+  <div class="trio">
+    <div><b>省算力</b><span>能提前算出结果的实验，就不必真的跑一遍。</span></div>
+    <div><b>可信</b><span>主张写明在哪里不成立，用的人知道什么时候该自己去验证。</span></div>
+    <div><b>可累积</b><span>以单条主张为单位记录，可以被证伪，也可以升层或降层，不必整篇论文一起推翻。</span></div>
+  </div>
+</section>
+
+<!-- ============ 4. 前景 ============ -->
+<section>
+  <h2>前景：从炼丹，到化学</h2>
+  <p class="slogan serif">把百万 GPU 小时换来的答案，变成一次推导就能得到的答案。</p>
+
+  <figure>
+  <svg viewBox="0 0 720 320" role="img" aria-label="前景曲线：每个答案的代价从炼丹时代的1，经知识、定律、科学下降，虚线趋向原点">
+    <defs>
+      <marker id="arrV" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" class="s-muted"/></marker>
+    </defs>
+    <!-- axes -->
+    <line x1="70" y1="270" x2="690" y2="270" class="st-muted" stroke-width="1.2" marker-end="url(#arrV)"/>
+    <line x1="70" y1="270" x2="70" y2="30" class="st-muted" stroke-width="1.2" marker-end="url(#arrV)"/>
+    <text x="64" y="52" font-size="12" class="s-muted" text-anchor="end">1</text>
+    <text x="64" y="274" font-size="12" class="s-muted" text-anchor="end">0</text>
+    <text transform="translate(40,160) rotate(-90)" font-size="13" class="s-ink" font-weight="700" text-anchor="middle">得到一个答案的代价</text>
+    <text x="690" y="292" font-size="12" class="s-muted" text-anchor="end">认识的成熟度 →</text>
+    <line x1="70" y1="50" x2="690" y2="50" class="st-grid" stroke-dasharray="3 4"/>
+
+    <!-- curve -->
+    <path d="M90,52 C190,54 230,120 300,150 S430,214 520,236" fill="none" class="st-clay" stroke-width="3.2"/>
+    <path d="M520,236 C580,252 630,262 676,266" fill="none" class="st-clay" stroke-width="3.2" stroke-dasharray="6 6"/>
+
+    <!-- stations -->
+    <g>
+      <circle cx="90" cy="52" r="8" class="s-ink"/>
+      <text x="104" y="38" font-size="14" class="s-ink" font-weight="800">炼丹</text>
+      <text x="140" y="38" font-size="12" class="s-muted">每个配置都得真跑一遍</text>
+
+      <circle cx="210" cy="82" r="7" class="s-clay"/>
+      <text x="224" y="74" font-size="14" class="s-ink" font-weight="800">知识</text>
+      <text x="260" y="74" font-size="12" class="s-muted">记下测过的点</text>
+
+      <circle cx="320" cy="160" r="7" class="s-green"/>
+      <text x="334" y="134" font-size="14" class="s-ink" font-weight="800">定律</text>
+      <text x="334" y="150" font-size="12" class="s-muted">少量参数概括一族结果</text>
+
+      <circle cx="470" cy="224" r="7" class="s-blue"/>
+      <text x="458" y="246" font-size="14" class="s-ink" font-weight="800" text-anchor="end">科学</text>
+      <text x="458" y="262" font-size="12" class="s-muted" text-anchor="end">检验前提，比跑出结果便宜</text>
+
+      <circle cx="676" cy="266" r="8" fill="none" class="st-clay" stroke-width="2.4"/>
+      <text x="690" y="216" font-size="14" class="s-clay" font-weight="800" text-anchor="end">原点（虚线：方向，不是承诺）</text>
+      <text x="690" y="232" font-size="12" class="s-muted" text-anchor="end">零误差、零代价、处处适用</text>
+    </g>
+  </svg>
+  <figcaption>每往前一步，同一个问题需要的试探就更少。原点是方向，不是可以宣称已经到达的终点。</figcaption>
+  </figure>
+
+  <div class="trio">
+    <div><b>先算后训</b><span>新架构、新配方在开训前，先在共同的条件基准上估出误差、代价和适用范围。</span></div>
+    <div><b>可比的主张</b><span>公开一份共同的条件基准，让来自不同实验室的主张能放在同一组坐标里比较。</span></div>
+    <div><b>会做研究的系统</b><span>自动产出主张的 SAI 系统，按把前沿推近原点的距离、所花的生产代价和划界是否诚实来评价。</span></div>
+  </div>
+
+  <p class="note">这三条是方向，不是现状。目前只有 ArchitectureIQ 接近共同条件基准，而它覆盖的条件还很窄。比较两条主张的坐标，前提是它们用同一组条件、同一套权重和同一个误差容忍度。</p>
+</section>
+
+<footer>定义全文见 <a href="../SAI_definition.md">SAI_definition.md</a> · 证据与案例见 <a href="sai-core-figures.html">中文汇报 panel</a></footer>
+</main>
+</body>
+</html>
