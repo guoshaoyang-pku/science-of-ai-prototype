@@ -131,7 +131,10 @@
     $('guide-importance').textContent = aspect.guide.importance;
     $('guide-scenario').textContent = aspect.guide.scenario;
     $('guide-reading').textContent = aspect.guide.reading.text;
-    $('guide-prompt').textContent = aspect.guide.prompt;
+    // Diagrams are bundled teaching illustrations; never insert user text as HTML.
+    const diagram = window.AIQ_DIAGRAMS[aspect.id];
+    $('aspect-diagram').innerHTML = diagram.svg;
+    $('aspect-diagram').setAttribute('aria-label', diagram.alt);
     const guideReport = directions.get(aspect.guide.reading.id);
     $('guide-report').href = guideReport.sourceHref;
     $('guide-report').textContent = guideReport.id + ' · ' + guideReport.title + ' ↗';
