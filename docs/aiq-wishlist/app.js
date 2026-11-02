@@ -36,7 +36,7 @@
     catch { storageOK = false; notify('浏览器无法保存，请在关闭页面前导出愿望。'); document.querySelectorAll('.storage-hint').forEach(el => el.textContent = '当前仅暂存，请及时导出'); return false; }
   }
   const titleFor = id => aspects.find(a => a.id === id)?.title || '未分类';
-  const researchOverview = {title:'13 个方向与当前结论', sourceHref:'../模糊方向/index.html', literatureHref:'../模糊方向/背景与文献.html'};
+  const researchOverview = {title:'研究方向与当前结论', sourceHref:'../模糊方向/index.html', literatureHref:'../模糊方向/背景与文献.html'};
   let reading = null;
   function loadReading(kind) {
     const literature = kind === 'literature';
@@ -127,6 +127,15 @@
     $('aspect-label').textContent = 'ASPECT / ' + aspect.title;
     $('inspiration-title').textContent = aspect.question;
     $('aspect-explanation').textContent = aspect.explanation;
+    $('guide-scope').textContent = aspect.guide.scope;
+    $('guide-importance').textContent = aspect.guide.importance;
+    $('guide-scenario').textContent = aspect.guide.scenario;
+    $('guide-reading').textContent = aspect.guide.reading.text;
+    $('guide-prompt').textContent = aspect.guide.prompt;
+    const guideReport = directions.get(aspect.guide.reading.id);
+    $('guide-report').href = guideReport.sourceHref;
+    $('guide-report').textContent = guideReport.id + ' · ' + guideReport.title + ' ↗';
+    $('aspect-guide').open = false;
     $('suggested-wish').textContent = aspect.wish;
     $('current-evidence').textContent = aspect.current;
     $('next-step').textContent = aspect.next;
@@ -215,6 +224,11 @@
     else showStep(next);
   }));
   $('change-aspect').addEventListener('click', () => showStep(1));
+  $('guide-report').addEventListener('click', event => {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    openReading(directions.get(selected.guide.reading.id));
+  });
   $('use-suggestion').addEventListener('click', () => startWriting(true));
   $('own-idea').addEventListener('click', () => startWriting(false));
   $('back-to-idea').addEventListener('click', () => showStep(2));
