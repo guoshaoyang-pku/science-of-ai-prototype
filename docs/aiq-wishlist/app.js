@@ -5,6 +5,23 @@
   const $ = id => document.getElementById(id);
   const key = 'aiq-wishlist-v1';
   const allowed = new Set(aspects.map(a => a.id));
+  const atlasOrigin = 'https://sai-atlas-20261103.blondemoss2.chatgpt.site';
+  const atlasModules = {
+    theory:'已有理论与文献', idea:'问题与许愿池', grammar:'Grammar / Data',
+    challenge:'Challenge', search:'搜索者', evaluate:'训练与评测', panel:'结果与 Panel',
+    kb:'KB Loop', research:'模糊方向', textbook:'K / L / S Textbook',
+    proxy:'Proxy Task Infra', meta:'元模型研究', metrics:'知识价值评估'
+  };
+  const aspectModules = {data:'grammar', model:'grammar', training:'evaluate', metric:'metrics', budget:'challenge', evaluation:'panel', reasoning:'research', knowledge:'kb'};
+  const entry = new URLSearchParams(location.search);
+  const entryModule = entry.get('from') === 'sai-atlas' && Object.hasOwn(atlasModules, entry.get('module')) ? entry.get('module') : null;
+  function updateAtlasLinks(aspect) {
+    const module = entryModule || aspectModules[aspect.id] || 'idea';
+    for (const id of ['atlas-context-link', 'atlas-done-link']) {
+      $(id).href = atlasOrigin + '/?module=' + encodeURIComponent(module) + '#map';
+      $(id).textContent = (entryModule ? '返回 ' : '查看 ') + atlasModules[module] + ' →';
+    }
+  }
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   let motionEnabled = true, resizeAnimation = null;
   const motionAllowed = () => motionEnabled && !reducedMotion.matches;
@@ -123,6 +140,7 @@
     }
   }
   function displayAspect(aspect) {
+    updateAtlasLinks(aspect);
     selected = aspect;
     $('aspect-label').textContent = 'ASPECT / ' + aspect.title;
     $('inspiration-title').textContent = aspect.question;
@@ -288,5 +306,10 @@
     catch { $('export-text').focus(); $('export-text').select(); $('copy-export').textContent='已选中，请复制'; }
   });
   count(); showStep(1,false);
+  const entryAspect = aspects.find(aspect => aspect.id === entry.get('aspect'));
+  if (entryAspect) {
+    displayAspect(entryAspect);
+    showStep(2, false);
+  }
   if (!storageOK) notify('浏览器存储不可用或记录无法读取，保存后请导出备份。');
 })();
