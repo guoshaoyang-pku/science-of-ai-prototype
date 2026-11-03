@@ -1,0 +1,1710 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D14.1：Adam 下最佳深度与宽度如何随学习率和训练步数改变</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+h4 { font:600 15px/1.4 var(--head); margin:22px 0 5px; }
+section { scroll-margin-top:20px; }
+.toc { font:14px/1.8 var(--head); background:var(--soft); border-radius:8px; padding:12px 18px; }
+.toc a { text-decoration:none; }
+.metric { font:600 15px/1.7 var(--head); }
+details { margin:12px 0; }
+summary { cursor:pointer; font:600 15px var(--head); }
+</style>
+<script>window.MathJax = {tex: {inlineMath: [['$', '$'], ['\\(', '\\)']]}, svg: {fontCache: 'global'}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body><main>
+<div class="nav"><a href="../index.html">← 模糊方向</a> · <a href="D14_architecture_selection.html">D14 报告</a> · <a href="D14_科学问题清单.html">科学问题清单</a> · <a href="D14_实验检验.html">实验检验</a> · D14.1 T1 联合研究</div>
+<h1>D14.1：Adam 下最佳 d、w 如何随 lr 和 steps 改变？</h1>
+<div class="legend"><strong>本站整合说明 · 2026-11-03：</strong>下文保留 2026-10-31 原报告的结果、预期与反思。训练代码、逐 seed 产物和预注册原件未随 HTML 提供，源文件引用仅作标识；本站未独立复现训练或核验预注册时序。<a href="D14_T1_读懂报告.html">先读：容量是什么意思、T1 在研究什么</a>。<br><strong>阅读校正：</strong>原文“容量”统计未明确给出标量判据；赢家变化尚不能推出近优集合整体收缩。“强切换”为至少一个交叉 regret 达到 0.01 CE，不等同于双侧显著反转。从附录展示表复算，OFAT 有 48/80 次进入 0.01 CE 近优区，32/80 次超出；这是汇总表复算，不是原始实验独立复现。</div>
+<p class="bg"><b>先看结论：</b>本页把 T1 的理论文献、实验前预期、完整联合实验和实验后反思放在同一证据链中。2000 条训练轨迹、8000 个评价点表明：<strong>高 lr 的总体作用是使近优容量向较小 d、w 收缩；steps 没有统一单调方向，但可分辨的切换以容量下降为主；d×w 不能由单因子赢家直接拼成。</strong>这些是当前 4 个合成 tabular 实例与指定 MLP/Adam 协议下的条件经验规律，不是普适理论。</p>
+<div class="legend"><span class="tag ok">论文直接支持</span>仅限原作者研究范围 · <span class="tag mix">我的外推</span>用于实验前的可证伪假设 · <span class="tag no">本地经验命题</span>由本实验形成，仍需外部与机制验证</div>
+<p class="metric">4 数据集 × 4 深度 × 5 宽度 × 5 学习率 × 4 步数 × 5 seeds<br>
+2000/2000 条轨迹完成 · 1600/1600 个聚合单元可评价 · 0 发散 · 单核 CPU 约 2.83 小时</p>
+<div class="toc"><b>目录</b><br>
+<a href="#theory">一、理论知识表</a> · <a href="#expectations">二、实验特点与预期</a> · <a href="#results">三、联合实验</a> · <a href="#benchmark">四、设备测速</a> · <a href="#reflection">五、实验后反思</a> · <a href="#appendix">附录 A：80 语境</a> · <a href="#reproduce">附录 B：复现材料</a>
+</div>
+<h2>主要科学结果</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>问题</th><th>结果</th><th>解释边界</th></tr></thead>
+<tbody>
+<tr><td>高 lr 是否使最佳容量变小？</td><td>16 个高低 lr 对比中 15 个更小，且 15 个全是超过 0.01 CE 的强切换；唯一反向例为弱切换</td><td>支持本地外推，不证明谱稳定机制</td></tr>
+<tr><td>steps 是否统一要求更大或更小容量？</td><td>36 次强切换中，容量下降 27、上升 9</td><td>下降有偏斜但不是定律，反向强切换真实存在</td></tr>
+<tr><td>长训是否等于过拟合？</td><td>314/400 个配置 train/test CE 同降；82/400 为 train 降、test 升</td><td>过训练只是部分配置的解释，追赶同样重要</td></tr>
+<tr><td>OFAT 能否组合联合赢家？</td><td>仅 21/80 精确一致；59/80 正 regret，median 0.00662、max 0.09025 CE</td><td>否定的是本协议指定 OFAT 组合，不是所有序贯算法</td></tr>
+<tr><td>精确 top-1 是否稳定？</td><td>67/80 前两名差小于 0.01 CE；单种子与五种子赢家一致率 36.75%</td><td>应优先看近优集合、强切换和 regret</td></tr>
+</tbody></table></div>
+<section id="theory"><h2>一、理论知识表：论文结论与本地经验命题</h2><p>检索与核对日期：2026-10-31。</p>
+<h3>1. 问题边界</h3>
+<p>来源：<code>architecture_selection/D14_科学问题清单.html</code> 的 T1。</p>
+<ul>
+<li><strong>任务与数据</strong>：4 个合成 tabular 二分类实例；train 1024 / test 2048；有放回 minibatch；评价末步 test CE。</li>
+<li><strong>模型</strong>：MLP；full LayerNorm、residual、GELU；d 为隐藏块数，w 为隐藏宽度；相同初始化协议。</li>
+<li><strong>训练</strong>：Adam；batch size 32；weight decay 0；其余优化器内部参数与 schedule 也应固定。</li>
+<li><strong>比较目标</strong>：在预注册候选网格内研究 <code>(d*, w*)(η, T) = argmin_{d,w} CE_test(d, w, η, T)</code>，其中 η 是学习率、T 是训练步数；离散网格赢家不能直接解释为连续全局最优。</li>
+<li><strong>已有局部现象</strong>：256 步的 OFAT 扫描中，Adam 3e-4 偏 d=2–3、w=128–256，1e-3 偏 d=1、w=64–128，3e-3 偏 d=1、w=16–32。d×lr 与 w×lr 使用不同基座，且尚无 d×w×lr×steps 联合结果，因此不能把这些数值拼成联合最优整包。</li>
+</ul>
+<h3>2. 收录与阅读口径</h3>
+<ul>
+<li>优先原始论文、正式出版页面或作者公开的原文；定理、渐近结论与经验规律分别标注。</li>
+<li>“最优学习率跨宽度/深度迁移”与“固定学习率时最优宽度/深度不迁移”是不同命题，前者不能推出后者。</li>
+<li>无限宽度、无限深度、梯度流、GD/SGD、线性网络或大语言模型的结果，不直接视为有限宽度、有限数据、有限步、Adam＋LN＋residual＋GELU MLP 的定理。</li>
+<li>本表优先记录能约束 <strong>d/w×lr×steps</strong> 的结果；纯表达能力或纯统计最优容量只用于说明缺失的优化环节。</li>
+</ul>
+<h3>3. 理论知识表</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>（a）文章标题与链接</th>
+<th>（b）理论结果（定量公式或定性结论）</th>
+<th>（c）理论适用范围（数据、模型与训练假设）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><a href="https://doi.org/10.1016/j.neucom.2026.134166">Beyond Scaling: Non-monotonic Effects of Depth and Width in Neural Networks</a></strong><br>Christakis, Fung &amp; Drikakis, 2026 · <strong>理论＋受控实验；摘要级核对</strong></td>
+<td>证明固定大小 rectifier 模型在紧域上存在依赖目标函数的逼近下限，因此没有单一有限配置能统一逼近所有目标；训练后的泛化在固定训练规则下可随容量非单调变化。提出的稳定机制是：容量增加会提高谱尺度，固定步长可能因而离开稳定区；实验中出现问题相关的容量谷与中等容量最优。</td>
+<td>实验是一维目标族（recursive、smooth oscillatory、fragile、robust-loss surrogates）、Leaky-ReLU MLP、Adam＋weight decay。不是 full-LN residual GELU MLP，也未从摘要确认统一的 lr×steps 网格。它直接支持“固定配方下更大不一定更好”，但不给出 T1 的闭式 $d^*(\eta,T),w^*(\eta,T)$；未获取全文，故不记录未核验的临界公式。</td>
+</tr>
+<tr>
+<td><strong><a href="https://arxiv.org/abs/2203.03466">Tensor Programs V: Tuning Large Neural Networks via Zero-Shot Hyperparameter Transfer</a></strong><br>Yang et al., 2022 · <strong>无限宽理论＋经验迁移</strong></td>
+<td>μP 使无限宽网络保持非平凡特征学习，并使最优学习率等超参数在实验中更能跨宽度迁移。一种无额外 multiplier 的写法联合规定 $\operatorname{Var}(W_{out})=1/\mathrm{fan_in}^2$，以及 Adam 的 hidden/output 张量 $\eta\propto1/\mathrm{fan_in}$、input/bias $\eta\propto1$。等价写法可把缩放移到初始化或输出 multiplier，不能孤立声称“Adam 最优 lr 必须按 $1/w$ 变化”。</td>
+<td>理论核心是宽度趋于无穷的特征学习极限；SGD、Adam 均有讨论。跨深度、batch、training time 的迁移主要是特定实验观察，不是任意任务定理。T1 若使用 PyTorch 默认初始化与单一全局 Adam lr，就不满足上述联合参数化；μP 也不直接预测有限数据上的最优 $w$。</td>
+</tr>
+<tr>
+<td><strong><a href="https://arxiv.org/abs/2308.01814">Tensor Programs IVb: Adaptive Optimization in the ∞-Width Limit</a></strong><br>Yang &amp; Littwin, 2023 · <strong>Adam 无限宽理论</strong></td>
+<td>将核 regime／特征学习 regime 的分类推广到 Adam 等 entrywise、带历史状态的优化器；Adam 更新写为 $Q_t(g_{0:t})=\widehat m_t/\sqrt{\widehat v_t+\epsilon^2}$。在标准参数化、完美尺度不变且把全局 lr 取到最大稳定量级时，SignSGD/Adam 的 $\eta_{max}=\Theta(n^{-1})$ 可进入特征学习区。这是<strong>最大稳定量级</strong>，不是有限步最优 lr 必为 $c/w$ 的定理。</td>
+<td>固定深度 MLP 及 Tensor-Program 可表示扩展；固定训练时间后取宽度 $n\to\infty$；entrywise Adam。理论允许 MSE、交叉熵和适当平滑的 GELU；$\epsilon&gt;0$ 破坏严格尺度不变，需要额外梯度或 ε 缩放，ReLU 不在严格 smooth 假设内。T1 的 CE/GELU 较接近，但有限宽、LN＋residual 与最优 $d,w$ 仍不在结论中。</td>
+</tr>
+<tr>
+<td><strong><a href="https://arxiv.org/abs/2502.02531">Deep Linear Network Training Dynamics from Random Initialization: Data, Width, Depth, and Hyperparameter Transfer</a></strong><br>Bordelon &amp; Pehlevan, 2025 · <strong>联合比例极限 DMFT</strong></td>
+<td>在 $P,D,N\to\infty$、$P/D=\alpha$、$N/D=\nu$ 且固定训练步 $t$ 的极限中，测试误差可写为 $\mathcal L(t)=\mathrm{Bias}(t)+\sigma^2+\mathrm{WidthVariance}(t)/(\nu\gamma_0^2)+\mathrm{DataVariance}(t)/\alpha$，各项由随时间演化的响应函数决定。模型保留有限数据与有限宽度方差，可描述重复数据下的过拟合及宽度/深度对训练时间和 lr 迁移的影响。</td>
+<td>深层<strong>线性</strong>网络、随机高斯输入、线性教师、MSE、全批量 GD 或 online SGD；深度极限还需残差分支 $\beta=\beta_0/\sqrt L$。不是 Adam＋GELU＋CE 的有限系统，DMFT 方程也不是最优 $d,w$ 的闭式解；但它是“数据—宽度—深度—时间”联合建模最直接的理论参照之一。</td>
+</tr>
+<tr>
+<td><strong><a href="https://arxiv.org/abs/2511.01734">A Proof of Learning Rate Transfer under μP</a></strong><br>Hayou, 2025/2026 · <strong>定理；非线性与 Adam 仅有实验支持</strong></td>
+<td>对固定深度线性 MLP，定义第 $t$ 步最优学习率 $\eta_n^{(t)}\in\arg\min_{\eta&gt;0}L_n^{(t)}(\eta)$；在 μP 下，宽度 $n\to\infty$ 时 $\eta_n^{(t)}\to\eta_\infty^{(t)}$ 几乎必然（a.s.），且极限非零。这把“最优 lr 跨宽度迁移”从经验观察推进到特定模型的证明。</td>
+<td>证明范围是固定数据集、固定深度<strong>线性</strong> MLP、μP、全批量 GD、二次损失，并在固定第 $t$ 步后取宽度极限；极限损失需有唯一最小解。ReLU、Adam 和不同深度的迁移在论文中是实验延伸，不属于主定理，也不证明跨训练时间迁移。结论仍是 $\eta^*(w)$ 的渐近稳定性，不是固定 η 时的 $w^*$，也不含有限数据泛化或 LN/residual。</td>
+</tr>
+<tr>
+<td><strong><a href="https://arxiv.org/abs/2310.02244">Tensor Programs VI: Feature Learning in Infinite-Depth Neural Networks</a></strong><br>Yang et al., 2023 · <strong>无限深理论＋经验迁移</strong></td>
+<td>对单层残差块，Depth-μP 使用 $h_{\ell+1}=h_\ell+(a/\sqrt L)g_\ell(h_\ell)$；联合参数化下，跨深度规则为 $\eta_{Adam}(L)=\eta_0L^{-1/2}$，而 $\eta_{SGD}(L)=\eta_0$。说明深度—学习率关系依赖优化器，且残差缩放与 lr 不能拆开理解。</td>
+<td>先取无限宽再取无限深；核心定理要求每个 residual block 只含一层，并同时保持特征学习与特征多样性；深度迁移有实验成分。T1 虽已核对为每块一个 Linear＋pre-LN，但残差分支没有 $1/\sqrt d$ 缩放，且使用标准初始化与全局 raw Adam lr，因此仍不能直接套用 $L^{-1/2}$。该文不预测有限深度的泛化最优或最佳 steps。</td>
+</tr>
+<tr>
+<td><strong><a href="https://arxiv.org/abs/1902.06720">Wide Neural Networks of Any Depth Evolve as Linear Models Under Gradient Descent</a></strong><br>Lee et al., 2019 · <strong>无限宽渐近理论</strong></td>
+<td>无限宽极限下，网络训练等价于初始化处的线性化模型。平方损失、全批量 GD 的误差向量满足 $r_t=(I-\eta\Theta_0)^tr_0$，稳定条件为 $0&lt;\eta&lt;2/\lambda_{max}(\Theta_0)$。在 $\eta\lambda_{min}\ll1$ 的收缩区，慢模态要求约 $T\gtrsim\log(1/\varepsilon)/(\eta\lambda_{min})$，把宽度/深度、lr 与所需步数通过 NTK 谱联系起来。</td>
+<td>全连接网、NTK 参数化、任意有限深度、宽度趋于无穷、MSE、全批量 GD、有限时间窗。不是 Adam 定理，不含 bs32 随机噪声、LN 或有限宽特征学习；也不预测最佳 $d,w$，不能描述大 lr 的 catapult/EOS 区。</td>
+</tr>
+<tr>
+<td><strong><a href="https://arxiv.org/abs/2003.02218">The Large Learning Rate Phase of Deep Learning: The Catapult Mechanism</a></strong><br>Lewkowycz et al., 2020 · <strong>可解模型理论＋机制实验</strong></td>
+<td>在宽两层线性网络的可解模型中，以 $\lambda_0$ 表示初始 NTK 的相关有效特征值，$\eta_{crit}=2/\lambda_0$、$\eta_{max}=4/\lambda_0$：$\eta&lt;\eta_{crit}$ 为 lazy 型下降；$\eta_{crit}&lt;\eta&lt;\eta_{max}$ 时损失先升高、曲率下降后再收敛；更大的学习率发散。因此大 lr 不是小 lr 的简单加速，短训练尤其可能处在不同暂态。</td>
+<td>核心理论是两层线性网、MSE、无动量 vanilla GD/SGD；ReLU、卷积和 ResNet 主要是机制验证。$2/\lambda_0$ 与 $4/\lambda_0$ 不能直接作为 Adam＋LN＋residual MLP 的阈值，也不给出最佳深度或宽度。</td>
+</tr>
+<tr>
+<td><strong><a href="https://arxiv.org/abs/2207.14484">Adaptive Gradient Methods at the Edge of Stability</a></strong><br>Cohen et al., 2022 · <strong>经验规律＋简化分析</strong></td>
+<td>Adam 应考察预条件锐度而非裸 Hessian 锐度。默认 $\beta_1=0.9$ 时，实验中的平衡位置为 $S_{pre}\approx38/\eta$；增大基础 lr 会降低可维持的预条件锐度。不同架构若具有不同谱尺度，就可能在同一 lr 下进入不同训练阶段。</td>
+<td>针对 RMSProp/Adam 的经验规律及简化模型分析；含 full/mini-batch，全连接网、CNN、Wide ResNet、Transformer，以及 CIFAR、ImageNet、WMT。不是有限宽 Adam 的普适收敛定理；右边对应<strong>预条件</strong>锐度，不能用裸 sharpness 验证，也不直接给 $d^*,w^*$。</td>
+</tr>
+<tr>
+<td><strong><a href="https://arxiv.org/abs/2402.17457">Super Consistency of Neural Network Landscapes and Learning Rate Transfer</a></strong><br>Noci et al., 2024 · <strong>经验规律＋两层线性理论</strong></td>
+<td>μP 及相应深度扩展下，训练损失 sharpness 在相当长阶段可近似不依赖宽深，为 lr 迁移提供解释；二次 GD 中稳定条件 $\eta&lt;2/\lambda$、经典最快步长 $1/\lambda$。但交叉熵训练后期 sharpness 会下降，转变点依赖宽度并伴随最优 lr 移动，说明迁移并非整个轨迹无条件成立，steps 会改变所见规律。</td>
+<td>实验含 CIFAR、Tiny-ImageNet、ImageNet、WikiText，ResNet、ViT、GPT-2，以及 GD/SGD 和附录 Adam；严格理论主要是两层线性网络＋GD。它解释 lr 迁移的训练阶段边界，不预测最优容量或末步 test CE；也不能把 GD 的 $2/\lambda$ 直接套到 Adam。</td>
+</tr>
+<tr>
+<td><strong><a href="https://arxiv.org/abs/1710.03667">High-dimensional Dynamics of Generalization Error in Neural Networks</a></strong><br>Advani, Saxe &amp; Sompolinsky, 2020 · <strong>高维解析理论＋非线性仿真</strong></td>
+<td>在线性 student–teacher 模型中解析训练和泛化误差随时间及模型大小的动态；过训练在参数数与样本数接近时最强，early stopping 可改变最优容量。非线性仿真进一步说明“各模型取最佳 early stopping”与“统一训练到很晚”不是同一比较协议，容量排序可随训练时间变化。</td>
+<td>解析部分是平方损失、full-batch GD、线性 student–teacher，$P,N\to\infty$ 且 $P/N$ 固定的高维极限；非线性部分主要是合成任务和 MNIST 数值实验。不是 Adam/CE 定理，容量主要对应宽度而非独立 $d,w$；只能支持 steps×capacity 交互的可能性，不能提供 T1 的方向或函数式。</td>
+</tr>
+<tr>
+<td><strong><a href="https://arxiv.org/abs/1912.02292">Deep Double Descent: Where Bigger Models and More Data Hurt</a></strong><br>Nakkiran et al., 2019 · <strong>系统经验结果＋概念框架</strong></td>
+<td>定义训练程序的有效模型复杂度 $\mathrm{EMC}_{\mathcal D,\epsilon}(\mathcal T)=\max{n:\mathbb E[\mathrm{Error}_S(\mathcal T(S))]\le\epsilon}$。实验显示 model-wise 与 epoch-wise double descent；增加训练时间通常提高 EMC，插值临界区附近的测试误差可非单调。因此最优宽度可以依赖训练时长，但没有普适单调方向。</td>
+<td>ResNet18、5-layer CNN、Transformer；CIFAR-10/100、IWSLT’14；Adam 或 SGD，含不同标签噪声。主要是分类错误率而非末步 CE，且未系统扫描 lr。EMC 是解释框架而非 T1 的定理，不能据此预测四个 tabular 实例的具体转向。</td>
+</tr>
+<tr>
+<td><strong><a href="https://arxiv.org/abs/2007.10099">Early Stopping in Deep Networks: Double Descent and How to Eliminate It</a></strong><br>Heckel &amp; Yilmaz, 2020 · <strong>线性模型定理＋网络实验</strong></td>
+<td>高斯线性回归中，各坐标风险含 $(1-\eta_i\sigma_i^2)^{2t}$ 与 $[1-(1-\eta_i\sigma_i^2)^t]^2$ 两项；最低点时间由 $\eta_i\sigma_i^2$ 控制。不同模式在不同时间达到风险最低点，叠加可形成 epoch-wise double descent；调整坐标/层步长可改变或消除该现象。故 steps 与 lr 不能简单合成单一“训练进度”。</td>
+<td>定理主要在欠参数化 $n\gg d$ 的高斯线性回归、平方损失、零初始化、普通 GD 与稳定步长下成立；另有简化两层网络分析和 CNN 实验。公式不能直接用于 Adam、GELU、LN 或 CE，也没有推出嵌套网络族的 $d^*(t),w^*(t)$。</td>
+</tr>
+<tr>
+<td><strong><a href="https://arxiv.org/abs/2001.08361">Scaling Laws for Neural Language Models</a></strong><br>Kaplan et al., 2020 · <strong>经验标度律</strong></td>
+<td>拟合 $L(N,S)=(N_c/N)^{\alpha_N}+(S_c/S_{min}(S))^{\alpha_S}$，以及固定计算量下的 $N_{opt}\propto C_{min}^{0.73}$。关键边界：固定 $S$ 与 batch 时，第一式关于 $N$ 单调下降，<strong>不存在有限的 $N^*(S)$</strong>；有限最优规模来自固定 compute 后增大 N 会压缩可用 S 的权衡，而不是 steps 单独使容量反转。</td>
+<td>Transformer 语言模型、WebText2，约 768 至 1.5B 非嵌入参数，主要 Adam，warmup＋cosine decay。无限数据 token 流、early-stopped/compute-optimal 协议与 T1 的固定小样本重复训练、固定末步 test CE 不同；总参数 N 也不能替代独立的 d、w，指数不可迁移。</td>
+</tr>
+<tr>
+<td><strong><a href="https://doi.org/10.1137/20M134695X">Deep Network Approximation for Smooth Functions</a></strong><br>Lu, Shen, Yang &amp; Zhang, 2021 · <strong>逼近定理</strong></td>
+<td>对 $f\in C^s([0,1]^{d_x})$（$d_x$ 为输入维数），宽度 $O(N\ln N)$、深度 $O(L\ln L)$ 的 ReLU 网络可达到 $\mathcal O(\lVert f\rVert_{C^s}N^{-2s/d_x}L^{-2s/d_x})$ 的逼近误差。它定量说明表达能力如何随宽深改善，以及目标光滑度和输入维数如何影响所需容量。</td>
+<td>这是构造函数逼近定理，不是训练或泛化定理；没有样本噪声、Adam、lr、steps、LN 或 residual。它最多解释 T1 的“欠拟合侧为什么可能需要容量”，不能预测固定有限数据与训练配方下的末步 test CE 赢家。</td>
+</tr>
+<tr>
+<td><strong><span title="原报告来源标识：T1/T1_联合实验报告.md；原始文件未附">T1-E1：高 lr 下的条件容量收缩（源文件未附）</span></strong><br>本实验，2026 · <strong>本地经验命题，待外部验证</strong></td>
+<td>在 lr=1e-4 与 1e-2 的 16 个“数据集×steps”对比中，15 个高 lr 赢家容量更小，且 15 个均为超过 0.01 CE 的强切换；唯一反向例是弱切换。修正后的命题是：在固定数据与 T 时，极高 raw Adam lr 倾向把近优容量向小 d,w 推移，但不是每个实例、每个中间 lr 都严格单调。</td>
+<td>仅适用于本实验 4 个合成 tabular、full-pre-LN residual GELU MLP、标准参数化、Adam、bs32、wd0 与离散网格。没有 sharpness 或 μP 对照，不能断言谱稳定机制已被证明，也不能外推 OOD、其他优化器或连续临界 lr。</td>
+</tr>
+<tr>
+<td><strong><span title="原报告来源标识：T1/T1_联合实验报告.md；原始文件未附">T1-E2：训练时间的“追赶＋过训练”双机制响应（源文件未附）</span></strong><br>本实验，2026 · <strong>本地经验命题，待机制验证</strong></td>
+<td>60 个相邻 steps 比较产生 36 次强切换，其中容量下降 27、上升 9；长训既有 314/400 个 train/test CE 同降，也有 82/400 个 train 降 test 升。低 lr 不保证欠训练：lr=1e-4 时 d5w256 的 train CE 从 0.0425 降至 0.0081、test CE 却从 0.0947 升至 0.1139，同时 d2w128 从 0.2081 改善至 0.0612。赢家变化应理解为不同架构的追赶速度与过训练共同作用，而非单一时间幂律。</td>
+<td>基于 256–2048 步、固定 1024 训练样本和 5 seeds；双机制是对 train/test 模式的综合解释，不是已证明的生成机制。没有完整曲线和独立 early-stopping/数据量对照，不能预测所有配置的方向；9 次强容量上升是必须保留的反例。</td>
+</tr>
+<tr>
+<td><strong><span title="原报告来源标识：T1/T1_联合实验报告.md；原始文件未附">T1-E3：d×w×lr×steps 的非可分响应面（源文件未附）</span></strong><br>本实验，2026 · <strong>本地经验命题</strong></td>
+<td>固定 w=128 选 d、固定 d=2 选 w 后组成整包，只在 21/80 个语境等于联合赢家，59/80 有正 regret；median 0.00662、mean 0.01215、max 0.09025 CE。因此独立单轴规律一般不能相加成联合最优，新的理论必须以联合响应面为对象。</td>
+<td>结论直接覆盖当前 20 个 d,w 候选和指定 OFAT 参考基座；并未否定所有可能的序贯选择算法。它证明该 OFAT 组合规则不足，不给出响应面的具体函数形式，也不保证在其他候选网格中相同 regret 数值。</td>
+</tr>
+<tr>
+<td><strong><span title="原报告来源标识：T1/T1_联合实验报告.md；原始文件未附">T1-E4：近优简并与强切换原则（源文件未附）</span></strong><br>本实验，2026 · <strong>本地测量与推断命题</strong></td>
+<td>67/80 个语境前两名差小于 0.01 CE；近优集合中位数为 3 个架构，单种子与五种子赢家一致率仅 36.75%。理论预测对象应从单点 argmin 改为近优集合、跨条件强切换及 regret，否则容易把种子噪声误认为架构定律。</td>
+<td>0.01 CE 是本实验预注册的描述性近优阈值，不是通用显著性界限；结论依赖 5 seeds、末步 CE 和候选网格。强切换也不等同于统计显著或机制证明，但比精确 top-1 更稳健。</td>
+</tr>
+</tbody>
+</table></div>
+<h3>4. 文献综合：T1 目前能被理论回答到哪一步</h3>
+<p>以下是本表的文献综合判断，不是某一篇论文的定理。</p>
+<ol>
+<li><strong>没有找到同构的联合公式。</strong>上述文献没有直接给出有限数据、有限宽度/深度、有限 Adam 步数下，使末步 test CE 最小的 $d^*(\eta,T)$ 与 $w^*(\eta,T)$。因此 T1 仍是需要受控实验或新有限系统理论回答的问题，不是已有 μP 或 scaling-law 公式的代入计算。</li>
+<li><strong>lr×d/w 的最强约束来自参数化与稳定区。</strong>μP/Depth-μP 说明初始化、输出缩放、残差分支缩放和逐层 lr 必须作为整体；NTK、catapult、EOS 则说明架构相关的谱尺度会改变同一 lr 下的动力学。它们能解释“为什么固定 raw lr 时容量排序可能改变”，但不能预先给出 T1 的反转点。</li>
+<li><strong>steps 至少通过三条不同途径起作用：</strong>早期优化进度（NTK 慢模态）、训练阶段切换（catapult／progressive sharpening／EOS）、有限数据泛化（overtraining／double descent）。这些机制都允许短训与长训选出不同容量，但没有共同推出“训练越久最佳 d,w 必然越大”或相反的单调定律。</li>
+<li><strong>总参数量与 compute 不能替代 d,w 和 steps。</strong>Kaplan 类结果中的有限最优 N 来自固定 compute 下 N 与训练量的此消彼长；固定 steps 求最优容量是另一个优化问题。逼近定理又只覆盖表达能力，不覆盖 Adam 能否在有限步找到好解。</li>
+<li><strong>对本地现象最稳妥的表述是：</strong>256 步扫描中“较低 Adam lr 偏深宽、较高 lr 偏浅窄”与架构相关稳定性、训练阶段及有限数据容量—时长交互的文献方向相容；其具体数值、跨 steps 的联合曲面以及 d×w 组合赢家，仍属于本地待检验内容。</li>
+</ol></section>
+<section id="expectations"><h2>二、实验前：由实验特点 c 选择理论 b</h2><p>日期：2026-10-31。状态：<strong>新联合实验前的理论预登记，不启动实验</strong>。</p>
+<p>本文只使用已冻结的实验协议、模型/训练代码和《理论知识表》。已有的 256 步扫描及旧 depth×steps 结果属于既有局部证据，不冒充新联合实验的盲测结果；以下预期可在新实验中被证伪。</p>
+<p><strong>证据层级说明：</strong></p>
+<ul>
+<li><strong>论文直接支持</strong>：只指结论在原作者研究的数据、模型、优化器和渐近/实验范围内成立，不表示它已在他的论文中对 T1 成立。</li>
+<li><strong>我的外推</strong>：我把上述机制映射到当前 full-pre-LN residual GELU MLP、Adam、CE 和小样本协议后形成的可证伪假设；不是原论文的直接预测。</li>
+<li><strong>弱先验/比较纪律</strong>：用于设计实验和避免过度解释的方法学判断，不伪装成理论定理。新实验否定外推时，首先否定的是我的映射，不直接证伪原论文。</li>
+</ul>
+<h3>1. 当前实验有什么特点（c）</h3>
+<h4>数据特点</h4>
+<ul>
+<li><strong>低维、近似平衡、近似标准化的合成 tabular 二分类</strong>：四个实例的输入维数分别为 2、4、4、8；训练类别比例约为 0.46–0.54，逐特征标准差均值约为 0.99–1.02。类别失衡和整体特征尺度不是主要解释变量。</li>
+<li><strong>固定小样本而非在线无限数据</strong>：train 1024、test 2048，batch 32、有放回采样。训练步数 T 对应的期望样本曝光约为 <code>32T/1024 = T/32</code> 个 epoch；256 步约为 8 个 epoch，1024 步约为 32 个 epoch。因此长训包含明显的重复数据与过训练可能。</li>
+<li><strong>实例难度和输入维数不同</strong>：不能把四个实例当成同一任务的重复种子，也不能只按输入维数判断目标复杂度。理论应预测“条件方向与实例差异”，而不是预设所有实例共享一个精确赢家。</li>
+<li><strong>容量跨越欠参数化到过参数化</strong>：在当前 d、w 网格中，参数量可从低于 1024 到远高于 1024。参数量不是有效复杂度或插值阈值本身，但有限数据下的容量—时间交互不可忽略。</li>
+</ul>
+<h4>模型与训练特点</h4>
+<ul>
+<li><strong>有限宽、有限深的非线性 MLP</strong>：full pre-LN、residual、GELU；每个 residual block 只有一个 <code>Linear(width,width)</code>，计算为 <code>act(Linear(LN(x)) + x)</code>。</li>
+<li><strong>不是 μP/Depth-μP 参数化</strong>：使用 PyTorch 默认初始化与全局 raw Adam lr；没有 μP 的逐层宽度缩放，也没有 residual 分支的 <code>1/√d</code> 缩放或 Adam lr 的 <code>d^{-1/2}</code> 缩放。单层块只满足 Depth-μP 的一项结构条件，不满足其联合参数化假设。</li>
+<li><strong>有限步、固定配方的 Adam</strong>：bs32、wd0、默认 Adam 内部参数，无 warmup、lr decay 或 grad clipping。不同 d,w 共用同一 raw lr，正好可能暴露架构相关的稳定区差异。</li>
+<li><strong>评价是统一末步 test CE</strong>：它不是逐架构最佳 early stopping，也不是固定 compute 的最优模型规模。原训练入口只保存末步 test CE，单靠该量不能区分优化失败、欠训练与过训练。</li>
+</ul>
+<h3>2. 根据 c 应该选择哪个理论（b）【我的理论选择】</h3>
+<p>选择哪篇理论用于当前实验，本身就是我的映射判断；表中论文结论仍只在各自原研究范围内直接成立。</p>
+<p><strong>如果必须选一个 lr×容量主理论：我选择 Beyond Scaling 的“容量增加提高谱尺度、固定步长可能离开稳定区”机制作为外推起点。</strong>它是表中与当前“MLP＋Adam＋固定训练规则＋容量非单调”最接近的工作，但只作方向性依据；其 Leaky-ReLU、weight decay 和摘要级核对边界仍需保留。</p>
+<p><strong>完整 T1 不能由单一理论覆盖，必须使用两组互补理论：</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>当前特点 c</th>
+<th>应使用的理论 b</th>
+<th>在本实验中的用途与边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>有限 MLP、Adam、不同 d/w 共用固定 raw lr</td>
+<td><strong>Beyond Scaling（2026）的架构稳定机制</strong>；辅以 <strong>Adaptive Gradient Methods at the Edge of Stability（2022）</strong></td>
+<td>主用于预测高 lr 对大容量的额外惩罚。Adam EOS 的 <code>S_pre≈38/η</code> 是预条件锐度的后期经验规律，不是最优容量公式，也不能用裸 Hessian 代替。</td>
+</tr>
+<tr>
+<td>train 1024 固定、重复采样、统一末步评价、T 改变</td>
+<td><strong>Advani et al.（2020）的训练时间—泛化动态</strong>与 <strong>Deep Double Descent（2019）</strong>；辅以 <strong>Heckel–Yilmaz（2020）</strong></td>
+<td>主用于预测 steps 与容量可发生交互、长训可能出现过训练或 epoch-wise 非单调。它们不提供统一单调方向，且原模型/损失与 T1 不完全相同。</td>
+</tr>
+<tr>
+<td>需要同时理解数据量、宽度、深度和时间</td>
+<td><strong>Bordelon–Pehlevan（2025）的联合比例极限 DMFT</strong></td>
+<td>只作结构化参照：它显式分解 Bias、WidthVariance、DataVariance 与时间项；线性网络、MSE、GD/SGD 的假设使其不能成为 Adam-GELU-CE 的定量答案。</td>
+</tr>
+<tr>
+<td>每块一个 Linear，但无 Depth-μP 联合缩放</td>
+<td><strong>不直接采用 Depth-μP/μP 的指数作预测</strong></td>
+<td>不能用 <code>η_Adam∝d^{-1/2}</code> 或 <code>η∝1/w</code> 推出最佳 d,w。它们只适合作为“若重新参数化，结论可能如何改变”的对照理论。</td>
+</tr>
+<tr>
+<td>有限数据、短训、Adam、CE</td>
+<td><strong>不采用 Kaplan/Chinchilla 的 compute-optimal 公式</strong></td>
+<td>固定 compute 下的 <code>N*(C)</code> 不等于固定 steps 下的 <code>N*(T)</code>，总参数 N 也不能替代独立的 d,w。NTK/catapult 的 GD 阈值和纯逼近定理同样只作机制背景。</td>
+</tr>
+</tbody>
+</table></div>
+<h3>3. 实验前的可证伪预期</h3>
+<p><strong>本节 P1–P3 都是我对 T1 的外推，不是任何一篇论文对当前实验的直接结论。</strong>每条先列论文实际支持什么，再列我额外假设了什么。</p>
+<h4>P1：lr×容量的主预期——高 lr 使赢家向较小 d、w 移动【我的外推：理论启发的主假设】</h4>
+<ul>
+<li><strong>论文直接支持（仅限原研究范围）</strong>：Beyond Scaling 在其 Leaky-ReLU MLP、Adam＋weight decay 和一维目标族中报告固定训练规则下的容量非单调，并提出“容量增加提高谱尺度、固定步长可能离开稳定区”的机制。Adam EOS 论文则在其经验和简化分析范围内发现预条件锐度与 lr 的平衡关系；它没有给出最优 d,w。</li>
+<li><strong>我的外推</strong>：固定 T、数据实例和其它架构字段，随着 raw Adam lr 增大，预计当前较大 d,w 更早离开有效稳定区，其 train/test CE 或失败率更容易恶化；因此候选网格内的 <code>(d*,w*)</code> 总体应向较小容量移动。这里还借用了已有 256 步局部现象作为先验，不是纯理论推导。</li>
+</ul>
+<p>这是最强的方向性预期，但<strong>不预测统一反转 lr，也不预测深度和宽度具有相同指数</strong>。若多数实例和 T 上，大容量相对小容量反而随 lr 增大而持续改善、赢家稳定向最大 d,w 移动，则被证伪的是<strong>我对 T1 的主假设</strong>，不是原论文在其自身范围内的结果。</p>
+<h4>P2：steps 按训练状态分层【我的外推：条件性推测】</h4>
+<ul>
+<li><strong>论文直接支持（仅限原研究范围）</strong>：Advani et al. 在线性 student–teacher、高维 GD/MSE 理论及非线性仿真中分析训练时间与模型大小的共同作用；Deep Double Descent 在其视觉/语言实验中观察 epoch-wise 非单调；Heckel–Yilmaz 在线性模型中给出步长、特征尺度与最佳 early-stopping 时间的关系。它们<strong>都没有证明下述低 lr/高 lr 方向对 T1 成立</strong>。</li>
+<li><strong>我的条件性推测</strong>：</li>
+<li><strong>低 lr＋短训、仍以欠训练为主时</strong>：增加 T 主要缓解优化不足，较大 d,w 的相对表现可能改善，最优容量可以向较大处移动。</li>
+<li><strong>高 lr 或训练集已充分拟合时</strong>：增加 T 不应被预期为“救回”所有大模型；较大 d,w 更容易出现平台期或 test CE 反弹，最优容量可能保持较小或进一步缩小。</li>
+<li><strong>跨完整 lr×steps 曲面</strong>：允许最优容量先增大后缩小、保持不变或发生多次切换。不预设“steps 越多，最佳 d,w 必然越大/越小”的单一定律。</li>
+</ul>
+<h4>P3：跨实例预期——方向可共享，精确赢家不共享【我的外推：弱先验】</h4>
+<ul>
+<li><strong>论文直接支持（仅限原研究范围）</strong>：Beyond Scaling 报告问题相关的容量谷，逼近与统计理论也说明目标函数和数据结构会改变所需容量；这些结果不证明“高 lr 惩罚大容量”的方向会跨 T1 实例复现。</li>
+<li><strong>我的弱先验</strong>：预计上述方向的跨实例一致性可能强于具体反转点的一致性。输入维数、目标复杂度和接近插值区的程度不同，各实例的最优 d,w、最优 T 及 CE 差可以不同；不预期四个实例在同一 <code>(lr,T)</code> 上总选出同一架构。这条最容易被实例反例推翻，不应作为硬筛选条件。</li>
+</ul>
+<h4>P4：不作出的预测【文献适用边界＋我的比较纪律】</h4>
+<ul>
+<li><strong>文献适用边界</strong>：不使用 μP/Depth-μP 指数预报数值反转点，因为当前实验不满足联合参数化；不把 compute-optimal 的 N*(C) 当成固定 steps 的 N*(T)。</li>
+<li><strong>我的比较纪律</strong>：不把已有 OFAT 的最优 d 与最优 w 拼成联合整包赢家；不把 3 seeds 下很小的 CE margin 硬排成稳定顺序，近似并列应保留为并列或不确定。这两条是实验推断规则，不是上述论文的直接定理。</li>
+</ul>
+<h3>4. 要判别机制，实验至少需要哪些观测量【我的机制判别规则】</h3>
+<p>当前“只有末步 test CE”的协议可以检验 P1–P3 的<strong>结果预期</strong>，但不能确认是哪条机制成立。下表是我根据多条机制文献提出的诊断规则，不是原论文给出的充分必要判据；一种观测模式通常只能“更支持”某种解释，不能单独完成机制证明。最低限度应同时记录末步 train CE、失败/发散状态和少量训练曲线检查点：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>观测模式</th>
+<th>更支持的解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>高 lr 大模型的 train CE 与 test CE 同时较差，或早期失败率更高</td>
+<td>优化/稳定区问题，支持 P1 的稳定机制</td>
+</tr>
+<tr>
+<td>train CE 已很低，但继续训练时 test CE 上升</td>
+<td>有限数据过训练，支持训练时间—泛化解释</td>
+</tr>
+<tr>
+<td>train CE 与 test CE 随 T 同时下降，且大模型缩小差距</td>
+<td>欠训练缓解，符合 P2 的第一种条件区</td>
+</tr>
+<tr>
+<td>早期 loss 上升后恢复</td>
+<td>与 catapult 类暂态相容，但本身不是该机制的唯一证明</td>
+</tr>
+</tbody>
+</table></div>
+<p>若要检验 Adam EOS，还需测量<strong>预条件锐度</strong>及其训练阶段；不能把裸 Hessian 的 <code>2/η</code> 当作 Adam 判据。若只保留末步 test CE，则结论应写成“容量排序发生了变化”，不能写成“已证明稳定性或过拟合导致变化”。</p>
+<h3>5. 一句话预登记【我的外推假设，不是论文直接结论】</h3>
+<p>在当前小样本、标准参数化、full-pre-LN 单层 residual GELU MLP 与固定 raw Adam lr 下，<strong>我的主假设是高 lr 使最佳 d,w 向较小容量移动；我对 steps 的条件性推测是其作用随欠训练/过训练区变化，不预期跨 lr 与数据实例的统一单调公式。</strong></p>
+<h3>协议与代码依据</h3>
+<ul>
+<li>模型：<code>Science of AI Textbook/arch_score/run_fill_experiments.py:49-79</code>。</li>
+<li>Adam、采样与末步 CE：<code>Science of AI Textbook/experiments/tabular/_gap_experiments.py:75-111</code>。</li>
+<li>数据特点仅由四个实例的 train 张量形状、训练标签比例和输入特征尺度核对；未读取题包答案或新实验结果。</li>
+<li>理论条目与原始链接见同目录《理论知识表.md》。</li>
+</ul></section>
+<section id="results"><h2>三、联合实验：协议、结果与适用边界</h2><p>日期：2026-10-31。实验协议在读取新结果前冻结于 <code>preregistration.json</code>；稳健性补充分析明确标为 post-hoc。</p>
+<h3>1. 结论摘要</h3>
+<p>在这 4 个合成 tabular 二分类实例、full-pre-LN residual GELU MLP、标准参数化、Adam、bs32、wd0 的范围内：</p>
+<ol>
+<li><strong>高 lr 使最佳容量向较小 d、w 移动，是本次最稳健的方向。</strong>比较 lr=1e-4 与 1e-2 的 16 个“数据集×steps”语境，15 个原始赢家在高 lr 端容量更小，且这 15 个全部构成超过 0.01 CE 的强切换。唯一反向例外是弱切换。</li>
+<li><strong>steps 没有统一单调方向，但强切换以容量下降为主。</strong>60 个相邻步数比较中，原始容量变化为下降 36、上升 12、不变 12；36 次强切换中，下降 27、上升 9。</li>
+<li><strong>长训不是统一有益或统一过拟合。</strong>400 个长训比较中，314 个 train/test CE 同时下降，82 个 train CE 下降而 test CE 上升，4 个两者同时上升。大容量组更容易出现第二种过训练相容模式，但多数配置长训仍改善。</li>
+<li><strong>d 与 w 不能由 OFAT 规则简单组合。</strong>同一联合网格中，固定 w=128 选 d、固定 d=2 选 w 后组成的整包，只在 21/80 个语境恰好等于联合赢家；59/80 有正 regret，median 0.00662、max 0.09025 CE。</li>
+<li><strong>精确第一名经常不稳定，响应面比单点排名更可靠。</strong>80 个语境中 67 个前两名差小于 0.01 CE；近优集合的中位数为 3 个架构。单种子赢家与五种子赢家仅 36.75% 一致，因此本报告把强切换和整体方向置于原始 top-1 之上。</li>
+</ol>
+<p>这组结果支持“最佳 d,w 是 lr×steps×数据实例的条件响应面”，但不支持一个跨学习率、跨实例的统一单调公式。</p>
+<h3>2. 实验规模与协议</h3>
+<ul>
+<li><strong>联合网格</strong>：4 数据集 × 4 深度 <code>[1,2,3,5]</code> × 5 宽度 <code>[16,32,64,128,256]</code> × 5 学习率 <code>[1e-4,3e-4,1e-3,3e-3,1e-2]</code> × 4 步数 <code>[256,512,1024,2048]</code> × 5 seeds。</li>
+<li><strong>实际完成</strong>：2000 条完整训练轨迹、8000 个 checkpoint 评价、1600 个五种子聚合单元；0 条失败轨迹，1600/1600 单元均可评价。</li>
+<li><strong>评价</strong>：每个 checkpoint 同时记录 train CE 与 test CE；主要赢家按每个“数据集×lr×steps”内的五种子平均 test CE。</li>
+<li><strong>计算</strong>：单线程 CPU 完成，墙钟时间 10192.7 秒（约 2.83 小时）。checkpoint 与独立训练在 GPU、CPU 各 12 组比较中均逐点完全一致。</li>
+<li><strong>设备一致性</strong>：74 条早期 GPU 部分轨迹未混入正式结果；正式 2000 条全部由同一 CPU 协议生成。</li>
+</ul>
+<h3>3. 联合响应面</h3>
+<h4>3.1 四实例合并均值中的联合赢家</h4>
+<p>下表是次要的跨实例汇总，不代替逐实例结论。每格为 <code>d,w；mean test CE</code>。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">lr</th>
+<th>256 步</th>
+<th>512 步</th>
+<th>1024 步</th>
+<th>2048 步</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1e-4</td>
+<td>5,256；0.094743</td>
+<td>3,256；0.079169</td>
+<td>2,256；0.064033</td>
+<td>2,128；0.061208</td>
+</tr>
+<tr>
+<td style="text-align: right;">3e-4</td>
+<td>2,256；0.087066</td>
+<td>2,128；0.076363</td>
+<td>2,128；0.067365</td>
+<td>1,128；0.064332</td>
+</tr>
+<tr>
+<td style="text-align: right;">1e-3</td>
+<td>1,256；0.097472</td>
+<td>1,128；0.078437</td>
+<td>1,64；0.068026</td>
+<td>1,16；0.062248</td>
+</tr>
+<tr>
+<td style="text-align: right;">3e-3</td>
+<td>2,32；0.095143</td>
+<td>1,32；0.075404</td>
+<td>1,16；0.069571</td>
+<td>1,16；0.071882</td>
+</tr>
+<tr>
+<td style="text-align: right;">1e-2</td>
+<td>1,32；0.101163</td>
+<td>1,16；0.098060</td>
+<td>1,32；0.101645</td>
+<td>3,16；0.092456</td>
+</tr>
+</tbody>
+</table></div>
+<p>主要读法：</p>
+<ul>
+<li>在低 lr=1e-4，短训需要很大的联合容量；随 steps 增加，合并赢家总体向较小 d 或 w 移动。</li>
+<li>lr=1e-3 时，合并赢家深度始终为 1，但宽度从 256 逐步缩到 16；2048 步前两名差只有约 8.5e-6 CE，不能把 w16 当作稳定唯一赢家。</li>
+<li>lr=1e-2 的表面不再单调，1024 步出现 d1w32，2048 步出现 d3w16；逐实例赢家也不一致，不能概括为“高 lr 永远 d1”。</li>
+</ul>
+<h4>3.2 高 lr 小容量化：方向稳健，精确反转点不统一</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>项目</th>
+<th style="text-align: right;">结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>高 lr 端原始赢家容量更小</td>
+<td style="text-align: right;">15/16</td>
+</tr>
+<tr>
+<td>其中强切换（交叉 regret 至少一个达到 0.01 CE）</td>
+<td style="text-align: right;">15/15</td>
+</tr>
+<tr>
+<td>原始赢家容量更大</td>
+<td style="text-align: right;">1/16</td>
+</tr>
+<tr>
+<td>反向例构成强切换</td>
+<td style="text-align: right;">否</td>
+</tr>
+</tbody>
+</table></div>
+<p>唯一反向例是 q_9dad11、1024 步：低 lr 赢家 d3w128，高 lr 赢家 d2w256；但两个交叉 regret 分别约 0.00579 和 0.00183 CE，都低于预注册的 0.01 近优阈值。因此它是值得保留的反例，却不能据此反转总体方向。</p>
+<p>这支持实验前文档中的 <strong>P1 外推假设</strong>。它没有证明原论文的谱稳定机制就是原因：本实验没有测 sharpness，也没有做 μP/Depth-μP 对照。</p>
+<h4>3.3 steps：强切换以缩小容量为主，但存在真实反向切换</h4>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">lr</th>
+<th style="text-align: right;">强切换中容量上升</th>
+<th style="text-align: right;">强切换中容量下降</th>
+<th style="text-align: right;">弱切换或无架构切换</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1e-4</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td style="text-align: right;">3e-4</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: right;">1e-3</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: right;">3e-3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td style="text-align: right;">1e-2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td style="text-align: right;"><strong>合计</strong></td>
+<td style="text-align: right;"><strong>9</strong></td>
+<td style="text-align: right;"><strong>27</strong></td>
+<td style="text-align: right;"><strong>24</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>因此，“训练越久最佳容量越大”和“训练越久最佳容量越小”都被反例否定。当前网格中更常见的是长训缩小容量，但 9 次强上升说明该方向也不是定律。</p>
+<h4>3.4 train/test CE 提供的机制线索</h4>
+<p>对每种“数据集×lr×d×w”，比较 256 与 2048 步的五种子均值：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>模式</th>
+<th style="text-align: right;">数量</th>
+<th>解释边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>train CE↓、test CE↓</td>
+<td style="text-align: right;">314/400</td>
+<td>长训主要仍在改善优化或泛化</td>
+</tr>
+<tr>
+<td>train CE↓、test CE↑</td>
+<td style="text-align: right;">82/400</td>
+<td>与过训练相容，但单靠两个端点不能证明机制</td>
+</tr>
+<tr>
+<td>train CE↑、test CE↑</td>
+<td style="text-align: right;">4/400</td>
+<td>与后期恶化/不稳定相容</td>
+</tr>
+<tr>
+<td>train CE↑、test CE↓</td>
+<td style="text-align: right;">0/400</td>
+<td>未观察到</td>
+</tr>
+</tbody>
+</table></div>
+<p>过训练相容模式在大容量组（d≥3 且 w≥128）出现 26/80，在小容量组（d1 且 w≤32）出现 5/40。它随 lr 从 1e-4 的 3/80 增至 3e-3 的 30/80，但在 1e-2 为 20/80，并非 lr 的单调函数。</p>
+<p>这与 P2 的“按欠训练/过训练区条件变化”相容，也解释了为什么不能给 steps 一个全局方向。由于没有完整曲线、sharpness 或独立正则化对照，这些只是机制线索。</p>
+<h3>4. 联合整包不能由 OFAT 赢家拼出</h3>
+<p>在每个“数据集×lr×steps”语境内，重新从同一联合网格执行：</p>
+<ol>
+<li>固定 w=128，选最佳 d；</li>
+<li>固定 d=2，选最佳 w；</li>
+<li>将两者组成整包，与 20 个候选的联合赢家比较。</li>
+</ol>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>指标</th>
+<th style="text-align: right;">结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>组合恰好等于联合赢家</td>
+<td style="text-align: right;">21/80（26.25%）</td>
+</tr>
+<tr>
+<td>组合有正 regret</td>
+<td style="text-align: right;">59/80（73.75%）</td>
+</tr>
+<tr>
+<td>mean regret</td>
+<td style="text-align: right;">0.01215 CE</td>
+</tr>
+<tr>
+<td>median regret</td>
+<td style="text-align: right;">0.00662 CE</td>
+</tr>
+<tr>
+<td>max regret</td>
+<td style="text-align: right;">0.09025 CE</td>
+</tr>
+</tbody>
+</table></div>
+<p>所以 T1 的 d×w 交互是实质存在的。即使每个单因子扫描都正确，也不能保证组合出正确整包；这比单纯再多扫几个 OFAT 点更支持联合网格的必要性。</p>
+<h3>5. 种子与近似并列：哪些结论不应说硬</h3>
+<p>以下是 <strong>post-hoc 描述性稳健性分析</strong>，没有改变预注册赢家规则：</p>
+<ul>
+<li>67/80 语境的前两名 margin &lt;0.01 CE。</li>
+<li>每个语境近优架构数的中位数为 3，范围 1–13。</li>
+<li>单种子赢家与五种子赢家一致率：36.75%。</li>
+<li>留一种子后的赢家与五种子赢家一致率：72.25%。</li>
+<li>只用 seeds 0–2 与使用全部 5 seeds 的赢家一致率：63.75%。</li>
+</ul>
+<p>因此：</p>
+<ul>
+<li>可以较强报告“高 lr 小容量化”“强 steps 切换以下降为主”“OFAT 组合常有正 regret”。</li>
+<li>不应把某个近优点的 d,w 写成跨 seeds 或跨实例的唯一最优；应同时报告近优集合和 margin。</li>
+<li>五种子足以揭示本网格的大方向，但不足以把所有细粒度 top-1 排序固定下来。</li>
+</ul>
+<h3>6. 对实验前预期的逐条判定</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>预期</th>
+<th>本次判定</th>
+<th>精确范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P1：高 lr 使最佳 d,w 向小容量移动</td>
+<td><strong>总体支持，且有强切换证据</strong></td>
+<td>15/16 更小，15 个均强；一个弱反向例。支持的是我们的外推，不是证明原论文机制</td>
+</tr>
+<tr>
+<td>P2：steps 依欠训练/过训练区条件变化，无全局单调方向</td>
+<td><strong>支持“无统一方向”</strong></td>
+<td>强切换 27 降、9 升；多数配置长训仍改善，部分大容量配置出现过训练相容模式</td>
+</tr>
+<tr>
+<td>P3：方向比精确反转点更可能跨实例共享</td>
+<td><strong>弱支持</strong></td>
+<td>总体方向很强，但 q_9dad11 有弱反向例；各实例精确赢家和切换点明显不同</td>
+</tr>
+<tr>
+<td>OFAT 最优 d,w 可组成联合赢家</td>
+<td><strong>被多数语境否定</strong></td>
+<td>仅 21/80 精确一致，59/80 正 regret</td>
+</tr>
+</tbody>
+</table></div>
+<h3>7. 适用边界</h3>
+<ul>
+<li>仅覆盖 4 个开发用合成 tabular 实例，不是新数据集 OOD 验证。</li>
+<li>仅覆盖指定 MLP、full pre-LN、residual、GELU、标准初始化、Adam、bs32、wd0、constant lr 和离散网格。</li>
+<li>“最佳”指五种子末步 test CE 的网格内赢家，不是 accuracy、best-checkpoint、逐架构调参或固定 compute 最优。</li>
+<li>未测 μP/Depth-μP、warmup/decay、weight decay、更多 seeds、sharpness 或完整训练曲线；不能据此确认具体理论机制。</li>
+<li>强切换使用预注册的 0.01 CE 近优阈值作描述，不等同于统计显著性检验。</li>
+</ul>
+<h3>8. 复现与数据文件</h3>
+<ul>
+<li>冻结协议：<code>preregistration.json</code></li>
+<li>训练：<code>run_joint_grid.py</code></li>
+<li>预注册聚合：<code>analyze_joint_grid.py</code></li>
+<li>post-hoc 稳健性：<code>posthoc_robustness.py</code></li>
+<li>逐单元均值：<code>results/cell_means.csv</code></li>
+<li>逐语境赢家：<code>results/context_winners.csv</code></li>
+<li>近优集合：<code>results/near_optimal_sets.csv</code></li>
+<li>强 steps 切换：<code>results/transition_robustness.csv</code></li>
+<li>高低 lr 强切换：<code>results/extreme_lr_robustness.csv</code></li>
+<li>长训 train/test 模式：<code>results/long_training_patterns.csv</code></li>
+<li>全部 80 个逐实例赢家表：<code>results/summary.md</code></li>
+</ul></section>
+<section id="benchmark"><h2>四、设备测速与运行一致性</h2>
+<p>用户补充要求比较单核 CPU 与 GPU。测试使用相同的 2048 步轨迹和 4 次评估，CPU 固定单线程并绑定一个逻辑核；每种架构重复两次。小、中模型 CPU 明显更快，最大模型基本持平，因此正式网格从头使用单核 CPU，GPU 保持空闲。</p>
+<div class="table-wrap"><table><thead><tr><th>架构</th><th>单核 CPU 中位时间</th><th>GPU 中位时间</th><th>CPU 相对速度</th></tr></thead><tbody><tr><td>d1w16</td><td>1.75 s</td><td>3.70 s</td><td>2.11×</td></tr><tr><td>d2w64</td><td>2.32 s</td><td>4.45 s</td><td>1.92×</td></tr><tr><td>d5w256</td><td>7.24 s</td><td>7.07 s</td><td>0.98×</td></tr></tbody></table></div>
+<ul>
+<li>正式运行前，GPU 与 CPU 各完成 12 组 checkpoint/独立训练等价比较，test CE 差异全部为 0。</li>
+<li>早期 74 条 GPU 部分轨迹单独保留，未混入正式 2000 条 CPU 结果。</li>
+<li>测速原始记录：<span title="原报告来源标识：T1/validation/device_benchmark.json；原始文件未附">device_benchmark.json（源文件未附）</span>；CPU/GPU 等价性：<span title="原报告来源标识：T1/validation/equivalence_cpu.json；原始文件未附">CPU（源文件未附）</span>、<span title="原报告来源标识：T1/validation/equivalence_cuda.json；原始文件未附">GPU（源文件未附）</span>。</li>
+</ul></section>
+<section id="reflection"><h2>五、实验后反思：修正推论与形成新经验命题</h2><p>日期：2026-10-31。本文不回改《实验前理论预期》，而是保留预期与结果的差异。实验依据为 2000 条轨迹、8000 个评价点及《T1_联合实验报告》。</p>
+<h3>1. 预期是否正确</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>实验前判断</th>
+<th>结果判定</th>
+<th>需要保留或修正的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P1：高 lr 使最佳 d,w 向较小容量移动</td>
+<td><strong>方向正确，且比预期更稳健</strong></td>
+<td>高低 lr 的 16 个比较中 15 个容量更小，15 个都是强切换；但仍有一个弱反向例，不能写成逐实例、逐中间 lr 的严格单调定律</td>
+</tr>
+<tr>
+<td>高 lr 大容量可能表现出发散或明显优化失败</td>
+<td><strong>这部分过强</strong></td>
+<td>全部 2000 条轨迹零发散。高 lr 大模型可以 train/test CE 同时改善，只是相对排名较差；容量重排不需要灾难性不稳定</td>
+</tr>
+<tr>
+<td>P2：steps 的作用取决于欠训练/过训练，不存在统一单调方向</td>
+<td><strong>总体正确，但原先对低 lr 区的判断有偏差</strong></td>
+<td>强切换确实双向存在（27 次容量下降、9 次上升）；但低 lr 并没有主要表现为“长训释放更大容量”，最低 lr 的强切换反而是 0 次上升、5 次下降</td>
+</tr>
+<tr>
+<td>低 lr＋短训主要对应欠训练，长训可能让大容量受益</td>
+<td><strong>外推错误</strong></td>
+<td>raw lr 不能单独定义训练状态。到 2048 步已约 64 个 epoch 等效曝光，即使 lr=1e-4，最大模型也能把 train CE 降得很低并出现过训练</td>
+</tr>
+<tr>
+<td>P3：方向比精确反转点更可能跨实例共享</td>
+<td><strong>弱支持</strong></td>
+<td>高 lr 小容量化方向很强，但 q_9dad11 有弱反向例；各实例的精确赢家和切换点明显不同</td>
+</tr>
+<tr>
+<td>OFAT 最优 d,w 不能可靠拼成联合赢家</td>
+<td><strong>得到强支持</strong></td>
+<td>指定 OFAT 组合只在 21/80 个语境等于联合赢家，59/80 有正 regret</td>
+</tr>
+<tr>
+<td>近优点不应硬排唯一赢家</td>
+<td><strong>得到强支持</strong></td>
+<td>67/80 个语境前两名差小于 0.01 CE，精确 top-1 对 seeds 很敏感</td>
+</tr>
+</tbody>
+</table></div>
+<h3>2. 我具体错在哪里</h3>
+<h4>2.1 把 raw lr 当成了训练状态的代理</h4>
+<p>实验前把“低 lr＋短训”近似看成欠训练区，但训练状态还取决于样本曝光、架构的学习速度和实际 train CE。低 lr 只表示每步标量较小，不表示到长训时仍未拟合。</p>
+<p>最清楚的例子是 lr=1e-4 的四实例合并均值：</p>
+<ul>
+<li>d5w256：train CE 从 0.0425 降至 0.0081，test CE 却从 0.0947 升至 0.1139；</li>
+<li>d2w128：train CE 从 0.1758 降至 0.0191，test CE 从 0.2081 降至 0.0612。</li>
+</ul>
+<p>因此长训后的赢家收缩同时包含<strong>大模型过训练</strong>和<strong>中等模型追赶</strong>。原先只强调“欠训练缓解后大模型受益”的推测不完整。</p>
+<h4>2.2 把“稳定区机制”暗中含成了“会发散或训练很差”</h4>
+<p>零发散说明当前高 lr 惩罚不是简单的数值崩溃。以 lr=1e-2 为例，d5w256 的 train CE 从 0.1030 降至 0.0465、test CE 从 0.1629 降至 0.1381，长训仍然有效；但 d3w16 同期从 0.1168 降至 0.0925，最终更好。</p>
+<p>所以结果只能支持“同一 raw lr 下架构相对表现改变”，不能证明“大模型离开稳定区”。若要把谱稳定或 Adam EOS 作为机制，必须另外测预条件 sharpness、训练阶段和相关反事实。</p>
+<h4>2.3 把容量当成单一轴仍不够</h4>
+<p>d 与 w 不是可互换的容量刻度。高 lr 下宽度缩小较常见，但深度可以在部分实例中保持或反向移动；长训也有 9 次强容量上升。实验前使用“较小 d,w”作总体简称可以描述主趋势，却不能推出深度和宽度共享同一个单调函数或指数。</p>
+<h4>2.4 “无全局单调”之外还存在方向性偏斜</h4>
+<p>实验前只强调 steps 不应有统一方向是对的，但结果给出了更强的经验结构：在可分辨的强切换中，容量下降占 27/36，而不是上升下降大致对称。新的推论应保留这种方向性，同时保留 9 次真实反向切换。</p>
+<h3>3. 修订后的推论</h3>
+<h4>R1：从“高 lr 最优容量变小”修订为“高 lr 使近优容量集合总体向小处收缩”</h4>
+<p>理论对象不应只是精确 argmin，而应是近优集合及其强切换。当前最稳的表述是：</p>
+<blockquote>
+<p>在固定数据实例、T、标准参数化及其它配方时，极高 raw Adam lr 倾向使近优容量向较小 d,w 收缩；该倾向在高低 lr 极端比较中很强，但不要求所有中间 lr 或所有实例严格单调。</p>
+</blockquote>
+<p>这比原预期多了“近优集合”和“非严格单调”两个限制。</p>
+<h4>R2：steps 理论必须同时包含追赶与过训练</h4>
+<p>不同架构的 train/test CE 随 T 的变化速度不同。短训赢家可能来自早期优化优势；长训时，其他架构可以追赶，而部分大容量架构还会出现 train 降、test 升。两种过程叠加后可以产生容量下降、上升或反复切换。</p>
+<p>这解释了为什么 314/400 个配置长训仍 train/test 同降，同时又能出现 27 次强容量下降。不能用单一 overfitting 故事解释全部结果，也不能用单一 optimization-lag 故事解释。</p>
+<h4>R3：新理论的基本对象必须是联合响应面</h4>
+<p>OFAT 组合在多数语境有正 regret，说明 d×w 的交互不是细节。任何后续理论若只分别给出 <code>d*(lr)</code>、<code>w*(lr)</code> 或 <code>d*(steps)</code>、<code>w*(steps)</code>，再要求直接相乘/拼接，都会遗漏当前实验中的主要结构。</p>
+<h4>R4：应优先预测强切换和 regret，而不是微小 margin 下的精确第一名</h4>
+<p>精确 top-1 经常处于近优简并中。一个可检验理论若能预测“哪类架构会进入近优集合”“何时发生超过 0.01 CE 的强切换”“错误选择的 regret 多大”，就比强行预测每个语境唯一 d,w 更符合当前数据的识别能力。</p>
+<h3>4. 是否需要建立新理论</h3>
+<p><strong>结果不要求立刻宣称新的普适基础理论，但确实需要超出原论文直接结论的新条件模型。</strong>已有论文提供稳定性、追赶、early stopping 和双下降等机制候选；它们没有直接给出本实验的联合响应面，而我的若干简单外推又被结果修正。</p>
+<p>当前可以建立的是<strong>本地、可证伪的经验理论框架</strong>，还不是机制定律：</p>
+<ol>
+<li>T1-E1：高 lr 下的条件容量收缩；</li>
+<li>T1-E2：训练时间的“追赶＋过训练”双机制响应；</li>
+<li>T1-E3：d×w×lr×steps 的非可分响应面；</li>
+<li>T1-E4：近优简并与强切换原则。</li>
+</ol>
+<p>这四条已加入《理论知识表》，并明确标为“本实验经验命题”，与外部论文的定理和经验结果分行，不冒充他人结论。</p>
+<h3>5. 哪些新证据会支持或推翻这些新推论</h3>
+<ul>
+<li><strong>检验高 lr 稳定机制</strong>：测量 Adam 预条件 sharpness、训练阶段与架构的关系；若容量收缩与谱量无关，原先的稳定性解释应进一步降权。</li>
+<li><strong>检验追赶/过训练分解</strong>：保存完整 train/test 曲线，并独立改变训练集规模、early stopping 和数据重复次数；仅有末步 CE 不能完成机制识别。</li>
+<li><strong>检验普适性</strong>：在封存数据实例、其他训练集规模和参数化上测试 T1-E1/E2；若强反向切换成为主趋势，本地经验命题就不能外推。</li>
+<li><strong>检验响应面模型</strong>：新模型应优先预测近优集合、59 个 OFAT 正 regret 语境及 36 次强 steps 切换，而不是只拟合平均 CE 或精确 top-1。</li>
+</ul></section>
+<section id="appendix"><h2>附录 A：全部 80 个逐实例语境的联合赢家</h2><p>This file contains descriptive aggregates only; scientific interpretation is written separately.</p>
+<pre><code class="language-json">{
+  &quot;trajectories&quot;: 2000,
+  &quot;failed_trajectories&quot;: 0,
+  &quot;cell_contexts&quot;: 1600,
+  &quot;eligible_cells&quot;: 1600,
+  &quot;winner_contexts&quot;: 80,
+  &quot;near_tie_contexts&quot;: 67,
+  &quot;steps_transitions&quot;: 60,
+  &quot;steps_capacity_change_counts&quot;: {
+    &quot;same&quot;: 12,
+    &quot;increase&quot;: 12,
+    &quot;decrease&quot;: 36
+  },
+  &quot;extreme_lr_comparison_counts&quot;: {
+    &quot;smaller_at_high_lr&quot;: 15,
+    &quot;equal&quot;: 0,
+    &quot;larger_at_high_lr&quot;: 1
+  },
+  &quot;ofat_comparisons&quot;: 80,
+  &quot;ofat_exact_match&quot;: 21,
+  &quot;ofat_positive_regret&quot;: 59,
+  &quot;ofat_regret_mean&quot;: 0.0121498595434241,
+  &quot;ofat_regret_median&quot;: 0.006617379188537595,
+  &quot;ofat_regret_max&quot;: 0.09024555087089538,
+  &quot;total_elapsed_seconds&quot;: 9861.653325900003
+}
+</code></pre>
+<h3>q_404022</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">lr</th>
+<th style="text-align: right;">steps</th>
+<th style="text-align: right;">winner d,w</th>
+<th style="text-align: right;">test CE</th>
+<th style="text-align: right;">train CE</th>
+<th style="text-align: right;">runner margin</th>
+<th style="text-align: center;">near tie</th>
+<th style="text-align: right;">OFAT d,w</th>
+<th style="text-align: right;">OFAT regret</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.158416</td>
+<td style="text-align: right;">0.094198</td>
+<td style="text-align: right;">0.005274</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">5,256</td>
+<td style="text-align: right;">0.005274</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">2,256</td>
+<td style="text-align: right;">0.121765</td>
+<td style="text-align: right;">0.067330</td>
+<td style="text-align: right;">0.014915</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.014915</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">2,256</td>
+<td style="text-align: right;">0.108185</td>
+<td style="text-align: right;">0.024168</td>
+<td style="text-align: right;">0.006242</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,256</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">1,256</td>
+<td style="text-align: right;">0.094386</td>
+<td style="text-align: right;">0.038787</td>
+<td style="text-align: right;">0.015730</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: right;">2,128</td>
+<td style="text-align: right;">0.015730</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">2,256</td>
+<td style="text-align: right;">0.118097</td>
+<td style="text-align: right;">0.054829</td>
+<td style="text-align: right;">0.025801</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.040365</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1,256</td>
+<td style="text-align: right;">0.109512</td>
+<td style="text-align: right;">0.065503</td>
+<td style="text-align: right;">0.001436</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,128</td>
+<td style="text-align: right;">0.001436</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1,128</td>
+<td style="text-align: right;">0.095176</td>
+<td style="text-align: right;">0.049830</td>
+<td style="text-align: right;">0.000006</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,64</td>
+<td style="text-align: right;">0.019045</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">1,64</td>
+<td style="text-align: right;">0.081194</td>
+<td style="text-align: right;">0.034747</td>
+<td style="text-align: right;">0.006730</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.026307</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1,128</td>
+<td style="text-align: right;">0.115825</td>
+<td style="text-align: right;">0.077738</td>
+<td style="text-align: right;">0.013927</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: right;">1,64</td>
+<td style="text-align: right;">0.024490</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1,128</td>
+<td style="text-align: right;">0.090379</td>
+<td style="text-align: right;">0.034517</td>
+<td style="text-align: right;">0.008973</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,64</td>
+<td style="text-align: right;">0.008973</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.082420</td>
+<td style="text-align: right;">0.034931</td>
+<td style="text-align: right;">0.001633</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.001633</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.060730</td>
+<td style="text-align: right;">0.025284</td>
+<td style="text-align: right;">0.022204</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.093742</td>
+<td style="text-align: right;">0.063474</td>
+<td style="text-align: right;">0.021995</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.081783</td>
+<td style="text-align: right;">0.050481</td>
+<td style="text-align: right;">0.012022</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.084302</td>
+<td style="text-align: right;">0.030681</td>
+<td style="text-align: right;">0.013536</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: right;">3,16</td>
+<td style="text-align: right;">0.090246</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.083048</td>
+<td style="text-align: right;">0.013563</td>
+<td style="text-align: right;">0.040942</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.105248</td>
+<td style="text-align: right;">0.074653</td>
+<td style="text-align: right;">0.010677</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: right;">3,16</td>
+<td style="text-align: right;">0.027935</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.105975</td>
+<td style="text-align: right;">0.059299</td>
+<td style="text-align: right;">0.009341</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,64</td>
+<td style="text-align: right;">0.009341</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.130237</td>
+<td style="text-align: right;">0.047846</td>
+<td style="text-align: right;">0.002715</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,16</td>
+<td style="text-align: right;">0.002715</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.124294</td>
+<td style="text-align: right;">0.020656</td>
+<td style="text-align: right;">0.007113</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+</tbody>
+</table></div>
+<h3>q_64516e</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">lr</th>
+<th style="text-align: right;">steps</th>
+<th style="text-align: right;">winner d,w</th>
+<th style="text-align: right;">test CE</th>
+<th style="text-align: right;">train CE</th>
+<th style="text-align: right;">runner margin</th>
+<th style="text-align: center;">near tie</th>
+<th style="text-align: right;">OFAT d,w</th>
+<th style="text-align: right;">OFAT regret</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">5,256</td>
+<td style="text-align: right;">0.066919</td>
+<td style="text-align: right;">0.032381</td>
+<td style="text-align: right;">0.013637</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: right;">5,256</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.056011</td>
+<td style="text-align: right;">0.024077</td>
+<td style="text-align: right;">0.005651</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">5,256</td>
+<td style="text-align: right;">0.011729</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">2,256</td>
+<td style="text-align: right;">0.044459</td>
+<td style="text-align: right;">0.018531</td>
+<td style="text-align: right;">0.003094</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.004807</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">2,128</td>
+<td style="text-align: right;">0.038624</td>
+<td style="text-align: right;">0.013958</td>
+<td style="text-align: right;">0.000623</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,128</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">3,128</td>
+<td style="text-align: right;">0.074862</td>
+<td style="text-align: right;">0.042533</td>
+<td style="text-align: right;">0.002597</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.017539</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">5,64</td>
+<td style="text-align: right;">0.053475</td>
+<td style="text-align: right;">0.019771</td>
+<td style="text-align: right;">0.002717</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,128</td>
+<td style="text-align: right;">0.002717</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">2,128</td>
+<td style="text-align: right;">0.043331</td>
+<td style="text-align: right;">0.013388</td>
+<td style="text-align: right;">0.006245</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,128</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">2,64</td>
+<td style="text-align: right;">0.041784</td>
+<td style="text-align: right;">0.011397</td>
+<td style="text-align: right;">0.000528</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,64</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1,256</td>
+<td style="text-align: right;">0.079138</td>
+<td style="text-align: right;">0.048703</td>
+<td style="text-align: right;">0.002606</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,64</td>
+<td style="text-align: right;">0.048839</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">3,64</td>
+<td style="text-align: right;">0.058602</td>
+<td style="text-align: right;">0.025214</td>
+<td style="text-align: right;">0.003076</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,32</td>
+<td style="text-align: right;">0.019430</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">2,16</td>
+<td style="text-align: right;">0.050266</td>
+<td style="text-align: right;">0.022568</td>
+<td style="text-align: right;">0.001232</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.029120</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">1,64</td>
+<td style="text-align: right;">0.039461</td>
+<td style="text-align: right;">0.010251</td>
+<td style="text-align: right;">0.003080</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.010517</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1,64</td>
+<td style="text-align: right;">0.079122</td>
+<td style="text-align: right;">0.050897</td>
+<td style="text-align: right;">0.007687</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.017329</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.062570</td>
+<td style="text-align: right;">0.034471</td>
+<td style="text-align: right;">0.000714</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">5,16</td>
+<td style="text-align: right;">0.032496</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.051312</td>
+<td style="text-align: right;">0.020047</td>
+<td style="text-align: right;">0.002019</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">5,16</td>
+<td style="text-align: right;">0.037269</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">1,64</td>
+<td style="text-align: right;">0.042731</td>
+<td style="text-align: right;">0.010290</td>
+<td style="text-align: right;">0.003609</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,16</td>
+<td style="text-align: right;">0.006884</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.097937</td>
+<td style="text-align: right;">0.053790</td>
+<td style="text-align: right;">0.002298</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,16</td>
+<td style="text-align: right;">0.030934</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">2,16</td>
+<td style="text-align: right;">0.077606</td>
+<td style="text-align: right;">0.039488</td>
+<td style="text-align: right;">0.002618</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,16</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">5,32</td>
+<td style="text-align: right;">0.067508</td>
+<td style="text-align: right;">0.026216</td>
+<td style="text-align: right;">0.001313</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,64</td>
+<td style="text-align: right;">0.006046</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.056436</td>
+<td style="text-align: right;">0.015357</td>
+<td style="text-align: right;">0.001527</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+</tbody>
+</table></div>
+<h3>q_8e12f6</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">lr</th>
+<th style="text-align: right;">steps</th>
+<th style="text-align: right;">winner d,w</th>
+<th style="text-align: right;">test CE</th>
+<th style="text-align: right;">train CE</th>
+<th style="text-align: right;">runner margin</th>
+<th style="text-align: center;">near tie</th>
+<th style="text-align: right;">OFAT d,w</th>
+<th style="text-align: right;">OFAT regret</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.106185</td>
+<td style="text-align: right;">0.067614</td>
+<td style="text-align: right;">0.003463</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">5,256</td>
+<td style="text-align: right;">0.003463</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.088337</td>
+<td style="text-align: right;">0.041425</td>
+<td style="text-align: right;">0.000082</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">5,256</td>
+<td style="text-align: right;">0.001131</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.075269</td>
+<td style="text-align: right;">0.024406</td>
+<td style="text-align: right;">0.001444</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">3,128</td>
+<td style="text-align: right;">0.072640</td>
+<td style="text-align: right;">0.014049</td>
+<td style="text-align: right;">0.001284</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.008766</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">5,128</td>
+<td style="text-align: right;">0.104215</td>
+<td style="text-align: right;">0.049764</td>
+<td style="text-align: right;">0.001220</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">5,256</td>
+<td style="text-align: right;">0.043943</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">2,256</td>
+<td style="text-align: right;">0.089724</td>
+<td style="text-align: right;">0.042110</td>
+<td style="text-align: right;">0.003657</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,256</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">2,128</td>
+<td style="text-align: right;">0.080644</td>
+<td style="text-align: right;">0.029118</td>
+<td style="text-align: right;">0.006742</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,128</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">3,32</td>
+<td style="text-align: right;">0.086622</td>
+<td style="text-align: right;">0.019286</td>
+<td style="text-align: right;">0.000332</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,64</td>
+<td style="text-align: right;">0.020005</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">3,128</td>
+<td style="text-align: right;">0.120720</td>
+<td style="text-align: right;">0.069702</td>
+<td style="text-align: right;">0.003553</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,128</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">3,32</td>
+<td style="text-align: right;">0.098231</td>
+<td style="text-align: right;">0.044671</td>
+<td style="text-align: right;">0.000806</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,128</td>
+<td style="text-align: right;">0.000806</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1,64</td>
+<td style="text-align: right;">0.096655</td>
+<td style="text-align: right;">0.040483</td>
+<td style="text-align: right;">0.001705</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.014898</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.095871</td>
+<td style="text-align: right;">0.035490</td>
+<td style="text-align: right;">0.001603</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.009030</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">2,32</td>
+<td style="text-align: right;">0.119369</td>
+<td style="text-align: right;">0.070965</td>
+<td style="text-align: right;">0.007630</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.030621</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1,64</td>
+<td style="text-align: right;">0.112136</td>
+<td style="text-align: right;">0.048467</td>
+<td style="text-align: right;">0.000575</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,32</td>
+<td style="text-align: right;">0.006350</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.104728</td>
+<td style="text-align: right;">0.038479</td>
+<td style="text-align: right;">0.000910</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">1,16</td>
+<td style="text-align: right;">0.116567</td>
+<td style="text-align: right;">0.023845</td>
+<td style="text-align: right;">0.000722</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,32</td>
+<td style="text-align: right;">0.011980</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.134592</td>
+<td style="text-align: right;">0.083110</td>
+<td style="text-align: right;">0.008692</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,16</td>
+<td style="text-align: right;">0.013823</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1,64</td>
+<td style="text-align: right;">0.130537</td>
+<td style="text-align: right;">0.054979</td>
+<td style="text-align: right;">0.006131</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,64</td>
+<td style="text-align: right;">0.007638</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.128497</td>
+<td style="text-align: right;">0.037225</td>
+<td style="text-align: right;">0.010228</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: right;">2,32</td>
+<td style="text-align: right;">0.010798</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">3,16</td>
+<td style="text-align: right;">0.131779</td>
+<td style="text-align: right;">0.035135</td>
+<td style="text-align: right;">0.008461</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">5,256</td>
+<td style="text-align: right;">0.085305</td>
+</tr>
+</tbody>
+</table></div>
+<h3>q_9dad11</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: right;">lr</th>
+<th style="text-align: right;">steps</th>
+<th style="text-align: right;">winner d,w</th>
+<th style="text-align: right;">test CE</th>
+<th style="text-align: right;">train CE</th>
+<th style="text-align: right;">runner margin</th>
+<th style="text-align: center;">near tie</th>
+<th style="text-align: right;">OFAT d,w</th>
+<th style="text-align: right;">OFAT regret</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">5,256</td>
+<td style="text-align: right;">0.038716</td>
+<td style="text-align: right;">0.033402</td>
+<td style="text-align: right;">0.002666</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">5,256</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">5,128</td>
+<td style="text-align: right;">0.031839</td>
+<td style="text-align: right;">0.022597</td>
+<td style="text-align: right;">0.003808</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">5,256</td>
+<td style="text-align: right;">0.009336</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">3,128</td>
+<td style="text-align: right;">0.024579</td>
+<td style="text-align: right;">0.018358</td>
+<td style="text-align: right;">0.000197</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.000197</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">3,128</td>
+<td style="text-align: right;">0.018138</td>
+<td style="text-align: right;">0.010019</td>
+<td style="text-align: right;">0.001665</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.016537</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">3,128</td>
+<td style="text-align: right;">0.039010</td>
+<td style="text-align: right;">0.033750</td>
+<td style="text-align: right;">0.001754</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,256</td>
+<td style="text-align: right;">0.021870</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">3,128</td>
+<td style="text-align: right;">0.031926</td>
+<td style="text-align: right;">0.022426</td>
+<td style="text-align: right;">0.001913</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,128</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">3,64</td>
+<td style="text-align: right;">0.023512</td>
+<td style="text-align: right;">0.015967</td>
+<td style="text-align: right;">0.000623</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,128</td>
+<td style="text-align: right;">0.000623</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.0003</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">3,16</td>
+<td style="text-align: right;">0.021306</td>
+<td style="text-align: right;">0.015336</td>
+<td style="text-align: right;">0.000366</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,256</td>
+<td style="text-align: right;">0.000366</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">3,64</td>
+<td style="text-align: right;">0.038555</td>
+<td style="text-align: right;">0.030160</td>
+<td style="text-align: right;">0.001742</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,128</td>
+<td style="text-align: right;">0.001742</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">5,16</td>
+<td style="text-align: right;">0.035157</td>
+<td style="text-align: right;">0.024730</td>
+<td style="text-align: right;">0.002376</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,32</td>
+<td style="text-align: right;">0.004031</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">3,16</td>
+<td style="text-align: right;">0.030051</td>
+<td style="text-align: right;">0.023997</td>
+<td style="text-align: right;">0.001458</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,32</td>
+<td style="text-align: right;">0.001458</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">3,16</td>
+<td style="text-align: right;">0.016879</td>
+<td style="text-align: right;">0.010729</td>
+<td style="text-align: right;">0.003494</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.010800</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">3,16</td>
+<td style="text-align: right;">0.039200</td>
+<td style="text-align: right;">0.031378</td>
+<td style="text-align: right;">0.004202</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,32</td>
+<td style="text-align: right;">0.019507</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1,32</td>
+<td style="text-align: right;">0.032528</td>
+<td style="text-align: right;">0.024829</td>
+<td style="text-align: right;">0.003920</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,32</td>
+<td style="text-align: right;">0.005462</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">3,128</td>
+<td style="text-align: right;">0.033228</td>
+<td style="text-align: right;">0.022635</td>
+<td style="text-align: right;">0.001784</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,32</td>
+<td style="text-align: right;">0.005564</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">3,16</td>
+<td style="text-align: right;">0.023250</td>
+<td style="text-align: right;">0.011204</td>
+<td style="text-align: right;">0.005068</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,16</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">256</td>
+<td style="text-align: right;">3,64</td>
+<td style="text-align: right;">0.046996</td>
+<td style="text-align: right;">0.032643</td>
+<td style="text-align: right;">0.008524</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,32</td>
+<td style="text-align: right;">0.009532</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">3,16</td>
+<td style="text-align: right;">0.040197</td>
+<td style="text-align: right;">0.033894</td>
+<td style="text-align: right;">0.013245</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: right;">3,32</td>
+<td style="text-align: right;">0.017296</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">1024</td>
+<td style="text-align: right;">2,256</td>
+<td style="text-align: right;">0.049436</td>
+<td style="text-align: right;">0.034426</td>
+<td style="text-align: right;">0.000927</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">2,256</td>
+<td style="text-align: right;">0.000000</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">2048</td>
+<td style="text-align: right;">2,64</td>
+<td style="text-align: right;">0.038696</td>
+<td style="text-align: right;">0.019910</td>
+<td style="text-align: right;">0.004217</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: right;">3,64</td>
+<td style="text-align: right;">0.015052</td>
+</tr>
+</tbody>
+</table></div></section>
+<section id="reproduce"><h2>附录 B：复现材料与完整证据链</h2>
+<h3>预注册与理论文档</h3>
+<ul class="refs">
+<li><span title="原报告来源标识：T1/preregistration.json；原始文件未附">preregistration.json（源文件未附）</span>：结果读取前冻结的网格、评价与近优规则。</li>
+<li><span title="原报告来源标识：T1/理论知识表.md；原始文件未附">理论知识表.md（源文件未附）</span>：15 篇外部文献＋4 条本地经验命题。</li>
+<li><span title="原报告来源标识：T1/实验前理论预期.md；原始文件未附">实验前理论预期.md（源文件未附）</span>：保留实验前原文，不回改。</li>
+<li><span title="原报告来源标识：T1/T1_联合实验报告.md；原始文件未附">T1_联合实验报告.md（源文件未附）</span>：独立实验报告。</li>
+<li><span title="原报告来源标识：T1/实验后反思.md；原始文件未附">实验后反思.md（源文件未附）</span>：预期错误来源与修订推论。</li>
+</ul>
+<h3>代码</h3>
+<ul class="refs">
+<li><span title="原报告来源标识：T1/run_joint_grid.py；原始文件未附">run_joint_grid.py（源文件未附）</span>：可恢复联合训练与 checkpoint 等价验证。</li>
+<li><span title="原报告来源标识：T1/analyze_joint_grid.py；原始文件未附">analyze_joint_grid.py（源文件未附）</span>：预注册聚合。</li>
+<li><span title="原报告来源标识：T1/posthoc_robustness.py；原始文件未附">posthoc_robustness.py（源文件未附）</span>：post-hoc 种子与强切换稳健性。</li>
+<li><span title="原报告来源标识：T1/benchmark_device.py；原始文件未附">benchmark_device.py（源文件未附）</span>：单核 CPU/GPU 测速。</li>
+<li><span title="原报告来源标识：T1/build_d14_1.py；原始文件未附">build_d14_1.py（源文件未附）</span>：从上述文档和结果重建本 HTML。</li>
+</ul>
+<h3>聚合结果</h3>
+<ul class="refs">
+<li><span title="原报告来源标识：T1/results/cell_means.csv；原始文件未附">cell_means.csv（源文件未附）</span>：1600 个五种子聚合单元。</li>
+<li><span title="原报告来源标识：T1/results/context_winners.csv；原始文件未附">context_winners.csv（源文件未附）</span>：80 个逐实例语境赢家与 OFAT regret。</li>
+<li><span title="原报告来源标识：T1/results/near_optimal_sets.csv；原始文件未附">near_optimal_sets.csv（源文件未附）</span>：近优架构集合。</li>
+<li><span title="原报告来源标识：T1/results/transition_robustness.csv；原始文件未附">transition_robustness.csv（源文件未附）</span>：steps 强切换。</li>
+<li><span title="原报告来源标识：T1/results/extreme_lr_robustness.csv；原始文件未附">extreme_lr_robustness.csv（源文件未附）</span>：高低 lr 强切换。</li>
+<li><span title="原报告来源标识：T1/results/long_training_patterns.csv；原始文件未附">long_training_patterns.csv（源文件未附）</span>：长训 train/test 模式。</li>
+<li><span title="原报告来源标识：T1/results/analysis_summary.json；原始文件未附">analysis_summary.json（源文件未附）</span> 与 <span title="原报告来源标识：T1/results/robustness_summary.json；原始文件未附">robustness_summary.json（源文件未附）</span>：汇总计数。</li>
+</ul>
+<p>模型定义来自 <span title="原报告来源标识：../../Science of AI Textbook/arch_score/run_fill_experiments.py；原始文件未附">run_fill_experiments.py（源文件未附）</span>；训练协议复用 ArchitectureIQ 的有放回 minibatch、PyTorch 默认初始化、Adam 和末步 CE。所有新实验结果均位于 T1 目录，未读取题包答案。</p>
+</section>
+<div class="stamp">D14.1 · T1 理论—预期—联合实验—反思完整报告 · 2026-10-31 · 结论仅限当前数据、模型、训练协议与离散候选网格</div>
+<p class="stamp">本站整合于 2026-11-03 · 来源：D14.1_T1_joint_response.html · 原始 HTML SHA-256：<code>d727f1921cab21a4927f882fe319ec321967f5e4b46cf8201163a89fc9bc6e89</code></p>
+</main></body></html>
