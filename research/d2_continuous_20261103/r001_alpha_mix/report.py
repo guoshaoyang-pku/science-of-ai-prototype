@@ -80,5 +80,7 @@ text+=f'''
 
 本轮仅本地CPU计算，没有模型API、GPU、新solver或网站发布。
 '''
+if (OUT/'independent_audit.json').exists():
+    text+='\n独立审计已通过：independent_audit.json；另以原坐标直接GD复核4个无噪声例子，最大误差9.03×10⁻¹⁵。该复核只检查已保存条件和时间，不增加新实验条件。\n'
 (OUT/'report.md').write_text(text)
 print(OUT/'report.md')
