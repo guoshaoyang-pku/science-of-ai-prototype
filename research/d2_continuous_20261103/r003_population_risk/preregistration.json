@@ -1,0 +1,69 @@
+{
+  "round_id": "r003_population_risk",
+  "authorization": "2026-11-03 continuous D2 local CPU loop, one round per heartbeat, no publishing",
+  "question": "固定r002的51对模型，总体解析风险是否保留44个明确回升，并将7个待定条件分清？",
+  "status_at_registration": "not_started",
+  "output_root": "/Users/mapleandrew/meta_circle/Science_of_AI_Textbook/AIQ_KB_DATA/runs/d2_continuous_20261103",
+  "input_root": "/Users/mapleandrew/meta_circle/Science_of_AI_Textbook/AIQ_KB_DATA/imports/d2_handoff_20261009",
+  "previous_round": "r002_validation_replication",
+  "conditions": 54,
+  "evaluated": 51,
+  "excluded": 3,
+  "primary_subset": "All 44 r002 primary_pass=true conditions, no re-selection",
+  "primary_hypothesis": "All 44 retain population delta above 1e-6*old_R0 by more than tol=1e-10*max(1,old_R0). For each: confirmed if margin>tol, counterexample if margin< -tol, otherwise numerical_uncertain. All44 confirmed supports; any counterexample refutes; only uncertain without counterexamples is inconclusive.",
+  "primary_required": 44,
+  "effect_fraction": 1e-06,
+  "numerical_tolerance": 1e-10,
+  "secondary": "For all 51 and separately 7 previously unresolved, report signed population early/late MSE and delta; positive if delta>tol, negative if delta< -tol, numerically_negligible otherwise. Also effect-qualified positives, MC interval compatibility with tol, by-alpha and by-seed, all3 boundary exclusions. No new minimum or causal intervention.",
+  "formula": "formulation.md; finite-width exact Gaussian moments, zero hidden bias only, use original train center/scale and constant cross terms; stable bilinear delta",
+  "verification": "All prior result manifest artifacts and nine raw inputs hash-verified; all source bytes pinned to execution commit. For each draw, 8 fixed feature pairs plus min/max off-diagonal rho tested via conditional-normal 1D quadrature epsabs=epsrel=1e-12 (limit=200), gate 1e-9*max(1,|moment|); every feature target cross moment integrated independently. Toy same/opposite/orthogonal pairs and (1,1,0,0) target moments. Q min eigenvalue >= -1e-10*max(1,||Q||2). Every51 risk/delta checked against raw-feature coefficient expansion at 1e-10*max(1,R0). No negative risk below -tol, no clipping results. Formula check failures stop and are retained. All51 get independent 60-decimal mpmath raw-coordinate risk/delta recalculation using the exact stored float inputs as constants; save decimal strings and float64 discrepancy. Discrepancy >tol forces numerical_uncertain, no success/refutation based on uncertain float arithmetic.",
+  "fixed_pairs": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      7,
+      11
+    ],
+    [
+      31,
+      63
+    ],
+    [
+      64,
+      127
+    ]
+  ],
+  "domain": "Same development training/feature draws and known Gaussian data-generating target. Analytic integration removes validation sampling noise, not training-data limitations or finite precision. Not a universal formula, not new training-task generalization. Prior44 were selected on previous data so hypothesis is a conditional consistency prediction.",
+  "compute_seconds": 1800,
+  "cpu_threads": 1,
+  "gpu": false,
+  "paid_models": false,
+  "failure": "Exclusive lock, never overwrite old results; preserve failures; altered computation needs amendment commit before execution.",
+  "outputs": [
+    "execution.json",
+    "moments/*.npz",
+    "rows.json",
+    "summary.json",
+    "verification.json",
+    "manifest.json",
+    "report and independent audit after computation"
+  ]
+}
