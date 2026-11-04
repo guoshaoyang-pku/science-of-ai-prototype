@@ -1,0 +1,132 @@
+{
+  "study": "r001_no_relu",
+  "direction": "D1_u_effective_time",
+  "domain": "development",
+  "question": "Does replacing only the student ReLU with Identity recover cross-optimizer U alignment, with the original nonlinear teacher, data and initial Linear tensors held fixed?",
+  "predictions": {
+    "P1": "At q=0.5, every non-reference optimizer by architecture pair has median relative endpoint error <=5% across the three paired seeds, with all three comparisons uncensored.",
+    "P2": "At least one optimizer-by-architecture pair at q=0.1 or q=0.01 has median relative endpoint error >5% or fewer than 3/3 uncensored comparisons."
+  },
+  "data": {
+    "task": "synthetic nonlinear scalar regression from a fixed one-hidden-layer ReLU teacher (16-32-1); student is a trainable deep affine network with Identity activations",
+    "input_dim": 16,
+    "train_examples": 256,
+    "validation_examples": 256,
+    "target_scaling": "center/scale using training target mean and standard deviation; same transform on validation",
+    "seeds": [
+      11,
+      23,
+      37
+    ],
+    "student_architectures": [
+      {
+        "name": "width64_depth2",
+        "width": 64,
+        "hidden_layers": 2
+      },
+      {
+        "name": "width128_depth2",
+        "width": 128,
+        "hidden_layers": 2
+      },
+      {
+        "name": "width128_depth4",
+        "width": 128,
+        "hidden_layers": 4
+      }
+    ],
+    "pairing": "within architecture and seed, all optimizers share data, validation set, initial weights and initial loss"
+  },
+  "training": {
+    "device": "CPU",
+    "dtype": "float64",
+    "batching": "full batch, fixed order, no shuffling",
+    "loss": "mean squared error",
+    "eta_all_optimizers": 0.001,
+    "steps": 2000,
+    "thresholds_q": [
+      0.9,
+      0.5,
+      0.1,
+      0.01
+    ],
+    "optimizer_settings": {
+      "SGD": {
+        "momentum": 0,
+        "weight_decay": 0
+      },
+      "Momentum": {
+        "momentum": 0.9,
+        "dampening": 0,
+        "nesterov": false,
+        "weight_decay": 0
+      },
+      "Adam": {
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "eps": 1e-08,
+        "weight_decay": 0,
+        "bias_correction": true
+      },
+      "AdamW": {
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "eps": 1e-08,
+        "weight_decay": 0.01,
+        "bias_correction": true
+      },
+      "RMSprop": {
+        "alpha": 0.99,
+        "eps": 1e-08,
+        "momentum": 0,
+        "centered": false,
+        "bias_correction": false
+      },
+      "Adagrad": {
+        "initial_accumulator_value": 0,
+        "eps": 1e-08,
+        "lr_decay": 0,
+        "weight_decay": 0
+      }
+    },
+    "determinism": "PyTorch deterministic algorithms; one CPU thread; fixed seeds; no stochastic layers"
+  },
+  "U_definition": {
+    "purpose": "empirically test the constant-initial-gradient parameter-displacement calibration without a loss-mode decomposition",
+    "globalization": "compute coordinatewise predicted displacement under constant g0, then take its Euclidean norm as scalar U",
+    "SGD": "eta*t*||g0||2",
+    "Momentum": "eta*[t/(1-mu)-mu*(1-mu^t)/(1-mu)^2]*||g0||2, mu=0.9",
+    "Adam": "||eta*t*g0/(abs(g0)+eps)||2",
+    "AdamW": "||theta_const(t)-theta0||2 under decoupled shrinkage c=1-eta*wd, including shrinkage in total displacement",
+    "RMSprop": "||sum_s eta*g0/(abs(g0)*sqrt(1-alpha^s)+eps)||2; alpha=.99, no bias correction",
+    "Adagrad": "||sum_s eta*g0/(sqrt(s*g0^2)+eps)||2; accumulator starts at zero",
+    "comparison": "per architecture/seed/q, observed SGD first-crossing defines target U; predict each other method's first t with U(t)>=target and compare to observed first-crossing"
+  },
+  "outcomes": {
+    "primary": "relative absolute endpoint error |t_pred-t_obs|/t_obs at q=.5; report each optimizer/architecture median over three paired seeds and uncensored denominator",
+    "secondary": "same at q=.9/.1/.01; sustained-to-T endpoints; validation thresholds; saved original loss curves against raw U; affine least-squares floor and threshold attainability diagnostics",
+    "censoring": "unreached observed threshold or predicted U crossing by T=2000 remains null; do not impute T",
+    "tolerance": "5% inherited from D1; report continuous errors and every denominator"
+  },
+  "ablation": {
+    "only_architecture_change": "student hidden ReLU replaced by Identity, preserving state_dict keys and RNG consumption",
+    "paired_reference": "d1_nn_u_transfer_r1/r001_nn_u_transfer; original ReLU runs will not be rerun or overwritten",
+    "important_difference": "same initial Linear tensors, but initial predictions, L0 and g0 differ after activation removal; U is recomputed",
+    "residual_diagnostic": "fit affine OLS on training data with an intercept; report L_affine_star/L0 for every training cell and flag q below this lower bound as class-unattainable",
+    "metrics": "store all 2001 per-step loss and U values in separate metrics files, plus 401-point curves",
+    "prediction_interpretation": "P1 is a falsifiable alignment hypothesis, not an expectation of success; P2 includes censoring as an evidence limit, not as a measured endpoint error",
+    "plotting": "linear raw U; original L/L0 on log y; initial x focus is the largest first U reaching floor_ratio+0.01*(1-floor_ratio), over trajectories that reach it, or full x if none; full trajectories and t=2000 markers retained; no subtraction from primary loss metric"
+  },
+  "scope_limits": [
+    "development only; synthetic regression is not a benchmark or real-task test",
+    "three factorized affine architectures and three paired seeds; seeds do not add architecture conditions; no claim that the joint parameter loss is quadratic",
+    "no quadratic-loss mode decomposition is assumed; scalar Euclidean aggregation of coordinate U is an operational choice, not a theorem",
+    "one common learning rate and fixed optimizer settings; no hyperparameter tuning or optimizer ranking",
+    "no claim about classification, CNNs, transformers, minibatch noise, other data distributions, or learning rates"
+  ],
+  "execution_source_sha256": "67d8739b058e29b5a02fff1c829a9b6b98b8d2a3e07fbed21768c924fd940194"
+}
