@@ -7,7 +7,7 @@
 </head>
 <body><main><div class="nav"><a href="../aiq-wishlist/">AIQ 许愿池</a> · <a href="https://guoshaoyang-pku.github.io/blogs/kb_site/index.html">实验线1 · KB 迭代</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype">GitHub 仓库</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/index.html">编辑此页</a></div>
 <h1>训练动力学与架构选择：研究方向与当前结论</h1>
-<p style="font-size:15px">实验线2把宽泛问题拆成可检验的小问题。这里记录 14 个研究方向：模型学得有多快、何时开始过拟合、哪些指标能解释训练过程，以及固定训练条件下怎样选择架构。AI 研究程序（Sol 6.1 Ultra）先记录预测，再用本机小规模实验检验。目前主要得到的是简化模型中的规律、适用范围和反例，尚未建立通用训练理论或新的解题收益。研究自 2026-10-06 启动，已于 2026-10-08 暂停；D2 补充实验截至 2026-10-28，主张状态于 2026-10-29 更新；D14 的条件架构选择、文献对照与实验核验材料更新至 2026-10-28，于 2026-10-29 整合到本站。<a href="背景与文献.html">研究背景与文献</a> · <a href="morning_2026-10-07.html">10 月 7 日阶段记录</a> · <a href="lines_overview.html">新旧实验项目的历史总览</a></p>
+<p style="font-size:15px">实验线2把宽泛问题拆成可检验的小问题。这里记录 14 个研究方向：模型学得有多快、何时开始过拟合、哪些指标能解释训练过程，以及固定训练条件下怎样选择架构。AI 研究程序（Sol 6.1 Ultra）先记录预测，再用本机小规模实验检验。目前主要得到的是简化模型中的规律、适用范围和反例，尚未建立通用训练理论或新的解题收益。研究自 2026-10-06 启动，已于 2026-10-08 暂停；D2 补充实验截至 2026-10-28，主张状态于 2026-10-29 更新；D14 于 2026-11-03 补充容量解读、科学问题清单和 2026-10-31 的 T1 联合报告；原有条件规则与实验核验材料保留。<a href="背景与文献.html">研究背景与文献</a> · <a href="morning_2026-10-07.html">10 月 7 日阶段记录</a> · <a href="lines_overview.html">新旧实验项目的历史总览</a></p>
 <div class="legend">先读每项的“问题”和“目前结果”，点击标题查看实验方法、公式与证据。常用符号：<b>U</b> 训练量（各报告分别定义）· <b>n</b> 训练样本数 · <b>σ²</b> 标签噪声方差 · <b>η</b> 学习率。下方标签沿用旧知识库的记录数：<b>实测</b> 有证据支持的记录 · <b>推翻</b> 预测失败的记录 · <b>混合</b> 仅部分条件成立的记录。这些不是独立发现的数量，也不包含最新 D2 补充实验的重新计数。D14 为后续材料整合，单独标注为条件规则与实验核验，不并入旧知识库计数。</div>
 <ul class="idx">
 
@@ -47,7 +47,7 @@
 <span class="tags"><span class="tag ok">实测 6</span></span>
 </li>
 <li class="item">
-<a class="t" href="D4_sigmoid_training_curve.html">D4：单 sigmoid 拟合训练曲线的局限</a>
+<a class="t" href="D4_sigmoid_training_curve.html">D4：什么时候训练曲线是sigmoid函数</a>
 <span class="q">问题：把损失画在对数时间轴上，单个 sigmoid 何时拟合得好？</span>
 <span class="a">目前结果：在快慢两部分初始损失相等的实验中，学习速度比为 1、3、10 时各 3/3 通过，变为 30、100 时各 0/3 通过。换拟合方法能修复部分失败，但不能消除全部误差。</span>
 <span class="tags"><span class="tag ok">实测 9</span><span class="tag no">推翻 2</span></span>
@@ -101,13 +101,13 @@
 
 <li class="grp">固定训练条件下怎样选择架构</li>
 <li class="item" id="D14">
-<a class="t" href="D14/D14_architecture_selection.html">D14：条件架构选择的经验规则与边界</a> · <a href="D14/D14_文献深度确认.html">文献深度确认</a> · <a href="D14/D14_实验检验.html">实验检验</a>
+<a class="t" href="D14/D14_architecture_selection.html">D14：条件架构选择的经验规则与边界</a> · <a href="D14/D14_T1_读懂报告.html">容量与 T1 解读</a> · <a href="D14/D14.1_T1_joint_response.html">T1 联合报告</a> · <a href="D14/D14_科学问题清单.html">科学问题清单</a> · <a href="D14/D14_文献深度确认.html">文献深度确认</a> · <a href="D14/D14_实验检验.html">实验检验</a>
 <span class="q">问题：给定任务和完整训练配方，深度、宽度、归一化、残差与激活怎样影响最终表现？</span>
-<span class="a">目前结果：六族任务的已有材料显示，架构偏好随训练条件变化，不能用一套固定加分规则通用排序。例如原报告中 tabular 的 Adam 3e-4、d2 对照，残差仅在 1/4 数据集改善，平均 CE 反而增加约 0.010。当前是有边界的条件经验规则集，尚未形成统一解释或预测规律；原始证据附件未随三份 HTML 提供。</span>
-<span class="s">候选下一问：什么因素决定残差收益由正转负，能否在新条件下提前预测？尚未检验。</span>
-<span class="tags"><span class="tag mix">条件经验规则</span><span class="tag mix">文献对照</span><span class="tag mix">原报告实验核验</span></span>
+<span class="a">目前结果：T1 已完成 d×w×lr×steps 联合扫描。在 4 个开发用合成实例、指定 MLP/Adam 配方下，极端学习率对比中赢家宽度 15/16 缩小；训练更久没有统一的最优规模方向。按附录展示表复算，单因子拼接在 48/80 个语境进入 0.01 CE 近优区，32/80 超出。这里“容量”用深度和宽度描述，不能直接等同于实际学到的复杂度。</span>
+<span class="s">边界与未决：已形成条件经验规律，机制与新实例前瞻预测尚未建立；原始实验产物未附。候选问题：哪些可提前获得的信息能预测架构排序变化？</span>
+<span class="tags"><span class="tag mix">条件经验规则</span><span class="tag mix">T1 联合扫描</span><span class="tag mix">容量解读</span></span>
 </li>
 
 </ul>
-<div class="stamp">目录更新于 2026-10-29 · 各方向报告保留原实验与同步时间</div>
+<div class="stamp">D14 栏目更新于 2026-11-03 · 各方向报告保留原实验与同步时间</div>
 </main></body></html>

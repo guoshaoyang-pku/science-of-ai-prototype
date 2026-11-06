@@ -48,7 +48,7 @@ def main():
                     shutil.copy2(file, target / 'inbox_historical.md')
                     (target / 'inbox.md').write_text('# New run instructions' + chr(10))
                 else:
-                    text = file.read_text().replace('../../../references/science_program_v1/', '../../references/science_program_v1/')
+                    text = file.read_text(encoding='utf-8').replace('../../../references/science_program_v1/', '../../references/science_program_v1/')
                     (target / file.name).write_text(text)
         if (source / 'findings').is_dir():
             shutil.copytree(source / 'findings', target / 'findings')
