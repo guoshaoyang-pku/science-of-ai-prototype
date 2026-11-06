@@ -17,6 +17,9 @@
 | D11 | width/n 标度与 lazy→rich 边界？ | 已测固定特征维数，不是真实 width；同 Rayleigh 仍有预算反例 | 同谱匹配前两矩新目标；真实 lazy/rich 未测 |
 | D12 | sigmoid 失败后能否分解为级联？ | 无拟合双段候选只在部分离散条件通过；初始损失占比改变判定 | α=.9 曲线；三模态/merging/真跃迁未测 |
 | D13 | Linear Flow World 相变时间与有效深度？ | 读出依赖显著，无 skip 深度单调标定失败；skip 组合律未测 | 三 seed 稳健性，或指定串联/并行/residual skip |
+| D15 | 怎样解释零非对称初始化 | 当前保留问题引入、尺度定义及交互示意；0 新实验 | 具体实验待定；[方向与交互示意](模糊方向/D15_asymmetric_initialization.html) |
+
+D1–D13 保留历史快照；D15 是新增文档候选，未加入 v2 调度、预算或历史 claim 计数。
 
 ## D2 当前入口
 
