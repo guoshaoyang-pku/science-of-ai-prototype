@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>怎样解释零非对称初始化</title><link rel="stylesheet" href="style.css">
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>.explorer{padding:18px;border:1px solid var(--soft);border-radius:10px;background:white}.control{margin:14px 0}.control label{display:flex;justify-content:space-between;font:15px var(--head)}input[type=range]{width:100%;accent-color:#426f9a}button{padding:9px 14px;background:#eef3f7;border:1px solid #b9c8d5;border-radius:6px;cursor:pointer;font:14px var(--head)}button:focus-visible,input:focus-visible{outline:3px solid #426f9a;outline-offset:3px}.values{font:13px/1.8 var(--mono);overflow-wrap:anywhere}.table-wrap{overflow-x:auto}svg{display:block;width:100%;height:auto}.note{font-size:14px;color:var(--muted)}</style></head>
+<body><main>
+<div class="nav"><a href="index.html">← 研究总览</a> · <a href="../RESEARCH_DIRECTIONS.md">研究方向地图</a></div>
+<h1>怎样解释零非对称初始化</h1>
+<p>原讨论从 zero-asymmetric initialization（ZAS）以及层间不平衡初始化对特征学习的影响出发，提出一个直接想法：可以改变不同层的 initialization，看看任务上的表现怎么样。但不想随机地 sample initialization，而是先提出一些有结构、可解释的 hypothesis。</p>
+<p>例如，前几层比较大、最后一层为零，是一种假设；大、小、大、小地交替，是另一种假设。还可以考虑前小后大、沙漏形、中间大、单层瓶颈和周期结构，再检验不同任务对这些初始化分布的偏好。</p>
+<p>这可以组织为结构化的 Initialization Architecture Search：设计可解释的初始化尺度分布，研究它们对优化、泛化、特征学习与训练动力学的影响。关键是识别任务、架构和训练条件下可复现的偏好，尚无充分依据断定前大后小普遍最优。</p>
+<p>设网络从输入到输出有 \(L\) 层，编号 \(l=1,\ldots,L\)，定义</p>
+\[W_l(0)=s_l\widetilde W_l.\]
+<p>\(\widetilde W_l\) 是按固定基准规则生成的矩阵，\(s_l\) 是该层尺度乘子。配对比较时共享基准矩阵；所有 \(s_l=1\) 为均匀基线。这里主要改变层间尺度或确定性／随机成分，不是默认改变权重分布的偏斜。</p>
+<h2>调整初始化尺度</h2>
+<p>用 \(\alpha\) 和 \(\beta\) 两个自由度控制各层的初始化尺度：\(\alpha\) 控制从输入到输出的深度趋势，\(\beta\) 控制奇偶层之间的交替强度。</p>
+<div class="explorer">
+<svg id="profile-chart" viewBox="0 0 700 260" role="img" aria-label="从输入到输出各层初始化尺度"></svg>
+<div class="control"><label for="depth">深度 L <output id="depth-value">12</output></label><input id="depth" type="range" min="2" max="24" step="1" value="12"></div>
+<div class="control"><label for="alpha">深度趋势 α <output id="alpha-value">-1.2</output></label><input id="alpha" type="range" min="-2" max="2" step="0.1" value="-1.2"></div>
+<div class="control"><label for="beta">奇偶交替 β（正值：偶数层较大）<output id="beta-value">0.6</output></label><input id="beta" type="range" min="-1.5" max="1.5" step="0.1" value="0.6"></div>
+<button id="uniform" type="button">均匀基线</button> <button id="example" type="button">恢复讨论示例</button>
+<p id="scale-values" class="values" aria-live="polite"></p><p id="scale-check" class="note"></p>
+</div>
+<details>
+<summary>具体控制公式</summary>
+\[z_l=\alpha\frac{2l-L-1}{L-1}+\beta(-1)^l,\qquad
+\bar z=\frac1L\sum_{j=1}^{L}z_j,\qquad
+s_l=\exp(z_l-\bar z).\]
+<p>尺度 \(s_l\) 是第 \(l\) 层权重的放大倍数：\(W_l(0)=s_l\widetilde W_l\)。例如，\(s_l=2\) 就把该层基准矩阵的每个元素乘以 2，\(s_l=0.5\) 就乘以 0.5。上面的公式根据两个滑块，为每层生成这个倍数。</p>
+<table><thead><tr><th>符号</th><th>含义</th></tr></thead><tbody>
+<tr><td>\(L\)</td><td>网络总层数，至少为 2。</td></tr>
+<tr><td>\(l\)</td><td>当前层的编号：输入侧第一层为 1，输出侧最后一层为 L。</td></tr>
+<tr><td>\(\widetilde W_l\)、\(W_l(0)\)</td><td>分别是第 l 层的基准权重矩阵和乘上尺度后的初始权重矩阵；括号中的 0 表示训练开始时。</td></tr>
+<tr><td>\(\alpha\)</td><td>深度趋势滑块，决定尺度总体向输出侧增大还是减小。</td></tr>
+<tr><td>\(\beta\)</td><td>奇偶交替滑块，决定奇数层与偶数层的相对大小。</td></tr>
+<tr><td>\(z_l\)</td><td>第 l 层的初步对数尺度分数，尚不是最终的乘法倍数。</td></tr>
+<tr><td>\(\bar z\)</td><td>所有层分数的算术平均；横线表示“取平均”。</td></tr>
+<tr><td>\(j\)、\(\sum_{j=1}^{L}\)</td><td>j 是遍历各层的编号；求和符号表示把第 1 层到第 L 层的值加起来。</td></tr>
+<tr><td>\(\exp(u)\)</td><td>指数函数 e 的 u 次方，把对数尺度分数转为正的乘法倍数。</td></tr>
+</tbody></table>
+<p><strong>第一步：给每层计算一个分数。</strong></p>
+\[z_l=\alpha\frac{2l-L-1}{L-1}+\beta(-1)^l.\]
+<p>第一项中的分数从第一层的 −1 均匀增加到最后一层的 +1，因此乘上 \(\alpha\) 就产生从前到后的趋势。第二项的 \((-1)^l\) 在奇数层为 −1、偶数层为 +1，因此乘上 \(\beta\) 就产生交替变化。两项相加得到该层的分数。</p>
+<p><strong>第二步：减去平均分数。</strong>先把所有层的分数加起来除以层数，得到 \(\bar z\)，再对每层计算 \(z_l-\bar z\)。这样只保留层间的相对差异，使居中后的分数平均为 0。</p>
+\[\bar z=\frac1L\sum_{j=1}^{L}z_j.\]
+<p><strong>第三步：转为实际尺度。</strong>对居中后的分数取指数：分数为 0 时倍数为 1，正数使权重放大，负数使权重缩小。</p>
+\[s_l=\exp(z_l-\bar z).\]
+<p>例如，取 \(L=3,\alpha=-1,\beta=0\)：三层分数依次为 1、0、−1，平均为 0；因此尺度依次为 \(e^1,e^0,e^{-1}\)，约为 2.718、1、0.368，形成前大后小的分布。</p>
+
+<p>\(\alpha&lt;0\) 时总体前大后小，\(\alpha&gt;0\) 时总体前小后大；\(\beta&gt;0\) 时偶数层相对更大，\(\beta&lt;0\) 时奇数层相对更大。两项叠加后，局部不一定单调。减去平均分数后，各尺度的乘积为 1，因此几何平均（乘积的 L 次方根）为 1；这不等于尺度的算术平均为 1。</p>
+<p>图中 \(\max_j s_j\) 表示所有层尺度中的最大值。柱高按 \(s_l/\max_j s_j\) 显示，使最高的柱子占满图中预留高度；下方数值仍是实际倍数 \(s_l\)。</p>
+</details>
+</main>
+<script>
+(()=>{'use strict';
+const ns='http://www.w3.org/2000/svg',get=id=>document.getElementById(id);
+function node(tag,attrs,text){const n=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);if(text!==undefined)n.textContent=text;return n;}
+function render(){const L=Number(get('depth').value),a=Number(get('alpha').value),b=Number(get('beta').value);
+get('depth-value').textContent=L;get('alpha-value').textContent=a.toFixed(1);get('beta-value').textContent=b.toFixed(1);
+const z=Array.from({length:L},(_,i)=>a*(2*i/(L-1)-1)+b*((i+1)%2===0?1:-1)),mean=z.reduce((s,v)=>s+v,0)/L;
+const values=z.map(v=>Math.exp(v-mean)),max=Math.max(...values),chart=get('profile-chart');chart.replaceChildren();
+chart.appendChild(node('line',{x1:28,y1:210,x2:680,y2:210,stroke:'#b0aea5'}));
+values.forEach((v,i)=>{const step=640/L,x=34+i*step,h=170*v/max,rect=node('rect',{x,y:210-h,width:step*.72,height:h,fill:(i+1)%2===0?'#426f9a':'#7c9bb6','data-layer':i+1,'data-scale':v});rect.appendChild(node('title',{},'第 '+(i+1)+' 层：'+v.toFixed(6)));chart.appendChild(rect);chart.appendChild(node('text',{x:x+step*.36,y:230,'text-anchor':'middle','font-size':12},String(i+1)));});
+chart.appendChild(node('text',{x:28,y:252,'font-size':12},'输入 → 输出（层编号）'));
+get('scale-values').textContent='s₁…sL：'+values.map(v=>v.toFixed(3)).join(', ');
+get('scale-check').textContent='几何平均 = '+Math.exp(values.reduce((s,v)=>s+Math.log(v),0)/L).toFixed(6)+'；乘积 = '+values.reduce((s,v)=>s*v,1).toFixed(6)+'；柱高 = sₗ / max(s)。';}
+['depth','alpha','beta'].forEach(id=>get(id).addEventListener('input',render));
+get('uniform').addEventListener('click',()=>{get('alpha').value=0;get('beta').value=0;render();});
+get('example').addEventListener('click',()=>{get('depth').value=12;get('alpha').value=-1.2;get('beta').value=.6;render();});render();
+})();
+</script></body></html>
