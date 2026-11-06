@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D14：架构选择包含哪些科学问题</title><link rel="stylesheet" href="../style.css">
+</head>
+<body><main><div class="nav"><a href="../index.html">← 模糊方向</a> · <a href="D14_architecture_selection.html">D14 报告</a> · <a href="D14_实验检验.html">实验检验</a> · 科学问题清单</div>
+<h1>D14：架构选择包含哪些科学问题</h1>
+<div class="legend"><strong>进展注记 · 2026-11-03：</strong>本页保留 2026-10-29 的 53 条科学问题及当时状态。T1 后续已有 <a href="D14.1_T1_joint_response.html">2026-10-31 联合报告</a>：4 个开发实例、2000 条轨迹、5 seeds；下表“尚缺联合关系”是历史状态，现应读作“联合扫描已完成，前瞻预测与机制验证未完成”。其余问题未因本次网页整合改变。<a href="D14_T1_读懂报告.html">容量与 T1 报告解读</a>。</div>
+<p>本页只做问题拆解，不启动实验。一个合格的科学问题必须同时说明：<strong>任务与数据范围、模型族、候选架构、训练语境、评价指标、比较方式及适用边界。</strong>例如“Adam 下最佳 d、w 与 lr、steps 的关系”只有在固定任务实例、其它架构字段、batch、weight decay、初始化、评价协议和 seeds 后，才是可检验的问题。</p>
+
+<h2>共同限定：讨论每条问题前都不能省略什么</h2>
+<ul>
+<li><strong>任务：</strong>任务族、数据生成规则、实例难度、输入维度、训练/测试划分；分类用 test CE，回归用 test MSE，不能混用数值。</li>
+<li><strong>模型：</strong>ArchitectureIQ MLP 或 bigram TF/GRU、参数化、初始化、bias 和输出头；d 指隐藏块数，w 指隐藏宽度，不是任意网络规模。</li>
+<li><strong>架构：</strong>d、w、LN 数量与位置、residual、activation 必须写全；只改一个因子时，其它字段必须固定。</li>
+<li><strong>训练：</strong>optimizer、lr、steps、batch size、momentum、weight decay、schedule；只固定 optimizer 名称不够。</li>
+<li><strong>评价：</strong>末步 test CE/MSE、seed 数与均值、是否接近先验或噪声底；top-1、成对排序和 winner regret 是不同问题。</li>
+<li><strong>推断：</strong>OFAT 单因子效应、联合整包赢家和跨任务规律分开；“最佳”只指预注册候选集内，离散网格不能直接外推连续临界值。</li>
+</ul>
+<p>除题目另写外，现有证据一般使用有放回 minibatch、固定数据划分、PyTorch 默认初始化、wd=0、3 seeds。所谓“已有局部证据”不等于封存 OOD 验证。</p>
+
+<h2>一、tabular 二分类：容量与训练条件的交互</h2>
+<p>共同范围：4 个合成 tabular 实例、MLP、test CE、train1024/test2048、bs32、wd0、3 seeds。具体比较需保持同实例和其它架构字段不变。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>科学问题</th><th>必须固定的条件与现有边界</th><th>证据状态</th></tr></thead>
+<tbody>
+<tr><td><strong>T1. Adam 下，最佳 d、w 如何随 lr 和 steps 改变？</strong></td><td>full LN、res、GELU、bs32、相同初始化协议；d/w 的候选网格和“最佳”按末步 CE。现有 d×lr、w×lr 只在 256 步分别扫描，res×steps 是另一基座，尚缺 d×w×lr×steps 联合关系。</td><td><span class="tag mix">局部已测</span>，联合公式未建立</td></tr>
+<tr><td><strong>T2. LN 的收益及最佳 mask 如何随 w、d、lr 改变？</strong></td><td>固定 res、activation、steps、batch 和 optimizer；区分 no/first/last/full-LN，不把 mask 数量与位置混为一谈。现有主要是 Adam 3e-4/1e-3、d2/4、res、GELU。</td><td><span class="tag mix">宽度交互较强</span>，完整 lr×d 未测</td></tr>
+<tr><td><strong>T3. residual 何时有益、何时有害，是否由 d×lr×steps 决定？</strong></td><td>固定 w128、full LN、GELU、bs32。已知 Adam 1e-3 与 3e-4 的 d2 方向不同，d3 随 steps/配方不稳定，d5 在 1e-3 有益；不能把 residual 当固定正项。</td><td><span class="tag mix">已发现反例</span>，完整条件面未测</td></tr>
+<tr><td><strong>T4. 激活排序如何随 w、lr 及其它架构字段改变？</strong></td><td>固定 d、LN、res、steps 和 optimizer；GELU/SiLU/Leaky/ReLU 要同骨架比较。w16 与 w128 的 GELU–ReLU 差已有直接证据，总体 rank 含非 OFAT 数据。</td><td><span class="tag mix">局部已测</span>，通用排序未建立</td></tr>
+<tr><td><strong>T5. RMSprop 下，最佳 d、w 与 lr、steps 的关系是否与 Adam 不同？</strong></td><td>同样固定 full LN、res、GELU、bs32。RMSprop 3e-3 的宽度和 w128 深度已测，低 lr 与联合 steps 仍不足。</td><td><span class="tag mix">点状已测</span>，低 lr/联合覆盖不足</td></tr>
+</tbody></table></div>
+
+<h2>二、spiral 二分类：容量优势何时失效</h2>
+<p>共同范围：指定 10 架构库、MLP、test CE、3 seeds；主网格 steps256、bs32、wd0，主要为 spiralcls_8585ec，lr 网格另含 fa00ef。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>科学问题</th><th>必须固定的条件与现有边界</th><th>证据状态</th></tr></thead>
+<tbody>
+<tr><td><strong>S1. 最佳 d、w 如何随 Adam lr 和数据实例难度改变？</strong></td><td>full LN、res、SiLU、steps256、bs32；难/易实例分别分析。deep_wide 在 1e-5…3e-3 占优，fa00ef 在 1e-2 反转，不能把反转点外推到其它实例。</td><td><span class="tag mix">离散点已测</span>，连续边界未知</td></tr>
+<tr><td><strong>S2. deep_wide 的优势是否随 steps、batch 和 optimizer 联合改变？</strong></td><td>固定同一实例与架构库。现有 steps、bs、optimizer 分组扫描显示多个第一名，但不是 steps×bs×opt 全联合证明。</td><td><span class="tag mix">局部已测</span>，联合交互未覆盖</td></tr>
+<tr><td><strong>S3. residual 的收益如何随 SGD 的 lr 和 momentum 改变？</strong></td><td>固定 d3,w64,LN,SiLU、steps/batch。SGD 3e-3、mom0 下 residual 重要，SGD 0.01+mom0.9 不能沿用。</td><td><span class="tag mix">两个语境已测</span>，中间条件未知</td></tr>
+<tr><td><strong>S4. LN 位置的效应何时能超过容量和种子噪声？</strong></td><td>等 LN 数量下比较 left/right，固定 d3,w64、res、SiLU、Adam。指定四点最大约 1.63×，全网格有更大比值和反向例。</td><td><span class="tag mix">弱条件效应</span>，不能统一排序</td></tr>
+<tr><td><strong>S5. 激活差异与训练成功区、CE 噪声底有什么关系？</strong></td><td>固定 d/w/LN/res/optimizer/lr/steps/batch，区分未收敛与成功区；d4w64 的已测成功点 max/min≈1.206，不能扩成所有成功区。</td><td><span class="tag mix">点状已测</span>，跨区制未验证</td></tr>
+</tbody></table></div>
+
+<h2>三、XOR 二分类：有效学习率、容量与预算</h2>
+<p>共同范围：xorcls_1c4cf2 与 xorcls_0c0858、MLP、test CE、3 seeds；细网格主要 steps1024、bs32、wd0。不同 optimizer 的 raw lr 不应直接视为同一“有效 lr”。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>科学问题</th><th>必须固定的条件与现有边界</th><th>证据状态</th></tr></thead>
+<tbody>
+<tr><td><strong>X1. 最佳 d、w 如何随 optimizer 与有效 lr 改变？</strong></td><td>固定 LN/res/activation 基座、steps/batch 和两个实例；Adam 低 lr 需要容量，高 lr 和 RMSprop/Adagrad 的已测高有效 lr 偏中小模型。</td><td><span class="tag mix">离散配方已测</span>，统一有效 lr 定义未验证</td></tr>
+<tr><td><strong>X2. LN 与 residual 的收益如何随 d、w、lr 改变？</strong></td><td>d4w128 基座上已有 SGD/Adam 开关结果；不能直接外推到浅网。d2w64lnresGELU 在 Adam 3e-4 又是另一容量区的优胜包。</td><td><span class="tag mix">局部已测</span>，跨容量未覆盖</td></tr>
+<tr><td><strong>X3. steps 如何改变最佳架构，何时需要早停或延长训练？</strong></td><td>固定 optimizer/lr/batch 和架构；Adam 3e-3 大模型 512 后恶化，SGD 3e-2 小模型可持续改善到 4096。训练时长与过拟合/未收敛要分开。</td><td><span class="tag mix">两条曲线已测</span>，通用停止规则未知</td></tr>
+<tr><td><strong>X4. batch size 与架构、optimizer 的交互是什么？</strong></td><td>固定 steps 和其它字段。已有 Adam 3e-3 宜 bs32、SGD+LNres 可试更大 batch 的有限对照，不能推广到任意架构。</td><td><span class="tag mix">少量配置已测</span></td></tr>
+<tr><td><strong>X5. GELU/SiLU 的收益是否依赖容量和训练语境？</strong></td><td>固定其它字段；Adam 3e-4 的 d2w48 基线上 SiLU 有害，但中等容量 lnres 包里 GELU 有益，不能归为激活单轴定律。</td><td><span class="tag mix">反例已测</span>，联合机制未分离</td></tr>
+</tbody></table></div>
+
+<h2>四、bigram：序列模型架构与语境混杂</h2>
+<p>共同范围：bigram test CE、TF/GRU 的 kind/depth/d_model/dff/heads；配对内部保持数据、训练语境和其它字段一致。现有按 lr/steps 的切片常同时改变 optimizer、steps、batch，不能直接当纯 lr 因果效应。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>科学问题</th><th>必须固定的条件与现有边界</th><th>证据状态</th></tr></thead>
+<tbody>
+<tr><td><strong>B1. 最佳 width、dff、depth 如何随 lr 和 steps 改变？</strong></td><td>必须在同一 optimizer、batch、momentum 和数据语境下做交叉比较。现有聚合切片支持稳定区偏大、高 lr 部分反转，但 Adam/AdamW/SGD 的方向并不总一致。</td><td><span class="tag mix">数值可复现</span>，训练语境混杂</td></tr>
+<tr><td><strong>B2. heads 的最佳数量如何随 lr、optimizer 和 head_dim 改变？</strong></td><td>固定 d、width、dff，并同时报告 head_dim，而非只报 heads。高 lr 的 2 头优势主要来自 Adam/AdamW，SGD/Adagrad 不支持。</td><td><span class="tag mix">局部已测</span>，机制与外推不足</td></tr>
+<tr><td><strong>B3. TF 与 GRU 的相对优劣如何随 lr、steps 改变？</strong></td><td>至少固定 d、w，并匹配或分层参数量、dff/heads。现有 n 小、未匹配参数量，且是多种 TF 对 GRU 的聚合。</td><td><span class="tag mix">弱倾向</span>，尚非干净模型族对照</td></tr>
+<tr><td><strong>B4. 单因子规则冲突时，整包架构怎样选择？</strong></td><td>重点为 lr=3e-3×steps256 等冲突区；必须报告整个候选包，不把 width/dff/depth/heads 独立胜负简单相加。已有 12:12、median≈0.00043 的平局。</td><td><span class="tag mix">冲突已识别</span>，组合规则未建立</td></tr>
+</tbody></table></div>
+
+<h2>五、univar 回归：LN 与 residual 的联合作用</h2>
+<p>共同范围：univar MLP、test MSE；E8 主要是单数据集 12 语境×38 架构，residual_probe 是两个数据集、两套 Adam、5 seeds。数据实例难度可能显著改变绝对 MSE。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>科学问题</th><th>必须固定的条件与现有边界</th><th>证据状态</th></tr></thead>
+<tbody>
+<tr><td><strong>U1. 最佳 d、w 如何随 lr、optimizer 和数据实例改变？</strong></td><td>固定 LN/res/activation/steps/batch。低 lr 的深宽方向有 OFAT 支持，高 lr 主效应减弱，但高 lr 仍主要是单数据集观察。</td><td><span class="tag mix">低 lr 较强</span>，高 lr 覆盖不足</td></tr>
+<tr><td><strong>U2. residual×LN 的符号如何随 optimizer、lr、steps 和 activation 改变？</strong></td><td>固定 d、w 和其它字段。两套 Adam 中无 LN 时 residual 有益、全 LN 时有害；SGD 点状配方中又可能有益。</td><td><span class="tag mix">局部反例明确</span>，跨 optimizer 未测全</td></tr>
+<tr><td><strong>U3. LN 数量与位置如何分别影响表现？</strong></td><td>等数量比较位置，等位置比较数量，并固定 d、w、res、act 和训练配方。低 lr 更多 LN 有益已有证据，但等数量位置配对几乎空白。</td><td><span class="tag mix">数量已测</span>，位置未知</td></tr>
+<tr><td><strong>U4. 深度与 LN 冲突时，optimizer 如何改变优先级？</strong></td><td>固定 w、res、act、steps/batch，直接比较浅+多 LN 与深+少 LN。新增两数据集对照仅支持 SGD/Adagrad 在所测配方 LN-first，其它 optimizer 未决。</td><td><span class="tag mix">一条配方已测</span>，通用优先级未建立</td></tr>
+<tr><td><strong>U5. 是否存在独立于配方的 activation 排序？</strong></td><td>同数据、同 d/w/LN/res、同 optimizer/lr/steps/batch 比较激活。目前没有足够独立 OFAT 证据，不能借 mvar/tabular 排名。</td><td><span class="tag no">未检验</span></td></tr>
+</tbody></table></div>
+
+<h2>六、mvar 回归：配方条件面与规则组合</h2>
+<p>共同范围：6 个 mvar 实例、MLP、test MSE、3 seeds、1872 条 seed 记录。宽度扫描覆盖 10 配方，其它架构轴的直接扫描主要是 Adam 三档 lr 与 SGD 3e-3/mom0.9 四个核心配方。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>科学问题</th><th>必须固定的条件与现有边界</th><th>证据状态</th></tr></thead>
+<tbody>
+<tr><td><strong>M1. 最佳 d、w 如何随 optimizer、lr、steps 改变？</strong></td><td>固定 LN/res/activation 基座、batch 和数据实例。低 lr Adam 偏深宽，高 lr/RMSprop 宽度方向变化；非核心配方的深度与其它字段只有弱先验。</td><td><span class="tag mix">核心配方已测</span>，非核心不足</td></tr>
+<tr><td><strong>M2. LN 数量和位置如何随 lr、d 与数据实例改变？</strong></td><td>固定 w/res/act 和训练配方，区分 no-LN、部分 LN、全 LN 及位置。mvar_648def 在三个 Adam 配方中 no-LN 最佳，是必须保留的实例反例。</td><td><span class="tag mix">均值倾向已测</span>，跨实例规律未定</td></tr>
+<tr><td><strong>M3. residual×LN 的方向为何与 univar 不同？</strong></td><td>同任务内先固定 d4、全 LN、w64、ReLU；跨任务比较时把任务族作为显式变量。mvar 四核心配方 residual 22/24 有益，univar 两套 Adam 全 LN 则偏有害。</td><td><span class="tag mix">现象已测</span>，机制未分离</td></tr>
+<tr><td><strong>M4. activation 排序如何随任务、optimizer 和 lr 改变？</strong></td><td>固定其它架构字段。mvar 核心配方偏 Leaky/ReLU、SiLU 偏差；tabular 窄网偏 GELU/SiLU，spiral 成功区激活差很小，不能合并为全局排序。</td><td><span class="tag mix">局部已测</span>，跨任务机制未知</td></tr>
+<tr><td><strong>M5. batch×width 的关系如何随 optimizer、lr、steps 改变？</strong></td><td>固定其它字段。现有主要是 Adam 1e-3、256 步：bs32/64 偏 w256，bs16 均值 w128 第一；其它配方未充分覆盖。</td><td><span class="tag mix">一条配方已测</span></td></tr>
+<tr><td><strong>M6. 单因子规则何时能组合成正确的整包选择？</strong></td><td>必须区分“不同基座的最优单因子”与“同一候选包的联合表现”，以 top-1、pairwise 和 regret 评价。当前规则回溯强制 top-1 仅 40%，说明组合规则本身仍是科学问题。</td><td><span class="tag mix">已证明显著不足</span></td></tr>
+</tbody></table></div>
+
+<h2>七、跨任务与方法学问题</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>科学问题</th><th>必须限定的范围</th><th>证据状态</th></tr></thead>
+<tbody>
+<tr><td><strong>C1. 高有效 lr 何时使最佳架构向小容量移动？</strong></td><td>任务族、optimizer、参数化、steps/batch、初始化和“有效 lr”定义都必须显式给出；tabular/XOR/bigram 有局部现象，但不能直接比较不同 optimizer 的 raw lr。</td><td><span class="tag mix">局部现象</span>，非统一规律</td></tr>
+<tr><td><strong>C2. residual 与 LN 的符号由任务、深度还是训练配方主导？</strong></td><td>需要同任务内的析因结果后再做跨任务比较；不能把 tabular/mvar/spiral 的正收益与 XOR/univar 的负收益揉成一个方向。</td><td><span class="tag mix">双向证据存在</span>，原因未分离</td></tr>
+<tr><td><strong>C3. 条件响应面能否预测新数据集和新配方下的最佳架构？</strong></td><td>固定一个任务族，训练特征只含架构与训练语境，评价必须留一数据集、留一配方并最终封存 OOD。mvar 当前交互公式只提高 pairwise，top-1 未提高。</td><td><span class="tag mix">弱排序证据</span>，精确选择未建立</td></tr>
+<tr><td><strong>C4. 多大的架构差距才能超过种子噪声？</strong></td><td>按任务、CE/MSE 区域、seed 数和评价协议分别确定；spiral CE 比小于 1.5、XOR CE 差约 0.02、mvar 个位数百分比差时不应硬选。</td><td><span class="tag mix">局部噪声门槛</span>，不是通用阈值</td></tr>
+<tr><td><strong>C5. “先容量、再 LN/res、后激活”的决策顺序是否优于直接整包比较？</strong></td><td>这是选择算法问题，需在同一候选集和相同计算预算下比较 top-1、pairwise、regret 与成本；现有 OFAT 证据并不验证该流程本身。</td><td><span class="tag no">未检验</span></td></tr>
+</tbody></table></div>
+
+<h2>八、进一步扩展：数据、预算、成本与评价协议</h2>
+<p>以下 18 条不与前面的容量/LN/residual/activation 基本问题重复。它们研究的是架构结论为何可能随数据、测量和比较协议改变，不能把协议差异误当成架构机制。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>科学问题</th><th>必须限定的条件与现有边界</th><th>证据状态</th></tr></thead>
+<tbody>
+<tr><td><strong>N1. 数据实例难度由哪些生成因素因果控制？</strong></td><td>以 spiral 为例，分别操纵 xstd、圈数、螺距和标签噪声，测 test CE、deep_wide 优势及高 lr 反转点；固定输入维、样本量、类别比例、完整训练配方与 seeds。现有自然实例中这些量共变，不能只归因 xstd。</td><td><span class="tag no">因果分解未做</span></td></tr>
+<tr><td><strong>N2. 输入维度和数据结构如何移动最佳架构与预算？</strong></td><td>XOR 可独立改变 in=2/4/8/16；bigram 可分别改变词表 V、转移锐度/熵、序列长度。固定数据生成分布、train/test 规模、候选架构和配方，使用 excess CE 或明确归一化，避免难度本身混淆架构效应。</td><td><span class="tag mix">少量观察</span>，结构×架构未覆盖</td></tr>
+<tr><td><strong>N3. 训练集规模改变时，最佳架构由 epochs、样本曝光量还是 steps 决定？</strong></td><td>独立改变 train_n，并分别固定 steps、epochs 或 total_samples_seen；固定测试分布、optimizer/lr/batch/wd、初始化和候选架构。现有 MLP 主证据多为 train1024，更大训练集的长训反弹未知。</td><td><span class="tag no">干净析因未做</span></td></tr>
+<tr><td><strong>N4. 固定 steps、固定样本曝光量、固定计算量时，batch 排名是否一致？</strong></td><td>分别预注册三种预算协议，并比较不缩放、平方根、线性 lr 缩放；固定数据、架构、optimizer、wd 和 seeds。固定 steps 下 batch 同时改变噪声与每步样本量，不能称纯 batch 效应。</td><td><span class="tag mix">固定 steps 局部已测</span>，预算归一化未测</td></tr>
+<tr><td><strong>N5. warmup 或 lr decay 能否消除高 lr 反弹并改变最佳容量？</strong></td><td>比较 constant/warmup/cosine/step-decay，固定 peak lr 或积分 lr 中的一种公平口径，同时保留另一种作对照；固定数据、optimizer 内部参数、batch、wd 和初始化。现有高 lr 长训证据主要来自无调度。</td><td><span class="tag no">未检验</span></td></tr>
+<tr><td><strong>N6. weight decay 如何移动最佳 steps 和架构，Adam 与 AdamW 何时不再等价？</strong></td><td>独立改变 wd、lr、steps 和容量，区分 coupled/decoupled 语义及 lr×wd 标度；固定模型、数据、β/ε、batch 和 schedule。wd=0 的等价不能外推到 wd&gt;0，XOR/bigram 主网格也多为 wd=0。</td><td><span class="tag mix">局部网格存在</span>，统一规律未建立</td></tr>
+<tr><td><strong>N7. 匹配参数量、训练 FLOPs 或推理成本后，架构优势还存在吗？</strong></td><td>分别在 MLP 内匹配后重分 d/w，在 TF 内匹配后重分 d/w/dff；参数、FLOPs、延迟匹配分组进行。固定数据、训练预算、heads/LN/res/act、硬件和计时协议，评价 CE/MSE、regret 与质量—成本 Pareto 前沿。</td><td><span class="tag mix">有观察相关与速度测量</span>，成本匹配对照未做</td></tr>
+<tr><td><strong>N8. 初始化、minibatch 和数据划分对排序噪声各贡献多少？</strong></td><td>分别扰动 initialization、batch、data-split/generator seed，比较共同随机种子与独立种子及 3/5/10 seeds；固定架构对和训练配方，分解方差、成对差方差和 winner flip。现有固定划分与 bootstrap 不能覆盖所有来源。</td><td><span class="tag no">完整方差分解未做</span></td></tr>
+<tr><td><strong>N9. 哪种种子聚合方式最能稳定恢复整组架构排名？</strong></td><td>比较 mean、median、截尾均值、分位数、阈值成功率和逐 seed 投票，区分成功区/临界区/近先验区；在相同总训练 run 数下评价独立种子上的 top-1、Kendall 与尾部 regret。</td><td><span class="tag mix">均值一致性局部已测</span>，等预算比较未做</td></tr>
+<tr><td><strong>N10. source→measured 的失败来自尺度偏移还是架构系数改变？</strong></td><td>比较 source-only、仅 intercept/scale 校准、少量 measured 适配和完全重拟合；固定候选、特征、测量协议和 seed 预算，在封存实例/配方上评价 top-1、pairwise 与 regret。不能用不同架构分布的中位数代替逐配置配对。</td><td><span class="tag mix">数量级一致性有证据</span>，校准层级未检验</td></tr>
+<tr><td><strong>N11. 可计算的数据难度特征能否解释响应面变化？</strong></td><td>预定义目标光滑度、振荡频率、输入相关性、维度、样本规模等特征，固定提取器和验证折，评价留一实例 top-1、pairwise 和残差；特征不得从测试结果反向构造。当前 D15 公式没有这些特征。</td><td><span class="tag mix">难度现象已测</span>，特征机制未检验</td></tr>
+<tr><td><strong>N12. 相对损失拟合与绝对性能目标何时选出不同架构？</strong></td><td>比较 raw/log MSE、同语境中心化 log MSE 和显式难度归一化，固定候选、特征、ridge、验证折与 seeds；同时报告组内 pairwise/top-1、raw-MSE winner regret 和跨语境总体损失。</td><td><span class="tag mix">指标分离已观察</span>，目标函数对照未做</td></tr>
+<tr><td><strong>N13. 规则或公式的置信度能否校准并可靠拒判？</strong></td><td>使用候选 margin、证据等级、规则冲突数、bootstrap 方差作置信特征，只在开发数据校准；在 OOD 上评价 Brier/ECE、selective top-1、regret 与 coverage。不得通过删除困难语境提高域内准确率。</td><td><span class="tag no">未检验</span></td></tr>
+<tr><td><strong>N14. 跨任务共享响应面是否优于逐任务独立建模？</strong></td><td>比较完全共享、层级部分共享和任务独立模型，先限共同 MLP 架构轴与可对齐配方；损失只在任务内部归一化，采用 leave-one-task-family-out 并报告 worst-task regret。现有跨任务符号冲突只提供动机。</td><td><span class="tag no">未检验</span></td></tr>
+<tr><td><strong>N15. 怎样公平比较规则表、响应面和实测选择器？</strong></td><td>统一候选集、可用信息、观测 cells、seeds、调参预算、tie/拒判政策和主终点；区分开发回溯、留一验证和一次性封存 OOD，报告 top-1、pairwise、regret、coverage 与 bootstrap 区间。当前 40% 回溯与 51.67% 留一不能直接比。</td><td><span class="tag mix">公平性已识别</span>，等条件头对头未做</td></tr>
+<tr><td><strong>N16. 末步、最佳 checkpoint、达阈时间和曲线面积会给出相同架构赢家吗？</strong></td><td>在同一训练轨迹上比较 final loss、best-validation checkpoint、time-to-threshold 和 AUC；固定数据、评估集和阈值，不能用 test 反复选 checkpoint 后仍称独立测试。现有主证据主要是末步表现。</td><td><span class="tag no">系统对照未做</span></td></tr>
+<tr><td><strong>N17. 固定共享配方与每个架构分别调参，赢家何时不同？</strong></td><td>分别执行固定 optimizer/lr/steps 与等调参预算的 per-architecture 优化，固定数据、候选和评估协议；比较 top-1、regret 及调参成本。固定配方赢家不能称为架构脱离语境的内在最优。</td><td><span class="tag mix">文献方法学支持</span>，本地头对头未做</td></tr>
+<tr><td><strong>N18. CE、accuracy 和其它评价指标会改变架构排名吗？</strong></td><td>在同一批训练输出上同时计算 CE、accuracy、校准误差或任务相关指标，固定数据与 seed 协议，比较 top-1、pairwise 和 regret。当前主结论是 test CE，不能直接外推到 accuracy 或其它指标。</td><td><span class="tag no">未系统检验</span></td></tr>
+</tbody></table></div>
+
+<h2>怎样使用这份清单</h2>
+<p>目前共整理 <strong>53 条科学问题</strong>。每条都应先写成“在……范围内，固定……，研究……对明确评价指标的影响”，再决定已有证据能否回答。当前最完整的不是某个统一公式，而是若干离散条件下的局部关系；最重要的未知也不只是缺少更多 seeds，而是<strong>联合交互、跨实例稳定性、整包组合、测量协议和独立外推</strong>。</p>
+<div class="stamp">D14 科学问题拆解与扩展 · 仅做范围与证据审计，不启动实验 · 2026-10-29</div>
+<p class="stamp">本站整合于 2026-11-03 · 来源：D14_科学问题清单.html · 原始 HTML SHA-256：<code>311703c2ddfa8b0619b2046a3335d59b972bda18a210aaa9ae599e81dbeb2f76</code></p>
+</main></body></html>

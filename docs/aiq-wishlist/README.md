@@ -27,6 +27,7 @@ python3 -m http.server 8767 --bind 127.0.0.1
 - `content.js`：八个方向的短解释、已有边界与建议示例。
 - `directions.js`：13 个已有问题与边界，关联 `../模糊方向/` 下的图文报告和文献对照。
 - `glyphs.js`：八个方向的本地静态 SVG 图标。
+- `diagrams.js`：八个方向的教学示意图及无障碍文字描述。
 - `notebook.svg`：问号便笺插画。
 - `index.html`：可访问的三步表单、证据折叠区与愿望列表。
 - `style.css`：桌面和窄屏布局、键盘焦点及减少动态效果支持。
@@ -60,3 +61,28 @@ D2 主入口使用含 10-09 补充实验的报告，不使用历史整合版。D
 ## 发布检查 · 2026-10-28
 
 基于最新 main 单独发布许愿池及研究总览导航；未带入其他研究分支提交。26 个图文报告/文献入口检查通过。完整说明链接已改为 GitHub 渲染入口，出站证据链接指向仓库，上游材料固定 commit。交接校验在原完整 checkout 通过；发布 worktree 未初始化 ArchitectureIQ 子模块，使用 Git 索引确认其固定 commit 未变。
+
+## Aspect 详细介绍 · 2026-11-02
+
+每个方向的“详细介绍与例子”可展开阅读：研究范围、为什么值得问、假设场景、已有研究及边界、建议许愿句。假设场景单独标注，已有研究链接直达阅读室。选择新方向时恢复折叠，切回表单与保存流程沿用原逻辑。
+
+本次验证：8 个方向的介绍与报告链接均通过浏览器检查，展开后可打开报告并返回；390px 手机排版与进入愿望表单正常。JavaScript 语法、内容字段与目标文件检查通过；仓库测试 113 passed、19 subtests passed。交接检查受本 worktree 未初始化的只读 ArchitectureIQ 子模块限制，未为此操作子模块。
+
+## 通俗图解版 · 2026-11-02
+
+每个方向默认展示一句口语解释、一张 SVG 教学示意和一个短例子；“多了解一点”展开简短说明与研究出处。图示均标明“非实验结果”，候选愿望保留建议标记。研究说明也改为口语表达，细节继续链接原报告。介绍的 scope/importance/scenario/reading/prompt 合计字数较上一版减少约一半。
+
+验证：8 张图逐项显示、替代文字与折叠状态检查通过；桌面与 390px iframe 窄屏截图检查通过；报告阅读返回与进入表单正常。JavaScript 语法、资源引用与内容字段检查通过。仓库测试 113 passed、19 subtests passed。交接检查仍受当前 worktree 未初始化 ArchitectureIQ 子模块限制；索引固定 commit 未变，未操作子模块。
+
+
+## SAI Atlas 互通 · 2026-11-03
+
+页头的“SAI 项目地图”打开公开 Atlas。选定方向后，灵感页与保存完成页提供相关模块入口；从 Atlas 进入时可返回原模块。两站仅通过链接传递方向，不传递或同步愿望文本。
+
+深链接格式：`?aspect=model&from=sai-atlas&module=grammar`。`aspect` 只接受已有八个方向，匹配时停在“找灵感”，不填入表单、不保存、不提交；不合法或缺失时保持选方向页。`module` 只接受固定 Atlas 模块白名单，且仅在 `from=sai-atlas` 时用作返回模块。所有返回地址固定为 `https://sai-atlas-20261103.blondemoss2.chatgpt.site/`，不接受任意 return URL。
+
+普通进入时按方向关联模块：数据/模型 → Grammar / Data，训练 → 训练与评测，目标 → 知识价值评估，预算 → Challenge，评测 → 结果与 Panel，解释 → 模糊方向，知识 → KB Loop。这些是导航建议，不代表已自动接入实验。
+
+浏览器记录继续使用 `aiq-wishlist-v1`，现有草稿仅在用户主动进入写愿望步骤时按原规则恢复。
+
+验证：JavaScript 语法与 diff 格式检查通过；使用现有 checkout 的 Python 虚拟环境运行仓库测试，113 passed、19 subtests passed。交接检查仍因发布 worktree 未初始化 ArchitectureIQ 子模块而未通过；Git 索引中的固定 commit 未变，未操作子模块。

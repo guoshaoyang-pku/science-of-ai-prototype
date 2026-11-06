@@ -1,0 +1,70 @@
+{
+  "round_id": "r001_alpha_mix",
+  "authorization": {
+    "date": "2026-11-03",
+    "source": "User in this chat explicitly requested continuous experiment-feedback-revision cycles after the alpha-mixture proposal.",
+    "scope": "Local CPU fixed-feature D2 numerical studies; recurring schedule d2; first round alpha-mixture."
+  },
+  "status_at_registration": "approved_not_started",
+  "question": "固定输入与特征，连续改变线性/交互目标混合强度后，最佳点至两倍时间的泛化恶化，是否通常表现为噪声代价超过无噪声误差的改善？",
+  "hypothesis": "At least 90% of eligible conditions have delta_B <= 1e-10*max(1,R0) and delta_noise > that tolerance. This is interval-net accounting, not pointwise monotonicity or a universal causal explanation.",
+  "threshold": 0.9,
+  "material_rise_fraction": 1e-06,
+  "output_root": "/Users/mapleandrew/meta_circle/Science_of_AI_Textbook/AIQ_KB_DATA/runs/d2_continuous_20261103",
+  "input_root": "/Users/mapleandrew/meta_circle/Science_of_AI_Textbook/AIQ_KB_DATA/imports/d2_handoff_20261009",
+  "protocol": "d4_homogeneous",
+  "n": [
+    32,
+    64,
+    128
+  ],
+  "seeds": [
+    6101,
+    6102,
+    6103
+  ],
+  "alpha": [
+    0,
+    0.125,
+    0.25,
+    0.5,
+    1,
+    2
+  ],
+  "sigma2": [
+    0,
+    0.25,
+    0.5,
+    1,
+    2,
+    4
+  ],
+  "target": "(x0+alpha*x0*x1)/sqrt(1+alpha**2), population RMS normalized for independent standard Gaussian coordinates",
+  "conditions": 324,
+  "positive_noise_conditions": 270,
+  "no_noise_controls": 54,
+  "draws": 9,
+  "model": "Saved 128 fixed ReLU features plus constant; zero output initialization; full batch MSE GD eta=0.3, inherited exact response and active eigenvalue threshold.",
+  "max_steps": 262144,
+  "search": "Original integer 0..256 plus rounded 4096 geometric grid and inherited local integer refinement. Not exhaustive all integer extrema.",
+  "main_denominator": "Only sigma2>0, 0<t_star<262144, 2*t_star<=262144, delta_R/R0>1e-6. Report all 324, all 270 positive-noise and per-exclusion counts plus eligible coverage; no eligible rows means inconclusive.",
+  "classification": "No-noise, boundary, late-outside-window, flat/negligible, noise-overtakes-signal, signal-also-worsens, other are separate. delta_B>tol means B also increases, not that it dominates. Record signed delta_B/delta_noise/delta_R and expected noisy-train change; do not clip contribution ratios.",
+  "verification": "Hash-check all 9 inputs against frozen d2 manifest. Gate dependency bytes against prereg commit. Reconstruct 90 alpha0/.5 positive-noise endpoint risks at original saved minima, tolerance1e-8 max(1,R0). 108 feature-space checks at sigma2=1 for t_star and2t_star. Noise response identical across alpha, finite, noise delta nonnegative and expected noisy train delta nonpositive within1e-10 max(1,R0). Negative within-window total delta beyond tolerance stops as search/numerics error.",
+  "domain": "All development; alpha0 and.5 endpoints already observed. Intermediate strengths are new settings on old draws, not independent test data. Only3 master seeds; report per-alpha and per-seed no 270-independent-sample CI.",
+  "secondary": "Report alpha-dependent stopping times, no-noise controls, and categories; no post-hoc fitting or claimed prediction improvement. B+sigma²N and identical N across target are analytic facts, not discoveries.",
+  "compute_seconds": 1800,
+  "cpu_threads": 1,
+  "api_calls": 0,
+  "gpu": false,
+  "paid_models": false,
+  "failure": "Never overwrite output, preregistration or old evidence. Preserve failure, require amendment commit before changed execution. No automatic website publishing.",
+  "outputs": [
+    "execution.json",
+    "curves/*.npz",
+    "rows.json",
+    "summary.json",
+    "verification.json",
+    "manifest.json",
+    "plain-language report after audit"
+  ]
+}

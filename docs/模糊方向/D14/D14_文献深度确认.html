@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>条件架构选择与已有研究的对照</title><link rel="stylesheet" href="../style.css">
+</head>
+<body><main><div class="nav"><a href="../index.html">← 模糊方向</a> · <a href="D14_architecture_selection.html">架构选择报告</a> · <a href="D14_实验检验.html">实验检验</a> · 文献深度确认</div>
+<h1>固定训练语境下的架构选择：已有研究对照</h1>
+<div class="legend"><strong>材料与证据范围：</strong>本组三页于 2026-10-29 整合，保留原报告的实验数字与核验结论；本次仅做网页整理，未重新运行实验或独立复算。原文引用的 KB 条目、预注册与 JSON/JSONL 产物未随这三份 HTML 提供，下文保留其文件名作为来源标识，暂不提供下载链接。</div>
+<p class="bg"><b>先看结论：</b>有三条相近研究线：零成本 NAS 用初始化代理预筛架构；μP、Depth-μP 与架构感知缩放研究超参数如何随宽深迁移；LN、残差和激活文献解释局部结构为何改善优化。它们都支持“架构与训练条件不可完全分离”，但本轮检索没有找到直接给出本报告六族任务、完整训练配方与最终 test CE/MSE 规则表的同构前作。具体条件表和反例仍应归为本地实验综合，不据此确认新颖性。</p>
+<p class="bg">检索与核对日期为 2026-10-28，来源包括 arXiv、PMLR、ACL Anthology 与出版社官方页面。关键条目核对了标题、作者、年份和摘要，并对 μTransfer、Depth-μP、学习率迁移、2026 年 attention-only Transformer 受控研究等检查了相关正文段落。<b>这不是系统综述，也没有逐篇通读所有参考文献全文。</b>“未找到直接前作”只表示下述检索范围，不等于不存在。</p>
+<div class="legend">判断标签：<span class="tag ok">已知</span>文献直接讨论同一问题或机制 · <span class="tag mix">部分已知</span>目标相近，但任务、训练配方、指标或实验对象不同 · <span class="tag no">未找到直接前作</span>仅限本轮检索，不代表新颖性确认。</div>
+
+<h2>本报告与三类已有研究的关系</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>研究线</th><th>文献实际解决的问题</th><th>与本报告的相同点</th><th>不能直接替代的地方</th></tr></thead>
+<tbody>
+<tr><td>零成本／免训练 NAS</td><td>用未训练网络的激活、梯度、NTK、协方差等分数预测最终准确率，降低搜索成本</td><td>都要给候选架构排序</td><td>多数 proxy 不把 optimizer、lr、steps、训练 batch 作为输入；基准上的 Spearman 相关不等于指定配方下少量候选的 CE/MSE 排名</td></tr>
+<tr><td>μP／超参数跨尺度迁移</td><td>让最优学习率等超参数在宽度、部分深度或其他尺度变化时近似稳定</td><td>都说明架构与优化超参数耦合</td><td>“固定架构后最优 lr 可迁移”不等于“固定 lr 后最优宽深不变”；μP 也不直接给架构排名</td></tr>
+<tr><td>结构机制研究</td><td>研究 LN、残差、GELU、SiLU/Swish 对梯度、收敛和特定任务性能的影响</td><td>覆盖本报告的主要架构轴</td><td>多数不是 residual×LN×activation×optimizer 的完整析因；在 CNN、Transformer 或 RL 中的收益不能直接搬到六族小任务</td></tr>
+</tbody></table></div>
+<p>因此，本报告更接近<strong>小候选集上的受控架构评估与条件规则提炼</strong>，而不是提出新的 NAS 搜索算法。它的目标不是让不同架构各自调到最优，而是回答“给定同一个数据实例和同一训练配方，哪个候选的最终测试损失更低”。</p>
+
+<h2>逐条命题对照</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>编号</th><th>本报告命题</th><th>文献状态</th><th>最近的研究</th></tr></thead>
+<tbody>
+<tr><td>Q</td><td>最佳架构依赖任务与完整训练配方，不能只按优化器名称或架构单轴决定</td><td><span class="tag ok">已知</span>（总体问题）/ <span class="tag no">未找到同构规则表</span></td><td>Ndubuaku et al. 2026；Chen et al. 2024；Yang et al. 2022</td></tr>
+<tr><td>C1</td><td>零成本初始化指标不能替代本报告的最终 CE/MSE 受控比较</td><td><span class="tag ok">已知</span>（代理边界）</td><td>Abdelfattah et al. 2021；Li et al. 2023；Serianni &amp; Kalita 2023</td></tr>
+<tr><td>C2</td><td>tabular、XOR、bigram 的已测高 lr 条件中，最优容量可转向更小模型</td><td><span class="tag mix">部分已知</span>（架构—lr 耦合）/ <span class="tag no">未找到直接前作</span>（具体反转表）</td><td>Lewkowycz et al. 2020；Chen et al. 2024；Yang et al. 2022</td></tr>
+<tr><td>C3</td><td>spiral 默认深宽，但 Adam 1e-2 和 RMSprop 下出现例外</td><td><span class="tag mix">部分已知</span>（深度缩放与优化器有关）/ <span class="tag no">未找到直接前作</span></td><td>Yang et al. 2023；Noci et al. 2024</td></tr>
+<tr><td>C4</td><td>LN 的收益、数量和位置依任务与配方变化</td><td><span class="tag ok">已知</span>（条件效应）/ <span class="tag no">未找到六族同构对照</span></td><td>Ba et al. 2016；Xu et al. 2019；Xiong et al. 2020</td></tr>
+<tr><td>C5</td><td>残差不是全局正项：在 tabular/mvar 的局部条件有益，在 XOR 高 lr、univar 全 LN 下可能有害</td><td><span class="tag mix">部分已知</span>（结构—优化耦合）/ <span class="tag no">未找到直接前作</span>（这些反转）</td><td>He et al. 2016；Xiong et al. 2020；Yang et al. 2023</td></tr>
+<tr><td>C6</td><td>激活不能跨任务统一排序：tabular 偏 GELU/SiLU，mvar 中 SiLU 反而偏差</td><td><span class="tag mix">部分已知</span>（多任务局部对照）/ <span class="tag no">未找到直接前作</span>（该冲突）</td><td>Hendrycks &amp; Gimpel 2016；Elfwing et al. 2018；Ramachandran et al. 2017</td></tr>
+<tr><td>C7</td><td>steps、batch size 会改变架构选择，不能只匹配 optimizer/lr</td><td><span class="tag ok">已知</span>（预算—优化耦合）/ <span class="tag no">未找到六族具体表</span></td><td>Malladi et al. 2022；Kaplan et al. 2020；Yang et al. 2022</td></tr>
+<tr><td>C8</td><td>新增 tabular RMSprop 实验支持 d1 偏浅；mvar 深度×LN 主对照仍为刀刃</td><td><span class="tag no">未找到直接前作</span></td><td>相近的是条件化受控比较方法，而非这两个具体结果</td></tr>
+</tbody></table></div>
+
+<h2>一、最接近的方法论：架构比较必须控制训练条件</h2>
+<p>Ndubuaku et al. (2026) 的 <em>A Controlled Study of Attention-Only Transformers</em> 是本轮找到的最接近受控比较方法的研究之一。论文比较 attention-only Transformer 的不同架构臂，在匹配深度、参数量或 FLOPs 时进行受控实验，并明确指出：<strong>不同架构臂的最优学习率不同，共享学习率会静默地偏置架构比较。</strong>其实验涉及 Muon/AdamW，目标不是本报告的六族 MLP/bigram 规则表。</p>
+<ul class="refs">
+<li>它直接支持本报告的总前提：不能把架构当成与优化条件无关的独立变量。</li>
+<li>它与本报告解决的问题不同：该文强调<strong>每个架构分别调 lr</strong>以避免不公平；本报告则有意回答<strong>固定同一 lr 和预算时谁获胜</strong>。前者寻找架构在合适配方下的能力，后者服务于配方已经给定的实际选择。</li>
+<li>因此，本报告的赢家不是“架构脱离配方的内在优劣”，也不能用该文来否定固定配方排名。</li>
+</ul>
+<p><b>判定：已知（控制架构×优化条件的重要性）／未找到直接前作（六族固定配方规则表）。</b></p>
+
+<h2>二、零成本 NAS：能预筛，但未条件化完整训练配方</h2>
+<h3>Q1. 未训练网络的分数能否预测训练后表现</h3>
+<p>这是已有明确答案的研究方向，不是本报告的新问题。</p>
+<ul class="refs">
+<li><a href="#ref-mellor2021">Mellor et al. (2021)</a>：NASWOT 用未训练 ReLU 网络在一个 minibatch 上的激活码重叠预测训练后的 accuracy，无需在搜索循环中训练候选。</li>
+<li><a href="#ref-abdelfattah2021">Abdelfattah et al. (2021)</a>：系统比较 grad_norm、SNIP、GraSP、Fisher、SynFlow、jacob_cov 等零成本代理；单个 minibatch 即可评分，并报告 NAS-Bench-201 上最佳代理与最终 validation accuracy 的 Spearman 相关达到 0.82。</li>
+<li><a href="#ref-chen2021">Chen, Gong &amp; Wang (2021)</a>：TE-NAS 用 NTK 谱条件衡量可训练性、线性区域数衡量表达能力，以极低搜索成本进行架构剪枝。</li>
+<li><a href="#ref-krishnakumar2022">Krishnakumar et al. (2022)</a>：NAS-Bench-Suite-Zero 汇集 13 种代理与 28 个任务，便于评估代理和 surrogate 组合。</li>
+</ul>
+<p><b>判定：已知。</b>“不训练就给架构打分”已有系统研究；但这些方法主要预测 accuracy 或基准性能，不是本报告的短预算 test CE/MSE 精确对照。</p>
+
+<h3>Q2. 这些分数能否替代固定 optimizer/lr/steps/batch 下的受控排名</h3>
+<p>本轮核到的方法中，optimizer、lr、训练步数和训练 batch 通常不是零成本评分的显式输入。即使代理在大型基准上具有较高秩相关，也不能推出它在三个候选、指定配方和不同损失指标下仍保持顺序。</p>
+<ul class="refs">
+<li><a href="#ref-li2023zero">Li et al. (2023)</a> 的零样本 NAS 挑战综述指出，没有一种 accuracy proxy 能持续优于 #Params/#FLOPs 等简单基线，高准确率网络的代理相关性还会变差。这直接限制“通用初始化分数”的稳定性。</li>
+<li><a href="#ref-serianni2023">Serianni &amp; Kalita (2023)</a> 在 RNN/Transformer 上发现 training-free NAS 需要让搜索空间与指标共同设计；CNN 上有效的思路不能无条件迁移到 Transformer。</li>
+<li>NASWOT 的 ReLU 激活码、TE-NAS 的线性区域数都带有明确的结构归纳偏置；能对包含 LN/残差的网络计算一个数，不等于已经验证它能预测 LN×residual×activation 的条件交互。</li>
+</ul>
+<p><b>判定：已知（代理存在任务与搜索空间边界）。</b>零成本代理可作为大候选集的预筛或 warm-start，但本报告保留同任务、同配方、逐 seed 的最终测试比较是必要步骤，而不是重复已有 NAS 分数。</p>
+
+<h2>三、学习率迁移与最优架构迁移不是同一个命题</h2>
+<h3>Q3. μP 是否说明最优架构不会随学习率改变</h3>
+<p>不能这样推导。μTransfer 研究的是：在特定参数化与条件下，固定架构后，最优学习率等超参数能否跨尺度近似迁移。它并不直接优化或预测最佳宽深。</p>
+<ul class="refs">
+<li><a href="#ref-yang2022">Yang et al. (2022)</a>，Tensor Programs V：给出 μP/μTransfer 的跨宽度核心证据，并讨论部分其他维度的迁移。正文中的跨深度结果依赖具体 Transformer 结构，pre-LN 与 post-LN 不能混为一谈。</li>
+<li><a href="#ref-yang2023">Yang et al. (2023)</a>，Tensor Programs VI：Depth-μP 通过残差分支缩放研究无限深网络的特征学习，并显示深度缩放与优化器有关；其良好结论有残差块结构限制，不能直接套到普通 MLP。</li>
+<li><a href="#ref-noci2024">Noci et al. (2024)</a>：把学习率迁移与损失景观的 super consistency、sharpness 和 edge-of-stability 联系起来；训练后期仍可能出现宽度依赖与迁移失效。</li>
+<li><a href="#ref-chen2024scale">Chen et al. (2024)</a>：推导深度、宽度、卷积核与连接方式对初始化和最大学习率的影响，直接说明架构会改变可用优化尺度。</li>
+</ul>
+<p><b>判定：部分已知。</b>架构与学习率的耦合有成熟理论；但“高 lr 下最优容量变小”“spiral 在 Adam 1e-2 反转”是本报告具体实验结果，不能由 μP 或 Depth-μP 自动推出。若实验没有使用 μP，也不能把反转称为 μTransfer 失效。</p>
+
+<h3>Q4. 高学习率与训练预算为何可能改变架构排序</h3>
+<ul class="refs">
+<li><a href="#ref-lewkowycz2020">Lewkowycz et al. (2020)</a>：catapult 机制说明高学习率阶段不是低学习率训练的简单加速版，可能通过降低曲率进入不同动力学区域。</li>
+<li><a href="#ref-malladi2022">Malladi et al. (2022)</a>：SGD、RMSprop、Adam 的 SDE 近似对应不同的 batch–lr 缩放关系；该轨迹近似不保证最终性能或最佳架构不变。</li>
+<li><a href="#ref-kaplan2020">Kaplan et al. (2020)</a>：语言模型中 compute-optimal 模型规模随训练预算改变，但总规模缩放不给出本报告所需的精确宽深/LN/残差规则。</li>
+</ul>
+<p><b>判定：已知（训练条件会改变优化与最优规模）／部分已知（具体架构反转）。</b>这些文献提供机制候选，而非本地表格的直接证据。尤其“高 lr 惩罚大模型”目前只能作为待检验机制，不能写成跨任务定律。</p>
+
+<h2>四、LN、残差与激活：有局部对照，没有完整联合定律</h2>
+<h3>LN 的收益与位置</h3>
+<ul class="refs">
+<li><a href="#ref-ba2016">Ba, Kiros &amp; Hinton (2016)</a>：提出 LayerNorm，在多种 RNN 任务中展示稳定隐藏状态与减少训练时间；论文并不支持“LN 在所有模型都优于其他归一化”。</li>
+<li><a href="#ref-santurkar2018">Santurkar et al. (2018)</a>：说明 BatchNorm 的收益与损失面/梯度平滑有关，反驳单纯的 internal covariate shift 解释；该结果不是 LN 的直接证据。</li>
+<li><a href="#ref-xu2019">Xu et al. (2019)</a>：分析 LN 前向归一化、反向导数与 affine 参数，提出 LN-simple/AdaNorm，并在所列任务上对照；不是 residual×LN 的完整析因。</li>
+<li><a href="#ref-xiong2020">Xiong et al. (2020)</a>：Pre-LN Transformer 的梯度更稳定、对 warm-up 依赖更低，最终结果与基线相当；这不等于 Pre-LN 普遍提高最终精度，也没有 residual 开关组。</li>
+</ul>
+<p><b>判定：已知（LN 的训练与结构条件效应）／未找到六族同构规则。</b>本报告的“tabular 窄网强依赖 LN”“univar 低 lr 更多 LN 有益”“mvar 1–2 层常够”仍需要各自的配对实验，不能从 Ba 或 Xiong 直接推出。</p>
+
+<h3>残差与激活</h3>
+<ul class="refs">
+<li><a href="#ref-he2016">He et al. (2016)</a>：ResNet 在深层图像 CNN 的既定 BN+SGD 协议中缓解 degradation，使更深网络更易优化；没有 LN 条件扫描，不能证明 residual 在所有任务有益。</li>
+<li><a href="#ref-hendrycks2016">Hendrycks &amp; Gimpel (2016)</a>：GELU 在所测 MNIST、NLP、语音与 CIFAR 任务上相对 ReLU/ELU 有改善，但不是 activation×optimizer 的完整交叉。</li>
+<li><a href="#ref-elfwing2018">Elfwing et al. (2018)</a>：SiLU 在若干强化学习函数逼近任务中优于所用基线；其算法和训练设置与本报告监督任务不同。</li>
+<li><a href="#ref-ramachandran2017">Ramachandran, Zoph &amp; Le (2017)</a>：Swish 在多个图像与翻译模型中表现出经验收益，但不同模型/任务的训练协议不同，不能证明固定配方下的普遍激活排序。</li>
+</ul>
+<p><b>判定：部分已知。</b>文献支持 residual、GELU、SiLU/Swish 作为有机制和经验依据的候选，却不支持本报告禁止的“全局固定加分”。本地 residual×LN、activation×task 的反转正说明完整联合对照仍不可省略。</p>
+
+<h2>五、对六族本地规则的最终归属</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>本地内容</th><th>可引用的文献支持</th><th>仍属于本地实验的部分</th></tr></thead>
+<tbody>
+<tr><td>tabular 的 lr×宽深、LN×宽度、res×depth 规则</td><td>架构感知最大 lr、控制架构比较时调 lr 的方法论</td><td>各 lr 档的最优宽深数值、胜率、CE 差和新增 RMSprop d1 结果</td></tr>
+<tr><td>spiral 默认 deep_wide 及高 lr/RMSprop 例外</td><td>Depth-μP 的优化器依赖深度缩放、高 lr 动力学背景</td><td>具体架构库第一名、Adam 1e-2 的 51 倍反转、LN/预算规则</td></tr>
+<tr><td>XOR 高有效 lr 小模型化与 residual 负优化</td><td>架构—优化耦合的一般背景</td><td>各 optimizer/lr 的容量方向、residual/SiLU 负效应与 steps 交互</td></tr>
+<tr><td>bigram 稳定区/高 lr 区的 width/dff/depth/heads 切换</td><td>training-free Transformer 代理的搜索空间边界、预算缩放背景</td><td>具体配对胜率、median 优势、整包平局和 TF/GRU 倾向</td></tr>
+<tr><td>univar/mvar 的 LN×residual 与激活差异</td><td>LN、ResNet、GELU/SiLU 的局部机制与性能对照</td><td>univar 全 LN 下 residual 有害、mvar 同条件有益；mvar SiLU 负项及深度×LN 刀刃</td></tr>
+</tbody></table></div>
+<p>最稳妥的表述是：<strong>总体科学问题与机制背景已有大量研究；六族任务的条件规则、定量效应和反例是本地知识库及新增受控实验提供的内容。</strong>不能把“未找到同构表格”写成“该领域从未研究架构与优化器交互”。</p>
+
+<h2>相关文献</h2>
+<ol class="refs">
+<li id="ref-abdelfattah2021">Abdelfattah, M. S., Mehrotra, A., Dudziak, Ł., &amp; Lane, N. D. (2021). Zero-cost proxies for lightweight NAS. <em>ICLR 2021</em>. <a href="https://arxiv.org/abs/2101.08134">arXiv:2101.08134</a></li>
+<li id="ref-ba2016">Ba, J. L., Kiros, J. R., &amp; Hinton, G. E. (2016). Layer normalization. <a href="https://arxiv.org/abs/1607.06450">arXiv:1607.06450</a></li>
+<li id="ref-chen2021">Chen, W., Gong, X., &amp; Wang, Z. (2021). Neural architecture search on ImageNet in four GPU hours: a theoretically inspired perspective. <em>ICLR 2021</em>. <a href="https://arxiv.org/abs/2102.11535">arXiv:2102.11535</a></li>
+<li id="ref-chen2024scale">Chen, W., Wu, J., Wang, Z., &amp; Hanin, B. (2024). Principled architecture-aware scaling of hyperparameters. <em>ICLR 2024</em>. <a href="https://arxiv.org/abs/2402.17440">arXiv:2402.17440</a></li>
+<li id="ref-elfwing2018">Elfwing, S., Uchibe, E., &amp; Doya, K. (2018). Sigmoid-weighted linear units for neural network function approximation in reinforcement learning. <em>Neural Networks, 107</em>, 3–11. <a href="https://arxiv.org/abs/1702.03118">arXiv:1702.03118</a> · <a href="https://doi.org/10.1016/j.neunet.2017.12.012">DOI</a></li>
+<li id="ref-he2016">He, K., Zhang, X., Ren, S., &amp; Sun, J. (2016). Deep residual learning for image recognition. <em>CVPR 2016</em>. <a href="https://arxiv.org/abs/1512.03385">arXiv:1512.03385</a></li>
+<li id="ref-hendrycks2016">Hendrycks, D., &amp; Gimpel, K. (2016). Gaussian error linear units (GELUs). <a href="https://arxiv.org/abs/1606.08415">arXiv:1606.08415</a></li>
+<li id="ref-kaplan2020">Kaplan, J., McCandlish, S., Henighan, T., et al. (2020). Scaling laws for neural language models. <a href="https://arxiv.org/abs/2001.08361">arXiv:2001.08361</a></li>
+<li id="ref-krishnakumar2022">Krishnakumar, A., White, C., Zela, A., Tu, R., Safari, M., &amp; Hutter, F. (2022). NAS-Bench-Suite-Zero: accelerating research on zero cost proxies. <em>NeurIPS Datasets and Benchmarks 2022</em>. <a href="https://arxiv.org/abs/2210.03230">arXiv:2210.03230</a></li>
+<li id="ref-lewkowycz2020">Lewkowycz, A., Bahri, Y., Dyer, E., Sohl-Dickstein, J., &amp; Gur-Ari, G. (2020). The large learning rate phase of deep learning: the catapult mechanism. <a href="https://arxiv.org/abs/2003.02218">arXiv:2003.02218</a></li>
+<li id="ref-li2023zero">Li, G., Hoang, D., Bhardwaj, K., Lin, M., Wang, Z., &amp; Marculescu, R. (2023). Zero-shot neural architecture search: challenges, solutions, and opportunities. <a href="https://arxiv.org/abs/2307.01998">arXiv:2307.01998</a></li>
+<li id="ref-malladi2022">Malladi, S., Lyu, K., Panigrahi, A., &amp; Arora, S. (2022). On the SDEs and scaling rules for adaptive gradient algorithms. <a href="https://arxiv.org/abs/2205.10287">arXiv:2205.10287</a></li>
+<li id="ref-mellor2021">Mellor, J., Turner, J., Storkey, A., &amp; Crowley, E. J. (2021). Neural architecture search without training. <em>ICML 2021</em>. <a href="https://proceedings.mlr.press/v139/mellor21a.html">PMLR</a></li>
+<li id="ref-ndubuaku2026">Ndubuaku, H., Mosoyan, K., Mroz, J., Cylich, N., Kumar, S., Sandhu, P., Shemet, R., &amp; Lee, J. H. (2026). A controlled study of attention-only transformers. <a href="https://arxiv.org/abs/2607.18363">arXiv:2607.18363</a></li>
+<li id="ref-noci2024">Noci, L., Meterez, A., Hofmann, T., &amp; Orvieto, A. (2024). Super consistency of neural network landscapes and learning rate transfer. <a href="https://arxiv.org/abs/2402.17457">arXiv:2402.17457</a></li>
+<li id="ref-ramachandran2017">Ramachandran, P., Zoph, B., &amp; Le, Q. V. (2017). Searching for activation functions. <a href="https://arxiv.org/abs/1710.05941">arXiv:1710.05941</a></li>
+<li id="ref-santurkar2018">Santurkar, S., Tsipras, D., Ilyas, A., &amp; Madry, A. (2018). How does batch normalization help optimization? <em>NeurIPS 2018</em>. <a href="https://arxiv.org/abs/1805.11604">arXiv:1805.11604</a></li>
+<li id="ref-serianni2023">Serianni, A., &amp; Kalita, J. (2023). Training-free neural architecture search for RNNs and Transformers. <em>ACL 2023</em>. <a href="https://aclanthology.org/2023.acl-long.142/">ACL Anthology</a></li>
+<li id="ref-xiong2020">Xiong, R., Yang, Y., He, D., et al. (2020). On layer normalization in the transformer architecture. <em>ICML 2020</em>. <a href="https://proceedings.mlr.press/v119/xiong20b.html">PMLR</a> · <a href="https://arxiv.org/abs/2002.04745">arXiv:2002.04745</a></li>
+<li id="ref-xu2019">Xu, J., Sun, X., Zhang, Z., Zhao, G., &amp; Lin, J. (2019). Understanding and improving layer normalization. <em>NeurIPS 2019</em>. <a href="https://arxiv.org/abs/1911.07013">arXiv:1911.07013</a></li>
+<li id="ref-yang2022">Yang, G., Hu, E. J., Babuschkin, I., et al. (2022). Tensor programs V: tuning large neural networks via zero-shot hyperparameter transfer. <a href="https://arxiv.org/abs/2203.03466">arXiv:2203.03466</a></li>
+<li id="ref-yang2023">Yang, G., Yu, D., Zhu, C., &amp; Hayou, S. (2023). Tensor programs VI: feature learning in infinite-depth neural networks. <a href="https://arxiv.org/abs/2310.02244">arXiv:2310.02244</a></li>
+</ol>
+
+<h2>检索范围与尚未核验的内容</h2>
+<p>主要检索组合包括 <code>training-free / zero-cost NAS</code>、<code>task-aware architecture search</code>、<code>architecture optimizer interaction</code>、<code>optimal width depth learning rate</code>、<code>Tensor Programs depth width transfer</code>、<code>architecture-aware maximal learning rate</code>、<code>batch size optimal architecture</code>、<code>residual LayerNorm interaction</code>、<code>activation task optimizer factorial</code>，以及六族任务名称的组合检索。另核查了 NASWOT、Zero-Cost Proxies、TE-NAS、NAS-Bench-Suite-Zero、Zero-Shot NAS Challenges、μTransfer、Depth-μP、Super Consistency、Catapult、LN/Pre-LN/ResNet/GELU/SiLU/Swish 的官方条目。</p>
+<p>尚未完成系统综述式的数据库去重、引文追踪和全部全文精读；部分较新论文只有 arXiv 版本，会议状态可能继续变化。文献中的 accuracy、validation loss、训练速度、sharpness 和本报告的末步 test CE/MSE 不是同一指标。特别是“代理与最终表现相关”不等于“在固定完整配方下对少量候选排序正确”，“最优 lr 跨宽度迁移”也不等于“最优宽度跨 lr 迁移”。</p>
+<p>本页只确认文献与本地命题的关系，不更改主报告的实验数字。本地结论仍受各 KB 条目的任务实例、模型族、优化器、lr、steps、batch、seeds 与 development 范围限制；新增 tabular/mvar 实验的判定门槛与结果以 <span title="源路径：evidence/preregistration.json；原始文件未随本页提供">预注册（源文件未附）</span>和<span title="源路径：evidence/supplemental_summary.json；原始文件未随本页提供">汇总（源文件未附）</span>为准。</p>
+<div class="stamp">文献深度确认首版 2026-10-28 · 摘要与关键正文段落级核对 · 未找到直接前作不构成新颖性确认</div>
+</main></body></html>

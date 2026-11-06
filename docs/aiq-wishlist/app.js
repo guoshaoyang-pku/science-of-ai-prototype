@@ -5,6 +5,23 @@
   const $ = id => document.getElementById(id);
   const key = 'aiq-wishlist-v1';
   const allowed = new Set(aspects.map(a => a.id));
+  const atlasOrigin = 'https://sai-atlas-20261103.blondemoss2.chatgpt.site';
+  const atlasModules = {
+    theory:'已有理论与文献', idea:'问题与许愿池', grammar:'Grammar / Data',
+    challenge:'Challenge', search:'搜索者', evaluate:'训练与评测', panel:'结果与 Panel',
+    kb:'KB Loop', research:'模糊方向', textbook:'K / L / S Textbook',
+    proxy:'Proxy Task Infra', meta:'元模型研究', metrics:'知识价值评估'
+  };
+  const aspectModules = {data:'grammar', model:'grammar', training:'evaluate', metric:'metrics', budget:'challenge', evaluation:'panel', reasoning:'research', knowledge:'kb'};
+  const entry = new URLSearchParams(location.search);
+  const entryModule = entry.get('from') === 'sai-atlas' && Object.hasOwn(atlasModules, entry.get('module')) ? entry.get('module') : null;
+  function updateAtlasLinks(aspect) {
+    const module = entryModule || aspectModules[aspect.id] || 'idea';
+    for (const id of ['atlas-context-link', 'atlas-done-link']) {
+      $(id).href = atlasOrigin + '/?module=' + encodeURIComponent(module) + '#map';
+      $(id).textContent = (entryModule ? '返回 ' : '查看 ') + atlasModules[module] + ' →';
+    }
+  }
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   let motionEnabled = true, resizeAnimation = null;
   const motionAllowed = () => motionEnabled && !reducedMotion.matches;
@@ -36,7 +53,7 @@
     catch { storageOK = false; notify('浏览器无法保存，请在关闭页面前导出愿望。'); document.querySelectorAll('.storage-hint').forEach(el => el.textContent = '当前仅暂存，请及时导出'); return false; }
   }
   const titleFor = id => aspects.find(a => a.id === id)?.title || '未分类';
-  const researchOverview = {title:'13 个方向与当前结论', sourceHref:'../模糊方向/index.html', literatureHref:'../模糊方向/背景与文献.html'};
+  const researchOverview = {title:'研究方向与当前结论', sourceHref:'../模糊方向/index.html', literatureHref:'../模糊方向/背景与文献.html'};
   let reading = null;
   function loadReading(kind) {
     const literature = kind === 'literature';
@@ -123,10 +140,23 @@
     }
   }
   function displayAspect(aspect) {
+    updateAtlasLinks(aspect);
     selected = aspect;
     $('aspect-label').textContent = 'ASPECT / ' + aspect.title;
     $('inspiration-title').textContent = aspect.question;
     $('aspect-explanation').textContent = aspect.explanation;
+    $('guide-scope').textContent = aspect.guide.scope;
+    $('guide-importance').textContent = aspect.guide.importance;
+    $('guide-scenario').textContent = aspect.guide.scenario;
+    $('guide-reading').textContent = aspect.guide.reading.text;
+    // Diagrams are bundled teaching illustrations; never insert user text as HTML.
+    const diagram = window.AIQ_DIAGRAMS[aspect.id];
+    $('aspect-diagram').innerHTML = diagram.svg;
+    $('aspect-diagram').setAttribute('aria-label', diagram.alt);
+    const guideReport = directions.get(aspect.guide.reading.id);
+    $('guide-report').href = guideReport.sourceHref;
+    $('guide-report').textContent = guideReport.id + ' · ' + guideReport.title + ' ↗';
+    $('aspect-guide').open = false;
     $('suggested-wish').textContent = aspect.wish;
     $('current-evidence').textContent = aspect.current;
     $('next-step').textContent = aspect.next;
@@ -215,6 +245,11 @@
     else showStep(next);
   }));
   $('change-aspect').addEventListener('click', () => showStep(1));
+  $('guide-report').addEventListener('click', event => {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    openReading(directions.get(selected.guide.reading.id));
+  });
   $('use-suggestion').addEventListener('click', () => startWriting(true));
   $('own-idea').addEventListener('click', () => startWriting(false));
   $('back-to-idea').addEventListener('click', () => showStep(2));
@@ -271,5 +306,10 @@
     catch { $('export-text').focus(); $('export-text').select(); $('copy-export').textContent='已选中，请复制'; }
   });
   count(); showStep(1,false);
+  const entryAspect = aspects.find(aspect => aspect.id === entry.get('aspect'));
+  if (entryAspect) {
+    displayAspect(entryAspect);
+    showStep(2, false);
+  }
   if (!storageOK) notify('浏览器存储不可用或记录无法读取，保存后请导出备份。');
 })();
