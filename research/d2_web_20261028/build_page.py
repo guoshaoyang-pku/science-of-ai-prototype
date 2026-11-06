@@ -17,6 +17,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--data-root', type=Path, required=True)
     args = ap.parse_args()
+    # Six-round evidence is exported separately, without executing any study.
+    continuous_dir = WEB / 'd2_evidence_20261106'
+    continuous_manifest = json.loads((continuous_dir / 'export_manifest.json').read_text())
+    for round_entry in continuous_manifest['rounds']:
+        assert sha(ROOT / round_entry['result_manifest']) == round_entry['result_manifest_sha256']
+        for artifact in round_entry['artifacts']:
+            if artifact['published']:
+                assert sha(continuous_dir / artifact['published']) == artifact['sha256']
     OUT.mkdir(exist_ok=True)
     exports = []
     for study, prefix, names in [
@@ -53,8 +61,8 @@ def main():
         task_rows.append(f'<tr><th scope="row">{protocols[r["protocol"]]}<br>{task_names[r["task"]]}</th><td>{shape}</td><td>{r["time_pass"]}/{r["interior"]}</td><td>{r["risk_pass"]}/{r["count"]}</td></tr>')
     template = r'''<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>D2：为什么越学泛化越差？原主张已被推翻</title>
-<meta name="description" content="先解释泛化恶化的问题，再逐条展示 D2 原预测主张的反证、仍成立的条件结果与尚未验证的机制。">
+<title>D2：为什么训练更好，泛化却变差？</title>
+<meta name="description" content="六轮实验：排查标签噪声与表达能力，分析误差抵消和学习先后。先讲结论与例子，再展开公式、反例和证据。">
 <link rel="stylesheet" href="style.css">
 <script>window.MathJax={tex:{inlineMath:[['\\(','\\)'],['$','$']],displayMath:[['\\[','\\]'],['$$','$$']]}};</script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -62,23 +70,26 @@ def main():
 .mobile-hint{display:none}main{max-width:1040px;padding-top:36px}body{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-size:16px;line-height:1.85}h1{font-size:clamp(25px,4vw,35px);max-width:830px}h2{margin-top:40px;font-size:22px}p{max-width:900px}.eyebrow{color:#7b6048;font-size:13px;letter-spacing:.08em}.lead{font-size:18px}.note,figcaption,small{font-size:13px;color:#625f58}.toc{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;margin:22px 0}.callout{background:#eeeee3;border-left:3px solid #788c5d;padding:12px 16px;border-radius:0 8px 8px 0}.warning{background:#f8eee7;border-left-color:#bf7454}table{min-width:640px;font-size:14px}th{color:#363a36;font-weight:600;background:#eeeee6}tbody th{background:transparent;font-weight:500}td small{display:block}figure{margin:24px 0}figure img{display:block;width:100%;border-radius:9px;border:1px solid #e5e1d5;background:#faf9f5}figcaption{margin-top:9px;line-height:1.7}details{margin:16px 0;border:1px solid #ddd9cc;border-radius:9px;padding:12px 16px}summary{font-weight:600;cursor:pointer;line-height:1.6}details[open]>summary{margin-bottom:14px}summary:focus-visible,a:focus-visible{outline:3px solid #6a9bcc;outline-offset:4px}.section-index{color:#8b887d;font-size:14px;margin-right:9px}.refs{font-size:14px}section{scroll-margin-top:20px}.stamp{color:#625f58;margin-top:35px}.formula-table td:nth-child(2){min-width:270px}@media(max-width:620px){.mobile-hint{display:block}main{padding:24px 16px 60px}h2{font-size:20px}.lead{font-size:17px}details{padding:11px}.nav{line-height:1.8}}
 </style></head><body><main>
 <nav class="nav" aria-label="站点导航"><a href="index.html">← 研究总览</a> · <a href="D1_u_effective_time.html">D1：训练时间</a> · <a href="D2_文献深度确认.html">文献对照</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/edit/main/docs/%E6%A8%A1%E7%B3%8A%E6%96%B9%E5%90%91/D2_overfitting_u_curve.html">编辑此页</a></nav>
-<header><p class="eyebrow">D2 · 泛化为什么变弱 · 证据更新于 2026-10-29</p><h1>为什么越学，泛化反而越差？</h1>
+<header><p class="eyebrow">D2 · 泛化为什么变弱 · 证据更新于 2026-11-06</p><h1>为什么越学，泛化反而越差？</h1>
 <p class="lead">模型在练习题上越来越熟练，换一批题却可能做得更差。这就是 D2 要解释的现象：训练误差继续下降，泛化误差却开始回升。</p>
-<p>D2 原来尝试用“样本有多少、答案有多吵”概括这个过程，预测什么时候开始变差。后续实验表明：<strong>原来的广义预测主张已被推翻，不能靠换个系数继续沿用。</strong></p>
-<div class="callout warning"><strong>当前状态：D2 原主张已被推翻。</strong> 被推翻的是下文明确列出的外推与必要条件预测。泛化恶化现象仍存在；固定特征下的风险分解、窄范围经验结果和后续消融的局部成功继续保留。</div>
-<p class="note">阅读顺序：先理解问题，再看原主张与反证，然后解释当前数学框架能说什么，最后看交叉项消融、剩余失败和未启动的实验。本次只更新既有证据的判定与表达，没有新增研究运行。</p></header>
+<p>现在的发现是：<strong>答案没有噪声、模型也有能力表达答案，继续训练仍可能让新题做得更差。</strong> 我们正在从“模型先学什么、后学什么，以及不同错误如何抵消”理解这件事。</p>
+<div class="callout"><strong>目前走到哪一步？</strong> 已完成六轮小模型实验，观察到这套模型先恢复线性规律、再较慢恢复交互规律；但还没有证明这种学习顺序就是泛化变弱的原因。</div>
+<p class="note">原先用样本数／噪声概括停止时间的广义公式已被反例推翻，历史证据保留在下方。阅读顺序：实验设定 → 排查过程 → 最新例子 → 误差抵消 → 历史结果与未决问题。本次只整理已有结果；同速对照暂缓，未启动。</p></header>
 <p class="note mobile-hint">手机上表格可左右滑动，点击图片可查看高清图。</p>
-<nav class="toc" aria-label="页内目录"><a href="#question">先看全貌</a><a href="#status">哪些被推翻</a><a href="#formulas">还能怎样解释</a><a href="#method">后续消融</a><a href="#example">具体例子</a><a href="#results">对比结果</a><a href="#limits">失败与边界</a><a href="#next">未决问题</a><a href="#evidence">证据与文献</a></nav>
+<nav class="toc" aria-label="页内目录"><a href="#question">问题全貌</a><a href="#study">实验设定</a><a href="#progress">六轮排查</a><a href="#preference">先学什么</a><a href="#cancellation">误差抵消</a><a href="#history">原公式与 5%</a><a href="#next">未决问题</a><a href="#evidence">证据</a></nav>
 <section id="question"><h2><span class="section-index">01</span>先看全貌：学会训练题，为什么不等于学会规律？</h2>
-<p><strong>训练误差</strong>衡量模型对用来学习的样本做得怎样；<strong>泛化误差</strong>关心它遇到新输入时是否仍然可靠。这里用另外生成的验证样本估计泛化表现，以预测和正确答案之差的平方平均值（MSE）记分，越低越好。</p>
+<p><strong>训练误差</strong>衡量模型对用来学习的样本做得怎样；<strong>泛化误差</strong>关心它遇到新输入时是否仍然可靠。这里以预测和正确答案之差的平方平均值（MSE）记分，越低越好。验证集是用一批新输入估计泛化误差；在已知分布的当前实验里，还可以直接计算总体平均，减少验证样本波动的干扰。</p>
 <p>训练标签可能混有随机错误，叫<strong>标签噪声</strong>。模型继续降低训练误差时，既可能更接近真实规律，也可能更贴近这些错误。因此，训练进步与泛化改善不是同一件事。噪声是候选原因之一，不能未经检查就把每一次回升都归因于它。</p>
 <div class="table-wrap"><table><thead><tr><th>研究层面</th><th>D2 要回答的问题</th><th>目前能说到哪里</th></tr></thead><tbody>
 <tr><th scope="row">现象</th><td>继续训练，验证误差会不会回升？</td><td>在已测固定特征回归中观察到了；不是每条曲线都在窗口内部出现最低点。</td></tr>
-<tr><th scope="row">解释</th><td>回升来自拟合噪声，还是无噪声部分也在恶化？</td><td>有精确分解可以记账，但尚未完成跨条件的原因归因实验。</td></tr>
+<tr><th scope="row">解释</th><td>回升来自拟合噪声，还是无噪声部分也在恶化？</td><td>无噪声也有回升；已有可表示目标干预、误差分解与学习先后测量，尚无普适因果解释。</td></tr>
 <tr><th scope="row">预测</th><td>能否提前知道什么时候该停？</td><td>原简单比例公式外推失败；实用的仅依赖训练数据的方法尚未建立。</td></tr>
 </tbody></table></div>
 <p>停止时间是这个现象的一种测量。本文寻找观察窗口内的最低误差位置，记为 $t_*$；它是格点搜索与局部精化的估计，<strong>不保证等于第一次局部回升的位置</strong>。</p>
 </section>
+@@CONTINUOUS_SECTIONS@@
+<details id="history"><summary>历史结果：原比例公式为什么失效？保留 5% 交叉项又说明了什么？</summary>
+<p>下面保留截至 10 月 29 日的证据。5% 实验只近似风险表达式，没有改变实际训练；与上方六轮机制研究分开理解。</p>
 <section id="status"><h2><span class="section-index">02</span>原来主张什么，哪些已经站不住？</h2>
 <p>原来的直觉是：数据越多，可以训练得越久；标签越吵，应该越早停。D2 把它写成 $U_*\approx c\,n/\sigma^2$：$n$ 是样本数，$\sigma^2$ 是噪声方差，$U=\eta t$ 是学习率乘步数，$c$ 是从已有数据拟合的系数。</p>
 <p><strong>如果把它当作跨任务、跨样本与噪声范围的规律，就已经失败。</strong> 旧窄范围留出样本量的检验有 57/60 个预测在两倍以内；扩大范围后，允许每组任务重新校准自己的系数，仍只有 1232/2700（45.6%）通过，12 组都未达到原定 80% 门槛。保留窄范围结果，不等于原广义主张被救回。</p>
@@ -158,30 +169,31 @@ def main():
 <tr><th scope="row">按变化选择明显优于按大小选择</th><td><strong>没有优势证据</strong></td><td>时间通过 3043 对 3042；低额外误差通过 3200 对 3199。两者基本打平。</td></tr>
 <tr><th scope="row">已经实现训练前、只依赖训练数据的实际预测</th><td><strong>未建立</strong></td><td>当前依赖干净目标与验证几何；解析可算不等于真实问题中信息可得。</td></tr>
 <tr><th scope="row">只留 5% 就节省 95% 计算</th><td><strong>未建立</strong></td><td>选项时仍读取所有交叉项；没有端到端算力收益测量。</td></tr>
-<tr><th scope="row">已找到泛化恶化的普适原因</th><td><strong>未建立</strong></td><td>只改表达式，没有进行改变真实学习过程的因果干预；固定特征结果也未覆盖端到端网络。</td></tr>
+<tr><th scope="row">已找到泛化恶化的普适原因</th><td><strong>未建立</strong></td><td>当时的 5% 消融只改风险表达式。后续第④轮虽改变了训练目标，仍没有建立普适原因；固定特征结果也未覆盖端到端网络。</td></tr>
 </tbody></table></div>
 <p class="note">“未建立”表示没有足够证据，不等于已做实验并证伪。未覆盖分类、交叉熵、Adam、小批量、学习特征；已有 12 组均属合成回归与已观察的开发数据。</p>
 </section>
-<section id="next"><h2><span class="section-index">08</span>下一步回到原因：泛化恶化，到底是哪部分在变差？</h2>
-<p><strong>优先问题：最低点之后增加的误差，有多少来自标签噪声，有多少来自无噪声部分？</strong> 先解释这个现象，再决定是否继续做交叉项压缩或停止时间预测。</p>
-<div class="table-wrap"><table><thead><tr><th>拟议对照</th><th>保持不变／只改变什么</th><th>希望区分的原因</th></tr></thead><tbody>
-<tr><th scope="row">干净标签、低噪声、高噪声</th><td>固定输入、特征、初始化；只改训练标签噪声</td><td>没有标签噪声时是否仍会恶化，噪声又增加了多少代价。</td></tr>
-<tr><th scope="row">同时记录训练与验证误差</th><td>分别对带噪训练标签、干净训练标签和干净验证标签记分</td><td>是在学真实规律，还是越来越贴近错误答案。</td></tr>
-<tr><th scope="row">拆解最佳点到晚期的增量</th><td>预先规定晚期观察规则，分别计算 $\Delta B$ 与 $\sigma^2\Delta N$</td><td>总误差增加是否只是噪声超过收益，还是无噪声部分也在恶化。</td></tr>
-<tr><th scope="row">检查不同噪声实现</th><td>同一输入与特征，换训练标签噪声实现</td><td>平均曲线的解释能否描述单次训练，而非仅在平均后成立。</td></tr>
+</details>
+<section id="next"><h2>哪些已经知道，哪些还没有做？</h2>
+<div class="table-wrap"><table><thead><tr><th>证据层次</th><th>当前能说什么</th></tr></thead><tbody>
+<tr><th scope="row">解析事实</th><td>固定特征下，不同训练方向有不同恢复速度；风险可以精确拆解；训练看不见的方向在零初始化下不更新。</td></tr>
+<tr><th scope="row">本次实测</th><td>特定无噪声、可表示目标仍会回升；9 组设置都先恢复线性一半幅度；后期有用信号改善可能被其他成分增加盖过。</td></tr>
+<tr><th scope="row">待检验解释</th><td>如果改变学习快慢，泛化回升是否随之改变？观察到先后关系，尚不能回答这个因果问题。</td></tr>
+<tr><th scope="row">暂缓，未启动</th><td>原梯度下降与“各可学习方向同速”的对照；按当前用户要求先更新页面。同速实验未预注册、未运行；追加新样本对照也未启动。</td></tr>
+<tr><th scope="row">尚未建立</th><td>更复杂任务、可学习特征或大模型上的规律；不依赖干净答案与已知总体分布的停止预测器；通用的 5% 保留保证。</td></tr>
 </tbody></table></div>
-<p>先从线性参照、第 1／255 步正弦例子、四维交互目标和 5% 最差的加性目标入手。已看过的例子只能用于开发解释；独立验证要先冻结方案。新种子用于重复性，不能单独算成新任务。</p>
-<div class="callout"><strong>状态：仅讨论方案，尚未预注册或启动。</strong> 本次页面更新没有运行这些实验，也没有新的因果结论。用于解释原因的受控实验可以使用干净答案；若以后做实际预测器，则必须重新限制预测时可用的信息。</div>
+<p>当前结论只适用于这些固定特征、平方损失、全批量训练的合成回归开发条件。新种子只能检验重复性；要谈更广泛适用，必须事先指定新条件，不能把旧例子反复通过当成泛化。</p>
 </section>
 <section id="evidence"><h2><span class="section-index">09</span>证据与已有研究：哪些来自论文，哪些来自本实验</h2>
-<p>固定特征下解析求解学习过程、按谱方向分析早停，都有已有理论。交叉项来自平方展开，本身不是新发现；我们具体做的是删项与停止决策的对照。以下核对的是相关章节，不是完整的新颖性审查。</p>
+<p>固定特征下解析求解学习过程、按谱方向分析早停，都有已有理论。交叉项来自平方展开，本身不是新发现；历史实验做了删项与停止决策对照，最新六轮则做噪声、目标表达能力、误差组成与学习先后的核验。以下核对的是相关章节，不是完整的新颖性审查。</p>
 <div class="table-wrap"><table><thead><tr><th>原始来源</th><th>与 D2 的关系</th><th>不能据此声称什么</th></tr></thead><tbody>
 <tr><th scope="row"><a href="https://proceedings.mlr.press/v89/ali19a/ali19a.pdf">Ali、Kolter、Tibshirani，2019</a></th><td>Lemma 1、式（6）、3.1 节：固定特征最小二乘梯度流的解析路径与谱分解。</td><td>论文主要分析连续时间；D2 离散步数实现及其特定数字需要自身证据。</td></tr>
 <tr><th scope="row"><a href="https://arxiv.org/abs/2110.11805">Bodin、Macris，2021</a></th><td>随机特征模型在高维渐近设置下的训练与泛化误差时间路径。</td><td>不能把其特定假设下的结果当成 D2 所有有限样本任务的保证。</td></tr>
 <tr><th scope="row"><a href="https://www.jmlr.org/papers/volume15/raskutti14a/raskutti14a.pdf">Raskutti、Wainwright、Yu，2014</a></th><td>3.1 节、式（4）–（6）：基于数据谱和噪声水平的早停规则，无需独立验证集。</td><td>统计误差保证不等于准确命中每条曲线的最佳整数步。</td></tr>
 </tbody></table></div>
 <p class="note">固定 5% 预算与本轮变化评分是实验设计选择，没有“5% 必然足够”的定理。当前检索未找到完全相同的实验，不等于确认首次提出；旧“文献深度确认”页只是摘要级历史对照。</p>
-<p class="refs">本页只整理已保存结果，没有新增实验。两轮预注册均早于计算；本次发布前再次按结果清单校验导出文件。完整曲线重建最大归一化差为 7.8×10⁻¹¹；4320 个掩码已核对，另有 96 次独立特征空间核验。</p>
+@@CONTINUOUS_EVIDENCE@@
+<p class="refs">本次页面更新没有新开实验。历史两轮消融及最新六轮各有早于计算的预注册；发布前按结果清单校验保存产物，完整精度、失败和来源留在证据中。以下数值核验概述针对历史消融：完整曲线重建最大归一化差为 7.8×10⁻¹¹；4320 个掩码已核对，另有 96 次独立特征空间核验。</p>
 <div class="table-wrap"><table><thead><tr><th>证据</th><th>直接查看</th></tr></thead><tbody>
 <tr><th scope="row">2026-10-09 原 D2</th><td><a href="d2_evidence_20261009/report.md">历史报告</a> · <a href="d2_evidence_20261009/summary.json">完整汇总</a></td></tr>
 <tr><th scope="row">2026-10-27 对角消融</th><td><a href="d2_evidence_20261028/diagonal_summary.json">完整汇总</a> · <a href="d2_evidence_20261028/diagonal_independent_audit.json">独立代理审计</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/tree/d2796a484712fc95268c2400a6d85d5cf121163c/research/d2_diagonal_20261027">预注册与源码</a></td></tr>
@@ -189,8 +201,12 @@ def main():
 <tr><th scope="row">第 1 步／255 步例子</th><td><a href="d2_evidence_20261028/focus_case.json">逐项计算</a> · <a href="d2_evidence_20261028/focus_curves.npz">保存的曲线数组</a></td></tr>
 <tr><th scope="row">网页与图表来源</th><td><a href="d2_evidence_20261028/export_manifest.json">原件哈希与发布清单</a> · <a href="https://github.com/guoshaoyang-pku/science-of-ai-prototype/tree/main/research/d2_web_20261028">页面与绘图源码</a></td></tr>
 </tbody></table></div>
-</section><footer class="stamp">更新于 2026-10-29 · 原广义预测主张已被推翻 · 固定特征回归 · 已观察数据上的研究结果 · 完整精度保留在 JSON 证据中</footer>
+</section><footer class="stamp">更新于 2026-11-06 · 六轮机制研究已审计 · 原广义预测主张仍被推翻 · 固定特征回归 · 已观察数据上的研究结果 · 完整精度保留在 JSON 证据中</footer>
 </main></body></html>'''
+    template=template.replace('@@CONTINUOUS_SECTIONS@@', (Path(__file__).with_name('continuous_sections.html')).read_text())
+    template=template.replace('@@CONTINUOUS_EVIDENCE@@', (Path(__file__).with_name('continuous_evidence.html')).read_text())
+    import re
+    template=re.sub(r'<span class="section-index">\d+</span>', '', template)
     rendered=template.replace('@@MAIN_ROWS@@',''.join(main_rows)).replace('@@RANDOM_ROWS@@',random_rows).replace('@@TASK_ROWS@@',''.join(task_rows))
     assert '@@' not in rendered
     (WEB / 'D2_overfitting_u_curve.html').write_text(rendered)

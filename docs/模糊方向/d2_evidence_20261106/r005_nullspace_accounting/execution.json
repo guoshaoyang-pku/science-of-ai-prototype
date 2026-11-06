@@ -1,0 +1,61 @@
+{
+  "status": "complete",
+  "started_at": "2026-11-04T02:46:44.600644+00:00",
+  "commit": "251513bb1eca11f6cc3c3aeba063085933d92d72",
+  "source_hashes": {
+    "research/d2_continuous_20261103/r005_nullspace_accounting/run.py": "8efa280a9173da38e4333c98a728a09f814cf2567d9f07b75c26c88396e531f8",
+    "research/d2_continuous_20261103/r005_nullspace_accounting/preregistration.json": "e88ac3b1daf077428c1a0875947596a542175ee06b1e6b6720b701718d1fe3e0",
+    "research/d2_continuous_20261103/r005_nullspace_accounting/formulation.md": "88cd2ea22561cec9c792af6ad283a0c15ca3628f3ae0e9341cae9ee05e8ced76",
+    "research/d2_continuous_20261103/r004_representable_target/result_manifest.json": "e6cd6336567b41a7da3eed12969c56185ccef74faf8fe7786a16fd74c5da1568",
+    "research/d2_continuous_20261103/r003_population_risk/run.py": "32f49d38b9806cd6f7a1106bc6a31b51682be09b7e9759d524706549d6c7a8e6",
+    "research/d2_continuous_20261103/r003_population_risk/preregistration.json": "0be49fd13e487853effa9e7115ef4bf243d54c31d766642e1874792c8c93777f",
+    "research/d2_continuous_20261103/r003_population_risk/formulation.md": "4a31be0567851a9df5b286288d50b33b8ae5191ae060e6c8e5bb660ca39b21a0"
+  },
+  "spec": {
+    "round_id": "r005_nullspace_accounting",
+    "authorization": "2026-11-03 continuous D2 loop; one local CPU round this heartbeat; no publishing",
+    "status_at_registration": "not_started",
+    "question": "r004留下的5个回升见证，是否都是可学习误差下降却失去与训练样本不可辨认部分的负抵消？",
+    "output_root": "/Users/mapleandrew/meta_circle/Science_of_AI_Textbook/AIQ_KB_DATA/runs/d2_continuous_20261103",
+    "input_root": "/Users/mapleandrew/meta_circle/Science_of_AI_Textbook/AIQ_KB_DATA/imports/d2_handoff_20261009",
+    "previous_round": "r004_representable_target",
+    "conditions": 5,
+    "selection": "Exactly all5 r004 witness=true rows, frozen teachers/beta/time/normalization. Store full54 previous ledger. No new seeds/tasks/times, all development.",
+    "primary_hypothesis": "All5 satisfy delta_row<−tol, cross_early<−tol, cross_late<−tol, delta_cross>|delta_row|+original_material_threshold+tol. tol=1e−10*max(1,old_R0), original threshold=1e−6*old_R0. Each margin>tol confirms, any margin<−tol refutes that condition, remaining threshold-near cases are undetermined; numeric failures force undetermined. All5 confirmed supports; any refuted rejects all5 prediction; otherwise inconclusive. No post-hoc loosening to cross sign flips.",
+    "numerical_tolerance": 1e-10,
+    "effect_fraction": 1e-06,
+    "decomposition": "Direct SVD of saved Phi, tau=eps64*max(shape)*largest singular value, P=Vr Vr^T, b_row=P b*, b_null=b*−b_row. e_row=beta−b_row; R=R_row+R_null+cross, R_row=e_row^T Q e_row, R_null=b_null^T Q b_null, cross=−2e_row^T Q b_null. delta_total=delta_row+delta_cross. Keep all signed values.",
+    "rank_gates": "Save all singular values/tau/rank/gap, require retained/discarded gap>1e6. Full complement is I−P, not thin-SVD tail vectors. Verify paired ±train inputs, zero hidden bias, rank of positive half input=4, observed rank=n/2+4. Independently rebuild60decimal exact raw ReLU features and structural row basis: n/2 even pair means plus4 columns of W/s (constant0). Its Gram solve yields independent row projection, without old active eigencutoff. Verify original float center/scale, labels/Phi*b_null, projectors and beta row membership.",
+    "identity_gates": "Same target g and g_row training labels maxdiff <=1e−10 max(1,maxabslabels). Reconstruct full uncut Gram GD for both labels at frozen endpoints using symmetric dual-Gram response with continuous zero-eigenvalue limit; compare coefficients/risks against saved beta, retain numerical uncertainty if risk mismatches>tol or coefficients>1e−8. Do NOT require g and g_row population risk equal; require their difference change equals delta_cross. Direct GD both labels at0/1/32/256/2000 checks training/trajectory equality. Highprecision structural projection and population Q recalculate all components; float64 differences>tol force undetermined. No clipping/PSD repairs.",
+    "direct_steps": [
+      0,
+      1,
+      32,
+      256,
+      2000
+    ],
+    "eta": 0.3,
+    "secondary": "Per-condition categories: negative_cancellation_weakens; cancellation_turns_positive; positive_cross_term; row_itself_worsens; near_zero_or_other; numerical_undetermined. Report category without turning it into primary success. No contribution percentages, no dropping denominator failures. R_null, all endpoints, signed deltas and changed population target are explicit.",
+    "domain": "Five previously selected development witnesses only, coordinate-dependent risk accounting and identifiability control. g_row changes population target while matching training information. Not a training intervention or original-task repair; not universal mechanism. Analytic decomposition/structural rank are facts, classification is numerical measurement.",
+    "compute_seconds": 1800,
+    "cpu_threads": 1,
+    "gpu": false,
+    "paid_models": false,
+    "failure": "Exclusive lock, no overwrites, preserve failures. Source/hash/nonfinite/structural rank inconsistency stops whole round with full frozen ledger; finite condition accuracy failures remain undetermined in denominator5. Changed execution requires amendment commit."
+  },
+  "numpy_version": "2.5.4",
+  "mpmath_version": "1.3.0",
+  "input_hashes": {
+    "evidence/d2_scaling_20261009/studies/n_sigma_tasks/results/d4_homogeneous_n32_seed6101_data.npz": "2e51e18a5b3f34c37ef300260522b5c086dd51af6dfa26ed3bf61367a0c5e901",
+    "evidence/d2_scaling_20261009/studies/n_sigma_tasks/results/d4_homogeneous_n32_seed6102_data.npz": "75e963da584f43640d93f66198d83aa6775ffb76449021b6cda59da412f9ec4c",
+    "evidence/d2_scaling_20261009/studies/n_sigma_tasks/results/d4_homogeneous_n32_seed6103_data.npz": "521a85e06de100820d1647ae81f17bcc917342449fb3e7e9cfd54359d261547a",
+    "evidence/d2_scaling_20261009/studies/n_sigma_tasks/results/d4_homogeneous_n64_seed6101_data.npz": "e9e199acc4ab331af42b853ea44f4153d21c129bc02cf8a0c1fb3829ed1473e8",
+    "evidence/d2_scaling_20261009/studies/n_sigma_tasks/results/d4_homogeneous_n64_seed6102_data.npz": "093dfe4c2c8a8dd734f2ec9fd5e76ab40c7f631c676935f53e0f4672cdec63ea",
+    "evidence/d2_scaling_20261009/studies/n_sigma_tasks/results/d4_homogeneous_n64_seed6103_data.npz": "098cd8d3be465ae6039c11a0827fcfea7d9f2e5bfd2fdf4e8916e37e07836f11",
+    "evidence/d2_scaling_20261009/studies/n_sigma_tasks/results/d4_homogeneous_n128_seed6101_data.npz": "f62d4d8e4a03194aabaa5298cb4bc72076e0f8f95b85f28fe1ad8432a4dd0e96",
+    "evidence/d2_scaling_20261009/studies/n_sigma_tasks/results/d4_homogeneous_n128_seed6102_data.npz": "3a0fb32744829882f3330602466b9b05431c852798a04fbc5b7270841b946890",
+    "evidence/d2_scaling_20261009/studies/n_sigma_tasks/results/d4_homogeneous_n128_seed6103_data.npz": "a2c473b5f0dbeded629397c97c03ef150babe17c298b6529c3eac04527b17dbc"
+  },
+  "finished_at": "2026-11-04T02:46:47.126092+00:00",
+  "wall_seconds": 2.6445069999899715
+}
