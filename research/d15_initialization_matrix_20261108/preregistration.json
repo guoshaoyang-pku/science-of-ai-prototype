@@ -1,0 +1,190 @@
+{
+  "id": "d15_initialization_matrix_20261108",
+  "date": "2026-11-08",
+  "status": "frozen_before_training",
+  "authorization": "User asks autonomous D15 exploration and clear comprehensive variable matrix, charts preferred.",
+  "source_files": [
+    "design.py",
+    "engine.py",
+    "run.py",
+    "preregistration.json"
+  ],
+  "compute": {
+    "device": "CPU",
+    "dtype": "float64",
+    "threads": 1,
+    "steps": 512,
+    "n_train": 64,
+    "n_validation": 256,
+    "input_dim": 8,
+    "batch_limit": 48,
+    "optimizer": {
+      "sgd": "no momentum or decay",
+      "adam": {
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "epsilon": 1e-8,
+        "weight_decay": 0
+      }
+    },
+    "lr_sgd": [
+      0.01,
+      0.05
+    ],
+    "lr_adam": [
+      0.001,
+      0.005
+    ]
+  },
+  "rounds": [
+    {
+      "id": "r001",
+      "question": "How do 20 prespecified initialization structures change optimization and validation response across 3 tasks and 3 activations?",
+      "paths": 2880,
+      "seeds": [
+        9301,
+        9302,
+        9303,
+        9304
+      ],
+      "architecture": "plain",
+      "depth": 4,
+      "width": 16,
+      "condition": 1,
+      "profiles": "all 20 in design.PROFILES",
+      "hypothesis": "Front-loaded initialization is universally preferable to back-loaded within this registered grid.",
+      "criterion": "Support universal superiority only if median paired final validation loss front/back <=0.95 AND at least 3/4 paired seeds improve in every task x activation x optimizer x learning-rate context; otherwise refuted/mixed; failures retained."
+    },
+    {
+      "id": "r002",
+      "question": "Does the response to six fixed initialization structures persist when architecture, depth, width and input spectrum vary?",
+      "paths": 7776,
+      "seeds": [
+        9401,
+        9402,
+        9403
+      ],
+      "tasks": [
+        "linear",
+        "relu_teacher",
+        "interaction"
+      ],
+      "activation": "relu",
+      "architectures": [
+        "plain",
+        "residual_hidden",
+        "layernorm_hidden"
+      ],
+      "depth": [
+        2,
+        4,
+        6
+      ],
+      "width": [
+        8,
+        16
+      ],
+      "condition": [
+        1,
+        10
+      ],
+      "profiles": [
+        "uniform",
+        "front",
+        "back",
+        "alternating",
+        "head_zero",
+        "zas_embed"
+      ],
+      "selection": "frozen independently of r001 outcomes",
+      "criterion": "Report paired improvement direction, win fractions, baseline-normalized final MSE and threshold success; no general superiority claim from pooled cells."
+    },
+    {
+      "id": "r003",
+      "question": "How do depth trend, alternation and global scale jointly affect responses under fixed architecture?",
+      "paths": 2916,
+      "seeds": [
+        9501,
+        9502,
+        9503
+      ],
+      "tasks": [
+        "linear",
+        "relu_teacher",
+        "interaction"
+      ],
+      "activation": [
+        "linear",
+        "relu",
+        "tanh"
+      ],
+      "architecture": "plain",
+      "depth": 4,
+      "width": 16,
+      "condition": 1,
+      "alpha": [
+        -1,
+        0,
+        1
+      ],
+      "beta": [
+        -0.7,
+        0,
+        0.7
+      ],
+      "global_scale": [
+        0.3,
+        1,
+        3
+      ],
+      "baseline": "alpha=beta=0 global_scale=1 with same seed/context",
+      "criterion": "Display full surfaces including failure counts; grid minima are development descriptions, not validated recommendations."
+    }
+  ],
+  "tasks": {
+    "linear": "fixed per-draw random unit linear direction",
+    "relu_teacher": "fixed per-draw 16-unit random ReLU teacher without bias",
+    "interaction": "x0*x1",
+    "inputs": "paired Gaussian inputs shared across target tasks; covariance diagonal geomspace(1,1/condition,8)",
+    "normalization": "targets divided by training RMS only; same scaling on validation; no centering",
+    "validation_role": "development diagnostics; not a final benchmark test or independent method-selection confirmation"
+  },
+  "initialization": {
+    "base": "independent N(0,1/fan_in) per weight element, common base seed per depth/width/draw",
+    "positive_profiles": "center logarithmic layer scales; product of positive multipliers=1 except overall scale s0",
+    "zas_embed": "rectangular identity first projection and square internal identity, final zero; not identical to original square-output theorem",
+    "zero_controls": "exact first/middle/head/two_zero separate from head_near_zero=0.001",
+    "identity_random": "(I+G)/sqrt2 re-normalized to baseline per-layer Frobenius norm",
+    "baseline": "uniform under exact same context and seed"
+  },
+  "metrics": {
+    "primary": "paired final validation MSE ratio against baseline, median across seeds; all failure counts explicit",
+    "secondary": [
+      "absolute terminal train/validation MSE",
+      "first integer-step train MSE<=0.1 and <=0.01; -1 never hit",
+      "initial layer gradients and all-zero flag",
+      "nonfinite failure kind/step",
+      "initial function difference from uniform",
+      "terminal parameter/output change",
+      "linear least-squares training floor"
+    ],
+    "nonfinite": "not dropped; failed paths cannot be counted as wins; conservative paired ratio=+infinity when candidate fails and baseline finite; ratios unavailable if baseline fails",
+    "floors": "known linear least-squares floor only for plain+linear; no floor claim for nonlinear models",
+    "uncertainty": "seed-level values available; do not interpret small seed counts as precise population confidence"
+  },
+  "safety": {
+    "new_raw_root": "AIQ_KB_DATA_ROOT/runs/d15_initialization_matrix_20261108",
+    "history": "existing 5184-path layer-scale transfer not rerun; all old evidence untouched",
+    "restarts": "only hash-verified completed batches skipped, never overwritten",
+    "no_solver_or_external_models": true,
+    "no_architectureiq_or_test_access": true,
+    "dirty_index": "independent worktree shares repository but preserves user's index"
+  },
+  "audit": {
+    "before": "independent scalar PyTorch tests; source hashes compared to preregistration Git commit before training",
+    "after": "all saved batch hashes and denominators, source commit chronology; independent final-forward and initial-grad recomputation; recompute all public summaries from saved arrays",
+    "scope": "synthetic development grid; seed is replication, not new task"
+  }
+}
