@@ -1,0 +1,160 @@
+{
+  "source_catalog": "../d1_scaling_exploration_20261107/factor_catalog.json",
+  "transferred_controls": {
+    "neural_depth": {
+      "id": "neural_depth",
+      "label": "训练层数/因子数",
+      "category": "模型参数化",
+      "rounds": [
+        "later_neural"
+      ],
+      "suggested_levels": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "unit": "含输出层的可训练线性因子数",
+      "intervention_quality": "条件干预，优先保持初始端到端函数",
+      "hold_fixed": [
+        "输入任务",
+        "函数初值协议",
+        "优化器",
+        "训练预算"
+      ],
+      "derived_changes_or_metrics": [
+        "layer_gradient_norms",
+        "Jacobian_spectrum",
+        "kernel_drift",
+        "balancedness"
+      ],
+      "caution": "多层无激活网络关于输入仿射，对全部因子联合的损失通常非二次。",
+      "r001_status": "later_proposal",
+      "r002_status": "implemented_verified",
+      "r002_scope": "2/4 weight layers; two trainable identity factors inserted"
+    },
+    "neural_width": {
+      "id": "neural_width",
+      "label": "隐藏宽度",
+      "category": "模型参数化",
+      "rounds": [
+        "later_neural"
+      ],
+      "suggested_levels": [
+        16,
+        64,
+        128,
+        256
+      ],
+      "unit": "每层隐藏单元数",
+      "intervention_quality": "条件干预，宽度同时改变冗余和初始化尺度",
+      "hold_fixed": [
+        "深度",
+        "数据",
+        "初始化与函数尺度约定"
+      ],
+      "derived_changes_or_metrics": [
+        "parameter_count",
+        "k_nonzero",
+        "J0_spectrum",
+        "effective_dimension"
+      ],
+      "caution": "不应只把√参数数导致的位移变化称学习规律；宽度改变函数初值时必须记录。",
+      "r001_status": "later_proposal",
+      "r002_status": "implemented_verified",
+      "r002_scope": "8/32 hidden units"
+    },
+    "activation": {
+      "id": "activation",
+      "label": "隐藏激活",
+      "category": "模型类",
+      "rounds": [
+        "later_neural"
+      ],
+      "suggested_levels": [
+        "Identity",
+        "ReLU",
+        "tanh",
+        "SiLU"
+      ],
+      "unit": "函数族",
+      "intervention_quality": "可以只换激活，但初始函数和g0随之改变",
+      "hold_fixed": [
+        "逐层Linear初值",
+        "teacher",
+        "数据",
+        "优化器"
+      ],
+      "derived_changes_or_metrics": [
+        "L0",
+        "G",
+        "class_floor",
+        "activation_pattern_drift"
+      ],
+      "caution": "去激活不是把所有其它条件都固定；需区分权重配对与函数初值配对两种协议。",
+      "r001_status": "later_proposal",
+      "r002_status": "implemented_verified",
+      "r002_scope": "identity or one ReLU hidden layer"
+    },
+    "layer_gauge": {
+      "id": "layer_gauge",
+      "label": "函数不变的层间互逆缩放",
+      "category": "模型参数化",
+      "rounds": [
+        "later_neural"
+      ],
+      "suggested_levels": [
+        0.1,
+        1,
+        10
+      ],
+      "unit": "相邻层scale c与1/c",
+      "intervention_quality": "对深线性或正齐次ReLU可作干净同函数干预",
+      "hold_fixed": [
+        "端到端函数",
+        "数据",
+        "噪声",
+        "参数衰减约定"
+      ],
+      "derived_changes_or_metrics": [
+        "layer_norms",
+        "gradient_balance",
+        "Jacobian_spectrum",
+        "relative_displacement"
+      ],
+      "caution": "有bias时须一并按函数等价规则缩放；归一化层、衰减或非齐次激活会破坏该等价。",
+      "r001_status": "later_proposal",
+      "r002_status": "implemented_verified",
+      "r002_scope": "positive c=.1/1/10, first and final weight scales compensated"
+    },
+    "teacher_family": {
+      "id": "teacher_family",
+      "label": "任务的可表示函数成分",
+      "category": "模型任务",
+      "rounds": [
+        "later_neural"
+      ],
+      "suggested_levels": [
+        "affine",
+        "one_hidden_ReLU",
+        "mixed_affine_plus_nonlinear"
+      ],
+      "unit": "函数族及预定混合系数",
+      "intervention_quality": "条件可控，需单独保持目标方差或明确其变化",
+      "hold_fixed": [
+        "输入分布",
+        "训练样本",
+        "student模型类"
+      ],
+      "derived_changes_or_metrics": [
+        "representability_floor",
+        "signal_energy_by_component",
+        "L0"
+      ],
+      "caution": "不能将表达残差导致的不可达阈值记成优化器预测误差。",
+      "r001_status": "later_proposal",
+      "r002_status": "implemented_verified",
+      "r002_scope": "linear or one-hidden ReLU teacher"
+    }
+  }
+}

@@ -1,0 +1,58 @@
+<section id="d15-results" aria-labelledby="matrix-title">
+  <h2 id="matrix-title">初始化结构 × 任务与训练条件</h2>
+  <p class="matrix-intro">每格比较同条件、同 seed 的均匀初始化。验证 MSE 越低越好。</p>
+  <div class="matrix-counts" aria-label="实验覆盖">
+    <div><strong id="path-count">—</strong><span>保存路径</span></div>
+    <div><strong id="cell-count">—</strong><span>条件单元格</span></div>
+    <div><strong id="nonfinite-count">—</strong><span>非有限路径</span></div>
+    <div><strong id="zero-count">—</strong><span>初始梯度全零</span></div>
+  </div>
+  <p id="front-verdict" class="matrix-verdict">前大后小的普适优势：等待保存结果</p>
+  <p class="matrix-help">仅限该冻结网格；近零误差的比值另标 †。</p>
+  <div class="matrix-controls" aria-label="筛选实验矩阵">
+    <label>实验轮次<select id="matrix-round"><option value="r001">① 20 类初始化</option><option value="r002">② 架构／深度／宽度</option><option value="r003">③ α／β／整体尺度</option></select></label>
+    <label>任务<select id="matrix-task"><option value="all">全部任务</option><option value="linear">线性目标</option><option value="relu_teacher">ReLU 教师</option><option value="interaction">交互 x₁x₂</option></select></label>
+    <label>学生激活<select id="matrix-activation"><option value="relu">ReLU</option><option value="linear">线性</option><option value="tanh">tanh</option></select></label>
+    <label>优化器<select id="matrix-optimizer"><option value="all">SGD 与 Adam</option><option value="sgd">SGD</option><option value="adam">Adam</option></select></label>
+    <label>学习率档位<select id="matrix-rate"><option value="0">低：SGD .01／Adam .001</option><option value="1">高：SGD .05／Adam .005</option></select></label>
+    <label>输入条件数<select id="matrix-condition"><option value="1">1</option><option value="10">10</option></select></label>
+    <label class="matrix-metric-control">显示指标<select id="matrix-metric"><option value="comparison">相对验证 MSE；近零基线显示绝对值†</option><option value="ratio">原始验证 MSE 比值</option><option value="absoluteval">绝对验证 MSE</option><option value="hit">训练达标数／种子数</option><option value="zero">初始梯度全零数／种子数</option><option value="failure">非有限数／种子数</option></select></label>
+  </div>
+  <p id="matrix-context" class="matrix-context" aria-live="polite"></p>
+  <div id="matrix-legend" class="matrix-legend"><span class="legend-swatch legend-low"></span>≤0.25× <span class="legend-swatch legend-mid"></span>1× <span class="legend-swatch legend-high"></span>≥4× <span>颜色按 log₂；数值不截断</span></div>
+  <p class="matrix-help">达标 = 512 步内<strong>曾达到</strong>训练 MSE ≤ 0.1，不代表终点保持或最终有限。† 基线至少一个 seed 的验证 MSE ≤ 10⁻¹⁰，默认显示绝对 MSE、中性色；点击可查看原始比值。∞：保守中位数含发散；N/A：基线失败或缺失。达标、非有限、全零梯度均保留分母。</p>
+  <div id="matrix-scroll" class="matrix-scroll" tabindex="0" aria-label="实验矩阵，可横向滚动"><table id="matrix-table"><caption id="matrix-caption">初始化实验结果矩阵</caption><thead></thead><tbody></tbody></table></div>
+  <details id="matrix-cell-detail"><summary>单元格明细 <span id="matrix-detail-title">— 点击矩阵中的数值</span></summary><div id="matrix-detail-content"></div></details>
+  <details class="matrix-settings"><summary>覆盖与设置</summary>
+    <div class="matrix-small-scroll"><table><thead><tr><th>轮次</th><th>变化自由度</th><th>路径</th><th>每格种子数</th></tr></thead><tbody>
+      <tr><td>r001</td><td>20 初始化 × 3 任务 × 3 激活 × 2 优化器 × 2 学习率</td><td>2,880</td><td>4</td></tr>
+      <tr><td>r002</td><td>6 初始化 × 3 任务 × 3 架构 × 3 深度 × 2 宽度 × 2 优化器 × 2 学习率 × 2 输入条件数</td><td>7,776</td><td>3</td></tr>
+      <tr><td>r003</td><td>3 任务 × 3 激活 × 2 优化器 × 2 学习率 × 3 α × 3 β × 3 整体尺度</td><td>2,916</td><td>3</td></tr>
+    </tbody></table></div>
+    <p>共同设置：输入维数 8；训练／验证 64／256；目标按训练 RMS 归一为 1，无标签噪声；全批量 512 步，float64，单线程 CPU，无 bias。SGD 无动量；Adam β₁=.9、β₂=.999、ε=10⁻⁸，无 weight decay。验证数据是 development 诊断，不是最终 benchmark test。</p>
+    <p>r001／r003：串联、4 权重层、宽度 16、输入条件数 1。r002：ReLU；深度 2／4／6，宽度 8／16；LayerNorm 无仿射、ε=10⁻⁵。中层残差只作用于内部方形层，<strong>深度 2 时没有内部层，实际为线性模型</strong>。</p>
+    <p>基线：r001／r002 为同条件均匀初始化；r003 为 α=β=0、整体尺度 s₀=1。主值是逐 seed 验证 MSE 比值的中位数；候选非有限计入 ∞，基线非有限计为 N/A，不删除失败。全零梯度与非有限是不同状态。</p>
+    <p>线性串联模型的最小二乘训练地板 &gt;0.1 时标“不可达”；其他模型不声称已知地板。ZAS-embed 使用矩形单位嵌入、内部单位矩阵、末层零，<strong>不是原论文方形输出定理的直接复现</strong>。网格最优值只是开发条件描述。</p>
+  </details>
+  <details class="matrix-settings"><summary>初始化构造</summary>
+    <p>正尺度构造先生成逐层对数尺度 z，再减去层平均并取指数；r001／r002 的正尺度乘积为 1。下面编号 l 从 1 到 L，位置 p 从 −1 均匀增加到 +1。</p>
+    <div class="matrix-small-scroll"><table><thead><tr><th>构造</th><th>实际规则</th></tr></thead><tbody>
+      <tr><td>均匀</td><td>所有层尺度 1；基准元素为 N(0,1/fan-in)</td></tr>
+      <tr><td>前大后小／前小后大</td><td>z=−p／+p</td></tr>
+      <tr><td>偶数层大／奇数层大</td><td>z=±0.7(−1)ˡ</td></tr>
+      <tr><td>沙漏形／中间大</td><td>z=±2|p|</td></tr>
+      <tr><td>前半大／后半大</td><td>前后两半 z=±ln2，反向对照交换符号</td></tr>
+      <tr><td>单层近零／稀疏近零</td><td>单层／每三层的第二层乘以 .1，再统一对数居中</td></tr>
+      <tr><td>等比递减</td><td>相邻层原始尺度比 .5，再对数居中</td></tr>
+      <tr><td>三层周期</td><td>z=0.7cos(2πl/3)</td></tr>
+      <tr><td>单位＋随机</td><td>(I+G)/√2，再匹配每层基准 Frobenius 范数；I 为矩形单位嵌入</td></tr>
+      <tr><td>末层／首层／中层精确零</td><td>仅指定层置零，其余用基准权重</td></tr>
+      <tr><td>首末双零</td><td>首层和末层同时精确置零</td></tr>
+      <tr><td>ZAS 矩形嵌入</td><td>前层单位嵌入，内部单位矩阵，末层零</td></tr>
+      <tr><td>末层 ×.001</td><td>末层基准矩阵乘 .001，其余不变</td></tr>
+      <tr><td>α／β／s₀ 网格</td><td>z=αp+β(−1)ˡ；尺度 s₀exp(z−mean(z))。α∈{−1,0,1}，β∈{−.7,0,.7}，s₀∈{.3,1,3}</td></tr>
+    </tbody></table></div>
+  </details>
+  <details class="matrix-settings"><summary>保存结果、协议与审计</summary><p>预注册 <code>25981bf</code> 早于训练。<a href="../../research/d15_initialization_matrix_20261108/preregistration.json">预注册</a> · <a href="../../research/d15_initialization_matrix_20261108/summary.json">完整精度摘要</a> · <a href="../../research/d15_initialization_matrix_20261108/cells.json">全部矩阵单元格</a> · <a href="../../research/d15_initialization_matrix_20261108/case_metrics.csv">逐路径 CSV</a> · <a href="../../research/d15_initialization_matrix_20261108/verification.json">独立审计</a> · <a href="../../research/d15_initialization_matrix_20261108/README.md">复算入口</a>。</p><p><a href="D15_layer_scale_transfer.html">旧实验：保持初始函数的层间尺度变换</a>，保存产物未重跑。</p></details>
+  <div id="matrix-figures" aria-label="原尺寸可导出矩阵"></div>
+</section>
